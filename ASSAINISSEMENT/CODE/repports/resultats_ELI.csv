@@ -1,0 +1,16 @@
+id_troncon;type_section;surface_cumulee;c_moyen_cumule;tc_final_min;q_max_m3s;diametre_retenu_mm;hauteur_retenue_m;largeur_m;vitesse_ms;statut
+T_1;rectangulaire;152.19;0.83;5.0;1.093;0;0.6;0.5;3.64;OK (Vitesse forte)
+T_2;rectangulaire;152.19;0.83;5.0;1.093;0;0.3;0.5;7.29;OK (Vitesse forte)
+T_3;rectangulaire;232.89;0.8;5.0;1.6;0;0.8;0.5;4.0;OK (Vitesse forte)
+T_4;rectangulaire;232.89;0.8;5.0;1.6;0;0.8;0.5;4.0;OK (Vitesse forte)
+T_6;rectangulaire;385.08;0.81;7.35;2.435;0;2.0;0.5;2.43;OK (Vitesse forte)
+T_7;rectangulaire;101.98;0.81;5.0;0.707;0;0.4;0.5;3.53;OK (Vitesse forte)
+T_8;rectangulaire;589.04;0.81;9.08;3.453;0;2.0;0.5;3.45;OK (Vitesse forte)
+T_9;rectangulaire;487.06;0.81;5.63;3.303;0;1.5;0.5;4.4;OK (Vitesse forte)
+T_10;rectangulaire;1178.08;0.81;11.05;6.417;0;3.0;0.5;1.65;Débit trop élevé (6.417 m³/s). La plus grande section disponible est dépassée.
+T_11;rectangulaire;334.87;0.8;5.34;2.271;0;1.2;0.5;3.79;OK (Vitesse forte)
+T_12;rectangulaire;1614.93;0.81;11.83;8.529;0;2.0;0.5;3.38;Débit trop élevé (8.529 m³/s). La plus grande section disponible est dépassée.
+T_13;rectangulaire;101.98;0.81;5.0;0.707;0;0.5;0.5;2.83;OK (Vitesse forte)
+T_14;rectangulaire;101.98;0.81;5.0;0.707;0;0.6;0.5;2.36;OK (Vitesse forte)
+T_15;rectangulaire;101.98;0.81;5.0;0.707;0;0.8;0.5;1.77;OK
+T_5;rectangulaire;1716.91;0.81;12.41;8.884;0;4.0;0.5;4.44;OK (Vitesse forte)
