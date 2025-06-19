@@ -1,0 +1,10 @@
+ID_Poteau,largeur_b_m,hauteur_h_m,longueur_L_m,k_flambement,Nu_MN,cas_poteau,q_gauche,L_gauche,q_droite,L_droite,e_m
+P1_Rive,0.3,0.3,3.0,0.7,0.4,rive,25.0,5.0,0,0,0
+P2_Intermediaire,0.3,0.4,3.2,0.7,0.8,intermediaire,25.0,5.0,22.0,4.5,0
+P3_Compression_Pure,0.4,0.4,4.0,1.0,1.2,manuel,0,0,0,0,0
+P4_Rive_Critique,0.5,0.5,3.8,0.7,2.5,rive,45.0,6.0,0,0,0
+P5_Rectangulaire,0.25,0.5,3.0,1.0,1.0,excentre,0,0,0,0,0.20
+P1_Rive,0.3,0.3,3.0,0.7,0.4,rive,25,5.0,0,0,0
+P2_Intermediaire,0.3,0.4,3.2,0.7,0.8,intermediaire,25,5.0,22,4.5,0
+P3_Excentre,0.2,0.2,2.5,1.0,0.1,excentre,0,0,0,0,0.15
+P4_Manuel,0.5,0.5,3.5,0.5,2.5,manuel,0,0,0,0,0

@@ -1,0 +1,7 @@
+Categorie,Description,psi0,psi1,psi2
+A,Habitation/Residentiel,0.7,0.5,0.3
+B,Bureaux,0.7,0.5,0.3
+C,Lieux de reunion,0.7,0.7,0.6
+D,Commerce,0.7,0.7,0.6
+E,Stockage,1.0,0.9,0.8
+H,Toits,0,0,0

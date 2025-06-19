@@ -1,0 +1,5 @@
+id_poutre;longueur;charge_G;charge_Q;nuance_acier;fy_MPa;E_MPa;profil_recommande
+POU-01;6;5;3;S235;235;210000;IPE 200
+POU-02;8;7;4;S235;235;210000;IPE 300
+POU-03;5;10;8;S355;355;210000;IPE 220
+POU-04;12;9;2;S235;235;210000;IPE 400
