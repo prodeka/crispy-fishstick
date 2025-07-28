@@ -1,4 +1,3 @@
-
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import numpy as np
@@ -113,7 +112,8 @@ def dessiner_tableau(ax, formes):
     for f in formes:
         # On déduit la forme à partir du code, comme sur le plan
         desc = forme_descriptions.get(f.code, "N/A")
-        if f.pos == 3: desc = "Épingle" # Cas particulier pour l'épingle
+        if f.pos == 3:
+            desc = "Épingle" # Cas particulier pour l'épingle
         cell_text.append([f.pos, f.armature, f.code, desc, f'{f.longueur:.2f}'])
     
     table = ax.table(cellText=cell_text, loc='center', cellLoc='center')

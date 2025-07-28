@@ -2,10 +2,10 @@
 # Contient les fonctions pour communiquer avec l'utilisateur
 
 # --- Toutes les importations sont regroupées en haut ---
-import sys
 from datetime import datetime
 from nanostruct.utils import settings
 from colorama import Fore, Style, init
+import importlib.util
 
 # On initialise colorama une seule fois ici aussi par sécurité
 init(autoreset=True)
@@ -24,15 +24,19 @@ def display_header():
 
 def check_dependencies():
     """Vérifie si les dépendances critiques sont bien installées."""
-    try:
-        import pandas
-        import numpy
-        print(f"{Fore.GREEN}Vérification des dépendances... OK")
-        return True
-    except ImportError as e:
-        print(f"{Fore.RED}ERREUR: Dépendance critique manquante : {e.name}.")
+    required_packages = ['pandas', 'numpy']
+    missing_packages = []
+    for pkg in required_packages:
+        if importlib.util.find_spec(pkg) is None:
+            missing_packages.append(pkg)
+
+    if missing_packages:
+        print(f"{Fore.RED}ERREUR: Dépendances critiques manquantes : {', '.join(missing_packages)}.")
         print(f"{Fore.YELLOW}Veuillez lancer le programme via 'install_and_run.bat' ou './install_and_run.sh'.")
         return False
+    else:
+        print(f"{Fore.GREEN}Vérification des dépendances... OK")
+        return True
 
 def get_user_input(prompt, default_value=None, data_type=float):
     """Pose une question à l'utilisateur et gère les erreurs de saisie."""

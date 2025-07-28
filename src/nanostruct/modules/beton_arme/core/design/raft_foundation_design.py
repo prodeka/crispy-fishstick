@@ -1,7 +1,6 @@
 # PROJET_DIMENTIONEMENT/BA/core/design/raft_foundation_design.py
 
-import pandas as pd
-from utils.ui_helpers import v_print
+from nanostruct.utils.ui_helpers import v_print
 
 def design_raft_by_strip_method(poteaux_df, A, B, h, sigma_sol_adm, beton, acier):
     """
@@ -37,9 +36,6 @@ def design_raft_by_strip_method(poteaux_df, A, B, h, sigma_sol_adm, beton, acier
     # Réaction du sol (charge inversée) ultime par mètre de bande
     q_radier_ultime_par_m = (poteaux_df['P_ui'].sum() / (A * B)) * 1.0 # Pression * 1m de large
     
-    # Simplification : on considère la bande la plus chargée (autour de x=7m)
-    poteaux_bande_centrale = poteaux_df[poteaux_df['coord_x_m'] == 7.0]
-    
     # C'est un problème de poutre continue sur 3 appuis (P4, P5, P6) avec une charge q inversée.
     # Les moments sur appuis sont plus élevés. Un calcul simplifié donne : M_appui ≈ q*L²/10
     L_moyenne = 6.0 # (11-1)/2, portée moyenne entre poteaux
@@ -58,10 +54,10 @@ def design_raft_by_strip_method(poteaux_df, A, B, h, sigma_sol_adm, beton, acier
     # Aciers supérieurs (sur appuis)
     As_sup_m2_par_m = M_appui_ultime_MNm / (0.9 * d * f_su)
     # Aciers inférieurs (en travée)
-    As_inf_m2_par_m = M_travee_ultime_MNm / (0.9 * d * f_su)
+    As_inf_m2_par_m_calc = M_travee_ultime_MNm / (0.9 * d * f_su)
     
     As_sup_cm2_par_m = As_sup_m2_par_m * 10000
-    As_inf_cm2_par_m = As_inf_cm2_par_m * 10000
+    As_inf_cm2_par_m = As_inf_m2_par_m_calc * 10000
 
     return {
         "status": "OK",

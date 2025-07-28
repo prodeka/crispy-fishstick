@@ -3,7 +3,6 @@
 # -*- coding: utf-8 -*-
 import click
 import pandas as pd
-import os
 
 # --- Importations des modules de calcul ---
 from nanostruct.modules.bois.calculs.charges import calculer_sollicitations_completes
@@ -41,11 +40,13 @@ def run_acier_mode(verbose_mode):
     """Gère le dialogue interactif pour une poutre en acier."""
     click.echo(click.style("\n--- Dimensionnement Acier en FLEXION ---", fg="cyan"))
     charges_entrees, longueur = saisir_charges_flexion(verbose_mode)
-    if verbose_mode: click.echo(click.style("\nEntrez les parametres du materiau :", fg="yellow"))
+    if verbose_mode:
+        click.echo(click.style("\nEntrez les parametres du materiau :", fg="yellow"))
     nuance = click.prompt("  -> Nuance de l'acier", default="S235", show_default=verbose_mode)
     fy = click.prompt(f"  -> Limite d'elasticite (fy) de '{nuance}' en MPa", default=235, type=float, show_default=verbose_mode)
     E_module = click.prompt("  -> Module d'Young (E) en MPa", default=210000, type=float, show_default=verbose_mode)
-    if verbose_mode: click.echo("\n... Lancement des calculs ...")
+    if verbose_mode:
+        click.echo("\n... Lancement des calculs ...")
     sollicitations = calculer_sollicitations_completes(longueur, charges_entrees, 'acier', 'A', verbose=verbose_mode)
     profil_recommande = trouver_profil_acier(
         sollicitations['M_Ed'], sollicitations['V_Ed'], longueur, sollicitations['p_ser'],
@@ -64,7 +65,8 @@ def run_bois_flexion(verbose_mode):
     classe_bois = click.prompt("  -> Classe du bois (ex: C24, D30, GL24h)", default="C24")
     classe_service = click.prompt("  -> Classe de service", type=click.Choice(['classe_1', 'classe_2', 'classe_3']), default='classe_1')
     duree_charge = click.prompt("  -> Duree de la charge", type=click.Choice(['permanente', 'long_terme', 'moyen_terme', 'court_terme']), default='permanente')
-    if verbose_mode: click.echo("\n... Lancement du premier calcul de sollicitations ...")
+    if verbose_mode:
+        click.echo("\n... Lancement du premier calcul de sollicitations ...")
     sollicitations = calculer_sollicitations_completes(longueur, charges_entrees, 'bois', 'A', verbose=verbose_mode)
     while True:
         click.echo(click.style("\nEntrez les dimensions de la section a verifier :", fg="yellow"))
@@ -76,10 +78,12 @@ def run_bois_flexion(verbose_mode):
         click.echo("\n----------------------------------------------------")
         if est_valide:
             click.echo(click.style(f"✅ RESULTAT: {message} La section {b}x{h} est ADEQUATE.", fg="green", bold=True))
-            if not click.confirm("Voulez-vous verifier une autre section ?"): break
+            if not click.confirm("Voulez-vous verifier une autre section ?"):
+                break
         else:
             click.echo(click.style(f"❌ RESULTAT: {message} La section {b}x{h} n'est PAS adequate.", fg="red", bold=True))
-            if not click.confirm("Voulez-vous essayer une autre section ?"): break
+            if not click.confirm("Voulez-vous essayer une autre section ?"):
+                break
         click.echo("----------------------------------------------------")
 
 def run_bois_traction(verbose_mode):
@@ -93,7 +97,8 @@ def run_bois_traction(verbose_mode):
     classe_bois = click.prompt("  -> Classe du bois (ex: D40, C24)", default="D40")
     classe_service = click.prompt("  -> Classe de service", type=click.Choice(['classe_1', 'classe_2', 'classe_3']), default='classe_3')
     duree_charge = click.prompt("  -> Duree de la charge", type=click.Choice(['permanente', 'long_terme', 'moyen_terme', 'court_terme']), default='moyen_terme')
-    if verbose_mode: click.echo("\n... Lancement de la verification ...")
+    if verbose_mode:
+        click.echo("\n... Lancement de la verification ...")
     message, est_valide = verifier_traction_bois(
         b, h, effort_N_daN, classe_bois, classe_service, duree_charge, verbose=verbose_mode
     )
@@ -112,7 +117,8 @@ def run_batch_mode(filepath, verbose_mode):
         df_entree = pd.read_csv(filepath)
         click.echo("Fichier d'entree lu avec succes.")
     except FileNotFoundError:
-        click.echo(click.style(f"Erreur: Le fichier '{filepath}' n'a pas ete trouve.", fg="red")); return
+        click.echo(click.style(f"Erreur: Le fichier '{filepath}' n'a pas ete trouve.", fg="red"))
+        return
     liste_resultats = []
     for index, poutre in df_entree.iterrows():
         click.echo(f"\n--- Calcul pour la poutre: {poutre['id_poutre']} ---")
@@ -154,9 +160,12 @@ def main(fichier, silencieux):
         if choix_mat == 1:
             texte_menu_bois = "\nQuel type de sollicitation pour le bois ?\n  [1] Flexion (poutre)\n  [2] Traction (barre de treillis)\n"
             choix_sol = click.prompt(texte_menu_bois, type=int)
-            if choix_sol == 1: run_bois_flexion(verbose_mode)
-            elif choix_sol == 2: run_bois_traction(verbose_mode)
-            else: click.echo("Choix invalide.")
+            if choix_sol == 1:
+                run_bois_flexion(verbose_mode)
+            elif choix_sol == 2:
+                run_bois_traction(verbose_mode)
+            else:
+                click.echo("Choix invalide.")
         elif choix_mat == 2:
             run_acier_mode(verbose_mode)
         else:

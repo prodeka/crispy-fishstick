@@ -41,10 +41,12 @@ def calculer_sollicitations_completes(longueur, charges, materiau, categorie_usa
 
     elif materiau == 'bois':
         df_psi = charger_psi_coeffs()
-        if df_psi is None: raise ValueError("Fichier psi_coeffs.csv introuvable.")
+        if df_psi is None:
+            raise ValueError("Fichier psi_coeffs.csv introuvable.")
         
         psi_row = df_psi[df_psi['Categorie'] == categorie_usage]
-        if psi_row.empty: raise ValueError(f"Categorie d'usage '{categorie_usage}' non trouvee.")
+        if psi_row.empty:
+            raise ValueError(f"Categorie d'usage '{categorie_usage}' non trouvee.")
         
         psi0, psi2 = psi_row.iloc[0]['psi0'], psi_row.iloc[0]['psi2']
         

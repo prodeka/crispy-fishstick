@@ -3,8 +3,6 @@
 
 import math
 from nanostruct.utils.ui_helpers import v_print
-from nanostruct.modules.beton_arme.core.materials import Beton, Acier
-from nanostruct.modules.beton_arme.core.sections import SectionRectangulaire
 from nanostruct.modules.beton_arme.core.rebar_selector import get_rebar_proposals
 
 # ==============================================================================
@@ -21,16 +19,17 @@ def design_rectangular_column(Nu, Mu, height, k_factor, section, beton, acier):
     v_print(
         label="Données d'entrée", 
         formula="[Nu, Mu, b, h, L, k]",
-        numeric_app=f"[{Nu} MN, {Mu:.4f} MN.m, {b}m, {h}m, {height}m, k={k_factor}]",
+        numeric_app=f"[{Nu} MN, {Mu:.4f} MN.m, {b}m, {h}m, k={k_factor}]",
         result="OK"
     )
 
     # --- Calcul de l'élancement et des effets du second ordre ---
-    Lf = k_factor * height; A = b * h
+    Lf = k_factor * height
+    A = b * h
     I_min = min(b * h**3, h * b**3) / 12
     i = math.sqrt(I_min / A)
     elancement_lambda = Lf / i if i > 0 else 0
-    v_print("Élancement mécanique", "λ = Lf / i", f"{Lf:.2f} / {i:.4f}", elancement_lambda)
+    v_print("Élancement mécanique", "λ = lf / i", f"{Lf:.2f} / {i:.4f}", elancement_lambda)
 
     alpha = 1.0
     if elancement_lambda > 50:
@@ -43,7 +42,8 @@ def design_rectangular_column(Nu, Mu, height, k_factor, section, beton, acier):
     v_print("Moment de calcul", "Mu,cal = α * Mu", f"{alpha:.3f} * {Mu:.4f}", Mu_calcul_Nm/1e6, "MN.m")
     
     # --- Calcul de la section d'acier théorique ---
-    if Nu == 0: return {"status": "ERREUR", "message": "Effort normal nul."}
+    if Nu == 0:
+        return {"status": "ERREUR", "message": "Effort normal nul."}
     e_calcul = Mu_calcul_Nm / (Nu * 1e6)
     Ma_Nm = (Nu * 1e6) * (e_calcul + d - h / 2)
     f_su = acier.fe / acier.gamma_s
@@ -54,13 +54,16 @@ def design_rectangular_column(Nu, Mu, height, k_factor, section, beton, acier):
 
     # --- Vérifications réglementaires ---
     A_min_cm2 = max(4.0, 0.002 * (A * 10000))
-    A_max_cm2 = 0.05 * (A * 10000)
+    B_m2 = b * h
+    A_max_cm2 = 0.05 * (B_m2 * 10000)
     A_finale_cm2 = max(A_requise_cm2, A_min_cm2)
     v_print("Section d'acier finale", "max(As, Amin)", f"max({A_requise_cm2:.2f}, {A_min_cm2:.2f})", A_finale_cm2, "cm²")
     
-    status = "OK"; message = ""
+    status = "OK"
+    message = ""
     if A_finale_cm2 > A_max_cm2:
-        status = "ERREUR"; message = f"Section d'acier ({A_finale_cm2:.2f} cm²) dépasse le maximum ({A_max_cm2:.2f} cm²)."
+        status = "ERREUR"
+        message = f"Section d'acier ({A_finale_cm2:.2f} cm²) dépasse le maximum ({A_max_cm2:.2f} cm²)."
 
     # On génère les propositions
     proposals = get_rebar_proposals(A_finale_cm2)
@@ -83,11 +86,13 @@ def design_column_compression_bael(Nu, height, k_factor, section, beton, acier):
     Calcule la section d'acier requise par la méthode simplifiée du BAEL 91.
     Retourne un dictionnaire de résultats standardisé.
     """
-    b, h = section.b; a = min(b, h)
+    b, h = section.b, section.h
+    a = min(b, h)
     v_print("Données initiales", "[Nu, L, k]", f"[{Nu} MN, {height:.2f}m, k={k_factor:.2f}]", "OK")
 
     # --- Calcul de l'élancement et du coefficient alpha ---
-    lf = k_factor * height; i = a / math.sqrt(12)
+    lf = k_factor * height
+    i = a / math.sqrt(12)
     elancement_lambda = lf / i if i > 0 else 0
     v_print("Élancement mécanique", "λ = lf / i", f"{lf:.2f} / {i:.3f}", elancement_lambda)
     
@@ -120,12 +125,13 @@ def design_column_compression_bael(Nu, height, k_factor, section, beton, acier):
     v_print("Acier minimal (Amin)", "max(4*P, 0.2%*B)", f"max({4 * (2 * (b + h)):.2f}, {(0.2 / 100) * (B_m2 * 10000):.2f})", A_min_cm2, "cm²")
     
     A_finale_cm2 = max(A_requise_cm2, A_min_cm2)
-    v_print("Section d'acier finale", "max(As, Amin)", f"max({A_requise_cm2:.2f}, {A_min_cm2:.2f})", A_finale_cm2, "cm²")
-    
+    B_m2 = b * h
     A_max_cm2 = (5 / 100) * (B_m2 * 10000)
-    status = "OK"; message = ""
+    status = "OK"
+    message = ""
     if A_finale_cm2 > A_max_cm2:
-        status = "ERREUR"; message = f"Section d'acier ({A_finale_cm2:.2f} cm²) dépasse le maximum ({A_max_cm2:.2f} cm²)."
+        status = "ERREUR"
+        message = f"Section d'acier ({A_finale_cm2:.2f} cm²) dépasse le maximum ({A_max_cm2:.2f} cm²)."
     
     proposals = get_rebar_proposals(A_finale_cm2)
     

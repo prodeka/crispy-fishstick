@@ -13,6 +13,6 @@ def configurer_encodage():
         try:
             sys.stdout = codecs.getwriter('utf-8')(sys.stdout.buffer, 'strict')
             # print("--- Encodage reconfigure en UTF-8 ---") # Optionnel
-        except:
+        except Exception:
             # Si ça ne marche pas, on continue sans planter.
             pass

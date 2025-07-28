@@ -1,5 +1,3 @@
-import math
-
 BAR_LIBRARY = {
     6: 0.28, 8: 0.50, 10: 0.79, 12: 1.13, 14: 1.54,
     16: 2.01, 20: 3.14, 25: 4.91, 32: 8.04, 40: 12.57,
@@ -13,7 +11,8 @@ def get_rebar_proposals(required_area_cm2, num_proposals=4, min_bars=4):
 
     # --- 1. Générer les propositions à DIAMÈTRE UNIQUE ---
     for diameter_mm, area_cm2 in BAR_LIBRARY.items():
-        if diameter_mm < 8: continue
+        if diameter_mm < 8:
+            continue
         for num_bars in range(min_bars, 17, 2): # [4, 6, ..., 16]
             provided_area = num_bars * area_cm2
             if provided_area >= required_area_cm2:
@@ -29,13 +28,16 @@ def get_rebar_proposals(required_area_cm2, num_proposals=4, min_bars=4):
     # --- 2. Générer les propositions à DIAMÈTRES MIXTES ---
     # Règle : 4 grosses barres dans les coins + N petites barres sur les faces.
     for corner_diam, corner_area in BAR_LIBRARY.items():
-        if corner_diam < 12: continue # Les barres de coin doivent être assez grosses
+        if corner_diam < 12:
+            continue # Les barres de coin doivent être assez grosses
 
         for face_diam, face_area in BAR_LIBRARY.items():
             # Règle : les barres de face sont plus petites ou égales aux barres de coin
-            if face_diam > corner_diam: continue
+            if face_diam > corner_diam:
+                continue
             # Règle : on ne mélange pas des diamètres trop différents
-            if face_diam < corner_diam / 2: continue
+            if face_diam < corner_diam / 2:
+                continue
 
             # On commence avec 4 barres de coin
             current_area = 4 * corner_area

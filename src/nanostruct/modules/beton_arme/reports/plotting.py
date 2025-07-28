@@ -5,7 +5,6 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import os
 import math
-from collections import defaultdict
 import numpy as np
 
 # ==============================================================================
@@ -16,15 +15,19 @@ def _get_bar_positions(b, h, enrobage, num_bars):
     """
     Calcule des positions symétriques et réalistes pour les barres.
     """
-    if num_bars < 4: return [], []
+    if num_bars < 4:
+        return [], []
     
     positions = set()
     # 1. Placer les 4 barres de coin
-    positions.add((enrobage, enrobage)); positions.add((b - enrobage, enrobage))
-    positions.add((enrobage, h - enrobage)); positions.add((b - enrobage, h - enrobage))
+    positions.add((enrobage, enrobage))
+    positions.add((b - enrobage, enrobage))
+    positions.add((enrobage, h - enrobage))
+    positions.add((b - enrobage, h - enrobage))
     
     bars_to_place = num_bars - 4
-    if bars_to_place == 0: return sorted(list(positions)), []
+    if bars_to_place == 0:
+        return sorted(list(positions)), []
 
     # 2. Répartir les barres restantes sur les faces
     if b >= h:
@@ -37,11 +40,13 @@ def _get_bar_positions(b, h, enrobage, num_bars):
     intermediate_positions = set()
     for i in range(1, num_top_bottom + 1):
         x = enrobage + (b - 2*enrobage) * i / (num_top_bottom + 1)
-        intermediate_positions.add((x, enrobage)); intermediate_positions.add((x, h - enrobage))
+        intermediate_positions.add((x, enrobage))
+        intermediate_positions.add((x, h - enrobage))
         
     for i in range(1, num_left_right + 1):
         y = enrobage + (h - 2*enrobage) * i / (num_left_right + 1)
-        intermediate_positions.add((enrobage, y)); intermediate_positions.add((b - enrobage, y))
+        intermediate_positions.add((enrobage, y))
+        intermediate_positions.add((b - enrobage, y))
         
     positions.update(intermediate_positions)
     return sorted(list(positions)), sorted(list(intermediate_positions))
@@ -57,14 +62,17 @@ def _draw_callout(ax, target_pos, label_pos, label_text):
 
 def _draw_section_view(ax, results):
     """Dessine la vue en coupe technique avec repères."""
-    b = results["section"].b * 100; h = results["section"].h * 100
+    b = results["section"].b * 100
+    h = results["section"].h * 100
     enrobage = results.get("enrobage_cm", 3)
-    ax.set_title("Coupe A-A", fontsize=10, weight='bold'); ax.set_aspect('equal')
+    ax.set_title("Coupe A-A", fontsize=10, weight='bold')
+    ax.set_aspect('equal')
     
     ax.add_patch(patches.Rectangle((0, 0), b, h, lw=1.5, ec='black', fc='#F0F0F0'))
     ax.add_patch(patches.Rectangle((enrobage, enrobage), b - 2*enrobage, h - 2*enrobage, fill=False, ec='black', lw=1, zorder=2))
     
-    bar_groups = results.get('bar_groups', []); total_bars = sum(g['qty'] for g in bar_groups)
+    bar_groups = results.get('bar_groups', [])
+    total_bars = sum(g['qty'] for g in bar_groups)
     all_positions, _ = _get_bar_positions(b, h, enrobage, total_bars)
     
     pos_idx = 0
@@ -78,17 +86,20 @@ def _draw_section_view(ax, results):
         ref_pos = all_positions[pos_idx - group['qty']]
         _draw_callout(ax, ref_pos, (ref_pos[0]-5, ref_pos[1]+5), str(group['rep']))
         
-    _draw_callout(ax, (enrobage, h/2), (enrobage-10, h/2), str(len(bar_groups)+1))
+    ax.plot([0, b], [-5, -5], color='black', lw=0.8)
+    ax.text(b/2, -7, f"{b:.0f}", ha='center', va='top')
+    ax.plot([-5, -5], [0, h], color='black', lw=0.8)
+    ax.text(-7, h/2, f"{h:.0f}", ha='right', va='center', rotation=90)
     
-    ax.plot([0, b], [-5, -5], color='black', lw=0.8); ax.text(b/2, -7, f"{b:.0f}", ha='center', va='top')
-    ax.plot([-5, -5], [0, h], color='black', lw=0.8); ax.text(-7, h/2, f"{h:.0f}", ha='right', va='center', rotation=90)
-    
-    ax.set_xlim(-15, b + 15); ax.set_ylim(-15, h + 15); ax.axis('off')
+    ax.set_xlim(-15, b + 15)
+    ax.set_ylim(-15, h + 15)
+    ax.axis('off')
 
 
 def _draw_elevation_view(ax, results):
     """Dessine la vue en élévation du poteau."""
-    h_poteau = results["height_L_m"] * 100; b_poteau = results["section"].b * 100
+    h_poteau = results["height_L_m"] * 100
+    b_poteau = results["section"].b * 100
     enrobage = results.get("enrobage_cm", 3)
     espacement_cadres = results.get('max_transversal_spacing_cm', 20)
     num_cadres = int((h_poteau - 2 * enrobage) / espacement_cadres) + 1
@@ -102,7 +113,9 @@ def _draw_elevation_view(ax, results):
     ax.text(b_poteau + 12, h_poteau/2, f"{h_poteau/100:.2f}", ha='left', va='center', rotation=90, fontsize=9)
     ax.text(b_poteau - 20, h_poteau/2, f"{num_cadres-1}x{espacement_cadres:.0f}", ha='center', va='center', rotation=90, fontsize=8)
     
-    ax.set_aspect('equal'); ax.axis('off'); ax.set_ylim(-10, h_poteau + 10)
+    ax.set_aspect('equal')
+    ax.axis('off')
+    ax.set_ylim(-10, h_poteau + 10)
 
 
 def _draw_nomenclature_table(ax, results):
@@ -114,9 +127,12 @@ def _draw_nomenclature_table(ax, results):
     cadre_diam = results.get('transversal_rebar_diameter', 'N/A')
     cell_text.append([str(len(results.get('bar_groups', []))+1), f"Cadres Φ{cadre_diam}", '31', 'Cadre'])
     table = ax.table(cellText=cell_text, loc='center', cellLoc='center', colLabels=['Pos.', 'Armature', 'Code', 'Forme'])
-    table.auto_set_font_size(False); table.set_fontsize(10); table.scale(1, 1.5)
+    table.auto_set_font_size(False)
+    table.set_fontsize(10)
+    table.scale(1, 1.5)
     for key, cell in table.get_celld().items():
-        if key[0] == 0: cell.set_text_props(weight='bold')
+        if key[0] == 0:
+            cell.set_text_props(weight='bold')
 
 
 # ==============================================================================
@@ -127,7 +143,9 @@ def plot_column_section(results, output_folder="output", filename="plan_ferraill
     """Génère une planche de ferraillage complète."""
     fig = plt.figure(figsize=(10, 10))
     gs = fig.add_gridspec(2, 2, width_ratios=[1, 1.5], height_ratios=[1.5, 1])
-    ax_elevation = fig.add_subplot(gs[:, 0]); ax_section = fig.add_subplot(gs[0, 1]); ax_table = fig.add_subplot(gs[1, 1])
+    ax_elevation = fig.add_subplot(gs[:, 0])
+    ax_section = fig.add_subplot(gs[0, 1])
+    ax_table = fig.add_subplot(gs[1, 1])
     
     _draw_section_view(ax_section, results)
     _draw_elevation_view(ax_elevation, results)
@@ -136,8 +154,10 @@ def plot_column_section(results, output_folder="output", filename="plan_ferraill
     fig.suptitle(f"Plan de Ferraillage - Poteau : {results.get('ID_Poteau', '')}", fontsize=16, weight='bold')
     fig.tight_layout(rect=[0, 0, 1, 0.96])
     
-    if not os.path.exists(output_folder): os.makedirs(output_folder)
+    if not os.path.exists(output_folder):
+        os.makedirs(output_folder)
     filepath = os.path.join(output_folder, filename)
-    plt.savefig(filepath, dpi=200); plt.close()
+    plt.savefig(filepath, dpi=200)
+    plt.close()
     
     print(f"\n{'-'*20}\nPlan de ferraillage complet sauvegardé dans : {filepath}\n{'-'*20}")

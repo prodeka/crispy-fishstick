@@ -8,8 +8,10 @@ import os
 def charger_classes_bois():
     """Lit le fichier classes_bois.csv et retourne les données."""
     chemin_db = os.path.join('data', 'classes_bois.csv')
-    try: return pd.read_csv(chemin_db)
-    except FileNotFoundError: return None
+    try:
+        return pd.read_csv(chemin_db)
+    except FileNotFoundError:
+        return None
 
 # --- CONSTANTES EUROCODE 5 ---
 K_MOD_TABLE = {
@@ -27,10 +29,12 @@ def verifier_section_bois(b, h, longueur, sollicitations, classe_bois, classe_se
         print(f"\n--- Vérification de la section bois {b}x{h} mm pour L={longueur}m ---")
 
     df_classes = charger_classes_bois()
-    if df_classes is None: return "Erreur de chargement des données bois.", False
+    if df_classes is None:
+        return "Erreur de chargement des données bois.", False
     
     props_bois = df_classes[df_classes['Classe'] == classe_bois]
-    if props_bois.empty: return f"Erreur: Classe de bois '{classe_bois}' non trouvée.", False
+    if props_bois.empty:
+        return f"Erreur: Classe de bois '{classe_bois}' non trouvée.", False
     
     props_bois_dict = props_bois.iloc[0]
     fm_k = props_bois_dict['fm_k_MPa']
@@ -42,7 +46,8 @@ def verifier_section_bois(b, h, longueur, sollicitations, classe_bois, classe_se
     try:
         k_mod = K_MOD_TABLE[duree_charge][classe_service]
         k_def = K_DEF_TABLE[classe_service]
-    except KeyError: return "Erreur: 'classe_service' ou 'duree_charge' invalide.", False
+    except KeyError:
+        return "Erreur: 'classe_service' ou 'duree_charge' invalide.", False
     
     if verbose:
         print(f"Propriétés: {classe_bois} ({type_bois}), fm,k={fm_k} MPa, E0,mean={E0_mean_MPa} MPa")
@@ -99,10 +104,12 @@ def verifier_traction_bois(b, h, effort_N_daN, classe_bois, classe_service, dure
 
     # --- Étape 1: Récupérer les propriétés du matériau ---
     df_classes = charger_classes_bois()
-    if df_classes is None: return "Erreur de chargement des données bois.", False
+    if df_classes is None:
+        return "Erreur de chargement des données bois.", False
     
     props_bois = df_classes[df_classes['Classe'] == classe_bois]
-    if props_bois.empty: return f"Erreur: Classe de bois '{classe_bois}' non trouvée.", False
+    if props_bois.empty:
+        return f"Erreur: Classe de bois '{classe_bois}' non trouvée.", False
     
     props_bois_dict = props_bois.iloc[0]
     # On récupère la résistance à la TRACTION (ft_0_k_MPa) depuis notre nouveau CSV
@@ -113,7 +120,8 @@ def verifier_traction_bois(b, h, effort_N_daN, classe_bois, classe_service, dure
     # --- Étape 2: Récupérer les coefficients Eurocode ---
     try:
         k_mod = K_MOD_TABLE[duree_charge][classe_service]
-    except KeyError: return "Erreur: 'classe_service' ou 'duree_charge' invalide.", False
+    except KeyError:
+        return "Erreur: 'classe_service' ou 'duree_charge' invalide.", False
     
     if verbose:
         print(f"Propriétés: {classe_bois} ({type_bois}), ft,0,k={ft_0_k} MPa")
