@@ -4,7 +4,7 @@
 # --- Toutes les importations sont regroupées en haut ---
 import sys
 from datetime import datetime
-from utils import settings
+from nanostruct.utils import settings
 from colorama import Fore, Style, init
 
 # On initialise colorama une seule fois ici aussi par sécurité

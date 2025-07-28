@@ -1,4 +1,3 @@
-# Dépendances principales du projet PROJET_DIMENSIONNEMENT
 numpy
 matplotlib
 reportlab

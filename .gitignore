@@ -1,0 +1,48 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.pyc
+*.pyd
+*.pyo
+
+# Distribution / packaging
+.Python
+build/
+dist/
+develop-eggs/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Environments
+.env
+venv/
+env/
+*.venv
+
+# Editors
+.vscode/
+.idea/
+*.swp
+*.bak
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs and databases
+*.log
+*.sqlite
+*.db
+
+# Specific to PROJET_DIMENTIONEMENT
+output/
+ASSAINISSEMENT/
+BA/
+CM_BOIS/
+NanoStruct.spec
+HydroApp.spec
+main.spec
+*.exe
+*.whl
+*.rar
