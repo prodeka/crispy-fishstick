@@ -3,3 +3,5 @@ matplotlib
 reportlab
 colorama
 pandas
+click
+rich

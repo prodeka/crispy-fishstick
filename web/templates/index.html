@@ -1,0 +1,315 @@
+{% extends "base.html" %}
+
+{% block title %}Nanostruct - Calculs d'Ingénierie{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section text-center py-5 bg-gradient-primary text-white">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <h1 class="display-4 fw-bold mb-4">
+                    <i class="fas fa-calculator me-3"></i>
+                    Nanostruct
+                </h1>
+                <p class="lead mb-4">
+                    Plateforme moderne de calculs d'ingénierie<br>
+                    <span class="text-light">API REST + Interface Web Responsive</span>
+                </p>
+                <div class="d-flex justify-content-center gap-3">
+                    <a href="#assainissement" class="btn btn-light btn-lg">
+                        <i class="fas fa-water me-2"></i>Assainissement
+                    </a>
+                    <a href="#beton-arme" class="btn btn-outline-light btn-lg">
+                        <i class="fas fa-building me-2"></i>Béton Armé
+                    </a>
+                    <a href="#bois" class="btn btn-outline-light btn-lg">
+                        <i class="fas fa-tree me-2"></i>Bois
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Modules Section -->
+<div class="container py-5">
+    <!-- Assainissement Module -->
+    <section id="assainissement" class="module-section mb-5">
+        <div class="row">
+            <div class="col-lg-6">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-header bg-primary text-white">
+                        <h3 class="mb-0">
+                            <i class="fas fa-water me-2"></i>
+                            Assainissement
+                        </h3>
+                    </div>
+                    <div class="card-body">
+                        <p class="card-text">
+                            Calculs de débit et dimensionnement des réseaux d'assainissement.
+                        </p>
+                        <form id="assainissement-form" class="needs-validation" novalidate>
+                            <div class="mb-3">
+                                <label for="surface" class="form-label">Surface (m²)</label>
+                                <input type="number" class="form-control" id="surface" name="surface" required>
+                                <div class="invalid-feedback">Surface requise</div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="coefficient" class="form-label">Coefficient de ruissellement</label>
+                                <select class="form-select" id="coefficient" name="coefficient_ruissellement" required>
+                                    <option value="">Choisir...</option>
+                                    <option value="0.9">Toiture (0.9)</option>
+                                    <option value="0.9">Route asphaltée (0.9)</option>
+                                    <option value="0.4">Route graveleuse (0.4)</option>
+                                    <option value="0.2">Terrain herbeux (0.2)</option>
+                                    <option value="0.1">Terrain boisé (0.1)</option>
+                                </select>
+                                <div class="invalid-feedback">Coefficient requis</div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="intensite" class="form-label">Intensité de pluie (mm/h)</label>
+                                <input type="number" class="form-control" id="intensite" name="intensite_pluie" required>
+                                <div class="invalid-feedback">Intensité requise</div>
+                            </div>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-calculator me-2"></i>Calculer
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-header bg-info text-white">
+                        <h4 class="mb-0">
+                            <i class="fas fa-chart-line me-2"></i>
+                            Résultats
+                        </h4>
+                    </div>
+                    <div class="card-body">
+                        <div id="assainissement-results" class="results-container">
+                            <p class="text-muted">Les résultats apparaîtront ici après calcul</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Béton Armé Module -->
+    <section id="beton-arme" class="module-section mb-5">
+        <div class="row">
+            <div class="col-lg-6">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-header bg-success text-white">
+                        <h3 class="mb-0">
+                            <i class="fas fa-building me-2"></i>
+                            Béton Armé
+                        </h3>
+                    </div>
+                    <div class="card-body">
+                        <ul class="nav nav-tabs" id="ba-tabs" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active" id="poteau-tab" data-bs-toggle="tab" data-bs-target="#poteau" type="button">
+                                    <i class="fas fa-columns me-1"></i>Poteau
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="poutre-tab" data-bs-toggle="tab" data-bs-target="#poutre" type="button">
+                                    <i class="fas fa-grip-lines me-1"></i>Poutre
+                                </button>
+                            </li>
+                        </ul>
+                        <div class="tab-content mt-3" id="ba-tab-content">
+                            <!-- Poteau Form -->
+                            <div class="tab-pane fade show active" id="poteau" role="tabpanel">
+                                <form id="poteau-form" class="needs-validation" novalidate>
+                                    <div class="mb-3">
+                                        <label for="hauteur-poteau" class="form-label">Hauteur (m)</label>
+                                        <input type="number" class="form-control" id="hauteur-poteau" name="hauteur" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="section-poteau" class="form-label">Section (m²)</label>
+                                        <input type="number" class="form-control" id="section-poteau" name="section" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="charge-poteau" class="form-label">Charge axiale (kN)</label>
+                                        <input type="number" class="form-control" id="charge-poteau" name="charge_axiale" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="resistance-beton" class="form-label">Résistance béton (MPa)</label>
+                                        <select class="form-select" id="resistance-beton" name="resistance_beton" required>
+                                            <option value="">Choisir...</option>
+                                            <option value="20">C20/25 (20 MPa)</option>
+                                            <option value="25">C25/30 (25 MPa)</option>
+                                            <option value="30">C30/37 (30 MPa)</option>
+                                            <option value="35">C35/45 (35 MPa)</option>
+                                            <option value="40">C40/50 (40 MPa)</option>
+                                        </select>
+                                    </div>
+                                    <button type="submit" class="btn btn-success">
+                                        <i class="fas fa-calculator me-2"></i>Calculer Poteau
+                                    </button>
+                                </form>
+                            </div>
+                            <!-- Poutre Form -->
+                            <div class="tab-pane fade" id="poutre" role="tabpanel">
+                                <form id="poutre-form" class="needs-validation" novalidate>
+                                    <div class="mb-3">
+                                        <label for="portee" class="form-label">Portée (m)</label>
+                                        <input type="number" class="form-control" id="portee" name="portee" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="largeur" class="form-label">Largeur (m)</label>
+                                        <input type="number" class="form-control" id="largeur" name="largeur" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="hauteur-poutre" class="form-label">Hauteur (m)</label>
+                                        <input type="number" class="form-control" id="hauteur-poutre" name="hauteur" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="charge-uniforme" class="form-label">Charge uniforme (kN/m)</label>
+                                        <input type="number" class="form-control" id="charge-uniforme" name="charge_uniforme" required>
+                                    </div>
+                                    <button type="submit" class="btn btn-success">
+                                        <i class="fas fa-calculator me-2"></i>Calculer Poutre
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-header bg-info text-white">
+                        <h4 class="mb-0">
+                            <i class="fas fa-chart-line me-2"></i>
+                            Résultats Béton Armé
+                        </h4>
+                    </div>
+                    <div class="card-body">
+                        <div id="beton-arme-results" class="results-container">
+                            <p class="text-muted">Les résultats apparaîtront ici après calcul</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Bois Module -->
+    <section id="bois" class="module-section mb-5">
+        <div class="row">
+            <div class="col-lg-6">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-header bg-warning text-dark">
+                        <h3 class="mb-0">
+                            <i class="fas fa-tree me-2"></i>
+                            Bois
+                        </h3>
+                    </div>
+                    <div class="card-body">
+                        <ul class="nav nav-tabs" id="bois-tabs" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active" id="poteau-bois-tab" data-bs-toggle="tab" data-bs-target="#poteau-bois" type="button">
+                                    <i class="fas fa-columns me-1"></i>Poteau
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="poutre-bois-tab" data-bs-toggle="tab" data-bs-target="#poutre-bois" type="button">
+                                    <i class="fas fa-grip-lines me-1"></i>Poutre
+                                </button>
+                            </li>
+                        </ul>
+                        <div class="tab-content mt-3" id="bois-tab-content">
+                            <!-- Poteau Bois Form -->
+                            <div class="tab-pane fade show active" id="poteau-bois" role="tabpanel">
+                                <form id="poteau-bois-form" class="needs-validation" novalidate>
+                                    <div class="mb-3">
+                                        <label for="hauteur-poteau-bois" class="form-label">Hauteur (m)</label>
+                                        <input type="number" class="form-control" id="hauteur-poteau-bois" name="hauteur" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="section-poteau-bois" class="form-label">Section (m²)</label>
+                                        <input type="number" class="form-control" id="section-poteau-bois" name="section" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="charge-poteau-bois" class="form-label">Charge axiale (kN)</label>
+                                        <input type="number" class="form-control" id="charge-poteau-bois" name="charge_axiale" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="classe-bois" class="form-label">Classe de bois</label>
+                                        <select class="form-select" id="classe-bois" name="classe_bois" required>
+                                            <option value="">Choisir...</option>
+                                            <option value="C18">C18</option>
+                                            <option value="C24">C24</option>
+                                            <option value="C30">C30</option>
+                                            <option value="C35">C35</option>
+                                            <option value="C40">C40</option>
+                                        </select>
+                                    </div>
+                                    <button type="submit" class="btn btn-warning">
+                                        <i class="fas fa-calculator me-2"></i>Calculer Poteau Bois
+                                    </button>
+                                </form>
+                            </div>
+                            <!-- Poutre Bois Form -->
+                            <div class="tab-pane fade" id="poutre-bois" role="tabpanel">
+                                <form id="poutre-bois-form" class="needs-validation" novalidate>
+                                    <div class="mb-3">
+                                        <label for="portee-bois" class="form-label">Portée (m)</label>
+                                        <input type="number" class="form-control" id="portee-bois" name="portee" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="largeur-bois" class="form-label">Largeur (m)</label>
+                                        <input type="number" class="form-control" id="largeur-bois" name="largeur" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="hauteur-poutre-bois" class="form-label">Hauteur (m)</label>
+                                        <input type="number" class="form-control" id="hauteur-poutre-bois" name="hauteur" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="charge-uniforme-bois" class="form-label">Charge uniforme (kN/m)</label>
+                                        <input type="number" class="form-control" id="charge-uniforme-bois" name="charge_uniforme" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="classe-bois-poutre" class="form-label">Classe de bois</label>
+                                        <select class="form-select" id="classe-bois-poutre" name="classe_bois" required>
+                                            <option value="">Choisir...</option>
+                                            <option value="C18">C18</option>
+                                            <option value="C24">C24</option>
+                                            <option value="C30">C30</option>
+                                            <option value="C35">C35</option>
+                                            <option value="C40">C40</option>
+                                        </select>
+                                    </div>
+                                    <button type="submit" class="btn btn-warning">
+                                        <i class="fas fa-calculator me-2"></i>Calculer Poutre Bois
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-header bg-info text-white">
+                        <h4 class="mb-0">
+                            <i class="fas fa-chart-line me-2"></i>
+                            Résultats Bois
+                        </h4>
+                    </div>
+                    <div class="card-body">
+                        <div id="bois-results" class="results-container">
+                            <p class="text-muted">Les résultats apparaîtront ici après calcul</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+{% endblock %} 

@@ -10,6 +10,7 @@ import importlib.util
 # On initialise colorama une seule fois ici aussi par sécurité
 init(autoreset=True)
 
+
 def display_header():
     """Affiche l'en-tête de copyright en couleur."""
     current_year = datetime.now().year
@@ -22,21 +23,27 @@ def display_header():
     """
     print(Fore.CYAN + header)
 
+
 def check_dependencies():
     """Vérifie si les dépendances critiques sont bien installées."""
-    required_packages = ['pandas', 'numpy']
+    required_packages = ["pandas", "numpy"]
     missing_packages = []
     for pkg in required_packages:
         if importlib.util.find_spec(pkg) is None:
             missing_packages.append(pkg)
 
     if missing_packages:
-        print(f"{Fore.RED}ERREUR: Dépendances critiques manquantes : {', '.join(missing_packages)}.")
-        print(f"{Fore.YELLOW}Veuillez lancer le programme via 'install_and_run.bat' ou './install_and_run.sh'.")
+        print(
+            f"{Fore.RED}ERREUR: Dépendances critiques manquantes : {', '.join(missing_packages)}."
+        )
+        print(
+            f"{Fore.YELLOW}Veuillez lancer le programme via 'install_and_run.bat' ou './install_and_run.sh'."
+        )
         return False
     else:
         print(f"{Fore.GREEN}Vérification des dépendances... OK")
         return True
+
 
 def get_user_input(prompt, default_value=None, data_type=float):
     """Pose une question à l'utilisateur et gère les erreurs de saisie."""
@@ -45,16 +52,19 @@ def get_user_input(prompt, default_value=None, data_type=float):
             prompt_message = f"{prompt} (défaut: {default_value}): "
         else:
             prompt_message = f"{prompt}: "
-            
+
         user_input = input(prompt_message).strip()
-        
+
         if not user_input and default_value is not None:
             return default_value
-        
+
         try:
             return data_type(user_input)
         except (ValueError, TypeError):
-            print(f"{Fore.RED}Erreur : Veuillez entrer une valeur valide de type '{data_type.__name__}'.")
+            print(
+                f"{Fore.RED}Erreur : Veuillez entrer une valeur valide de type '{data_type.__name__}'."
+            )
+
 
 def v_print(label, formula, numeric_app, result, unit=""):
     """
@@ -66,7 +76,7 @@ def v_print(label, formula, numeric_app, result, unit=""):
             result_str = f"{result:.2f}"
         else:
             result_str = str(result)
-        
+
         # On utilise des f-strings pour insérer les couleurs et les réinitialiser manuellement
         # pour un contrôle total sur l'affichage.
         print(f"\n  -> {Fore.WHITE}{Style.BRIGHT}{label}{Style.RESET_ALL}")

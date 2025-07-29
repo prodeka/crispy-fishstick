@@ -1,0 +1,8 @@
+Refactor: Cleaned up code and fixed linting issues
+
+This commit addresses various code style and linting issues identified by Ruff.
+Key changes include:
+- Standardized multi-line statements for improved readability.
+- Removed unused imports and variables.
+- Corrected ambiguous variable names.
+- Ensured consistent code formatting across relevant files.
