@@ -1,0 +1,4 @@
+id_canal,debit_m3s,pente_pourcent,rugosite_manning,geometrie_forme,largeur_fond_m
+CAN-01,1.5,0.1,0.015,rectangulaire,1.0
+CAN-02,2.5,0.05,0.013,rectangulaire,1.5
+CAN-03,0.8,0.2,0.025,trapezoidale,0.5

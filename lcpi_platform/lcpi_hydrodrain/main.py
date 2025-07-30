@@ -66,6 +66,45 @@ def hydro_estimer_crue(bassin_params_path: str, methode: str = "orstom"):
     print(json.dumps(resultats, indent=2))
 
 # --- Commandes Ouvrages ---
+@ouvrages_app.command("canal-dimensionner")
+def ouvrages_canal_dimensionner(
+    filepath: str = typer.Option(None, "--filepath", help="Fichier YAML de configuration unique."),
+    batch_file: str = typer.Option(None, "--batch-file", help="Fichier CSV pour dimensionner plusieurs canaux."),
+    output_file: str = typer.Option("resultats_batch_canaux.csv", "--output-file", help="Fichier de résultats CSV.")
+):
+    """Dimensionne un ou plusieurs canaux à ciel ouvert."""
+    if batch_file:
+        try:
+            import pandas as pd
+        except ImportError:
+            print("Erreur : La bibliothèque 'pandas' est requise. Installez-la avec 'pip install pandas'.")
+            raise typer.Exit(code=1)
+
+        print(f"--- Lancement du Traitement par Lot (Canaux) depuis : {batch_file} ---")
+        try:
+            df = pd.read_csv(batch_file)
+            results_list = []
+            for index, row in df.iterrows():
+                donnees = row.to_dict()
+                resultats = dimensionner_canal(donnees)
+                output_row = row.to_dict()
+                output_row.update(resultats)
+                results_list.append(output_row)
+            
+            results_df = pd.DataFrame(results_list)
+            results_df.to_csv(output_file, index=False)
+            print(f"[SUCCES] Traitement par lot terminé. Résultats sauvegardés dans : {output_file}")
+        
+        except Exception as e:
+            print(f"Une erreur est survenue lors du traitement par lot : {e}")
+            raise typer.Exit(code=1)
+
+    elif filepath:
+        print("Logique YAML pour un seul canal à implémenter si nécessaire.")
+    else:
+        print("Erreur : Vous devez spécifier soit --filepath, soit --batch-file.")
+        raise typer.Exit(code=1)
+
 # ... (les commandes pour deversoir, radier, canal, pompe restent ici)
 
 # --- Commandes Utilitaires (Implémentation finale) ---

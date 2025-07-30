@@ -1,0 +1,4 @@
+id_poutre,largeur_b_mm,hauteur_h_mm,longueur_m,charge_G_kn_m,charge_Q_kn_m,classe_bois,classe_service,duree_charge
+PBO-01,100,300,5,3,2,C24,classe_1,permanente
+PBO-02,120,350,6,4,2.5,C24,classe_2,moyenne_duree
+PBO-03,150,400,8,5,3,C30,classe_1,permanente

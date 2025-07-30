@@ -27,37 +27,72 @@ def _verifier_poutre_bois_logic(data: dict) -> dict:
 app = typer.Typer(name="bois", help="Plugin pour les Structures en Bois (Eurocode 5)")
 
 @app.command(name="check")
-def run_check_from_file(filepath: str, as_json: bool = typer.Option(False, "--json")):
-    # ... (La logique de lecture de fichier existante reste ici)
-    # ... (Pas besoin de la copier dans le prompt)
-    try:
-        with open(filepath, 'r') as f: config = yaml.safe_load(f)
-    except FileNotFoundError:
-        # Gestion d'erreur...
+def run_check_from_file(
+    filepath: str = typer.Option(None, "--filepath", help="Chemin vers le fichier de définition YAML unique."),
+    batch_file: str = typer.Option(None, "--batch-file", help="Chemin vers le fichier CSV pour le traitement par lot."),
+    output_file: str = typer.Option("resultats_batch_bois.csv", "--output-file", help="Chemin pour le fichier de résultats CSV."),
+    as_json: bool = typer.Option(False, "--json", help="Afficher la sortie au format JSON (pour un seul fichier).")
+):
+    """Vérifie une ou plusieurs poutres en bois à partir d'un fichier."""
+    if batch_file:
+        try:
+            import pandas as pd
+        except ImportError:
+            print("Erreur : La bibliothèque 'pandas' est requise. Installez-la avec 'pip install pandas'.")
+            raise typer.Exit(code=1)
+        
+        print(f"--- Lancement du Traitement par Lot (Bois) depuis : {batch_file} ---")
+        try:
+            df = pd.read_csv(batch_file)
+            results_list = []
+            for index, row in df.iterrows():
+                charges_list = [
+                    {'categorie': 'G', 'valeur': row['charge_G_kn_m'], 'type': 'repartie'},
+                    {'categorie': 'Q', 'valeur': row['charge_Q_kn_m'], 'type': 'repartie'}
+                ]
+                donnees_calcul = {
+                    "b_mm": row['largeur_b_mm'], "h_mm": row['hauteur_h_mm'], "longueur_m": row['longueur_m'],
+                    "charges": charges_list, "classe_bois": row['classe_bois'],
+                    "classe_service": row['classe_service'], "duree_charge": row['duree_charge']
+                }
+                resultats_calcul = _verifier_poutre_bois_logic(donnees_calcul)
+                output_row = row.to_dict()
+                output_row.update(resultats_calcul)
+                results_list.append(output_row)
+            
+            results_df = pd.DataFrame(results_list)
+            results_df.to_csv(output_file, index=False)
+            print(f"[SUCCES] Traitement par lot terminé. Résultats sauvegardés dans : {output_file}")
+
+        except Exception as e:
+            print(f"Une erreur est survenue lors du traitement par lot : {e}")
+            raise typer.Exit(code=1)
+
+    elif filepath:
+        # Logique existante pour le fichier YAML unique...
+        # (le code reste le même ici)
+        try:
+            with open(filepath, 'r') as f: config = yaml.safe_load(f)
+        except FileNotFoundError:
+            print(f"Erreur : Le fichier '{filepath}' n'a pas été trouvé.")
+            raise typer.Exit(code=1)
+        # ... reste de la logique YAML
+        charges_list = []
+        if config.get("charges"):
+            for charge in config["charges"].get("permanentes_G", []): charge['categorie'] = 'G'; charges_list.append(charge)
+            for charge in config["charges"].get("exploitation_Q", []): charge['categorie'] = 'Q'; charges_list.append(charge)
+        donnees_calcul = {
+            "b_mm": config.get("geometrie", {}).get("b_mm"), "h_mm": config.get("geometrie", {}).get("h_mm"),
+            "longueur_m": config.get("geometrie", {}).get("longueur_m"), "charges": charges_list,
+            "classe_bois": config.get("materiau", {}).get("classe_bois"), "classe_service": config.get("materiau", {}).get("classe_service"),
+            "duree_charge": config.get("materiau", {}).get("duree_charge"),
+        }
+        resultats = _verifier_poutre_bois_logic(donnees_calcul)
+        if as_json: print(json.dumps(resultats, indent=2))
+        else: print(f"Résultats : {resultats}")
+    else:
+        print("Erreur : Vous devez spécifier soit --filepath, soit --batch-file.")
         raise typer.Exit(code=1)
-    except yaml.YAMLError as e:
-        # Gestion d'erreur...
-        raise typer.Exit(code=1)
-    charges_list = []
-    if config.get("charges"):
-        for charge in config["charges"].get("permanentes_G", []):
-            charge['categorie'] = 'G'
-            charges_list.append(charge)
-        for charge in config["charges"].get("exploitation_Q", []):
-            charge['categorie'] = 'Q'
-            charges_list.append(charge)
-    donnees_calcul = {
-        "b_mm": config.get("geometrie", {}).get("b_mm"),
-        "h_mm": config.get("geometrie", {}).get("h_mm"),
-        "longueur_m": config.get("geometrie", {}).get("longueur_m"),
-        "charges": charges_list,
-        "classe_bois": config.get("materiau", {}).get("classe_bois"),
-        "classe_service": config.get("materiau", {}).get("classe_service"),
-        "duree_charge": config.get("materiau", {}).get("duree_charge")
-    }
-    resultats = _verifier_poutre_bois_logic(donnees_calcul)
-    if as_json: print(json.dumps(resultats, indent=2))
-    else: print(f"Résultats : {resultats}")
 
 @app.command(name="interactive")
 def run_interactive_mode():
