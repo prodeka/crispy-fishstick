@@ -9,29 +9,18 @@ from lcpi.hydrodrain.calculs.population import prevoir_population
 def test_cases():
     cases = [
         {
-            'desc': 'Logistique - croissance forte (K > populations)',
+            'desc': 'Arithmétique',
             'input': {
-                'methode': 'logistique',
-                'annee_projet': 2050,
-                'pop_annee_0': (1000, 2000),
-                'pop_annee_1': (2000, 2010),
-                'pop_annee_2': (4000, 2020),
-            }
-        },
-        {
-            'desc': 'Logistique - K <= max(y0, y1, y2) (erreur attendue)',
-            'input': {
-                'methode': 'logistique',
-                'annee_projet': 2050,
-                'pop_annee_0': (1000, 2000),
-                'pop_annee_1': (1200, 2010),
+                'methode': 'arithmetique',
+                'annee_projet': 2030,
+                'pop_annee_1': (1000, 2000),
                 'pop_annee_2': (1500, 2020),
             }
         },
         {
-            'desc': 'Arithmétique',
+            'desc': 'Linéaire (alias arithmétique)',
             'input': {
-                'methode': 'arithmetique',
+                'methode': 'lineaire',
                 'annee_projet': 2030,
                 'pop_annee_1': (1000, 2000),
                 'pop_annee_2': (1500, 2020),
@@ -47,13 +36,41 @@ def test_cases():
             }
         },
         {
-            'desc': 'Logistique - intervalle non constant (erreur attendue)',
+            'desc': 'Exponentiel (alias géométrique)',
+            'input': {
+                'methode': 'exponentiel',
+                'annee_projet': 2030,
+                'pop_annee_1': (1000, 2000),
+                'pop_annee_2': (1500, 2020),
+            }
+        },
+        {
+            'desc': 'Malthus (alias géométrique)',
+            'input': {
+                'methode': 'malthus',
+                'annee_projet': 2030,
+                'pop_annee_1': (1000, 2000),
+                'pop_annee_2': (1500, 2020),
+            }
+        },
+        {
+            'desc': 'Logistique (valeurs valides)',
             'input': {
                 'methode': 'logistique',
                 'annee_projet': 2050,
                 'pop_annee_0': (1000, 2000),
-                'pop_annee_1': (2000, 2012),
+                'pop_annee_1': (2000, 2010),
                 'pop_annee_2': (4000, 2020),
+            }
+        },
+        {
+            'desc': 'Logistique (K <= max, erreur attendue)',
+            'input': {
+                'methode': 'logistique',
+                'annee_projet': 2050,
+                'pop_annee_0': (1000, 2000),
+                'pop_annee_1': (1200, 2010),
+                'pop_annee_2': (1500, 2020),
             }
         },
         {
