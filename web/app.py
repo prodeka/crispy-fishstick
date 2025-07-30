@@ -2,28 +2,41 @@ from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
 import sys
 import os
+import csv
+import io
 
 # Ajouter le chemin vers les modules existants
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'src'))
 
-# Imports des modules existants
-from nanostruct.modules.assainissement.core.engine import run_dimensioning_workflow
-from nanostruct.modules.assainissement.core.models import Reseau
-from nanostruct.modules.assainissement.config.idf_models import DEFAULT_IDF_DATA
-from nanostruct.modules.assainissement.modules.hydrologie.rationnelle import calculer_q_max_rationnelle
-from nanostruct.modules.assainissement.main import run_simulation
+from nanostruct.modules.assainissement.web_bridge import handle_sanitation_calculation
+from nanostruct.modules.beton_arme.web_bridge import handle_column_calculation, handle_beam_calculation
+from nanostruct.modules.bois.web_bridge import handle_wood_beam_calculation, handle_wood_column_calculation
 
-# Import des modules béton armé et bois
-from nanostruct.modules.beton_arme.ba_entry import start_ba_module
-from nanostruct.modules.bois.main import main as start_bois_module
+# Import Celery app
+from nanostruct.celery_app import celery_app
 
 app = Flask(__name__)
 CORS(app)  # Permet les requêtes cross-origin pour le développement
 
 @app.route('/')
-def index():
+def home():
     """Page d'accueil de l'application"""
-    return render_template('index.html')
+    return render_template('home.html')
+
+@app.route('/assainissement')
+def assainissement_page():
+    """Page du module Assainissement"""
+    return render_template('assainissement.html')
+
+@app.route('/beton_arme')
+def beton_arme_page():
+    """Page du module Béton Armé"""
+    return render_template('beton_arme.html')
+
+@app.route('/bois')
+def bois_page():
+    """Page du module Bois"""
+    return render_template('bois.html')
 
 @app.route('/api/health')
 def health_check():
@@ -36,341 +49,142 @@ def health_check():
 
 # ===== ENDPOINTS ASSAINISSEMENT =====
 
-@app.route('/api/assainissement/calcul', methods=['POST'])
+@app.route('/api/assainissement/calcul_complet', methods=['POST'])
 def calcul_assainissement():
-    """Calcul d'assainissement simple"""
-    try:
-        data = request.get_json()
-        
-        # Validation des données d'entrée
-        required_fields = ['surface', 'coefficient_ruissellement', 'intensite_pluie']
-        for field in required_fields:
-            if field not in data:
-                return jsonify({'error': f'Champ requis manquant: {field}'}), 400
-        
-        # Calcul du débit avec la formule rationnelle
-        surface = data['surface']  # en m²
-        coefficient = data['coefficient_ruissellement']
-        intensite = data['intensite_pluie']  # en mm/h
-        
-        # Conversion en hectares et mm/h
-        surface_ha = surface / 10000  # conversion m² vers ha
-        intensite_mmh = intensite
-        
-        # Calcul du débit avec la formule rationnelle
-        debit = calculer_q_max_rationnelle(coefficient, intensite_mmh, surface_ha, verbose=False)
-        
-        # Calcul du diamètre approximatif (formule simplifiée)
-        diametre = (debit / 0.5) ** 0.5  # formule approximative
-        
-        resultat = {
-            'debit_m3s': round(debit, 3),
-            'debit_ls': round(debit * 1000, 1),
-            'surface_ha': round(surface_ha, 2),
-            'coefficient_ruissellement': coefficient,
-            'intensite_pluie_mmh': intensite_mmh,
-            'diametre_approximatif_m': round(diametre, 2)
-        }
-        
-        return jsonify({
-            'success': True,
-            'resultat': resultat,
-            'message': 'Calcul d\'assainissement effectué avec succès'
-        })
-        
-    except Exception as e:
-        return jsonify({
-            'success': False,
-            'error': str(e),
-            'message': 'Erreur lors du calcul d\'assainissement'
-        }), 500
+    """Lance le calcul d'assainissement en tant que tâche Celery.
+    Accepte un fichier CSV et d'autres paramètres via FormData.
+    """
+    if 'csv_file' not in request.files:
+        return jsonify({'success': False, 'error': 'Aucun fichier CSV fourni.'}), 400
 
-@app.route('/api/assainissement/dimensionnement', methods=['POST'])
-def dimensionnement_assainissement():
-    """Dimensionnement complet des réseaux d'assainissement"""
-    try:
-        data = request.get_json()
-        
-        # Validation des données
-        if 'debit' not in data:
-            return jsonify({'error': 'Débit requis pour le dimensionnement'}), 400
-        
-        debit = data['debit']
-        pente = data.get('pente', 0.02)
-        rugosite = data.get('rugosite', 0.013)
-        
-        # Calcul du diamètre avec la formule de Manning
-        # Q = (1/n) * A * R^(2/3) * S^(1/2)
-        # Pour un écoulement plein, A = π*D²/4 et R = D/4
-        
-        # Résolution itérative pour trouver le diamètre
-        diametre = 0.1  # diamètre initial en m
-        tolerance = 0.001
-        max_iterations = 50
-        
-        for i in range(max_iterations):
-            # Calcul de l'aire et du rayon hydraulique
-            aire = 3.14159 * diametre**2 / 4
-            rayon_hydraulique = diametre / 4
-            
-            # Calcul du débit avec Manning
-            debit_calcule = (1/rugosite) * aire * (rayon_hydraulique**(2/3)) * (pente**0.5)
-            
-            # Ajustement du diamètre
-            if abs(debit_calcule - debit) < tolerance:
-                break
-            elif debit_calcule < debit:
-                diametre *= 1.1
-            else:
-                diametre *= 0.9
-        
-        # Calcul de la vitesse
-        vitesse = debit / aire
-        
-        dimensionnement = {
-            'diametre_m': round(diametre, 3),
-            'diametre_mm': round(diametre * 1000, 0),
-            'vitesse_ms': round(vitesse, 2),
-            'pente': pente,
-            'rugosite': rugosite,
-            'debit_m3s': debit
+    csv_file = request.files['csv_file']
+    if csv_file.filename == '':
+        return jsonify({'success': False, 'error': 'Nom de fichier CSV vide.'}), 400
+
+    if csv_file:
+        csv_content = csv_file.read().decode('utf-8')
+        delimiter = request.form.get('delimiter', ',')
+
+        # Simple parsing of CSV content into a list of dicts
+        csv_data = []
+        # Use StringIO to treat the string content as a file
+        csv_file_stream = io.StringIO(csv_content)
+        reader = csv.reader(csv_file_stream, delimiter=delimiter)
+        headers = [h.strip() for h in next(reader)] # Read headers
+        for row in reader:
+            if not row: # Skip empty rows
+                continue
+            row_data = {}
+            for i, header in enumerate(headers):
+                if i < len(row):
+                    row_data[header] = row[i].strip()
+                else:
+                    row_data[header] = '' # Handle missing values
+            csv_data.append(row_data)
+
+        # Extract other form data
+        methode_calcul = request.form.get('methode_calcul')
+        tc_formule_name = request.form.get('tc_formule_name')
+        v_min = float(request.form.get('v_min'))
+        v_max = float(request.form.get('v_max'))
+        idf_a = float(request.form.get('idf_a'))
+        idf_b = float(request.form.get('idf_b'))
+        periode_retour = int(request.form.get('periode_retour'))
+        verbose = request.form.get('verbose') == 'true' # Checkbox value from JS is 'true' or 'false'
+
+        params_pluie = {
+            "formula": "montana",
+            "periode_retour": periode_retour,
+            "nom": f"Manuel T={periode_retour} ans",
+            "a": idf_a,
+            "b": idf_b
         }
-        
-        return jsonify({
-            'success': True,
-            'dimensionnement': dimensionnement,
-            'message': 'Dimensionnement effectué avec succès'
-        })
-        
-    except Exception as e:
-        return jsonify({
-            'success': False,
-            'error': str(e),
-            'message': 'Erreur lors du dimensionnement'
-        }), 500
+
+        data_for_calculation = {
+            'troncons_data': csv_data,
+            'methode_calcul': methode_calcul,
+            'tc_formule_name': tc_formule_name,
+            'params_pluie': params_pluie,
+            'v_min': v_min,
+            'v_max': v_max,
+            'verbose': verbose
+        }
+
+        result = handle_sanitation_calculation(data_for_calculation)
+
+        if not result.get('success'):
+            return jsonify(result), result.get('status_code', 500)
+
+        return jsonify(result)
+
+# New endpoint to check task status
+@app.route('/api/calcul/status/<task_id>', methods=['GET'])
+def get_task_status(task_id):
+    task = celery_app.AsyncResult(task_id)
+    response = {
+        'state': task.state,
+        'status': task.status,
+    }
+    if task.state == 'PENDING':
+        response['message'] = 'La tâche est en attente.'
+    elif task.state == 'PROGRESS':
+        response['message'] = 'La tâche est en cours...'
+    elif task.state == 'SUCCESS':
+        response['message'] = 'La tâche a été complétée avec succès.'
+        response['result'] = task.result
+    elif task.state == 'FAILURE':
+        response['message'] = 'La tâche a échoué.'
+        response['error'] = str(task.info)
+    return jsonify(response)
+
 
 # ===== ENDPOINTS BÉTON ARMÉ =====
 
 @app.route('/api/beton_arme/poteau', methods=['POST'])
 def calcul_poteau_ba():
-    """Calcul de poteau en béton armé"""
-    try:
-        data = request.get_json()
-        
-        # Validation des données
-        required_fields = ['hauteur', 'section', 'charge_axiale', 'resistance_beton']
-        for field in required_fields:
-            if field not in data:
-                return jsonify({'error': f'Champ requis manquant: {field}'}), 400
-        
-        hauteur = data['hauteur']
-        section = data['section']
-        charge_axiale = data['charge_axiale']
-        resistance_beton = data['resistance_beton']
-        
-        # Calculs simplifiés pour poteau BA
-        # Contrainte de compression
-        contrainte_compression = charge_axiale / section
-        
-        # Calcul de l'élancement
-        rayon_gyration = (section / 3.14159) ** 0.5
-        elancement = hauteur / rayon_gyration
-        
-        # Vérification de la résistance
-        resistance_caracteristique = resistance_beton * 0.85  # coefficient de sécurité
-        verification = "OK" if contrainte_compression < resistance_caracteristique else "NOK"
-        
-        # Calcul de l'armature (simplifié)
-        section_armature = max(0.01 * section, 0.0001)  # minimum 1% de la section
-        
-        resultat = {
-            'contrainte_compression_mpa': round(contrainte_compression / 1000000, 2),
-            'resistance_caracteristique_mpa': round(resistance_caracteristique / 1000000, 2),
-            'elancement': round(elancement, 1),
-            'verification': verification,
-            'section_armature_m2': round(section_armature, 6),
-            'section_armature_cm2': round(section_armature * 10000, 2)
-        }
-        
-        return jsonify({
-            'success': True,
-            'resultat': resultat,
-            'message': 'Calcul de poteau effectué avec succès'
-        })
-        
-    except Exception as e:
-        return jsonify({
-            'success': False,
-            'error': str(e),
-            'message': 'Erreur lors du calcul de poteau'
-        }), 500
+    """Calcul de poteau en béton armé en utilisant la logique CLI."""
+    data = request.get_json()
+    result = handle_column_calculation(data)
+
+    if not result.get('success'):
+        return jsonify(result), result.get('status_code', 500)
+
+    return jsonify(result)
 
 @app.route('/api/beton_arme/poutre', methods=['POST'])
 def calcul_poutre_ba():
-    """Calcul de poutre en béton armé"""
-    try:
-        data = request.get_json()
-        
-        # Validation des données
-        required_fields = ['portee', 'largeur', 'hauteur', 'charge_uniforme']
-        for field in required_fields:
-            if field not in data:
-                return jsonify({'error': f'Champ requis manquant: {field}'}), 400
-        
-        portee = data['portee']
-        largeur = data['largeur']
-        hauteur = data['hauteur']
-        charge_uniforme = data['charge_uniforme']
-        resistance_beton = data.get('resistance_beton', 25)
-        
-        # Calculs de poutre BA
-        # Moment fléchissant maximal (poutre simple)
-        moment_max = charge_uniforme * portee**2 / 8
-        
-        # Effort tranchant maximal
-        effort_tranchant = charge_uniforme * portee / 2
-        
-        # Section d'armature (simplifié)
-        section_armature = moment_max / (0.9 * hauteur * 400)  # fyd = 400 MPa
-        
-        # Vérification de la contrainte de compression
-        contrainte_compression = moment_max / (largeur * hauteur**2 / 6)
-        
-        resultat = {
-            'moment_flechissant_knm': round(moment_max / 1000, 2),
-            'effort_tranchant_kn': round(effort_tranchant / 1000, 2),
-            'section_armature_m2': round(section_armature, 6),
-            'section_armature_cm2': round(section_armature * 10000, 2),
-            'contrainte_compression_mpa': round(contrainte_compression / 1000000, 2),
-            'resistance_beton_mpa': resistance_beton
-        }
-        
-        return jsonify({
-            'success': True,
-            'resultat': resultat,
-            'message': 'Calcul de poutre effectué avec succès'
-        })
-        
-    except Exception as e:
-        return jsonify({
-            'success': False,
-            'error': str(e),
-            'message': 'Erreur lors du calcul de poutre'
-        }), 500
+    """Calcul de poutre en béton armé en utilisant la logique CLI (partielle)."""
+    data = request.get_json()
+    result = handle_beam_calculation(data)
+
+    if not result.get('success'):
+        return jsonify(result), result.get('status_code', 500)
+
+    return jsonify(result)
 
 # ===== ENDPOINTS BOIS =====
 
 @app.route('/api/bois/poteau', methods=['POST'])
 def calcul_poteau_bois():
-    """Calcul de poteau en bois"""
-    try:
-        data = request.get_json()
-        
-        # Validation des données
-        required_fields = ['hauteur', 'section', 'charge_axiale', 'classe_bois']
-        for field in required_fields:
-            if field not in data:
-                return jsonify({'error': f'Champ requis manquant: {field}'}), 400
-        
-        hauteur = data['hauteur']
-        section = data['section']
-        charge_axiale = data['charge_axiale']
-        classe_bois = data['classe_bois']
-        
-        # Résistances caractéristiques selon la classe de bois
-        resistances = {
-            'C18': 18, 'C24': 24, 'C30': 30, 'C35': 35, 'C40': 40
-        }
-        
-        resistance_caracteristique = resistances.get(classe_bois, 24)
-        
-        # Calculs pour poteau bois
-        contrainte_compression = charge_axiale / section
-        
-        # Calcul de l'élancement
-        rayon_gyration = (section / 3.14159) ** 0.5
-        elancement = hauteur / rayon_gyration
-        
-        # Vérification de la résistance
-        verification = "OK" if contrainte_compression < resistance_caracteristique else "NOK"
-        
-        resultat = {
-            'contrainte_compression_mpa': round(contrainte_compression / 1000000, 2),
-            'resistance_caracteristique_mpa': resistance_caracteristique,
-            'elancement': round(elancement, 1),
-            'verification': verification,
-            'classe_bois': classe_bois
-        }
-        
-        return jsonify({
-            'success': True,
-            'resultat': resultat,
-            'message': 'Calcul de poteau bois effectué avec succès'
-        })
-        
-    except Exception as e:
-        return jsonify({
-            'success': False,
-            'error': str(e),
-            'message': 'Erreur lors du calcul de poteau bois'
-        }), 500
+    """Calcul de poteau en bois en utilisant la logique CLI."""
+    data = request.get_json()
+    result = handle_wood_column_calculation(data)
+
+    if not result.get('success'):
+        return jsonify(result), result.get('status_code', 500)
+
+    return jsonify(result)
 
 @app.route('/api/bois/poutre', methods=['POST'])
 def calcul_poutre_bois():
-    """Calcul de poutre en bois"""
-    try:
-        data = request.get_json()
-        
-        # Validation des données
-        required_fields = ['portee', 'largeur', 'hauteur', 'charge_uniforme', 'classe_bois']
-        for field in required_fields:
-            if field not in data:
-                return jsonify({'error': f'Champ requis manquant: {field}'}), 400
-        
-        portee = data['portee']
-        largeur = data['largeur']
-        hauteur = data['hauteur']
-        charge_uniforme = data['charge_uniforme']
-        classe_bois = data['classe_bois']
-        
-        # Résistances caractéristiques selon la classe de bois
-        resistances = {
-            'C18': 18, 'C24': 24, 'C30': 30, 'C35': 35, 'C40': 40
-        }
-        
-        resistance_caracteristique = resistances.get(classe_bois, 24)
-        
-        # Calculs de poutre bois
-        moment_max = charge_uniforme * portee**2 / 8
-        effort_tranchant = charge_uniforme * portee / 2
-        
-        # Contrainte de flexion
-        contrainte_flexion = moment_max / (largeur * hauteur**2 / 6)
-        
-        # Vérification
-        verification = "OK" if contrainte_flexion < resistance_caracteristique else "NOK"
-        
-        resultat = {
-            'moment_flechissant_knm': round(moment_max / 1000, 2),
-            'effort_tranchant_kn': round(effort_tranchant / 1000, 2),
-            'contrainte_flexion_mpa': round(contrainte_flexion / 1000000, 2),
-            'resistance_caracteristique_mpa': resistance_caracteristique,
-            'verification': verification,
-            'classe_bois': classe_bois
-        }
-        
-        return jsonify({
-            'success': True,
-            'resultat': resultat,
-            'message': 'Calcul de poutre bois effectué avec succès'
-        })
-        
-    except Exception as e:
-        return jsonify({
-            'success': False,
-            'error': str(e),
-            'message': 'Erreur lors du calcul de poutre bois'
-        }), 500
+    """Calcul de poutre en bois en utilisant la logique CLI."""
+    data = request.get_json()
+    result = handle_wood_beam_calculation(data)
+
+    if not result.get('success'):
+        return jsonify(result), result.get('status_code', 500)
+
+    return jsonify(result)
 
 # ===== ENDPOINTS UTILITAIRES =====
 
@@ -399,4 +213,4 @@ def get_classes_bois():
     return jsonify(classes)
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5000) 
+    app.run(debug=True, host='0.0.0.0', port=5000)

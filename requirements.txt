@@ -1,7 +1,7 @@
-numpy
+Flask
+Flask-Cors
+pandas
 matplotlib
 reportlab
-colorama
-pandas
-click
-rich
+celery
+redis

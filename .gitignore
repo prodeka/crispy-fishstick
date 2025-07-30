@@ -46,3 +46,4 @@ main.spec
 *.exe
 *.whl
 *.rar
+.env

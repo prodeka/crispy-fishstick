@@ -1,0 +1,9 @@
+[project]
+name = "lcpi_cm"
+version = "0.1.0"
+dependencies = [
+    "typer",
+]
+
+[project.entry-points."lcpi.plugins"]
+cm = "main:register"

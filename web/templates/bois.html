@@ -1,0 +1,169 @@
+{% extends "base.html" %}
+
+{% block title %}Nanostruct - Bois{% endblock %}
+
+{% block content %}
+<!-- Bois Module -->
+<section id="bois" class="module-section mb-5">
+    <div class="row">
+        <div class="col-lg-6">
+            <div class="card h-100 shadow-sm">
+                <div class="card-header bg-warning text-dark">
+                    <h3 class="mb-0">
+                        <i class="fas fa-tree me-2"></i>
+                        Bois
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <ul class="nav nav-tabs" id="bois-tabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="poteau-bois-tab" data-bs-toggle="tab" data-bs-target="#poteau-bois" type="button">
+                                <i class="fas fa-columns me-1"></i>Poteau
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="poutre-bois-tab" data-bs-toggle="tab" data-bs-target="#poutre-bois" type="button">
+                                <i class="fas fa-grip-lines me-1"></i>Poutre
+                            </button>
+                        </li>
+                    </ul>
+                    <div class="tab-content mt-3" id="bois-tab-content">
+                        <!-- Poteau Bois Form -->
+                        <div class="tab-pane fade show active" id="poteau-bois" role="tabpanel">
+                            <form id="poteau-bois-form" class="needs-validation" novalidate>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="poteau-bois-b" class="form-label">Largeur b (mm)</label>
+                                        <input type="number" class="form-control" id="poteau-bois-b" name="b" value="100" required>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="poteau-bois-h" class="form-label">Hauteur h (mm)</label>
+                                        <input type="number" class="form-control" id="poteau-bois-h" name="h" value="100" required>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="poteau-bois-effort" class="form-label">Effort N (daN)</label>
+                                    <input type="number" class="form-control" id="poteau-bois-effort" name="effort_N_daN" value="5000" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="poteau-bois-classe" class="form-label">Classe de bois</label>
+                                    <select class="form-select" id="poteau-bois-classe" name="classe_bois" required>
+                                        <option value="C18">C18</option>
+                                        <option value="C24" selected>C24</option>
+                                        <option value="C30">C30</option>
+                                    </select>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="poteau-bois-classe-service" class="form-label">Classe de Service</label>
+                                        <select class="form-select" id="poteau-bois-classe-service" name="classe_service" required>
+                                            <option value="1">1</option>
+                                            <option value="2" selected>2</option>
+                                            <option value="3">3</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="poteau-bois-duree" class="form-label">Durée Charge</label>
+                                        <select class="form-select" id="poteau-bois-duree" name="duree_charge" required>
+                                            <option value="permanente">Permanente</option>
+                                            <option value="long_terme" selected>Long terme</option>
+                                            <option value="moyen_terme">Moyen terme</option>
+                                            <option value="court_terme">Court terme</option>
+                                            <option value="instantanee">Instantanée</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <button type="submit" class="btn btn-warning">
+                                    <i class="fas fa-calculator me-2"></i>Calculer Poteau Bois
+                                </button>
+                            </form>
+                        </div>
+                        <!-- Poutre Bois Form -->
+                        <div class="tab-pane fade" id="poutre-bois" role="tabpanel">
+                            <form id="poutre-bois-form" class="needs-validation" novalidate>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="poutre-bois-b" class="form-label">Largeur b (mm)</label>
+                                        <input type="number" class="form-control" id="poutre-bois-b" name="b" value="100" required>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="poutre-bois-h" class="form-label">Hauteur h (mm)</label>
+                                        <input type="number" class="form-control" id="poutre-bois-h" name="h" value="200" required>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="poutre-bois-longueur" class="form-label">Longueur (m)</label>
+                                    <input type="number" step="0.01" class="form-control" id="poutre-bois-longueur" name="longueur" value="4.0" required>
+                                </div>
+                                <p class="form-label">Charges (daN/m²)</p>
+                                <div class="input-group mb-3">
+                                    <span class="input-group-text">G</span>
+                                    <input type="number" class="form-control" name="charge_G" value="150">
+                                    <span class="input-group-text">Q</span>
+                                    <input type="number" class="form-control" name="charge_Q" value="200">
+                                    <span class="input-group-text">W</span>
+                                    <input type="number" class="form-control" name="charge_W" value="0">
+                                    <span class="input-group-text">S</span>
+                                    <input type="number" class="form-control" name="charge_S" value="0">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="poutre-bois-classe" class="form-label">Classe de bois</label>
+                                    <select class="form-select" id="poutre-bois-classe" name="classe_bois" required>
+                                        <option value="C18">C18</option>
+                                        <option value="C24" selected>C24</option>
+                                        <option value="C30">C30</option>
+                                    </select>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-4 mb-3">
+                                        <label for="poutre-bois-classe-service" class="form-label">Classe Service</label>
+                                        <select class="form-select" id="poutre-bois-classe-service" name="classe_service" required>
+                                            <option value="1">1</option>
+                                            <option value="2" selected>2</option>
+                                            <option value="3">3</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4 mb-3">
+                                        <label for="poutre-bois-duree" class="form-label">Durée Charge</label>
+                                        <select class="form-select" id="poutre-bois-duree" name="duree_charge" required>
+                                            <option value="permanente">Permanente</option>
+                                            <option value="long_terme" selected>Long terme</option>
+                                            <option value="moyen_terme">Moyen terme</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4 mb-3">
+                                        <label for="poutre-bois-categorie" class="form-label">Catégorie</label>
+                                        <select class="form-select" id="poutre-bois-categorie" name="categorie_usage" required>
+                                            <option value="A">A (locaux d'habitation)</option>
+                                            <option value="B" selected>B (bureaux)</option>
+                                            <option value="C">C (locaux de réunion)</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <button type="submit" class="btn btn-warning">
+                                    <i class="fas fa-calculator me-2"></i>Calculer Poutre Bois
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="card h-100 shadow-sm">
+                <div class="card-header bg-info text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-chart-line me-2"></i>
+                        Résultats Bois
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div id="bois-results" class="results-container">
+                        <p class="text-muted">Les résultats apparaîtront ici après calcul</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

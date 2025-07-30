@@ -27,16 +27,30 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "COPY_PASTE.md",
+                "file": "GEMINI.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "COPY_PASTE"
+              "title": "GEMINI"
+            }
+          },
+          {
+            "id": "af344543adca7db4",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "GEMINI.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "GEMINI"
             }
           }
         ],
-        "currentTab": 1
+        "currentTab": 2
       }
     ],
     "direction": "vertical"
@@ -183,33 +197,34 @@
       "command-palette:Ouvrir la palette de commandes": false
     }
   },
-  "active": "ca423bb15f7f47f3",
+  "active": "a3cbbc1c5ef40802",
   "lastOpenFiles": [
-    "tests/__pycache__/test_main_app.cpython-313-pytest-8.4.1.pyc.34648",
-    "tests/modules/__pycache__/test_ui_rich.cpython-313-pytest-8.4.1.pyc.12252",
-    "tests/modules/__pycache__/test_ui_rich.cpython-313-pytest-8.4.1.pyc.15444",
-    "tests/modules/__pycache__/test_ui_rich.cpython-313-pytest-8.4.1.pyc.36844",
-    "tests/__pycache__/test_main_app.cpython-313-pytest-8.4.1.pyc.25376",
-    "tests/modules/__pycache__/test_ui_rich.cpython-313-pytest-8.4.1.pyc.25376",
-    "tests/modules/__pycache__/test_ui_helpers.cpython-313-pytest-8.4.1.pyc.25376",
-    "tests/modules/__pycache__/test_ui_rich.cpython-313-pytest-8.4.1.pyc.12664",
-    "tests/modules/__pycache__/test_ui_helpers.cpython-313-pytest-8.4.1.pyc.12664",
-    "src/nanostruct/modules/bois/calculs/__pycache__/bois.cpython-313.pyc.3000104868944",
-    "src/nanostruct/modules/bois/calculs/__pycache__/acier.cpython-313.pyc.3000104868144",
-    "pytest-cache-files-hh5wwji6/README.md",
+    "lcpi_platform/lcpi_hydrodrain/main.py",
+    "lcpi_platform/lcpi_hydrodrain/core_legacy/main.py",
+    "lcpi_platform/lcpi_hydrodrain/core_legacy/assainissement_entry.py",
+    "lcpi_platform/lcpi_hydrodrain/core_legacy/build/HydroApp/localpycs/struct.pyc",
+    "lcpi_platform/lcpi_hydrodrain/core_legacy/build/HydroApp/localpycs/pyimod04_pywin32.pyc",
+    "lcpi_platform/lcpi_hydrodrain/core_legacy/build/HydroApp/localpycs/pyimod03_ctypes.pyc",
+    "lcpi_platform/lcpi_hydrodrain/core_legacy/build/HydroApp/localpycs/pyimod02_importers.pyc",
+    "lcpi_platform/lcpi_hydrodrain/core_legacy/build/HydroApp/localpycs/pyimod01_archive.pyc",
+    "lcpi_platform/lcpi_hydrodrain/core_legacy/build/HydroApp/localpycs",
+    "lcpi_platform/lcpi_hydrodrain/core_legacy/build/HydroApp/warn-HydroApp.txt",
+    "lcpi_platform/lcpi_hydrodrain/core_legacy/build/HydroApp/xref-HydroApp.html",
+    "lcpi_platform/lcpi_hydrodrain/dist/HydroApp/_internal/matplotlib/mpl-data/images/zoom_to_rect_large.png",
+    "lcpi_platform/lcpi_hydrodrain/dist/HydroApp/_internal/matplotlib/mpl-data/images/zoom_to_rect.svg",
+    "lcpi_platform/lcpi_hydrodrain/dist/HydroApp/_internal/matplotlib/mpl-data/images/zoom_to_rect.png",
+    "lcpi_platform/lcpi_hydrodrain/dist/HydroApp/_internal/matplotlib/mpl-data/images/zoom_to_rect-symbolic.svg",
+    "lcpi_platform/lcpi_hydrodrain/dist/HydroApp/_internal/matplotlib/mpl-data/images/subplots_large.png",
+    "lcpi_platform/lcpi_hydrodrain/dist/HydroApp/_internal/matplotlib/mpl-data/images/subplots.svg",
+    "lcpi_platform/lcpi_hydrodrain/dist/HydroApp/_internal/matplotlib/mpl-data/images/subplots.png",
+    "lcpi_platform/lcpi_hydrodrain/dist/HydroApp/_internal/matplotlib/mpl-data/images/subplots-symbolic.svg",
+    "lcpi_platform/lcpi_hydrodrain/dist/HydroApp/_internal/matplotlib/mpl-data/images/qt4_editor_options_large.png",
+    "lcpi_platform/lcpi_hydrodrain/dist/HydroApp/_internal/matplotlib/mpl-data/images/qt4_editor_options.svg",
     "GEMINI.md",
+    "PARTAGE.md",
     "COPY_PASTE.md",
-    "venv/Lib/site-packages/matplotlib/mpl-data/sample_data/logo2.png",
-    "venv/Lib/site-packages/matplotlib/mpl-data/sample_data/grace_hopper.jpg",
-    "venv/Lib/site-packages/matplotlib/mpl-data/sample_data/Minduka_Present_Blue_Pack.png",
-    "venv/Lib/site-packages/matplotlib/mpl-data/images/zoom_to_rect_large.png",
-    "venv/Lib/site-packages/matplotlib/mpl-data/images/zoom_to_rect.svg",
-    "venv/Lib/site-packages/matplotlib/mpl-data/images/zoom_to_rect.png",
-    "venv/Lib/site-packages/matplotlib/mpl-data/images/zoom_to_rect-symbolic.svg",
-    "venv/Lib/site-packages/matplotlib/mpl-data/images/subplots_large.png",
-    "venv/Lib/site-packages/matplotlib/mpl-data/images/subplots.svg",
-    "venv/Lib/site-packages/matplotlib/mpl-data/images/subplots.png",
-    "venv/Lib/site-packages/numpy/random/LICENSE.md",
-    "README.md"
+    "README.md",
+    "pytest-cache-files-hh5wwji6/README.md",
+    "venv/Lib/site-packages/numpy/random/LICENSE.md"
   ]
 }
