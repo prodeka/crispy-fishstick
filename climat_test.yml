@@ -1,5 +1,0 @@
-station: "Testville"
-donnees_mensuelles:
-  - {mois: "Jan", temp_C: 10, precip_mm: 30}
-  - {mois: "Fev", temp_C: 12, precip_mm: 20}
-  - {mois: "Mar", temp_C: 15, precip_mm: 40}

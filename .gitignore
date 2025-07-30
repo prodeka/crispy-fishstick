@@ -49,3 +49,12 @@ main.spec
 *.whl
 *.rar
 .env
+# Caches et artefacts de build
+.pytest_cache/
+.ruff_cache/
+.obsidian/
+build/
+dist/
+*.egg-info/
+rapport_lcpi.pdf
+climat_test.yml
