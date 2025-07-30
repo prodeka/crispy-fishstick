@@ -125,20 +125,19 @@ def ouvrages_deversoir_dimensionner(
 
 @ouvrages_app.command("dalot-verifier")
 def ouvrages_dalot_verifier(
-    largeur: float = typer.Option(..., "--largeur", help="Largeur du dalot en m."),
-    hauteur: float = typer.Option(..., "--hauteur", help="Hauteur du dalot en m."),
-    debit_projet: float = typer.Option(..., "--debit-projet", help="Débit de projet en m³/s."),
-    longueur: float = typer.Option(..., "--longueur", help="Longueur du dalot en m."),
-    pente: float = typer.Option(..., "--pente", help="Pente du dalot en m/m (ex: 0.005).")
+    largeur: float = typer.Option(..., help="Largeur d'une cellule (m)"),
+    hauteur: float = typer.Option(..., help="Hauteur d'une cellule (m)"),
+    nombre_cellules: int = typer.Option(1, "--nombre-cellules", help="Nombre de cellules identiques"),
+    longueur: float = typer.Option(..., help="Longueur de l'ouvrage (m)"),
+    pente: float = typer.Option(..., help="Pente de l'ouvrage (m/m)"),
+    debit_projet: float = typer.Option(..., help="Débit de projet à évacuer (m³/s)"),
+    manning: float = typer.Option(0.013, help="Coefficient de rugosité de Manning")
 ):
-    """Vérifie le fonctionnement hydraulique d'un dalot rectangulaire."""
-    donnees = {
-        "largeur_m": largeur, "hauteur_m": hauteur, "debit_projet_m3s": debit_projet,
-        "longueur_m": longueur, "pente_m_m": pente,
-        "manning": 0.015 # Valeur standard pour béton
-    }
-    resultats = verifier_dalot(donnees)
-    print(json.dumps(resultats, indent=2))
+    # Le reste de la fonction ne change pas...
+    donnees_entree = { "largeur_m": largeur, "hauteur_m": hauteur, "nombre_cellules": nombre_cellules, "longueur_m": longueur, "pente_m_m": pente, "debit_projet_m3s": debit_projet, "manning": manning }
+    resultats = verifier_dalot(donnees_entree)
+    print("\n--- RÉSULTATS DE LA VÉRIFICATION ---")
+    print(json.dumps(resultats, indent=2, ensure_ascii=False))
 
 # ... (les commandes pour deversoir, radier, canal, pompe restent ici)
 
@@ -162,28 +161,31 @@ def utils_population(
 
 @utils_app.command("estimer-demande-eau")
 def utils_demande_eau(
-    population: int = typer.Argument(..., help="Population totale desservie."),
-    dotation: float = typer.Argument(..., help="Dotation par habitant (L/jour/hab)."),
-    rendement: float = typer.Option(0.8, "--rendement", "-r", help="Rendement du réseau de distribution (ex: 0.8 pour 80%).")
+    population: int = typer.Option(..., "--pop", help="Population future estimée."),
+    dotation: float = typer.Option(..., "--dota", help="Dotation domestique en L/jour/habitant.")
 ):
-    """Estime les besoins en eau potable d'une population."""
-    donnees = {
-        "population": population,
-        "dotation_domestique_l_j_hab": dotation,
-        "rendement_reseau": rendement
-    }
-    print(json.dumps(estimer_demande_eau(donnees), indent=2))
+    # Le reste de la fonction ne change pas...
+    donnees = {"population": population, "dotation_domestique_l_j_hab": dotation}
+    resultats = estimer_demande_eau(donnees)
+    print(json.dumps(resultats, indent=2))
 
 @utils_app.command("diagramme-ombro")
-def utils_diagramme(output_path: str = "diagramme_ombro.png"):
-    donnees_lomé = { "station": "Lomé, Togo", "donnees_mensuelles": [
-            {"mois": "Jan", "temp_C": 27.1, "precip_mm": 19.4}, {"mois": "Fev", "temp_C": 28.2, "precip_mm": 46.1},
-            {"mois": "Mar", "temp_C": 28.5, "precip_mm": 91.9}, {"mois": "Avr", "temp_C": 28.4, "precip_mm": 128.6},
-            {"mois": "Mai", "temp_C": 27.5, "precip_mm": 197.8}, {"mois": "Juin", "temp_C": 26.1, "precip_mm": 279.1},
-            {"mois": "Juil", "temp_C": 25.4, "precip_mm": 105.1}, {"mois": "Aou", "temp_C": 25.2, "precip_mm": 45.9},
-            {"mois": "Sep", "temp_C": 25.8, "precip_mm": 159.2}, {"mois": "Oct", "temp_C": 26.8, "precip_mm": 125.4},
-            {"mois": "Nov", "temp_C": 27.5, "precip_mm": 35.8}, {"mois": "Dec", "temp_C": 27.2, "precip_mm": 8.5} ]}
-    print(json.dumps(generer_diagramme_ombrothermique(donnees_lomé, output_path), indent=2))
+def utils_diagramme(
+    filepath: str = typer.Argument(..., help="Chemin vers le fichier de données climatiques YAML."),
+    output_path: str = typer.Option("diagramme_ombro.png", "--output", "-o", help="Chemin du fichier PNG de sortie.")
+):
+    """Génère un diagramme ombrothermique à partir d'un fichier de données."""
+    try:
+        import yaml
+        with open(filepath, 'r', encoding='utf-8') as f:
+            donnees_climat = yaml.safe_load(f)
+        
+        resultats = generer_diagramme_ombrothermique(donnees_climat, output_path)
+        print(json.dumps(resultats, indent=2, ensure_ascii=False))
+    except FileNotFoundError:
+        print(f"ERREUR: Le fichier de données '{filepath}' est introuvable.")
+    except Exception as e:
+        print(f"Une erreur est survenue : {e}")
 
 # --- Point d'entrée ---
 def register():

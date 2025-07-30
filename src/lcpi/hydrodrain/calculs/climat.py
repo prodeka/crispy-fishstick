@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+import os
 
 def generer_diagramme_ombrothermique(donnees: dict, output_path: str) -> dict:
     donnees_mensuelles = donnees.get("donnees_mensuelles")
@@ -27,6 +28,13 @@ def generer_diagramme_ombrothermique(donnees: dict, output_path: str) -> dict:
     plt.title(f"Diagramme Ombrothermique de Gaussen - {station}")
     fig.tight_layout()
     plt.grid(True, linestyle='--', alpha=0.6)
+    
+    # Crée le répertoire de sortie s'il n'existe pas
+    output_dir = os.path.dirname(output_path)
+    if output_dir and not os.path.exists(output_dir):
+        print(f"INFO: Le répertoire de sortie '{output_dir}' n'existe pas, création...")
+        os.makedirs(output_dir)
+    
     plt.savefig(output_path)
     plt.close()
     

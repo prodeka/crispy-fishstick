@@ -1,9 +1,0 @@
-[project]
-name = "lcpi_bois"
-version = "0.1.0"
-dependencies = [
-    "typer",
-]
-
-[project.entry-points."lcpi.plugins"]
-bois = "main:register"
