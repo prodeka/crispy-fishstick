@@ -24,6 +24,27 @@ app = typer.Typer(
     rich_markup_mode="markdown"
 )
 
+# --- Commandes du noyau (placeholders) ---
+@app.command()
+def init(nom_projet: str = typer.Argument("nouveau_projet_lcpi")):
+    """Initialise une nouvelle structure de projet LCPI."""
+    print(f"PLACEHOLDER: Création du projet '{nom_projet}'...")
+
+@app.command()
+def plugins(action: str = typer.Argument(..., help="Action à effectuer : list, install, uninstall, search, update.")):
+    """Gère le cycle de vie des plugins."""
+    print(f"PLACEHOLDER: Action '{action}' sur les plugins...")
+
+@app.command()
+def config(action: str, cle: str = typer.Argument(None), valeur: str = typer.Argument(None)):
+    """Gère la configuration de LCPI (get|set|list)."""
+    print(f"PLACEHOLDER: Action '{action}' sur la configuration...")
+
+@app.command()
+def doctor():
+    """Vérifie l'installation et les dépendances de LCPI-CLI."""
+    print("PLACEHOLDER: Vérification du système (dépendances, compatibilité plugins)...")
+
 @app.command()
 def report(project_dir: str = typer.Argument(".")):
     """Analyse tous les éléments d'un projet et génère un rapport."""
@@ -116,15 +137,33 @@ except ImportError as e:
 try:
     from .hydrodrain.main import register as register_hydrodrain
     app.add_typer(register_hydrodrain(), name="hydro")
-    print("[SUCCES] Plugin 'hydrodrain' chargé.")
+    print("[SUCCES] Plugin 'hydro' chargé.")
 except ImportError as e:
-    print(f"[ECHEC] Plugin 'hydrodrain' non chargé. Erreur : {e}")
+    print(f"[ECHEC] Plugin 'hydro' non chargé. Erreur : {e}")
 
 print("----------------------------------")
 
+# --- Mode shell interactif ---
+def run_interactive_shell():
+    print("Bienvenue dans le shell interactif LCPI-CLI !")
+    print("Tapez 'exit' ou 'quit' pour sortir.")
+    while True:
+        try:
+            cmd = input('> ').strip()
+            if cmd in ('exit', 'quit'):
+                print('Sortie du shell interactif.')
+                break
+            if not cmd:
+                continue
+            # Exécute la commande comme si elle était passée à Typer
+            args = cmd.split()
+            app(args)
+        except (EOFError, KeyboardInterrupt):
+            print('\nSortie du shell interactif.')
+            break
 
-# -----------------------------------------------------------------------------
-# Exécution
-# -----------------------------------------------------------------------------
 if __name__ == "__main__":
-    app()
+    if len(sys.argv) == 1:
+        run_interactive_shell()
+    else:
+        app()

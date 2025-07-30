@@ -1,0 +1,9 @@
+# Fichier de définition pour le dimensionnement d'un canal trapézoïdal
+
+# --- Paramètres Hydrauliques ---
+debit_projet_m3s: 10.0 # Débit à transiter dans le canal (en m³/s)
+k_strickler: 30.0 # Coefficient de rugosité de Strickler (inverse de Manning)
+vitesse_max_admissible_ms: 1.5 # Vitesse maximale pour éviter l'érosion (m/s)
+# --- Paramètres Géométriques ---
+pente_m_m: 0.001 # Pente longitudinale du fond du canal (en m/m)
+fruit_talus_z: 1.5 # Fruit des talus (z tel que la pente est 1V:zH, ex: 1.5)

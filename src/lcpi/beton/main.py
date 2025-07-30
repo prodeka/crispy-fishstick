@@ -49,7 +49,7 @@ def _calculer_radier_beton_logic(data: dict) -> dict:
 # --- Commandes du Plugin ---
 app = typer.Typer(name="beton", help="Plugin pour le Béton Armé (BAEL 91 / Eurocode 2)")
 
-@app.command(name="calc")
+@app.command(name="calc-poteau")
 def run_calc_from_file(
     filepath: str = typer.Option(None, "--filepath", help="Chemin vers le fichier de définition YAML unique."),
     batch_file: str = typer.Option(None, "--batch-file", help="Chemin vers le fichier CSV pour le traitement par lot de POTEAUX."),

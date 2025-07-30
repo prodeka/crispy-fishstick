@@ -1,0 +1,11 @@
+# Fichier de définition pour la vérification d'un dalot
+
+# --- Paramètres Géométriques ---
+largeur_m: 2.5 # Largeur d'une cellule (en m)
+hauteur_m: 2.0 # Hauteur d'une cellule (en m)
+nombre_cellules: 2 # Nombre d'ouvertures (cellules) identiques
+longueur_m: 18.0 # Longueur totale du dalot (en m)
+pente_m_m: 0.005 # Pente du radier du dalot (en m/m)
+# --- Paramètres Hydrauliques ---
+debit_projet_m3s: 35.0 # Débit de projet à transiter (en m³/s)
+manning: 0.013 # Coefficient de rugosité de Manning pour le béton

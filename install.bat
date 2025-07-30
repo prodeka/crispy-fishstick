@@ -40,11 +40,7 @@ GOTO :install_project
 :install_project
 ECHO.
 ECHO Installation de la plateforme LCPI-CLI...
-pip install -e ./lcpi_platform/lcpi-core
-pip install -e ./lcpi_platform/lcpi-cm
-pip install -e ./lcpi_platform/lcpi-bois
-pip install -e ./lcpi_platform/lcpi-beton
-pip install -e ./lcpi_platform/lcpi-hydrodrain
+pip install -e .
 
 ECHO.
 ECHO #################################################
