@@ -1,7 +1,7 @@
 # PROJET_DIMENTIONEMENT/BA/core/analysis/continuous_beam.py
 # Moteur de calcul pour l'analyse d'une poutre continue par la méthode forfaitaire.
 
-from ...lcpi_core.utils.ui_helpers import v_print
+from ....utils.ui_helpers import v_print
 
 
 def analyze_by_forfaitaire(spans, load_wu):

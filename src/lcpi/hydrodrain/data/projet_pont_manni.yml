@@ -1,0 +1,27 @@
+
+# Données pour le cas test du pont sur la rivière Manni
+projet:
+  nom: "Pont sur la rivière Manni"
+  periode_retour_ans: 100
+
+pluviometrie:
+  station: "Station de référence"
+  # Série de pluies maximales journalières sur 10 ans (exemple)
+  series_Hmj_mm: [85, 110, 95, 130, 78, 115, 125, 90, 105, 140]
+
+bassin_versant:
+  superficie_km2: 150
+  pente_globale: 0.015 # 1.5%
+  pluvio_annuelle_mm: 1300
+
+cours_eau:
+  pente: 0.001 # 0.1%
+  k_strickler: 35
+  profil:
+    largeur_lit_mineur_m: 40
+    pente_berges_m_m: 2 # 2H:1V
+  largeur_lit: 55 # Largeur au niveau des berges
+
+ouvrage_projete:
+  largeur_pile_m: 1.2
+  # ... autres données géométriques du pont à venir

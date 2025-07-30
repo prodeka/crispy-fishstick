@@ -2,7 +2,7 @@
 # Contient les moteurs de calcul pour le dimensionnement des poteaux.
 
 import math
-from ...lcpi_core.utils.ui_helpers import v_print
+from ....utils.ui_helpers import v_print
 from ..rebar_selector import get_rebar_proposals
 
 

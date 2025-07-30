@@ -1,7 +1,7 @@
 # PROJET_DIMENTIONEMENT/BA/core/analysis/moment_calculator.py
 # Moteur de calcul pour les moments, avec affichage pédagogique intégré.
 
-from ...lcpi_core.utils.ui_helpers import v_print
+from ....utils.ui_helpers import v_print
 
 
 def get_isostatic_moment(charge_q_kNm, span_L_m):

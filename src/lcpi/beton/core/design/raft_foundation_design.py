@@ -1,6 +1,6 @@
 # PROJET_DIMENTIONEMENT/BA/core/design/raft_foundation_design.py
 
-from ...lcpi_core.utils.ui_helpers import v_print
+from ....utils.ui_helpers import v_print
 
 
 def design_raft_by_strip_method(poteaux_df, A, B, h, sigma_sol_adm, beton, acier):

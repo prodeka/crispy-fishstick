@@ -4,8 +4,8 @@
 # --- Imports ---
 import pandas as pd
 import math
-from ...lcpi_core.utils import settings
-from ...lcpi_core.utils.ui_rich import (
+from ...utils import settings
+from ...utils.ui_rich import (
     afficher_action,
     afficher_resultat,
     afficher_erreur,

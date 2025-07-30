@@ -1,7 +1,7 @@
 # PROJET_DIMENTIONEMENT/BA/core/checks/service_limit_states.py
 # Fonctions pour les vérifications à l'État Limite de Service (ELS)
 
-from ...lcpi_core.utils.ui_helpers import v_print
+from ....utils.ui_helpers import v_print
 
 
 def check_concrete_compression_stress(Nser_kN, section, beton):
