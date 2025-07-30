@@ -1,32 +1,41 @@
 import math
 
-def predimensionner_pompe(donnees: dict) -> dict:
-    # Phase 2 : Calcul HMT
+def _solve_colebrook(re, epsilon_d):
+    # Résolution itérative de l'équation de Colebrook-White
+    lambda_val = 0.02
+    for _ in range(10): # 10 itérations suffisent généralement
+        lambda_val = 1 / (-2 * math.log10( (epsilon_d / 3.7) + (2.51 / (re * math.sqrt(lambda_val))) ))**2
+    return lambda_val
+
+def predimensionner_pompe(donnees: dict):
     q_pompage = donnees.get("debit_pompage_m3s")
-    z_ref = donnees.get("cote_refoulement_m")
-    z_arret = donnees.get("cote_arret_pompe_m")
-    longueur = donnees.get("longueur_conduite_m")
-    diametre = donnees.get("diametre_conduite_m")
-    somme_k = sum(donnees.get("pertes_singulieres_k", []))
+    z_ref = donnees.get("cote_refoulement_m"); z_arret = donnees.get("cote_arret_pompe_m")
+    longueur = donnees.get("longueur_conduite_m"); diametre = donnees.get("diametre_conduite_m")
+    somme_k = sum(donnees.get("pertes_singulieres_k", [])); rugosite_eps = donnees.get("rugosite_mm", 0.1)
     
     h_geo = z_ref - z_arret
     aire = math.pi * (diametre**2) / 4
     vitesse = q_pompage / aire
     
-    # Darcy-Weisbach avec lambda simplifié = 0.02
-    pertes_lineaires = 0.02 * (longueur / diametre) * (vitesse**2 / (2 * 9.81))
+    # Calcul de Lambda de Colebrook
+    viscosite_nu = 1.004e-6 # m²/s pour l'eau à 20°C
+    reynolds = (vitesse * diametre) / viscosite_nu
+    epsilon_d = (rugosite_eps / 1000) / diametre
+    lambda_colebrook = _solve_colebrook(reynolds, epsilon_d)
+    
+    pertes_lineaires = lambda_colebrook * (longueur / diametre) * (vitesse**2 / (2 * 9.81))
     pertes_singulieres = somme_k * (vitesse**2 / (2 * 9.81))
     h_pertes = pertes_lineaires + pertes_singulieres
     hmt = h_geo + h_pertes
     
-    # Phase 3 : Puissance
     p_hydraulique = q_pompage * 1000 * 9.81 * hmt
-    p_elec = p_hydraulique / (0.75 * 0.90) # rendements pompe/moteur
+    p_elec = p_hydraulique / (0.75 * 0.90)
     
     return {
         "statut": "OK",
         "point_fonctionnement": {"debit_m3s": q_pompage, "hmt_m": round(hmt, 2)},
-        "puissance_electrique_requise_kW": round(p_elec / 1000, 2)
+        "puissance_electrique_requise_kW": round(p_elec / 1000, 2),
+        "lambda_colebrook_calcule": round(lambda_colebrook, 4)
     }
 
 def verifier_npsh(donnees: dict) -> dict:

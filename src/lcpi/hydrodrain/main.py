@@ -1,8 +1,8 @@
 import typer
 import json
 import yaml
-from .calculs.pluviometrie import analyser_donnees_brutes, ajuster_lois_frequentielles, generer_courbes_idf
-from .calculs.bassin_versant import caracteriser_bassin, estimer_crue
+from .calculs.pluviometrie import analyser_donnees_brutes, ajuster_loi_gumbel, generer_courbes_idf
+from .calculs.bassin_versant import caracteriser_bassin
 # Imports de tous les modules de calcul du plugin
 from .calculs.canal import dimensionner_canal
 from .calculs.pompage import predimensionner_pompe
@@ -38,12 +38,17 @@ def pluvio_analyser(filepath: str):
     print(json.dumps(resultats, indent=2))
 
 @pluvio_app.command("ajuster-loi")
-def pluvio_ajuster(filepath: str, loi: str = "gumbel"):
-    """Ajuste les pluies maximales à une loi statistique."""
-    # Pour un vrai cas, on lirait le fichier pour extraire la série de pluies
-    series_pluies_exemple = [85, 110, 95, 130, 78, 115, 125, 90, 105, 140]
-    resultats = ajuster_lois_frequentielles(series_pluies_exemple)
-    print(json.dumps(resultats, indent=2))
+def pluvio_ajuster(filepath: str):
+    """Ajuste les pluies maximales à la loi de Gumbel (ou autre)."""
+    # On suppose un CSV avec une colonne 'pluie'
+    import pandas as pd
+    df = pd.read_csv(filepath)
+    if 'pluie' not in df.columns:
+        print("ERREUR: Le fichier doit contenir une colonne 'pluie'.")
+        return
+    series = df['pluie'].dropna().tolist()
+    resultats = ajuster_loi_gumbel(series)
+    print(json.dumps(resultats, indent=2, ensure_ascii=False))
 
 @pluvio_app.command("generer-idf")
 def pluvio_generer_idf(filepath: str, modele: str = "montana"):
@@ -53,19 +58,27 @@ def pluvio_generer_idf(filepath: str, modele: str = "montana"):
     print(json.dumps(resultats, indent=2))
 
 @hydro_app.command("caracteriser")
-def hydro_caracteriser(mnt_filepath: str):
-    """Calcule les paramètres physiques d'un bassin versant."""
-    donnees_exemple = {"mnt_path": mnt_filepath}
-    resultats = caracteriser_bassin(donnees_exemple)
-    print(json.dumps(resultats, indent=2))
-
-@hydro_app.command("estimer-crue")
-def hydro_estimer_crue(bassin_params_path: str, methode: str = "orstom"):
-    """Estime le débit de pointe d'un bassin versant."""
-    # Un vrai cas lirait le fichier de paramètres du bassin
-    donnees_bassin_exemple = {"superficie_km2": 150}
-    resultats = estimer_crue(donnees_bassin_exemple, methode)
-    print(json.dumps(resultats, indent=2))
+def hydro_caracteriser(filepath: str):
+    """Calcule les paramètres physiques d'un bassin versant à partir d'un fichier YAML ou CSV."""
+    import os
+    import pandas as pd
+    import yaml
+    if filepath.endswith('.yml') or filepath.endswith('.yaml'):
+        with open(filepath, 'r', encoding='utf-8') as f:
+            donnees = yaml.safe_load(f)
+    elif filepath.endswith('.csv'):
+        df = pd.read_csv(filepath)
+        # On suppose que le CSV a les colonnes attendues
+        donnees = {
+            'superficie_km2': float(df['superficie_km2'].iloc[0]),
+            'perimetre_km': float(df['perimetre_km'].iloc[0]),
+            'pente_globale_m_km': float(df['pente_globale_m_km'].iloc[0])
+        }
+    else:
+        print("ERREUR: Format de fichier non supporté (utilisez .yml, .yaml ou .csv)")
+        return
+    resultats = caracteriser_bassin(donnees)
+    print(json.dumps(resultats, indent=2, ensure_ascii=False))
 
 # --- Commandes Ouvrages ---
 @ouvrages_app.command("canal-dimensionner")

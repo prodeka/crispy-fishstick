@@ -1,16 +1,21 @@
-def caracteriser_bassin(donnees_entree: dict):
-    # Placeholder pour la délimitation SIG et le calcul des paramètres
-    s = donnees_entree.get("superficie_km2", 50.0) # Valeur exemple
-    p = 35.0 # Valeur exemple
-    kc = 0.282 * p * (s**-0.5)
-    # ... autres calculs ...
-    print("Caractérisation du bassin versant...")
-    return {"statut": "OK", "superficie_km2": s, "perimetre_km": p, "indice_gravelius_kc": round(kc, 2)}
+import math
+
+def caracteriser_bassin(donnees_bassin: dict):
+    s_km2 = donnees_bassin.get("superficie_km2")
+    p_km = donnees_bassin.get("perimetre_km")
+    ig_m_km = donnees_bassin.get("pente_globale_m_km")
     
-def estimer_crue(donnees_bassin: dict, methode: str = "orstom"):
-    # Placeholder pour l'estimation de crue (les vraies formules sont dans hydrologie.py)
-    # Cet appel pourrait être délégué
-    print(f"Estimation de la crue par la méthode {methode}...")
-    q10 = 250.0 # m3/s, valeur exemple
-    q100 = 2 * q10 # ASEER
-    return {"statut": "OK", "debit_decennal_q10_m3s": q10, "debit_projet_q100_m3s": q100}
+    kc = 0.282 * p_km * (s_km2**-0.5)
+    
+    ratio_l = (kc / 1.128) * (1 + math.sqrt(1 - (1.128 / kc)**2))
+    longueur_l = math.sqrt(s_km2) * ratio_l
+    
+    ds = ig_m_km * math.sqrt(s_km2)
+
+    return {
+        "statut": "OK",
+        "superficie_km2": s_km2, "perimetre_km": p_km,
+        "indice_gravelius_kc": round(kc, 2),
+        "longueur_rectangle_equivalent_km": round(longueur_l, 2),
+        "denivelee_specifique_m": round(ds, 2)
+    }
