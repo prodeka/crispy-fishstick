@@ -7,7 +7,9 @@ from .calculs.deversoir import dimensionner_deversoir
 from .calculs.canal import dimensionner_canal
 from .calculs.pompage import predimensionner_pompe, verifier_npsh
 from .calculs.plomberie import dimensionner_troncon_plomberie
-from .calculs.radier import verifier_radier_ancrage
+from .calculs.radier import dimensionner_radier_submersible
+from .calculs.assainissement_gravitaire import dimensionner_troncon_assainissement
+from .calculs.reservoir_aep import dimensionner_volume_reservoir
 
 # --- Application Principale du Plugin ---
 app = typer.Typer(
@@ -109,10 +111,17 @@ def ouvrages_franchissement(
         # TODO: Appeler une fonction de génération de rapport PDF
         print(f"\nTODO: Générer le rapport dans {rapport_path}")
 
-@ouvrages_app.command("reseau-assainissement")
-def ouvrages_reseau(filepath: str, methode: str = "hardy-cross"):
-    """Dimensionne et analyse un réseau d'assainissement."""
-    run_legacy_assainissement()
+@ouvrages_app.command("reseau-gravitaire")
+def ouvrages_reseau_gravitaire(
+    debit_projet: float = typer.Option(..., help="Débit de projet (m³/s)"),
+    pente: float = typer.Option(..., help="Pente du collecteur (m/m)"),
+    k_strickler: float = typer.Option(..., help="Coefficient de Strickler"),
+    diametre_initial: float = typer.Option(..., help="Diamètre initial pour l'itération (m)")
+):
+    """Dimensionne un tronçon de collecteur d'assainissement gravitaire."""
+    donnees = {"debit_projet_m3s": debit_projet, "pente_m_m": pente, "k_strickler": k_strickler, "diametre_initial_m": diametre_initial}
+    resultats = dimensionner_troncon_assainissement(donnees)
+    print(json.dumps(resultats, indent=2))
 
 @ouvrages_app.command("bassin-retention")
 def ouvrages_bassin(filepath: str):
@@ -235,26 +244,15 @@ def ouvrages_pompe_verifier_npsh(
     resultats = verifier_npsh(donnees)
     print(json.dumps(resultats, indent=2))
 
-@ouvrages_app.command("radier-verifier-ancrage")
-def ouvrages_radier_verifier_ancrage(
-    surface_radier: float = typer.Option(..., help="Surface du radier (m²)"),
-    poids_radier: float = typer.Option(..., help="Poids propre du radier (kN)"),
-    poids_remblai: float = typer.Option(..., help="Poids du remblai sur le radier (kN)"),
-    niveau_nappe: float = typer.Option(..., help="Niveau de la nappe phréatique (m NGF)"),
-    niveau_fond_radier: float = typer.Option(..., help="Niveau du fond du radier (m NGF)"),
-    coeff_securite: float = typer.Option(1.1, help="Coefficient de sécurité requis")
+@ouvrages_app.command("radier-dimensionner")
+def ouvrages_radier_dimensionner(
+    debit_crue: float = typer.Option(..., help="Débit de la crue (m³/s)"),
+    largeur: float = typer.Option(..., help="Largeur du radier (m)"),
+    cote_crete: float = typer.Option(..., help="Cote de la crête du radier (m NGF)")
 ):
-    """Vérifie la stabilité à l'ancrage d'un radier sous l'effet de la sous-pression."""
-    print("--- Lancement de la Vérification d'Ancrage du Radier ---")
-    donnees = {
-        "surface_radier_m2": surface_radier,
-        "poids_radier_kn": poids_radier,
-        "poids_remblai_kn": poids_remblai,
-        "niveau_nappe_ngf": niveau_nappe,
-        "niveau_fond_radier_ngf": niveau_fond_radier,
-        "coeff_securite_requis": coeff_securite
-    }
-    resultats = verifier_radier_ancrage(donnees)
+    """Dimensionne un radier submersible en crue."""
+    donnees = {"debit_crue_m3s": debit_crue, "largeur_radier_m": largeur, "cote_crete_radier_m": cote_crete}
+    resultats = dimensionner_radier_submersible(donnees)
     print(json.dumps(resultats, indent=2))
 
 # --- IV. Groupe de commandes : Plomberie ---
@@ -275,7 +273,24 @@ def plomberie_troncon_dimensionner(
     resultats = dimensionner_troncon_plomberie(donnees)
     print(json.dumps(resultats, indent=2))
 
-# --- V. Groupe de commandes : Utilitaires ---
+# --- V. Groupe de commandes : Stockage ---
+stockage_app = typer.Typer(name="stockage", help="Dimensionnement des ouvrages de stockage et régulation.")
+app.add_typer(stockage_app)
+
+@stockage_app.command("reservoir-aep")
+def stockage_reservoir_aep(
+    population: int = typer.Option(..., help="Population desservie"),
+    dotation: float = typer.Option(..., help="Dotation journalière (L/j/hab)"),
+    cp_j: float = typer.Option(..., help="Coefficient de pointe journalier")
+):
+    """Calcule le volume utile d'un réservoir d'eau potable."""
+    # Placeholder pour la répartition horaire - un vrai cas lirait un fichier
+    repartition_horaire_placeholder = [1.5,1,0.5,0.5,1,2,4,7,6,5,4,4,5,6,7,8,7,6,5,4,3,2,2.5,2]
+    donnees = {"population": population, "dotation_l_j_hab": dotation, "coeff_pointe_journalier": cp_j, "repartition_horaire_pourcent": repartition_horaire_placeholder}
+    resultats = dimensionner_volume_reservoir(donnees)
+    print(json.dumps(resultats, indent=2))
+
+# --- VI. Groupe de commandes : Utilitaires ---
 utils_app = typer.Typer(name="util", help="Utilitaires et Analyses Spécifiques.")
 app.add_typer(utils_app)
 
@@ -297,3 +312,4 @@ def utils_diagramme(filepath: str):
 # --- Point d'entrée pour l'enregistrement du plugin ---
 def register():
     return app
+
