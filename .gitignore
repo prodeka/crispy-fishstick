@@ -19,6 +19,7 @@ venv/
 env/
 *.venv
 offline_packages/
+offline_packages/
 
 # Editors
 .vscode/

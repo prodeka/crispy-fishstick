@@ -7,6 +7,7 @@ from .calculs.canal import dimensionner_canal
 from .calculs.pompage import predimensionner_pompe
 from .calculs.plomberie import dimensionner_troncon_plomberie
 from .calculs.deversoir import dimensionner_deversoir
+from .calculs.dalot import verifier_dalot
 from .calculs.radier import dimensionner_radier_submersible
 from .calculs.population import prevoir_population
 from .calculs.demande_eau import estimer_demande_eau
@@ -105,11 +106,52 @@ def ouvrages_canal_dimensionner(
         print("Erreur : Vous devez spécifier soit --filepath, soit --batch-file.")
         raise typer.Exit(code=1)
 
+@ouvrages_app.command("deversoir-dimensionner")
+def ouvrages_deversoir_dimensionner(
+    debit_projet: float = typer.Option(..., "--debit-projet", help="Débit de projet en m³/s."),
+    cote_barrage: float = typer.Option(..., "--cote-barrage", help="Cote de la crête du barrage (m)."),
+    cote_deversoir: float = typer.Option(..., "--cote-deversoir", help="Cote de la crête du déversoir (m)."),
+    revanche: float = typer.Option(1.0, "--revanche", help="Revanche de sécurité en m.")
+):
+    """Dimensionne la longueur d'un déversoir à crête épaisse."""
+    donnees = {
+        "debit_projet_m3s": debit_projet,
+        "cote_crete_barrage_m": cote_barrage,
+        "cote_crete_deversoir_m": cote_deversoir,
+        "revanche_m": revanche
+    }
+    resultats = dimensionner_deversoir(donnees)
+    print(json.dumps(resultats, indent=2))
+
+@ouvrages_app.command("dalot-verifier")
+def ouvrages_dalot_verifier(
+    largeur: float = typer.Option(..., "--largeur", help="Largeur du dalot en m."),
+    hauteur: float = typer.Option(..., "--hauteur", help="Hauteur du dalot en m."),
+    debit_projet: float = typer.Option(..., "--debit-projet", help="Débit de projet en m³/s."),
+    longueur: float = typer.Option(..., "--longueur", help="Longueur du dalot en m."),
+    pente: float = typer.Option(..., "--pente", help="Pente du dalot en m/m (ex: 0.005).")
+):
+    """Vérifie le fonctionnement hydraulique d'un dalot rectangulaire."""
+    donnees = {
+        "largeur_m": largeur, "hauteur_m": hauteur, "debit_projet_m3s": debit_projet,
+        "longueur_m": longueur, "pente_m_m": pente,
+        "manning": 0.015 # Valeur standard pour béton
+    }
+    resultats = verifier_dalot(donnees)
+    print(json.dumps(resultats, indent=2))
+
 # ... (les commandes pour deversoir, radier, canal, pompe restent ici)
 
 # --- Commandes Utilitaires (Implémentation finale) ---
 @utils_app.command("prevoir-population")
-def utils_population(pop1: int, annee1: int, pop2: int, annee2: int, annee_projet: int):
+def utils_population(
+    pop1: int = typer.Option(..., "--pop1", help="Population à l'année de début."),
+    annee1: int = typer.Option(..., "--annee1", help="Année de début."),
+    pop2: int = typer.Option(..., "--pop2", help="Population à l'année de fin."),
+    annee2: int = typer.Option(..., "--annee2", help="Année de fin."),
+    annee_projet: int = typer.Option(..., "--annee-projet", help="Année pour laquelle estimer la population.")
+):
+    """Estime la population future par les méthodes arithmétique et géométrique."""
     donnees = {"pop_annee_1": (pop1, annee1), "pop_annee_2": (pop2, annee2), "annee_projet": annee_projet}
     print("\n--- Prévision Arithmétique ---")
     donnees["methode"] = "arithmetique"
