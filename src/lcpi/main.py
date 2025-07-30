@@ -12,6 +12,19 @@ from rich.console import Console
 from rich.table import Table
 from rich.panel import Panel
 
+# --- VÉRIFICATION DE LA LICENCE AU DÉMARRAGE ---
+try:
+    from .license_validator import check_license_and_exit
+    # Vérifier la licence avant de continuer
+    check_license_and_exit()
+except ImportError:
+    # Si le module de licence n'est pas disponible, continuer sans vérification
+    pass
+except Exception as e:
+    # En cas d'erreur de licence, arrêter le programme
+    print(f"Erreur de licence : {e}")
+    sys.exit(1)
+
 # Force UTF-8 encoding for stdout and stderr
 if sys.stdout.encoding != 'utf-8':
     sys.stdout.reconfigure(encoding='utf-8')

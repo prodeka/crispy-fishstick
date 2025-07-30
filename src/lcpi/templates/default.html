@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rapport d'Analyse LCPI-CLI - {{ project_name }}</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f8f9fa;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            min-height: 100vh;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            font-weight: 300;
+        }
+        
+        .header .subtitle {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+        
+        .content {
+            padding: 2rem;
+        }
+        
+        .summary-section {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            border-left: 4px solid #667eea;
+        }
+        
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .summary-card {
+            background: white;
+            padding: 1rem;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .summary-card .number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+        
+        .summary-card .label {
+            color: #666;
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+        }
+        
+        .graphs-section {
+            margin-bottom: 2rem;
+        }
+        
+        .graphs-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .graph-container {
+            background: white;
+            border-radius: 8px;
+            padding: 1rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        
+        .graph-container img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 4px;
+        }
+        
+        .results-section h2 {
+            color: #333;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #667eea;
+        }
+        
+        .result-card {
+            background: white;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            border-left: 4px solid #28a745;
+        }
+        
+        .result-card.error {
+            border-left-color: #dc3545;
+        }
+        
+        .result-card.warning {
+            border-left-color: #ffc107;
+        }
+        
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        
+        .result-title {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .result-meta {
+            display: flex;
+            gap: 1rem;
+            font-size: 0.9rem;
+            color: #666;
+        }
+        
+        .status-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        
+        .status-ok {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status-error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .status-warning {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .result-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+        }
+        
+        .detail-item {
+            background: #f8f9fa;
+            padding: 0.75rem;
+            border-radius: 4px;
+        }
+        
+        .detail-label {
+            font-weight: bold;
+            color: #555;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .detail-value {
+            color: #333;
+            font-size: 1.1rem;
+            margin-top: 0.25rem;
+        }
+        
+        .footer {
+            background: #333;
+            color: white;
+            text-align: center;
+            padding: 1rem;
+            margin-top: 2rem;
+        }
+        
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .content {
+                padding: 1rem;
+            }
+            
+            .summary-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .graphs-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .result-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.5rem;
+            }
+            
+            .result-meta {
+                flex-direction: column;
+                gap: 0.25rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Rapport d'Analyse LCPI-CLI</h1>
+            <div class="subtitle">
+                Projet: {{ project_name }} | Généré le {{ generation_date }}
+            </div>
+        </div>
+        
+        <div class="content">
+            <!-- Section Résumé -->
+            <div class="summary-section">
+                <h2>📊 Résumé de l'Analyse</h2>
+                <div class="summary-grid">
+                    <div class="summary-card">
+                        <div class="number">{{ total_elements }}</div>
+                        <div class="label">Éléments Analysés</div>
+                    </div>
+                    <div class="summary-card">
+                        <div class="number">{{ plugins|length }}</div>
+                        <div class="label">Plugins Utilisés</div>
+                    </div>
+                    <div class="summary-card">
+                        <div class="number">{{ results|selectattr('statut', 'equalto', 'OK')|list|length }}</div>
+                        <div class="label">Analyses Réussies</div>
+                    </div>
+                    <div class="summary-card">
+                        <div class="number">{{ results|selectattr('statut', 'ne', 'OK')|list|length }}</div>
+                        <div class="label">Analyses avec Problèmes</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Section Graphiques -->
+            {% if graphs %}
+            <div class="graphs-section">
+                <h2>📈 Graphiques d'Analyse</h2>
+                <div class="graphs-grid">
+                    {% for graph in graphs %}
+                    <div class="graph-container">
+                        <img src="{{ graph }}" alt="Graphique d'analyse">
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- Section Résultats Détaillés -->
+            <div class="results-section">
+                <h2>🔍 Détails des Analyses</h2>
+                
+                {% for result in results %}
+                <div class="result-card {% if result.statut == 'Erreur' %}error{% elif result.statut == 'Avertissement' %}warning{% endif %}">
+                    <div class="result-header">
+                        <div class="result-title">{{ result.element_id }}</div>
+                        <div class="result-meta">
+                            <span><strong>Plugin:</strong> {{ result.plugin }}</span>
+                            <span class="status-badge {% if result.statut == 'OK' %}status-ok{% elif result.statut == 'Erreur' %}status-error{% else %}status-warning{% endif %}">
+                                {{ result.statut }}
+                            </span>
+                        </div>
+                    </div>
+                    
+                    {% if result.resultats %}
+                    <div class="result-details">
+                        {% for key, value in result.resultats.items() %}
+                        <div class="detail-item">
+                            <div class="detail-label">{{ key.replace('_', ' ').title() }}</div>
+                            <div class="detail-value">{{ value }}</div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <p style="color: #666; font-style: italic;">Aucun résultat détaillé disponible</p>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>Rapport généré automatiquement par LCPI-CLI | {{ generation_date }}</p>
+        </div>
+    </div>
+</body>
+</html> 

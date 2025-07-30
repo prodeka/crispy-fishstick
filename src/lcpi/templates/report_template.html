@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rapport d'Analyse LCPI-CLI</title>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; margin: 20px; background-color: #f4f4f4; color: #333; }
+        .container { max-width: 900px; margin: auto; background: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        h1 { color: #2c3e50; text-align: center; margin-bottom: 30px; }
+        h2 { color: #34495e; border-bottom: 2px solid #eee; padding-bottom: 5px; margin-top: 25px; }
+        .result-item { background-color: #ecf0f1; border-left: 5px solid #3498db; padding: 15px; margin-bottom: 15px; border-radius: 4px; }
+        .result-item p { margin: 5px 0; }
+        .result-item strong { color: #2980b9; }
+        .footer { text-align: center; margin-top: 40px; font-size: 0.9em; color: #7f8c8d; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Rapport d'Analyse LCPI-CLI</h1>
+        <p>Date de génération : {{ generation_date }}</p>
+        <p>Projet : {{ project_name }}</p>
+
+        {% if results %}
+            {% for result in results %}
+                <div class="result-item">
+                    <h2>Élément : {{ result.element_id | default('Inconnu') }} (Plugin: {{ result.plugin | default('Inconnu') }})</h2>
+                    {% if result.resultats %}
+                        {% for key, value in result.resultats.items() %}
+                            <p><strong>{{ key | replace('_', ' ') | title }} :</strong> {{ value }}</p>
+                        {% endfor %}
+                    {% else %}
+                        <p>Aucun résultat détaillé disponible.</p>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        {% else %}
+            <p>Aucun résultat d'analyse à afficher.</p>
+        {% endif %}
+
+        <div class="footer">
+            <p>Rapport généré par LCPI-CLI</p>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rapport Technique LCPI-CLI - {{ project_name }}</title>
+    <style>
+        body {
+            font-family: 'Courier New', monospace;
+            line-height: 1.4;
+            color: #333;
+            background: white;
+            margin: 0;
+            padding: 20px;
+        }
+        
+        .header {
+            border-bottom: 2px solid #333;
+            padding-bottom: 10px;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            font-size: 24px;
+            margin: 0;
+            font-weight: bold;
+        }
+        
+        .header .info {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+        
+        .section {
+            margin-bottom: 30px;
+        }
+        
+        .section h2 {
+            font-size: 18px;
+            border-bottom: 1px solid #ccc;
+            padding-bottom: 5px;
+            margin-bottom: 15px;
+        }
+        
+        .summary-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        
+        .summary-table th,
+        .summary-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        
+        .summary-table th {
+            background-color: #f5f5f5;
+            font-weight: bold;
+        }
+        
+        .result-item {
+            border: 1px solid #ddd;
+            margin-bottom: 15px;
+            padding: 15px;
+        }
+        
+        .result-header {
+            font-weight: bold;
+            margin-bottom: 10px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .result-meta {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 10px;
+        }
+        
+        .result-data {
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            background: #f9f9f9;
+            padding: 10px;
+            border-radius: 3px;
+        }
+        
+        .status-ok { color: #28a745; }
+        .status-error { color: #dc3545; }
+        .status-warning { color: #ffc107; }
+        
+        .graph-container {
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        .graph-container img {
+            max-width: 100%;
+            height: auto;
+            border: 1px solid #ddd;
+        }
+        
+        .footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #ddd;
+            font-size: 12px;
+            color: #666;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>RAPPORT TECHNIQUE LCPI-CLI</h1>
+        <div class="info">
+            Projet: {{ project_name }} | Date: {{ generation_date }} | 
+            Éléments analysés: {{ total_elements }}
+        </div>
+    </div>
+    
+    <!-- Résumé -->
+    <div class="section">
+        <h2>RÉSUMÉ EXÉCUTIF</h2>
+        <table class="summary-table">
+            <tr>
+                <th>Métrique</th>
+                <th>Valeur</th>
+            </tr>
+            <tr>
+                <td>Total des éléments</td>
+                <td>{{ total_elements }}</td>
+            </tr>
+            <tr>
+                <td>Plugins utilisés</td>
+                <td>{{ plugins|join(', ') }}</td>
+            </tr>
+            <tr>
+                <td>Analyses réussies</td>
+                <td>{{ results|selectattr('statut', 'equalto', 'OK')|list|length }}</td>
+            </tr>
+            <tr>
+                <td>Analyses avec problèmes</td>
+                <td>{{ results|selectattr('statut', 'ne', 'OK')|list|length }}</td>
+            </tr>
+        </table>
+    </div>
+    
+    <!-- Graphiques -->
+    {% if graphs %}
+    <div class="section">
+        <h2>GRAPHIQUES D'ANALYSE</h2>
+        {% for graph in graphs %}
+        <div class="graph-container">
+            <img src="{{ graph }}" alt="Graphique d'analyse">
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    
+    <!-- Résultats détaillés -->
+    <div class="section">
+        <h2>RÉSULTATS DÉTAILLÉS</h2>
+        
+        {% for result in results %}
+        <div class="result-item">
+            <div class="result-header">
+                {{ result.element_id }}
+            </div>
+            <div class="result-meta">
+                Plugin: {{ result.plugin }} | 
+                Statut: <span class="status-{{ result.statut.lower() }}">{{ result.statut }}</span>
+            </div>
+            
+            {% if result.resultats %}
+            <div class="result-data">
+                {% for key, value in result.resultats.items() %}
+                {{ key.replace('_', ' ').upper() }}: {{ value }}
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="result-data">
+                AUCUN RÉSULTAT DÉTAILLÉ DISPONIBLE
+            </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+    
+    <div class="footer">
+        Rapport technique généré automatiquement par LCPI-CLI | {{ generation_date }}
+    </div>
+</body>
+</html> 
