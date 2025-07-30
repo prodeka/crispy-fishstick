@@ -1,7 +1,6 @@
-Flask
-Flask-Cors
+typer[all]
+PyYAML
 pandas
+scipy
 matplotlib
 reportlab
-celery
-redis

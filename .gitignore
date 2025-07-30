@@ -18,6 +18,7 @@ develop-eggs/
 venv/
 env/
 *.venv
+offline_packages/
 
 # Editors
 .vscode/

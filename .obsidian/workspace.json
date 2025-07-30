@@ -69,12 +69,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Sans titre.md",
+                "file": "lcpi_platform/README.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "Sans titre"
+              "title": "README"
             }
           }
         ],
@@ -227,6 +227,13 @@
   },
   "active": "14e6c4f798db95cd",
   "lastOpenFiles": [
+    "install.bat",
+    "offline_packages",
+    "lcpi_platform/GUIDE_UTILISATION.md",
+    "lcpi_platform/API_DOCUMENTATION.md",
+    "lcpi_platform/DOCUMENTATION_TECHNIQUE.md",
+    "Sans titre.md",
+    "lcpi_platform/README.md",
     "output/resultats_canaux.csv",
     "data/canaux_a_dimensionner.csv",
     "output/resultats_poutres_bois.csv",
@@ -236,10 +243,7 @@
     "lcpi_platform/lcpi_beton/__pycache__/main.cpython-313.pyc.1339257610592",
     "lcpi_platform/lcpi_cm/__pycache__/main.cpython-313.pyc.1338848926944",
     "lcpi_platform/lcpi_hydrodrain/calculs/__pycache__/bassin_versant.cpython-313.pyc",
-    "lcpi_platform/lcpi_hydrodrain/calculs/__pycache__/bassin_versant.cpython-313.pyc.2223572856032",
-    "lcpi_platform/lcpi_hydrodrain/calculs/__pycache__/pluviometrie.cpython-313.pyc",
     "output/diagramme_test.png",
-    "Sans titre.md",
     "HYDRODRAIN.md",
     "PARTAGE.md",
     "GEMINI.md",
