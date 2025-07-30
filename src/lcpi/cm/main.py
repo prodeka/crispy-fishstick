@@ -1,12 +1,11 @@
 import typer
 import json
 import yaml
-from .calculs import trouver_profil_acier # Assure-toi que cet import est correct
-from lcpi.calculs import calculer_sollicitations_completes # Assure-toi que cet import est correct
+from .calculs import trouver_profil_acier
+from lcpi.calculs import calculer_sollicitations_completes
+from lcpi.main import _json_output_enabled
 
 def _calculer_poutre_acier_logic(data: dict) -> dict:
-    # ... (La logique de calcul existante reste ici)
-    # ... (Pas besoin de la copier dans le prompt)
     longueur = data.get("longueur")
     charges_entrees = data.get("charges")
     nuance = data.get("nuance")
@@ -28,8 +27,7 @@ app = typer.Typer(name="cm", help="Plugin pour la Construction Métallique")
 def run_calc_from_file(
     filepath: str = typer.Option(None, "--filepath", help="Chemin vers le fichier de définition YAML unique."),
     batch_file: str = typer.Option(None, "--batch-file", help="Chemin vers le fichier CSV pour le traitement par lot."),
-    output_file: str = typer.Option("resultats_batch.csv", "--output-file", help="Chemin pour le fichier de résultats CSV."),
-    as_json: bool = typer.Option(False, "--json", help="Afficher la sortie au format JSON (pour un seul fichier).")
+    output_file: str = typer.Option("resultats_batch.csv", "--output-file", help="Chemin pour le fichier de résultats CSV.")
 ):
     """Calcule une ou plusieurs poutres en acier à partir d'un fichier."""
     if batch_file:
@@ -39,13 +37,13 @@ def run_calc_from_file(
             print("Erreur : La bibliothèque 'pandas' est requise pour le mode batch. Installez-la avec 'pip install pandas'.")
             raise typer.Exit(code=1)
             
-        print(f"--- Lancement du Traitement par Lot depuis : {batch_file} ---")
+        if not _json_output_enabled:
+            print(f"--- Lancement du Traitement par Lot depuis : {batch_file} ---")
         try:
             df = pd.read_csv(batch_file)
             results_list = []
             
             for index, row in df.iterrows():
-                # Construire les données de charges à partir des colonnes G et Q
                 charges_list = [
                     {'categorie': 'G', 'valeur': row['charge_G_kn_m'], 'type': 'repartie'},
                     {'categorie': 'Q', 'valeur': row['charge_Q_kn_m'], 'type': 'repartie'}
@@ -62,20 +60,22 @@ def run_calc_from_file(
                 
                 resultats_calcul = _calculer_poutre_acier_logic(donnees_calcul)
                 
-                # Fusionner les résultats avec la ligne d'entrée
                 output_row = row.to_dict()
                 output_row.update(resultats_calcul)
                 results_list.append(output_row)
 
             results_df = pd.DataFrame(results_list)
             results_df.to_csv(output_file, index=False)
-            print(f"[SUCCES] Traitement par lot terminé. Résultats sauvegardés dans : {output_file}")
+            if not _json_output_enabled:
+                print(f"[SUCCES] Traitement par lot terminé. Résultats sauvegardés dans : {output_file}")
 
         except FileNotFoundError:
-            print(f"Erreur : Le fichier batch '{batch_file}' n'a pas été trouvé.")
+            if _json_output_enabled: print(json.dumps({"statut": "Erreur", "message": f"Fichier non trouvé: {batch_file}"}))
+            else: print(f"Erreur : Le fichier batch '{batch_file}' n'a pas été trouvé.")
             raise typer.Exit(code=1)
         except Exception as e:
-            print(f"Une erreur est survenue lors du traitement par lot : {e}")
+            if _json_output_enabled: print(json.dumps({"statut": "Erreur", "message": f"Une erreur est survenue lors du traitement par lot : {e}"}))
+            else: print(f"Une erreur est survenue lors du traitement par lot : {e}")
             raise typer.Exit(code=1)
 
     elif filepath:
@@ -83,11 +83,11 @@ def run_calc_from_file(
             with open(filepath, 'r') as f:
                 config = yaml.safe_load(f)
         except FileNotFoundError:
-            if as_json: print(json.dumps({"statut": "Erreur", "message": f"Fichier non trouvé: {filepath}"}))
+            if _json_output_enabled: print(json.dumps({"statut": "Erreur", "message": f"Fichier non trouvé: {filepath}"}))
             else: print(f"Erreur : Le fichier '{filepath}' n'a pas été trouvé.")
             raise typer.Exit(code=1)
         except yaml.YAMLError as e:
-            if as_json: print(json.dumps({"statut": "Erreur", "message": f"Erreur de parsing YAML: {e}"}))
+            if _json_output_enabled: print(json.dumps({"statut": "Erreur", "message": f"Erreur de parsing YAML: {e}"}))
             else: print(f"Erreur lors du parsing du fichier YAML : {e}")
             raise typer.Exit(code=1)
 
@@ -110,13 +110,14 @@ def run_calc_from_file(
         }
         resultats = _calculer_poutre_acier_logic(donnees_calcul)
         
-        if as_json:
+        if _json_output_enabled:
             print(json.dumps(resultats, indent=2))
         else:
             print(f"Calcul de l'élément ACIER défini dans : {filepath}")
             print(f"Résultats : {resultats}")
     else:
-        print("Erreur : Vous devez spécifier soit --filepath, soit --batch-file.")
+        if _json_output_enabled: print(json.dumps({"statut": "Erreur", "message": "Vous devez spécifier soit --filepath, soit --batch-file."}))
+        else: print("Erreur : Vous devez spécifier soit --filepath, soit --batch-file.")
         raise typer.Exit(code=1)
 
 @app.command(name="interactive")
@@ -142,11 +143,15 @@ def run_interactive_mode():
         }
         
         resultats = _calculer_poutre_acier_logic(donnees_calcul)
-        print("\n--- Résultats du Calcul ---")
-        print(json.dumps(resultats, indent=2))
+        if _json_output_enabled:
+            print(json.dumps(resultats, indent=2))
+        else:
+            print("\n--- Résultats du Calcul ---")
+            print(json.dumps(resultats, indent=2))
 
     except Exception as e:
-        print(f"\nErreur : {e}")
+        if _json_output_enabled: print(json.dumps({"statut": "Erreur", "message": f"Erreur : {e}"}))
+        else: print(f"\nErreur : {e}")
 
 def register():
     return app

@@ -1,13 +1,15 @@
 import typer
 import json
 import yaml
-# Assure-toi que les imports suivants sont corrects par rapport à la structure
 from .calculs import verifier_section_bois
 from lcpi.calculs import calculer_sollicitations_completes
+from lcpi.main import _json_output_enabled
+from rich.console import Console
+from rich.panel import Panel
+
+console = Console()
 
 def _verifier_poutre_bois_logic(data: dict) -> dict:
-    # ... (La logique de calcul existante, déjà migrée, reste ici)
-    # ... (Pas besoin de la copier dans le prompt, mais on sait qu'elle est là)
     b = data.get("b_mm")
     h = data.get("h_mm")
     longueur = data.get("longueur_m")
@@ -30,18 +32,19 @@ app = typer.Typer(name="bois", help="Plugin pour les Structures en Bois (Eurocod
 def run_check_from_file(
     filepath: str = typer.Option(None, "--filepath", help="Chemin vers le fichier de définition YAML unique."),
     batch_file: str = typer.Option(None, "--batch-file", help="Chemin vers le fichier CSV pour le traitement par lot."),
-    output_file: str = typer.Option("resultats_batch_bois.csv", "--output-file", help="Chemin pour le fichier de résultats CSV."),
-    as_json: bool = typer.Option(False, "--json", help="Afficher la sortie au format JSON (pour un seul fichier).")
+    output_file: str = typer.Option("resultats_batch_bois.csv", "--output-file", help="Chemin pour le fichier de résultats CSV.")
 ):
     """Vérifie une ou plusieurs poutres en bois à partir d'un fichier."""
     if batch_file:
         try:
             import pandas as pd
         except ImportError:
-            print("Erreur : La bibliothèque 'pandas' est requise. Installez-la avec 'pip install pandas'.")
+            if _json_output_enabled: console.print(json.dumps({"statut": "Erreur", "message": "La bibliothèque 'pandas' est requise pour le mode batch. Installez-la avec 'pip install pandas'."}))
+            else: console.print(Panel("Erreur : La bibliothèque 'pandas' est requise pour le mode batch. Installez-la avec 'pip install pandas'.", title="Erreur de Dépendance", border_style="red"))
             raise typer.Exit(code=1)
         
-        print(f"--- Lancement du Traitement par Lot (Bois) depuis : {batch_file} ---")
+        if not _json_output_enabled:
+            console.print(f"--- Lancement du Traitement par Lot (Bois) depuis : {batch_file} ---")
         try:
             df = pd.read_csv(batch_file)
             results_list = []
@@ -62,21 +65,26 @@ def run_check_from_file(
             
             results_df = pd.DataFrame(results_list)
             results_df.to_csv(output_file, index=False)
-            print(f"[SUCCES] Traitement par lot terminé. Résultats sauvegardés dans : {output_file}")
+            if not _json_output_enabled:
+                console.print(Panel(f"[bold green]SUCCÈS[/bold green]: Traitement par lot terminé. Résultats sauvegardés dans : {output_file}", title="Traitement par Lot", border_style="green"))
 
         except Exception as e:
-            print(f"Une erreur est survenue lors du traitement par lot : {e}")
+            if _json_output_enabled: console.print(json.dumps({"statut": "Erreur", "message": f"Une erreur est survenue lors du traitement par lot : {e}"}))
+            else: console.print(Panel(f"[bold red]ERREUR[/bold red]: Une erreur est survenue lors du traitement par lot : {e}", title="Erreur de Traitement", border_style="red"))
             raise typer.Exit(code=1)
 
     elif filepath:
-        # Logique existante pour le fichier YAML unique...
-        # (le code reste le même ici)
         try:
             with open(filepath, 'r') as f: config = yaml.safe_load(f)
         except FileNotFoundError:
-            print(f"Erreur : Le fichier '{filepath}' n'a pas été trouvé.")
+            if _json_output_enabled: console.print(json.dumps({"statut": "Erreur", "message": f"Fichier non trouvé: {filepath}"}))
+            else: console.print(Panel(f"[bold red]ERREUR[/bold red]: Le fichier '{filepath}' n'a pas été trouvé.", title="Erreur de Fichier", border_style="red"))
             raise typer.Exit(code=1)
-        # ... reste de la logique YAML
+        except yaml.YAMLError as e:
+            if _json_output_enabled: console.print(json.dumps({"statut": "Erreur", "message": f"Erreur de parsing YAML: {e}"}))
+            else: console.print(Panel(f"[bold red]ERREUR[/bold red]: Erreur lors du parsing du fichier YAML : {e}", title="Erreur de Parsing", border_style="red"))
+            raise typer.Exit(code=1)
+
         charges_list = []
         if config.get("charges"):
             for charge in config["charges"].get("permanentes_G", []): charge['categorie'] = 'G'; charges_list.append(charge)
@@ -88,16 +96,23 @@ def run_check_from_file(
             "duree_charge": config.get("materiau", {}).get("duree_charge"),
         }
         resultats = _verifier_poutre_bois_logic(donnees_calcul)
-        if as_json: print(json.dumps(resultats, indent=2))
-        else: print(f"Résultats : {resultats}")
+        if _json_output_enabled:
+            console.print(json.dumps(resultats, indent=2))
+        else:
+            console.print(f"Résultats : {resultats}")
     else:
-        print("Erreur : Vous devez spécifier soit --filepath, soit --batch-file.")
+        if _json_output_enabled: console.print(json.dumps({"statut": "Erreur", "message": "Vous devez spécifier soit --filepath, soit --batch-file."}))
+        else: console.print(Panel("[bold red]ERREUR[/bold red]: Vous devez spécifier soit --filepath, soit --batch-file.", title="Erreur d'Argument", border_style="red"))
         raise typer.Exit(code=1)
 
 @app.command(name="interactive")
 def run_interactive_mode():
     """Lance le mode interactif pour la vérification d'une poutre en bois."""
-    print("--- Mode Interactif : Poutre en Bois ---")
+    if _json_output_enabled:
+        console.print(json.dumps({"statut": "Erreur", "message": "Le mode interactif n'est pas compatible avec la sortie JSON."}))
+        raise typer.Exit(code=1)
+
+    console.print("--- Mode Interactif : Poutre en Bois ---")
     try:
         b = typer.prompt("Largeur de la section (mm)", type=int)
         h = typer.prompt("Hauteur de la section (mm)", type=int)
@@ -120,11 +135,11 @@ def run_interactive_mode():
         }
 
         resultats = _verifier_poutre_bois_logic(donnees_calcul)
-        print("\n--- Résultats de la Vérification ---")
-        print(json.dumps(resultats, indent=2))
+        console.print("\n--- Résultats de la Vérification ---")
+        console.print(json.dumps(resultats, indent=2))
 
     except Exception as e:
-        print(f"\nErreur : {e}")
+        console.print(Panel(f"[bold red]ERREUR[/bold red]: {e}", title="Erreur", border_style="red"))
 
 def register():
     return app

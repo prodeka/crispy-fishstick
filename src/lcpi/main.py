@@ -4,10 +4,21 @@ import os
 import importlib
 import subprocess
 import json
-from .reporter import generate_pdf_report
 import shutil
 import pathlib
 import importlib.util
+import time
+from rich.console import Console
+from rich.table import Table
+from rich.panel import Panel
+
+# Force UTF-8 encoding for stdout and stderr
+if sys.stdout.encoding != 'utf-8':
+    sys.stdout.reconfigure(encoding='utf-8')
+if sys.stderr.encoding != 'utf-8':
+    sys.stderr.reconfigure(encoding='utf-8')
+
+console = Console()
 
 app = typer.Typer(
     name="lcpi",
@@ -15,52 +26,112 @@ app = typer.Typer(
     rich_markup_mode="markdown"
 )
 
+_json_output_enabled: bool = False
+
+@app.callback()
+def main_callback(json_output: bool = typer.Option(False, "--json", help="Activer la sortie JSON pour les résultats.")):
+    global _json_output_enabled
+    _json_output_enabled = json_output
+
 # -----------------------------------------------------------------------------
 # Configuration des chemins pour le développement
 # -----------------------------------------------------------------------------
-# On s'assure que le dossier `lcpi_platform` est dans le path
-# pour que `from lcpi.cm ...` fonctionne.
 platform_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if platform_path not in sys.path:
     sys.path.insert(0, platform_path)
 
-# --- Commandes du noyau (placeholders) ---
+# --- Commandes du noyau ---
 @app.command()
 def init(nom_projet: str = typer.Argument("nouveau_projet_lcpi"), template: str = typer.Option(None, "--template", help="Nom du template à utiliser.")):
-    """Initialise un nouveau projet LCPI (optionnellement à partir d'un template)."""
+    """Initialise un nouveau projet LCPI."""
     project_path = pathlib.Path(nom_projet)
     if project_path.exists():
-        print(f"[ERREUR] Le dossier '{nom_projet}' existe déjà.")
+        console.print(Panel(f"[bold red]ERREUR[/bold red]: Le dossier '{nom_projet}' existe déjà.", title="Erreur d'Initialisation", border_style="red"))
         return
     project_path.mkdir(parents=True)
     if template:
-        print(f"[INFO] (Simulation) Clonage du template '{template}' dans '{nom_projet}'.")
-        # Ici, on pourrait copier un dossier template réel si disponible
+        console.print(Panel(f"[INFO] Clonage du template '{template}' dans '{nom_projet}'.", title="Initialisation", border_style="yellow"))
     else:
-        print(f"[SUCCES] Projet '{nom_projet}' initialisé.")
+        console.print(Panel(f"[bold green]SUCCÈS[/bold green]: Projet '{nom_projet}' initialisé.", title="Initialisation", border_style="green"))
+
+# --- Gestionnaire de Plugins ---
+PLUGINS_CONFIG_PATH = pathlib.Path(__file__).parent / ".plugins.json"
+EXCLUDED_DIRS = ["utils", "__pycache__", "tests"]
+
+def get_plugin_config():
+    if not PLUGINS_CONFIG_PATH.exists():
+        return {"active_plugins": []}
+    with open(PLUGINS_CONFIG_PATH, "r") as f:
+        return json.load(f)
+
+def save_plugin_config(config):
+    with open(PLUGINS_CONFIG_PATH, "w") as f:
+        json.dump(config, f, indent=4)
+
+def get_available_plugins():
+    plugins_dir = pathlib.Path(__file__).parent
+    return sorted([d.name for d in plugins_dir.iterdir() if d.is_dir() and not d.name.startswith("_") and d.name not in EXCLUDED_DIRS])
 
 @app.command()
-def plugins(action: str = typer.Argument(..., help="Action à effectuer : list, install, uninstall, search, update."), nom_plugin: str = typer.Argument(None)):
-    """Gère le cycle de vie des plugins."""
-    plugins_dir = pathlib.Path(__file__).parent / "lcpi"
+def plugins(action: str = typer.Argument(..., help="Action: list, install, uninstall"), 
+            nom_plugin: str = typer.Argument(None, help="Le nom du plugin à gérer." )):
+    """Gère l'activation et la désactivation des plugins locaux."""
+    config = get_plugin_config()
+    active_plugins = set(config.get("active_plugins", []))
+    available_plugins = get_available_plugins()
+
     if action == "list":
-        print("Plugins installés :")
-        for d in plugins_dir.iterdir():
-            if d.is_dir() and not d.name.startswith("__"):
-                print(f"- {d.name}")
-    elif action == "install" and nom_plugin:
-        print(f"[SIMULATION] Installation du plugin '{nom_plugin}' (utiliser pip ou un registre réel ici).")
-    elif action == "uninstall" and nom_plugin:
-        print(f"[SIMULATION] Désinstallation du plugin '{nom_plugin}'.")
-    elif action == "search" and nom_plugin:
-        print(f"[SIMULATION] Recherche du plugin '{nom_plugin}' sur le registre.")
-    elif action == "update" and nom_plugin:
-        print(f"[SIMULATION] Mise à jour du plugin '{nom_plugin}'.")
+        if _json_output_enabled:
+            output_data = {"available_plugins": [], "active_plugins": list(active_plugins)}
+            for plugin in available_plugins:
+                output_data["available_plugins"].append({"name": plugin, "is_active": plugin in active_plugins})
+            console.print(json.dumps(output_data, indent=2))
+        else:
+            table = Table(title="[bold]Statut des Plugins LCPI[/bold]")
+            table.add_column("Plugin", style="cyan", no_wrap=True)
+            table.add_column("Statut", justify="center")
+            for plugin in available_plugins:
+                status = "[green]✓ Activé[/green]" if plugin in active_plugins else "[red]✗ Désactivé[/red]"
+                table.add_row(plugin, status)
+            console.print(table)
+
+    elif action == "install":
+        if not nom_plugin:
+            console.print(Panel("[bold red]ERREUR[/bold red]: Vous devez spécifier un nom de plugin.", title="Erreur d'Installation", border_style="red"))
+            raise typer.Exit(code=1)
+        if nom_plugin not in available_plugins:
+            console.print(Panel(f"[bold red]ERREUR[/bold red]: Plugin '{nom_plugin}' non trouvé.", title="Erreur d'Installation", border_style="red"))
+            raise typer.Exit(code=1)
+        if nom_plugin in active_plugins:
+            console.print(Panel(f"[INFO] Plugin '{nom_plugin}' est déjà activé.", title="Information", border_style="yellow"))
+            return
+        
+        active_plugins.add(nom_plugin)
+        config["active_plugins"] = sorted(list(active_plugins))
+        save_plugin_config(config)
+        console.print(Panel(f"[bold green]SUCCÈS[/bold green]: Plugin '{nom_plugin}' activé.", title="Installation", border_style="green"))
+
+    elif action == "uninstall":
+        if not nom_plugin:
+            console.print(Panel("[bold red]ERREUR[/bold red]: Vous devez spécifier un nom de plugin.", title="Erreur de Désinstallation", border_style="red"))
+            raise typer.Exit(code=1)
+        if nom_plugin not in active_plugins:
+            console.print(Panel(f"[INFO] Plugin '{nom_plugin}' n'est pas activé.", title="Information", border_style="yellow"))
+            return
+
+        if typer.confirm(f"Êtes-vous sûr de vouloir désactiver le plugin '{nom_plugin}'?"):
+            active_plugins.remove(nom_plugin)
+            config["active_plugins"] = sorted(list(active_plugins))
+            save_plugin_config(config)
+            console.print(Panel(f"[bold green]SUCCÈS[/bold green]: Plugin '{nom_plugin}' désactivé.", title="Désinstallation", border_style="green"))
+        else:
+            console.print("Opération annulée.")
+    
     else:
-        print("Usage : lcpi plugins <list|install|uninstall|search|update> [nom-plugin]")
+        console.print(Panel(f"[bold red]ERREUR[/bold red]: Action '{action}' non reconnue.", title="Erreur", border_style="red"))
 
 @app.command()
-def config(action: str, cle: str = typer.Argument(None), valeur: str = typer.Argument(None), global_: bool = typer.Option(False, "--global", help="Config globale utilisateur.")):
+def config(action: str, cle: str = typer.Argument(None), valeur: str = typer.Argument(None), global_: bool = typer.Option(False, "--global", help="Config globale utilisateur." )):
     """Gère la configuration de LCPI (get|set|list)."""
     import json
     config_path = pathlib.Path.home() / ".lcpi_config.json" if global_ else pathlib.Path(".lcpi_config.json")
@@ -69,99 +140,125 @@ def config(action: str, cle: str = typer.Argument(None), valeur: str = typer.Arg
     else:
         with open(config_path, "r", encoding="utf-8") as f:
             config = json.load(f)
+
     if action == "set" and cle and valeur is not None:
-        config[cle] = valeur
-        with open(config_path, "w", encoding="utf-8") as f:
-            json.dump(config, f, indent=2)
-        print(f"[SUCCES] Clé '{cle}' définie à '{valeur}'.")
+        scope = "globale" if global_ else "locale"
+        if typer.confirm(f"Voulez-vous vraiment définir la clé '{cle}' sur '{valeur}' dans la configuration {scope}?"):
+            config[cle] = valeur
+            with open(config_path, "w", encoding="utf-8") as f:
+                json.dump(config, f, indent=2)
+            console.print(Panel(f"[bold green]SUCCÈS[/bold green]: Clé '{cle}' définie à '{valeur}'.", title="Configuration", border_style="green"))
+        else:
+            console.print("Opération annulée.")
+            
     elif action == "get" and cle:
-        print(config.get(cle, f"[ERREUR] Clé '{cle}' non trouvée."))
+        value = config.get(cle)
+        if _json_output_enabled:
+            output_data = {cle: value}
+            console.print(json.dumps(output_data, indent=2))
+        else:
+            if value is not None:
+                console.print(Panel(f"[bold green]Valeur de '{cle}':[/bold green] {value}", title="Configuration", border_style="green"))
+            else:
+                console.print(Panel(f"[bold red]ERREUR[/bold red]: Clé '{cle}' non trouvée.", title="Erreur de Configuration", border_style="red"))
     elif action == "list":
-        print(json.dumps(config, indent=2, ensure_ascii=False))
+        if _json_output_enabled:
+            console.print(json.dumps(config, indent=2))
+        else:
+            console.print(Panel(json.dumps(config, indent=2, ensure_ascii=False), title="Configuration Actuelle", border_style="blue"))
     else:
-        print("Usage : lcpi config [get|set|list] <clé> [valeur] [--global]")
+        console.print(Panel(f"[bold red]ERREUR[/bold red]: Usage: lcpi config [get|set|list] <clé> [valeur] [--global]", title="Erreur", border_style="red"))
 
 @app.command()
 def doctor():
     """Vérifie l'installation, les dépendances et la compatibilité des plugins."""
-    print("Vérification des dépendances Python...")
-    required = ["typer", "yaml", "pandas", "matplotlib", "reportlab", "scipy"]
-    for pkg in required:
-        if importlib.util.find_spec(pkg) is not None:
-            print(f"[OK] {pkg}")
-        else:
-            print(f"[ERREUR] {pkg} non installé.")
-    print("\nVérification de Pandoc et LaTeX (optionnel)...")
-    for tool in ["pandoc", "pdflatex"]:
-        if shutil.which(tool):
-            print(f"[OK] {tool}")
-        else:
-            print(f"[WARN] {tool} non trouvé dans le PATH.")
-    print("\nPlugins disponibles :")
-    plugins_dir = pathlib.Path(__file__).parent / "lcpi"
-    for d in plugins_dir.iterdir():
-        if d.is_dir() and not d.name.startswith("__"):
-            print(f"- {d.name}")
+    with console.status("[bold cyan]Vérification du système...[/bold cyan]", spinner="dots4") as status:
+        time.sleep(1)
+        console.print("[bold]Vérification des dépendances Python...[/bold]")
+        required = ["typer", "rich", "yaml", "pandas", "matplotlib", "reportlab", "scipy"]
+        all_ok = True
+        for pkg in required:
+            status.update(f"Vérification de [bold]{pkg}[/bold]...")
+            time.sleep(0.2)
+            spec = importlib.util.find_spec(pkg)
+            if spec is not None:
+                console.print(f"[green]✓[/green] {pkg}")
+            else:
+                console.print(f"[red]✗[/red] {pkg} non installé.")
+                all_ok = False
+
+        console.print("\n[bold]Vérification des outils externes (optionnel)...[/bold]")
+        for tool in ["pandoc", "pdflatex"]:
+            status.update(f"Vérification de [bold]{tool}[/bold]...")
+            time.sleep(0.2)
+            if shutil.which(tool):
+                console.print(f"[green]✓[/green] {tool}")
+            else:
+                console.print(f"[yellow]![/yellow] {tool} non trouvé dans le PATH.")
+
+        console.print("\n[bold]Plugins disponibles :[/bold]")
+        plugins_dir = pathlib.Path(__file__).parent
+        for d in plugins_dir.iterdir():
+            if d.is_dir() and not d.name.startswith("__") and d.name not in ["utils", "__pycache__"] and d.name != "tests":
+                console.print(f"- {d.name}")
+        time.sleep(1)
+
+    if all_ok:
+        console.print(Panel("[bold green]✓ Le système est prêt ![/bold green]", title="Vérification Système", border_style="green"))
+    else:
+        console.print(Panel("[bold yellow]⚠ Des dépendances sont manquantes. Veuillez les installer.[/bold yellow]", title="Vérification Système", border_style="yellow"))
+
+from .reporter import run_analysis_and_generate_report
 
 @app.command()
-def report(project_dir: str = typer.Argument("."), output: str = typer.Option("pdf", "--output", help="Format de sortie (pdf, md, html)")):
-    """Analyse tous les éléments d'un projet et génère un rapport."""
-    print(f"--- Lancement de l'analyse du projet dans : {project_dir} ---")
-    # Ici, on pourrait parcourir les résultats YAML/JSON et les fusionner
-    # Pour l'instant, on appelle generate_pdf_report si dispo
-    try:
-        generate_pdf_report([], f"rapport_lcpi.{output}")
-        print(f"[SUCCES] Rapport généré : rapport_lcpi.{output}")
-    except Exception as e:
-        print(f"[ERREUR] Impossible de générer le rapport : {e}")
+def report(
+    project_dir: str = typer.Argument(".", help="Chemin vers le dossier du projet à analyser."),
+    output_format: str = typer.Option("pdf", "--format", "-f", help="Format du rapport de sortie (pdf, json).")
+):
+    """
+    Analyse un projet LCPI, collecte les résultats et génère un rapport de synthèse.
+    """
+    run_analysis_and_generate_report(project_dir, output_format)
 
 
 # --- Logique de découverte et de chargement des plugins (VERSION CORRIGÉE) ---
 def print_plugin_status():
-    print("--- Initialisation de LCPI-CLI ---")
+    console.print("[bold]--- Initialisation de LCPI-CLI ---[/bold]")
+    # Charger les plugins de base
     try:
         from .cm.main import register as register_cm
         app.add_typer(register_cm(), name="cm")
-        print("[SUCCES] Plugin 'cm' chargé.")
+        console.print("[green]✓[/green] Plugin 'cm' chargé.")
     except ImportError as e:
-        print(f"[ECHEC] Plugin 'cm' non chargé. Erreur : {e}")
+        console.print(Panel(f"[bold red]✗[/bold red] Plugin 'cm' non chargé. Erreur : {e}", title="Erreur de Chargement Plugin", border_style="red"))
     try:
         from .bois.main import register as register_bois
         app.add_typer(register_bois(), name="bois")
-        print("[SUCCES] Plugin 'bois' chargé.")
+        console.print("[green]✓[/green] Plugin 'bois' chargé.")
     except ImportError as e:
-        print(f"[ECHEC] Plugin 'bois' non chargé. Erreur : {e}")
+        console.print(Panel(f"[bold red]✗[/bold red] Plugin 'bois' non chargé. Erreur : {e}", title="Erreur de Chargement Plugin", border_style="red"))
     try:
         from .beton.main import register as register_beton
         app.add_typer(register_beton(), name="beton")
-        print("[SUCCES] Plugin 'beton' chargé.")
+        console.print("[green]✓[/green] Plugin 'beton' chargé.")
     except ImportError as e:
-        print(f"[ECHEC] Plugin 'beton' non chargé. Erreur : {e}")
+        console.print(Panel(f"[bold red]✗[/bold red] Plugin 'beton' non chargé. Erreur : {e}", title="Erreur de Chargement Plugin", border_style="red"))
     try:
         from .hydrodrain.main import register as register_hydrodrain
         app.add_typer(register_hydrodrain(), name="hydro")
-        print("[SUCCES] Plugin 'hydro' chargé.")
+        console.print("[green]✓[/green] Plugin 'hydro' chargé.")
     except ImportError as e:
-        print(f"[ECHEC] Plugin 'hydro' non chargé. Erreur : {e}")
-    print("----------------------------------")
+        console.print(Panel(f"[bold red]✗[/bold red] Plugin 'hydro' non chargé. Erreur : {e}", title="Erreur de Chargement Plugin", border_style="red"))
 
-@app.command("shell")
-def shell():
-    """Lance le shell interactif LCPI-CLI (invite >)."""
-    print_plugin_status()
-    print("Bienvenue dans le shell interactif LCPI-CLI ! Tapez 'exit' ou 'quit' pour sortir.")
-    print("\nAide CLI :")
-    app(["--help"])
-    while True:
-        try:
-            cmd = input('> ').strip()
-            if cmd in ('exit', 'quit'):
-                print('Sortie du shell interactif.')
-                break
-            if not cmd:
-                continue
-            args = cmd.split()
-            app(args)
-        except (EOFError, KeyboardInterrupt):
-            print('\nSortie du shell interactif.')
-            break
+    # Charger le plugin shell
+    try:
+        from .shell.main import register as register_shell
+        register_shell(app)
+        console.print("[green]✓[/green] Plugin 'shell' chargé.")
+    except ImportError as e:
+        console.print(Panel(f"[bold red]✗[/bold red] Plugin 'shell' non chargé. Erreur : {e}", title="Erreur de Chargement Plugin", border_style="red"))
+
+    console.print("[bold]----------------------------------[/bold]")
+
+# Appel de la fonction pour enregistrer les plugins au démarrage
+print_plugin_status()

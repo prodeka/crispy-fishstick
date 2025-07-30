@@ -1,17 +1,18 @@
-
-
 import typer
 import json
 import yaml
-# Imports depuis les fichiers du plugin
 from .core.design.column_design import design_rectangular_column, design_column_compression_bael
 from .core.materials import Beton, Acier
 from .core.sections import SectionRectangulaire
 from .core.analysis.continuous_beam import analyze_by_forfaitaire
+from lcpi.main import _json_output_enabled
+from rich.console import Console
+from rich.panel import Panel
+
+console = Console()
 
 # --- Logique pure pour le Poteau ---
 def _calculer_poteau_beton_logic(data: dict) -> dict:
-    # ... (code existant, pas besoin de le copier)
     try:
         beton = Beton(fc28=data.get("fc28_MPa", 25.0))
         acier = Acier(fe=data.get("fe_MPa", 500.0))
@@ -28,7 +29,6 @@ def _calculer_poteau_beton_logic(data: dict) -> dict:
 
 # --- Logique pure pour le Radier ---
 def _calculer_radier_beton_logic(data: dict) -> dict:
-    # ... (code existant, pas besoin de le copier)
     try:
         geo = data.get("geometrie", {}); dim_A = geo.get("dimension_A_m"); dim_B = geo.get("dimension_B_m"); h_radier = geo.get("epaisseur_h_m"); poteaux = data.get("poteaux", [])
         if not all([dim_A, dim_B, h_radier, poteaux]): return {"statut": "Erreur", "message": "Données géométriques ou poteaux manquants."}
@@ -42,7 +42,7 @@ def _calculer_radier_beton_logic(data: dict) -> dict:
         w_u_Y = q_u_kPa * dim_A; positions_y = sorted(list(set(p['position_y_m'] for p in poteaux))); travées_y = [positions_y[i+1] - positions_y[i] for i in range(len(positions_y)-1)]
         if travées_y:
             moments_y = analyze_by_forfaitaire(travées_y, w_u_Y)
-            moments['bande_Y'] = {"charge_lineique_kN_m": round(w_u_Y, 2), "moments_travées_kNm": [round(m, 2) for m in moments_y["travees"]], "moments_appuis_kNm": [round(m, 2) for m in moments_y["appuis"]]}
+            moments['bande_Y'] = {"charge_lineique_kN_m": round(w_u_Y, 2), "moments_travées_kNm": [round(m, 2) for m in moments_y["travees"]], "moments_appuis_kNm": [round(m, 2) for m in moments_y["appuis"]]}}
         return {"statut": "OK", "pression_sol_elu_kPa": round(q_u_kPa, 2), "moments_calcules": moments}
     except Exception as e: return {"statut": "Erreur", "message": str(e)}
 
@@ -53,18 +53,19 @@ app = typer.Typer(name="beton", help="Plugin pour le Béton Armé (BAEL 91 / Eur
 def run_calc_from_file(
     filepath: str = typer.Option(None, "--filepath", help="Chemin vers le fichier de définition YAML unique."),
     batch_file: str = typer.Option(None, "--batch-file", help="Chemin vers le fichier CSV pour le traitement par lot de POTEAUX."),
-    output_file: str = typer.Option("resultats_batch_beton.csv", "--output-file", help="Chemin pour le fichier de résultats CSV."),
-    as_json: bool = typer.Option(False, "--json", help="Afficher la sortie au format JSON (pour un seul fichier).")
+    output_file: str = typer.Option("resultats_batch_beton.csv", "--output-file", help="Chemin pour le fichier de résultats CSV.")
 ):
     """Calcule un ou plusieurs poteaux en béton à partir d'un fichier."""
     if batch_file:
         try:
             import pandas as pd
         except ImportError:
-            print("Erreur : La bibliothèque 'pandas' est requise. Installez-la avec 'pip install pandas'.")
+            if _json_output_enabled: console.print(json.dumps({"statut": "Erreur", "message": "La bibliothèque 'pandas' est requise. Installez-la avec 'pip install pandas'."}))
+            else: console.print(Panel("Erreur : La bibliothèque 'pandas' est requise. Installez-la avec 'pip install pandas'.", title="Erreur de Dépendance", border_style="red"))
             raise typer.Exit(code=1)
 
-        print(f"--- Lancement du Traitement par Lot (Poteaux Béton) depuis : {batch_file} ---")
+        if not _json_output_enabled:
+            console.print(f"--- Lancement du Traitement par Lot (Poteaux Béton) depuis : {batch_file} ---")
         try:
             df = pd.read_csv(batch_file)
             results_list = []
@@ -84,33 +85,83 @@ def run_calc_from_file(
             
             results_df = pd.DataFrame(results_list)
             results_df.to_csv(output_file, index=False)
-            print(f"[SUCCES] Traitement par lot terminé. Résultats sauvegardés dans : {output_file}")
+            if not _json_output_enabled:
+                console.print(Panel(f"[bold green]SUCCÈS[/bold green]: Traitement par lot terminé. Résultats sauvegardés dans : {output_file}", title="Traitement par Lot", border_style="green"))
 
         except Exception as e:
-            print(f"Une erreur est survenue lors du traitement par lot : {e}")
+            if _json_output_enabled: console.print(json.dumps({"statut": "Erreur", "message": f"Une erreur est survenue lors du traitement par lot : {e}"}))
+            else: console.print(Panel(f"[bold red]ERREUR[/bold red]: Une erreur est survenue lors du traitement par lot : {e}", title="Erreur de Traitement", border_style="red"))
             raise typer.Exit(code=1)
 
     elif filepath:
-        # Logique existante pour le fichier YAML unique...
-        # (le code reste le même ici)
-        print("Logique YAML pour un seul poteau à implémenter si nécessaire.")
+        try:
+            with open(filepath, 'r') as f:
+                config = yaml.safe_load(f)
+        except FileNotFoundError:
+            if _json_output_enabled: console.print(json.dumps({"statut": "Erreur", "message": f"Fichier non trouvé: {filepath}"}))
+            else: console.print(Panel(f"[bold red]ERREUR[/bold red]: Le fichier '{filepath}' n'a pas été trouvé.", title="Erreur de Fichier", border_style="red"))
+            raise typer.Exit(code=1)
+        except yaml.YAMLError as e:
+            if _json_output_enabled: console.print(json.dumps({"statut": "Erreur", "message": f"Erreur de parsing YAML: {e}"}))
+            else: console.print(Panel(f"[bold red]ERREUR[/bold red]: Erreur lors du parsing du fichier YAML : {e}", title="Erreur de Parsing", border_style="red"))
+            raise typer.Exit(code=1)
+
+        mu = config.get("sollicitations", {}).get("Mu_MNm", 0.0)
+        donnees_calcul = {
+            "Nu_MN": config.get("sollicitations", {}).get("Nu_MN"), "Mu_MNm": mu,
+            "largeur_b_m": config.get("geometrie", {}).get("largeur_b_m"), "hauteur_h_m": config.get("geometrie", {}).get("hauteur_h_m"),
+            "longueur_L_m": config.get("geometrie", {}).get("longueur_L_m"), "k_flambement": config.get("geometrie", {}).get("k_flambement", 1.0),
+            "fc28_MPa": config.get("materiau", {}).get("fc28_MPa", 25.0), "fe_MPa": config.get("materiau", {}).get("fe_MPa", 500.0),
+            "type_calcul": "flexion_composee" if mu > 0 else "compression_centree"
+        }
+        resultats = _calculer_poteau_beton_logic(donnees_calcul)
+        
+        if _json_output_enabled:
+            console.print(json.dumps(resultats, indent=2))
+        else:
+            console.print(f"Calcul de l'élément BÉTON défini dans : {filepath}")
+            console.print(f"Résultats : {resultats}")
     else:
-        print("Erreur : Vous devez spécifier soit --filepath, soit --batch-file.")
+        if _json_output_enabled: console.print(json.dumps({"statut": "Erreur", "message": "Vous devez spécifier soit --filepath, soit --batch-file."}))
+        else: console.print(Panel("[bold red]ERREUR[/bold red]: Vous devez spécifier soit --filepath, soit --batch-file.", title="Erreur d'Argument", border_style="red"))
         raise typer.Exit(code=1)
 
 @app.command(name="calc-radier")
-def run_calc_radier_from_file(filepath: str):
-    # ... (code existant, pas besoin de le copier)
-    pass # Déjà fonctionnel
+def run_calc_radier_from_file(filepath: str = typer.Option(..., "--filepath", help="Chemin vers le fichier de définition YAML du radier.")):
+    """Calcule un radier en béton à partir d'un fichier YAML."""
+    try:
+        with open(filepath, 'r') as f:
+            config = yaml.safe_load(f)
+    except FileNotFoundError:
+        if _json_output_enabled: console.print(json.dumps({"statut": "Erreur", "message": f"Fichier non trouvé: {filepath}"}))
+        else: console.print(Panel(f"[bold red]ERREUR[/bold red]: Le fichier '{filepath}' n'a pas été trouvé.", title="Erreur de Fichier", border_style="red"))
+        raise typer.Exit(code=1)
+    except yaml.YAMLError as e:
+        if _json_output_enabled: console.print(json.dumps({"statut": "Erreur", "message": f"Erreur de parsing YAML: {e}"}))
+        else: console.print(Panel(f"[bold red]ERREUR[/bold red]: Erreur lors du parsing du fichier YAML : {e}", title="Erreur de Parsing", border_style="red"))
+        raise typer.Exit(code=1)
+
+    donnees_calcul = config
+    resultats = _calculer_radier_beton_logic(donnees_calcul)
+
+    if _json_output_enabled:
+        console.print(json.dumps(resultats, indent=2))
+    else:
+        console.print(f"Calcul du radier défini dans : {filepath}")
+        console.print(f"Résultats : {resultats}")
 
 @app.command(name="interactive")
 def run_interactive_mode():
     """Lance le mode interactif pour le calcul des éléments en béton."""
-    print("--- Mode Interactif : Béton Armé ---")
+    if _json_output_enabled:
+        console.print(json.dumps({"statut": "Erreur", "message": "Le mode interactif n'est pas compatible avec la sortie JSON."}))
+        raise typer.Exit(code=1)
+
+    console.print("--- Mode Interactif : Béton Armé ---")
     choix = typer.prompt("Quel élément voulez-vous calculer ? (1: Poteau, 2: Radier)", type=int)
 
     if choix == 1:
-        print("\n-- Calcul d'un Poteau --")
+        console.print("\n-- Calcul d'un Poteau --")
         try:
             nu = typer.prompt("Effort normal ultime Nu (MN)", type=float)
             mu = typer.prompt("Moment ultime Mu (MN.m)", type=float, default=0.0)
@@ -127,19 +178,19 @@ def run_interactive_mode():
             }
 
             resultats = _calculer_poteau_beton_logic(donnees_calcul)
-            print("\n--- Résultats du Calcul Poteau ---")
-            print(json.dumps(resultats, indent=2, ensure_ascii=False))
+            console.print("\n--- Résultats du Calcul Poteau ---")
+            console.print(json.dumps(resultats, indent=2, ensure_ascii=False))
 
         except Exception as e:
-            print(f"\nErreur : {e}")
+            console.print(Panel(f"[bold red]ERREUR[/bold red]: {e}", title="Erreur", border_style="red"))
 
     elif choix == 2:
-        print("\n-- Calcul d'un Radier --")
-        print("Le mode interactif pour le calcul des radiers est en cours de développement.")
+        console.print("\n-- Calcul d'un Radier --")
+        console.print("Le mode interactif pour le calcul des radiers est en cours de développement.")
         # TODO: Ajouter les prompts pour collecter les données du radier
         # et appeler _calculer_radier_beton_logic
     else:
-        print("Choix invalide.")
+        console.print(Panel("Choix invalide.", title="Erreur de Choix", border_style="red"))
 
 def register():
     return app

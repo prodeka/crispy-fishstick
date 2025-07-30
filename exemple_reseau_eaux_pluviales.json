@@ -1,0 +1,40 @@
+{
+  "troncons": [
+    {
+      "id": "T1",
+      "type_section": "circulaire",
+      "longueur_troncon_m": 100.0,
+      "pente_troncon": 0.005,
+      "ks_manning_strickler": 70.0,
+      "amont_ids": [],
+      "surface_propre_ha": 2.5,
+      "coefficient_ruissellement": 0.8,
+      "longueur_parcours_m": 80.0,
+      "pente_parcours_m_m": 0.02
+    },
+    {
+      "id": "T2",
+      "type_section": "circulaire",
+      "longueur_troncon_m": 150.0,
+      "pente_troncon": 0.004,
+      "ks_manning_strickler": 70.0,
+      "amont_ids": ["T1"],
+      "surface_propre_ha": 3.0,
+      "coefficient_ruissellement": 0.7,
+      "longueur_parcours_m": 120.0,
+      "pente_parcours_m_m": 0.015
+    },
+    {
+      "id": "T3",
+      "type_section": "circulaire",
+      "longueur_troncon_m": 200.0,
+      "pente_troncon": 0.003,
+      "ks_manning_strickler": 70.0,
+      "amont_ids": ["T2"],
+      "surface_propre_ha": 4.0,
+      "coefficient_ruissellement": 0.6,
+      "longueur_parcours_m": 150.0,
+      "pente_parcours_m_m": 0.01
+    }
+  ]
+} 

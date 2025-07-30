@@ -1,0 +1,10 @@
+
+{
+    "active_plugins": [
+        "cm",
+        "bois",
+        "beton",
+        "hydrodrain",
+        "shell"
+    ]
+}
