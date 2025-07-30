@@ -5,8 +5,9 @@ from .calculs import hydrologie, hydraulique
 from .calculs.dalot import verifier_dalot
 from .calculs.deversoir import dimensionner_deversoir
 from .calculs.canal import dimensionner_canal
-from .calculs.pompage import predimensionner_pompe
+from .calculs.pompage import predimensionner_pompe, verifier_npsh
 from .calculs.plomberie import dimensionner_troncon_plomberie
+from .calculs.radier import verifier_radier_ancrage
 
 # --- Application Principale du Plugin ---
 app = typer.Typer(
@@ -210,6 +211,50 @@ def ouvrages_pompe_predimensionner(
         "pertes_singulieres_k": [float(k) for k in pertes_k.split(',')]
     }
     resultats = predimensionner_pompe(donnees)
+    print(json.dumps(resultats, indent=2))
+
+@ouvrages_app.command("pompe-verifier-npsh")
+def ouvrages_pompe_verifier_npsh(
+    debit_pompage: float = typer.Option(..., help="Débit de pompage (m³/s)"),
+    cote_aspiration: float = typer.Option(..., help="Cote d'aspiration minimale (m NGF)"),
+    diametre_conduite: float = typer.Option(..., help="Diamètre de la conduite d'aspiration (m)"),
+    longueur_aspiration: float = typer.Option(..., help="Longueur de la conduite d'aspiration (m)"),
+    npsh_requis: float = typer.Option(..., help="NPSH requis par la pompe (m)"),
+    temp_eau: float = typer.Option(20.0, help="Température de l'eau (°C)")
+):
+    """Vérifie le NPSH disponible pour une pompe."""
+    print("--- Lancement de la Vérification du NPSH ---")
+    donnees = {
+        "debit_pompage_m3s": debit_pompage,
+        "cote_aspiration_min_m": cote_aspiration,
+        "diametre_conduite_aspiration_m": diametre_conduite,
+        "longueur_conduite_aspiration_m": longueur_aspiration,
+        "npsh_requis_m": npsh_requis,
+        "temperature_eau_c": temp_eau
+    }
+    resultats = verifier_npsh(donnees)
+    print(json.dumps(resultats, indent=2))
+
+@ouvrages_app.command("radier-verifier-ancrage")
+def ouvrages_radier_verifier_ancrage(
+    surface_radier: float = typer.Option(..., help="Surface du radier (m²)"),
+    poids_radier: float = typer.Option(..., help="Poids propre du radier (kN)"),
+    poids_remblai: float = typer.Option(..., help="Poids du remblai sur le radier (kN)"),
+    niveau_nappe: float = typer.Option(..., help="Niveau de la nappe phréatique (m NGF)"),
+    niveau_fond_radier: float = typer.Option(..., help="Niveau du fond du radier (m NGF)"),
+    coeff_securite: float = typer.Option(1.1, help="Coefficient de sécurité requis")
+):
+    """Vérifie la stabilité à l'ancrage d'un radier sous l'effet de la sous-pression."""
+    print("--- Lancement de la Vérification d'Ancrage du Radier ---")
+    donnees = {
+        "surface_radier_m2": surface_radier,
+        "poids_radier_kn": poids_radier,
+        "poids_remblai_kn": poids_remblai,
+        "niveau_nappe_ngf": niveau_nappe,
+        "niveau_fond_radier_ngf": niveau_fond_radier,
+        "coeff_securite_requis": coeff_securite
+    }
+    resultats = verifier_radier_ancrage(donnees)
     print(json.dumps(resultats, indent=2))
 
 # --- IV. Groupe de commandes : Plomberie ---
