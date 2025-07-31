@@ -1,0 +1,10 @@
+description: "Vérification d'un assemblage par pointes"
+effort_tranchant_Ed_kN: 15.0
+pointes:
+  diametre_mm: 3.5
+  longueur_mm: 80
+  nombre_total: 6
+materiau:
+  classe_resistance: "C24"
+  classe_service: 2
+  duree_charge: "Moyen terme" 

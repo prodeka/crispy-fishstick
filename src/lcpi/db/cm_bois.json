@@ -1,0 +1,2216 @@
+{
+  "Classification des aciers selon leur teneur en carbone": [
+    {
+      "Type": "Aciers",
+      "Matériaux": "Aciers doux",
+      "Teneur en carbone C (%)": "0,05 < C < 0,30",
+      "Utilisation": "Charpentes, boulons, rails, pièces forgées, outils etc."
+    },
+    {
+      "Type": "Aciers",
+      "Matériaux": "Aciers mi-durs",
+      "Teneur en carbone C (%)": "0,30 < C < 0,60",
+      "Utilisation": "Charpentes, boulons, rails, pièces forgées, outils etc."
+    },
+    {
+      "Type": "Aciers",
+      "Matériaux": "Aciers durs",
+      "Teneur en carbone C (%)": "0,60 < C < 0,75",
+      "Utilisation": "Charpentes, boulons, rails, pièces forgées, outils etc."
+    },
+    {
+      "Type": "Aciers",
+      "Matériaux": "Aciers extra-durs",
+      "Teneur en carbone C (%)": "0,75 < C < 1,20",
+      "Utilisation": "Charpentes, boulons, rails, pièces forgées, outils etc."
+    },
+    {
+      "Type": "Aciers",
+      "Matériaux": "Aciers sauvages",
+      "Teneur en carbone C (%)": "1,20 < C < 1,70",
+      "Utilisation": "Charpentes, boulons, rails, pièces forgées, outils etc."
+    },
+    {
+      "Type": "Fontes",
+      "Matériaux": "Fontes hypo-eutectiques",
+      "Teneur en carbone C (%)": "1,70 < C < 4,50",
+      "Utilisation": "Pièces coulées, culasses de moteurs, bâtis de machines"
+    },
+    {
+      "Type": "Fontes",
+      "Matériaux": "Fontes hyper-eutectiques",
+      "Teneur en carbone C (%)": "4,50 < C < 6,30",
+      "Utilisation": "Pièces coulées, culasses de moteurs, bâtis de machines"
+    }
+  ],
+  "Caractéristiques fondamentales des aciers E": [
+    {
+      "Nuances d'aciers": "E240",
+      "Résistances élastiques σe (MPa)": "240",
+      "Résistances à la rupture σr (MPa)": "340/440",
+      "Déformation limites l/l₀ (‰)": "27/28"
+    },
+    {
+      "Nuances d'aciers": "E280",
+      "Résistances élastiques σe (MPa)": "280",
+      "Résistances à la rupture σr (MPa)": "400/540",
+      "Déformation limites l/l₀ (‰)": "22/25"
+    },
+    {
+      "Nuances d'aciers": "E360",
+      "Résistances élastiques σe (MPa)": "360",
+      "Résistances à la rupture σr (MPa)": "490/630",
+      "Déformation limites l/l₀ (‰)": "21/23"
+    }
+  ],
+  "Types de poutrelles": [
+    {
+      "Désignation": "IPN",
+      "Signification": "Poutrelles Normales à forme I",
+      "Valeur de H (mm)": "80 à 140"
+    },
+    {
+      "Désignation": "IPE",
+      "Signification": "Poutrelles Européennes",
+      "Valeur de H (mm)": "80 à 600"
+    },
+    {
+      "Désignation": "IPE-A",
+      "Signification": "Poutrelles Européennes Allégées",
+      "Valeur de H (mm)": "180 à 600"
+    },
+    {
+      "Désignation": "IPE-R",
+      "Signification": "Poutrelles Européennes Allégées",
+      "Valeur de H (mm)": "180 à 600"
+    },
+    {
+      "Désignation": "HEA",
+      "Signification": "Poutrelles à type H Allégées",
+      "Valeur de H (mm)": "100 à 600"
+    },
+    {
+      "Désignation": "HEB",
+      "Signification": "Poutrelles à type H",
+      "Valeur de H (mm)": "100 à 600"
+    },
+    {
+      "Désignation": "HEM",
+      "Signification": "Poutrelles à type H Allégées",
+      "Valeur de H (mm)": "100 à 600"
+    },
+    {
+      "Désignation": "UAP",
+      "Signification": "Poutrelles U à ailes parallèles",
+      "Valeur de H (mm)": "80 à 300"
+    },
+    {
+      "Désignation": "UPN-A",
+      "Signification": "Poutrelles U à ailes parallèles Allégées",
+      "Valeur de H (mm)": "250 à 300"
+    }
+  ],
+  "Valeurs de quelques charges permanentes": [
+    { "N°": "1", "DESIGNATION": "Couverture en tuile", "CHARGE en daN/m²": "6" },
+    { "N°": "2", "DESIGNATION": "Tôles ondulées sous galvanisé", "CHARGE en daN/m²": "24.90" },
+    { "N°": "3", "DESIGNATION": "Tuiles", "CHARGE en daN/m²": "17" },
+    { "N°": "4", "DESIGNATION": "Bardage d'épaisseur = 1mm", "CHARGE en daN/m²": "1" },
+    { "N°": "5", "DESIGNATION": "Plancher préfabriqué", "CHARGE en daN/m²": "3" },
+    { "N°": "6", "DESIGNATION": "Briques pleines", "CHARGE en daN/m²": "4" },
+    { "N°": "7", "DESIGNATION": "Contre-cloison de briques", "CHARGE en daN/m²": "5" },
+    { "N°": "8", "DESIGNATION": "Carreaux de plâtre par cm d'épaisseur", "CHARGE en daN/m²": "4" },
+    { "N°": "9", "DESIGNATION": "Panneaux de paille compressée par cm d'épaisseur", "CHARGE en daN/m²": "3" },
+    { "N°": "10", "DESIGNATION": "Plaque de plâtre par cm d'épaisseur", "CHARGE en daN/m²": "11" },
+    { "N°": "11", "DESIGNATION": "Etanchéité multicouche", "CHARGE en daN/m²": "9" },
+    { "N°": "12", "DESIGNATION": "Plafonds en plâtre sur lattis avec épaisseur 0,6 cm", "CHARGE en daN/m²": "12" },
+    { "N°": "13", "DESIGNATION": "Revêtement épaisseur 0,6 cm", "CHARGE en daN/m²": "65" },
+    { "N°": "14", "DESIGNATION": "Terrasses en daN/m²", "CHARGE en daN/m²": "20" },
+    { "N°": "15", "DESIGNATION": "Etanchéité multicouche pour 2 cm d'épaisseur", "CHARGE en daN/m²": "18" },
+    { "N°": "16", "DESIGNATION": "Dalle par cm d'épaisseur", "CHARGE en daN/m²": "23" },
+    { "N°": "17", "DESIGNATION": "Chape pour 2 cm scellés au bitume", "CHARGE en daN/m²": "25" },
+    { "N°": "18", "DESIGNATION": "Chape béton par cm d'épaisseur", "CHARGE en daN/m²": "épaisseur" },
+    { "N°": "19", "DESIGNATION": "Dalle flottante de béton armé par cm d'épaisseur", "CHARGE en daN/m²": "100" },
+    { "N°": "20", "DESIGNATION": "Cloison très légère", "CHARGE en daN/m²": "7" },
+    { "N°": "21", "DESIGNATION": "Béton cellulaire (ép. 10cm)", "CHARGE en daN/m²": "18" },
+    { "N°": "22", "DESIGNATION": "Charpente en daN/m² horizontal - Epaisseur 30 cm", "CHARGE en daN/m²": "60" },
+    { "N°": "22", "DESIGNATION": "Charpente en daN/m² horizontal - Epaisseur 40 cm", "CHARGE en daN/m²": "40" },
+    { "N°": "23", "DESIGNATION": "Charpente métallique (fermes et pannes)", "CHARGE en daN/m²": "30" },
+    { "N°": "23", "DESIGNATION": "Charpente métallique (fermes et pannes) avec couverture amiante ciment", "CHARGE en daN/m²": "45" },
+    { "N°": "25", "DESIGNATION": "Plafonds suspendus - Dalle pleine en B.A. par cm d'épaisseur", "CHARGE en daN/m²": "260" },
+    { "N°": "26", "DESIGNATION": "Parquets à poutrelles avec entrevous en béton de mâchefer - 12+4", "CHARGE en daN/m²": "285" },
+    { "N°": "26", "DESIGNATION": "Parquets à poutrelles avec entrevous en béton de mâchefer - 16+4", "CHARGE en daN/m²": "330" },
+    { "N°": "26", "DESIGNATION": "Parquets à poutrelles avec entrevous en béton de mâchefer - 20+5", "CHARGE en daN/m²": "400" },
+    { "N°": "26", "DESIGNATION": "Parquets à poutrelles avec entrevous en béton de mâchefer - 25+5", "CHARGE en daN/m²": "épaisseur 30cm" },
+    { "N°": "27", "DESIGNATION": "Sans dalle de compression - 16", "CHARGE en daN/m²": "200" },
+    { "N°": "27", "DESIGNATION": "Sans dalle de compression - 20", "CHARGE en daN/m²": "280" },
+    { "N°": "27", "DESIGNATION": "Sans dalle de compression - 24", "CHARGE en daN/m²": "310" },
+    { "N°": "28", "DESIGNATION": "Planchers à poutrelles avec entrevous en terre cuite - 12+4", "CHARGE en daN/m²": "230" },
+    { "N°": "28", "DESIGNATION": "Planchers à poutrelles avec entrevous en terre cuite - 16+4", "CHARGE en daN/m²": "260" },
+    { "N°": "28", "DESIGNATION": "Planchers à poutrelles avec entrevous en terre cuite - 20+4", "CHARGE en daN/m²": "300" },
+    { "N°": "28", "DESIGNATION": "Planchers à poutrelles avec entrevous en terre cuite - 25+5", "CHARGE en daN/m²": "360" },
+    { "N°": "29", "DESIGNATION": "Planchers métalliques préfabriqués à éléments jointifs de dalles alvéolées - 12", "CHARGE en daN/m²": "250" },
+    { "N°": "29", "DESIGNATION": "Planchers métalliques préfabriqués à éléments jointifs de dalles alvéolées - 16", "CHARGE en daN/m²": "290" },
+    { "N°": "29", "DESIGNATION": "Planchers métalliques préfabriqués à éléments jointifs de dalles alvéolées - 20", "CHARGE en daN/m²": "330" },
+    { "N°": "29", "DESIGNATION": "Planchers métalliques préfabriqués à éléments jointifs de dalles alvéolées - 24", "CHARGE en daN/m²": "370" }
+  ],
+  "Valeurs de quelques couvertures utilisées au Togo": [
+    { "N°": "1", "DESIGNATION": "Tuile double romane importée d'épaisseur=12,5mm", "CHARGE en daN/m²": "44" },
+    { "N°": "2", "DESIGNATION": "Tuile double romane produite par CANDI d'ép.=10,5 mm", "CHARGE en daN/m²": "61" },
+    { "N°": "3", "DESIGNATION": "Tuile profilée d'épaisseur = 11mm", "CHARGE en daN/m²": "28" },
+    { "N°": "4", "DESIGNATION": "Tuile plate d'épaisseur=10mm", "CHARGE en daN/m²": "35" },
+    { "N°": "5", "DESIGNATION": "Tuile super roman non produit d'épaisseur=10mm", "CHARGE en daN/m²": "24" },
+    { "N°": "6", "DESIGNATION": "Tuile en fibrociment de grandes ondulations d'ép=6mm", "CHARGE en daN/m²": "8" },
+    { "N°": "7", "DESIGNATION": "Tuile en fibrociment de petites ondulations d'ép=6mm", "CHARGE en daN/m²": "15" },
+    { "N°": "8", "DESIGNATION": "Couverture métallique", "CHARGE en daN/m²": "5" },
+    { "N°": "9", "DESIGNATION": "Tôle ondulée d'ép=0.15mm à 0.17mm", "CHARGE en daN/m²": "1,5" },
+    { "N°": "10", "DESIGNATION": "Bac acier et bac aluminium nervurés d'ép=0.5mm", "CHARGE en daN/m²": "3" }
+  ],
+  "Valeurs des charges d'exploitation": [
+    { "N°": "1", "NATURE des locaux": "Bâtiments à usage d'habitation - Logements", "Charges daN/m²": "150" },
+    { "N°": "2", "NATURE des locaux": "Bâtiments à usage d'habitation - Combles aménageables", "Charges daN/m²": "150" },
+    { "N°": "3", "NATURE des locaux": "Bâtiments à usage d'habitation - Combles non aménageables", "Charges daN/m²": "100" },
+    { "N°": "4", "NATURE des locaux": "Bâtiments à usage d'habitation - Balcons et loggias", "Charges daN/m²": "350" },
+    { "N°": "5", "NATURE des locaux": "Bâtiments à usage d'habitation - Etages de caves", "Charges daN/m²": "250" },
+    { "N°": "7", "NATURE des locaux": "Bâtiments scolaires et universitaires - Salle de classe", "Charges daN/m²": "250" },
+    { "N°": "8", "NATURE des locaux": "Bâtiments scolaires et universitaires - Amphithéâtre", "Charges daN/m²": "350" },
+    { "N°": "9", "NATURE des locaux": "Bâtiments scolaires et universitaires - Ateliers et laboratoires", "Charges daN/m²": "250" },
+    { "N°": "10", "NATURE des locaux": "Bâtiments scolaires et universitaires - Escaliers et circulations", "Charges daN/m²": "250" },
+    { "N°": "11", "NATURE des locaux": "Bâtiments scolaires et universitaires - Salles polyvalentes", "Charges daN/m²": "400" },
+    { "N°": "12", "NATURE des locaux": "Bâtiments scolaires et universitaires - Sanitaires collectifs", "Charges daN/m²": "250" },
+    { "N°": "13", "NATURE des locaux": "Bâtiments scolaires et universitaires - Dortoirs collectifs", "Charges daN/m²": "150" },
+    { "N°": "14", "NATURE des locaux": "Bâtiments scolaires et universitaires - Chambres individuelles", "Charges daN/m²": "150" },
+    { "N°": "15", "NATURE des locaux": "Bâtiments scolaires et universitaires - Dépôt, archives", "Charges daN/m²": "500" },
+    { "N°": "16", "NATURE des locaux": "Bâtiments scolaires et universitaires - Dépôt de livres", "Charges daN/m²": "600" },
+    { "N°": "19", "NATURE des locaux": "Bâtiments scolaires et universitaires - Cantines", "Charges daN/m²": "350" },
+    { "N°": "20", "NATURE des locaux": "Bâtiment de bureau - Bureaux", "Charges daN/m²": "250" },
+    { "N°": "22", "NATURE des locaux": "Bâtiment de bureau - Escaliers et circulations", "Charges daN/m²": "250" },
+    { "N°": "23", "NATURE des locaux": "Bâtiment de bureau - Hall de réception", "Charges daN/m²": "250" },
+    { "N°": "24", "NATURE des locaux": "Bâtiment de bureau - Salles de conférence et de projection", "Charges daN/m²": "350" },
+    { "N°": "25", "NATURE des locaux": "Bâtiment de bureau - Salles de dépôts", "Charges daN/m²": "250 à 350" },
+    { "N°": "26", "NATURE des locaux": "Bâtiment de bureau - Zones de distribution et de reprographie", "Charges daN/m²": "250" },
+    { "N°": "28", "NATURE des locaux": "Bâtiment de bureau - Salles d'archives", "Charges daN/m²": "400" },
+    { "N°": "30", "NATURE des locaux": "Bâtiments hospitaliers et dispensaires - Halls et guichets", "Charges daN/m²": "250" },
+    { "N°": "31", "NATURE des locaux": "Bâtiments hospitaliers et dispensaires - Salles d'opérations, de plâtre, d'accouchement, de travail", "Charges daN/m²": "150" },
+    { "N°": "32", "NATURE des locaux": "Bâtiments hospitaliers et dispensaires - Chambres", "Charges daN/m²": "150" },
+    { "N°": "33", "NATURE des locaux": "Bâtiments hospitaliers et dispensaires - Autres services", "Charges daN/m²": "250" },
+    { "N°": "34", "NATURE des locaux": "Bâtiments hospitaliers et dispensaires - Salles", "Charges daN/m²": "400" },
+    { "N°": "35", "NATURE des locaux": "Bâtiments hospitaliers et dispensaires - Circulations générales", "Charges daN/m²": "400" },
+    { "N°": "37", "NATURE des locaux": "Bâtiments hospitaliers et dispensaires - Salles de réunion, de conférence ou de restauration", "Charges daN/m²": "" },
+    { "N°": "38", "NATURE des locaux": "Bâtiments hospitaliers et dispensaires - avec S < 100 m²", "Charges daN/m²": "400" },
+    { "N°": "39", "NATURE des locaux": "Bâtiments hospitaliers et dispensaires - avec S > 100 m²", "Charges daN/m²": "250" },
+    { "N°": "40", "NATURE des locaux": "Bâtiments hospitaliers et dispensaires - Cuisines", "Charges daN/m²": "150" },
+    { "N°": "41", "NATURE des locaux": "Bâtiments hospitaliers et dispensaires - Buanderies", "Charges daN/m²": "500" },
+    { "N°": "42", "NATURE des locaux": "Salles de spectacles - Réservoir et dépôts", "Charges daN/m²": "350 à 400" },
+    { "N°": "43", "NATURE des locaux": "Salles de spectacles - Salles de spectacle", "Charges daN/m²": "500" },
+    { "N°": "44", "NATURE des locaux": "Parcs de stationnement - Voitures particulières", "Charges daN/m²": "500" },
+    { "N°": "45", "NATURE des locaux": "Parcs de stationnement - Terrasses non accessibles", "Charges daN/m²": "100" },
+    { "N°": "46", "NATURE des locaux": "Parcs de stationnement - Terrasses accessibles privées", "Charges daN/m²": "150" },
+    { "N°": "47", "NATURE des locaux": "Parcs de stationnement - Terrasses accessibles aux publics", "Charges daN/m²": "500" }
+  ],
+  "Coefficients de pondération": [
+    {
+      "Type d'action": "Actions permanentes",
+      "Catégorie": "Actions permanentes G",
+      "Dénomination": "Poids propre, actions dues à des déformations permanentes, déplacement différentiel des appuis",
+      "Degré de l'action": "G",
+      "Coefficients de pondération": "1,35 (ou 1,35)"
+    },
+    {
+      "Type d'action": "Actions permanentes",
+      "Catégorie": "Charges d'exploitation ou d'essai",
+      "Dénomination": "",
+      "Degré de l'action": "Q",
+      "Coefficients de pondération": "1,5"
+    },
+    {
+      "Type d'action": "Action variables",
+      "Catégorie": "Neige",
+      "Dénomination": "Sn",
+      "Degré de l'action": "",
+      "Coefficients de pondération": "1,35 pour les calculs prenant en compte simultanément des actions appartenant à deux des trois catégories"
+    },
+    {
+      "Type d'action": "Action variables",
+      "Catégorie": "Vent",
+      "Dénomination": "Wn",
+      "Degré de l'action": "",
+      "Coefficients de pondération": "1,2 pour les calculs prenant en compte simultanément des actions appartenant aux trois catégories"
+    }
+  ],
+  "Les combinaisons d'actions": [
+    {
+      "Combinaison d'actions": "Prenant en compte une des trois actions Q, S, et Wn",
+      "Les combinaisons": "1,35 G + 1,5 Q"
+    },
+    {
+      "Combinaison d'actions": "Prenant en compte une des trois actions Q, S, et Wn",
+      "Les combinaisons": "1,35 G + 1,5 Sₙ + 1,5 (0,75 Wn)"
+    },
+    {
+      "Combinaison d'actions": "Prenant en compte une des trois actions Q, S, et Wn",
+      "Les combinaisons": "1,35 G + 1,5 Wn + 1,5 (0,75 Sₙ)"
+    },
+    {
+      "Combinaison d'actions": "Prenant en compte simultanément deux des trois actions Q, S, et Wn",
+      "Les combinaisons": "1,2 (G + Sₙ + Wn) + 1,2 (0,75 Q)"
+    },
+    {
+      "Combinaison d'actions": "Prenant en compte simultanément deux des trois actions Q, S, et Wn",
+      "Les combinaisons": "1,2 (G + Q + Wn) + 1,2 (0,75 Sₙ)"
+    },
+    {
+      "Combinaison d'actions": "Prenant en compte simultanément deux des trois actions Q, S, et Wn",
+      "Les combinaisons": "1,2 (G + Q + Sₙ) + 1,2 (0,75 Wn)"
+    },
+    {
+      "Combinaison d'actions": "Prenant en compte simultanément les trois actions Q, S, et Wn",
+      "Les combinaisons": "1,2 (G + Q + Sₙ + Wn)"
+    },
+    {
+      "Combinaison d'actions": "Prenant en compte simultanément les trois actions Q, S, et Wn",
+      "Les combinaisons": "1,2 (G + Q + Sₙ + Wn)"
+    },
+    {
+      "Combinaison d'actions": "Prenant en compte simultanément les trois actions Q, S, et Wn",
+      "Les combinaisons": "1,2 (G + Q + Sₙ + Wn)"
+    }
+  ]
+}
+
+{
+  "Vitesses (en m/s) et pressions dynamiques (en daN/m²) de base en fonction des temps de récurrences au Togo": [
+    { "Temps de récurrence (ans)": "10", "Valeur": "Vio (m/s)", "Région I": "20,50", "Région II": "21,00", "Région III": "21,20", "Région IV": "21,90", "Région V": "24,00", "Région VI": "29,10" },
+    { "Temps de récurrence (ans)": "10", "Valeur": "Wio (daN/m²)", "Région I": "13,66", "Région II": "13,84", "Région III": "14,94", "Région IV": "15,66", "Région V": "18,33", "Région VI": "25,18" },
+    { "Temps de récurrence (ans)": "20", "Valeur": "Vio (m/s)", "Région I": "24,80", "Région II": "25,00", "Région III": "25,80", "Région IV": "26,40", "Région V": "29,10", "Région VI": "33,64" },
+    { "Temps de récurrence (ans)": "20", "Valeur": "Wio (daN/m²)", "Région I": "19,93", "Région II": "20,20", "Région III": "21,20", "Région IV": "22,20", "Région V": "25,18", "Région VI": "34,46" },
+    { "Temps de récurrence (ans)": "30", "Valeur": "Vio (m/s)", "Région I": "27,20", "Région II": "27,50", "Région III": "28,20", "Région IV": "29,10", "Région V": "31,50", "Région VI": "35,40" },
+    { "Temps de récurrence (ans)": "30", "Valeur": "Wio (daN/m²)", "Région I": "23,23", "Région II": "23,70", "Région III": "25,20", "Région IV": "26,20", "Région V": "29,30", "Région VI": "38,50" },
+    { "Temps de récurrence (ans)": "40", "Valeur": "Vio (m/s)", "Région I": "28,40", "Région II": "28,80", "Région III": "29,70", "Région IV": "30,50", "Région V": "33,00", "Région VI": "36,90" },
+    { "Temps de récurrence (ans)": "40", "Valeur": "Wio (daN/m²)", "Région I": "25,20", "Région II": "25,80", "Région III": "27,20", "Région IV": "28,10", "Région V": "32,20", "Région VI": "40,23" },
+    { "Temps de récurrence (ans)": "50", "Valeur": "Vio (m/s)", "Région I": "29,50", "Région II": "29,80", "Région III": "30,80", "Région IV": "32,00", "Région V": "34,10", "Région VI": "38,10" },
+    { "Temps de récurrence (ans)": "50", "Valeur": "Wio (daN/m²)", "Région I": "27,20", "Région II": "28,40", "Région III": "29,30", "Région IV": "30,10", "Région V": "33,20", "Région VI": "45,50" },
+    { "Temps de récurrence (ans)": "60", "Valeur": "Vio (m/s)", "Région I": "30,50", "Région II": "31,10", "Région III": "32,00", "Région IV": "32,80", "Région V": "35,10", "Région VI": "39,10" },
+    { "Temps de récurrence (ans)": "60", "Valeur": "Wio (daN/m²)", "Région I": "28,40", "Région II": "29,20", "Région III": "31,10", "Région IV": "32,20", "Région V": "35,00", "Région VI": "46,80" },
+    { "Temps de récurrence (ans)": "70", "Valeur": "Vio (m/s)", "Région I": "31,14", "Région II": "32,26", "Région III": "33,00", "Région IV": "33,50", "Région V": "36,00", "Région VI": "40,00" },
+    { "Temps de récurrence (ans)": "70", "Valeur": "Wio (daN/m²)", "Région I": "29,50", "Région II": "30,20", "Région III": "32,00", "Région IV": "33,50", "Région V": "36,50", "Région VI": "48,90" },
+    { "Temps de récurrence (ans)": "80", "Valeur": "Vio (m/s)", "Région I": "32,00", "Région II": "33,00", "Région III": "33,80", "Région IV": "34,50", "Région V": "36,80", "Région VI": "40,80" },
+    { "Temps de récurrence (ans)": "80", "Valeur": "Wio (daN/m²)", "Région I": "31,42", "Région II": "32,50", "Région III": "34,00", "Région IV": "35,00", "Région V": "38,61", "Région VI": "50,00" },
+    { "Temps de récurrence (ans)": "90", "Valeur": "Vio (m/s)", "Région I": "32,87", "Région II": "33,82", "Région III": "34,50", "Région IV": "35,30", "Région V": "37,50", "Région VI": "41,50" },
+    { "Temps de récurrence (ans)": "90", "Valeur": "Wio (daN/m²)", "Région I": "32,36", "Région II": "33,50", "Région III": "35,00", "Région IV": "36,95", "Région V": "39,92", "Région VI": "51,40" },
+    { "Temps de récurrence (ans)": "100", "Valeur": "Vio (m/s)", "Région I": "33,52", "Région II": "34,50", "Région III": "35,30", "Région IV": "36,00", "Région V": "38,30", "Région VI": "42,20" },
+    { "Temps de récurrence (ans)": "100", "Valeur": "Wio (daN/m²)", "Région I": "34,00", "Région II": "35,00", "Région III": "36,20", "Région IV": "38,00", "Région V": "40,92", "Région VI": "53,20" }
+  ],
+  "Coefficients de site des différentes régions du Togo": [
+    { "Régions": "Site protégé", "I": "0,80", "II": "0,80", "III": "0,80", "IV": "0,80", "V": "0,80", "VI": "0,80" },
+    { "Régions": "Site normal", "I": "1,00", "II": "1,00", "III": "1,00", "IV": "1,00", "V": "1,00", "VI": "1,00" },
+    { "Régions": "Site exposé", "I": "1,35", "II": "1,35", "III": "1,35", "IV": "1,35", "V": "1,30", "VI": "1,30" }
+  ],
+  "Directions dominantes du vent dans différentes zones de Togo": [
+    { "Zone": "I", "Direction en degrés": "220", "Direction en point cardinal": "SW" },
+    { "Zone": "II", "Direction en degrés": "260", "Direction en point cardinal": "W" },
+    { "Zone": "III", "Direction en degrés": "220", "Direction en point cardinal": "SW" },
+    { "Zone": "IV", "Direction en degrés": "180", "Direction en point cardinal": "S" },
+    { "Zone": "V", "Direction en degrés": "180", "Direction en point cardinal": "S" },
+    { "Zone": "VI", "Direction en degrés": "180", "Direction en point cardinal": "S" },
+    { "Zone": "VII", "Direction en degrés": "280", "Direction en point cardinal": "E" },
+    { "Zone": "VIII", "Direction en degrés": "220", "Direction en point cardinal": "SW" },
+    { "Zone": "IX", "Direction en degrés": "180", "Direction en point cardinal": "S" },
+    { "Zone": "X", "Direction en degrés": "140, 220", "Direction en point cardinal": "SE, SW" }
+  ],
+  "Valeur des actions résultantes C'": [
+    { "N°": "1", "Type de parois": "Forces planes et pour les faces composant des ondes ou des plis normaux à la direction du vent", "Valeur du coefficient résultante C'": "0,01 Wc" },
+    { "N°": "2", "Type de parois": "Forces planes et pour les faces parallèles à la direction du vent", "Valeur du coefficient résultante C'": "0,02 Wc" },
+    { "N°": "3", "Type de parois": "Forces composant des ondes ou des plis normaux à la direction du vent", "Valeur du coefficient résultante C'": "0,04 Wc" },
+    { "N°": "4", "Type de parois": "Les faces composant des nervures normales à la direction du vent", "Valeur du coefficient résultante C'": "0,08 Wc" }
+  ],
+  "CARACTERISTIQUES DES PROFILS IPE": [
+    { "Profils": "IPE 80", "Dimensions (mm)": { "h": 80, "b": 46, "e": 3.8, "a": 5.2, "r": 5 }, "Masse (kg/m)": 6.0, "Surface de peinture (m²/m)": 0.237, "Section A (cm²)": 7.64, "Moment d'inertie (cm⁴)": 80.1, "Module de flexion (cm³)": 20.0, "Rayon de giration (cm)": 3.24, "Distance entre ailes d (mm)": 69.6, "Moment statique Sx (cm³)": 11.2 },
+    { "Profils": "IPE 100", "Dimensions (mm)": { "h": 100, "b": 55, "e": 4.1, "a": 5.7, "r": 7 }, "Masse (kg/m)": 8.1, "Surface de peinture (m²/m)": 0.292, "Section A (cm²)": 10.3, "Moment d'inertie (cm⁴)": 171, "Module de flexion (cm³)": 34.2, "Rayon de giration (cm)": 4.08, "Distance entre ailes d (mm)": 88.6, "Moment statique Sx (cm³)": 19.4 },
+    { "Profils": "IPE 120", "Dimensions (mm)": { "h": 120, "b": 64, "e": 4.4, "a": 6.3, "r": 7 }, "Masse (kg/m)": 10.4, "Surface de peinture (m²/m)": 0.351, "Section A (cm²)": 13.2, "Moment d'inertie (cm⁴)": 318, "Module de flexion (cm³)": 53.0, "Rayon de giration (cm)": 4.91, "Distance entre ailes d (mm)": 107.4, "Moment statique Sx (cm³)": 30.7 },
+    { "Profils": "IPE 140", "Dimensions (mm)": { "h": 140, "b": 73, "e": 4.7, "a": 6.9, "r": 7 }, "Masse (kg/m)": 12.9, "Surface de peinture (m²/m)": 0.409, "Section A (cm²)": 16.4, "Moment d'inertie (cm⁴)": 541, "Module de flexion (cm³)": 77.3, "Rayon de giration (cm)": 5.74, "Distance entre ailes d (mm)": 126.2, "Moment statique Sx (cm³)": 43.0 },
+    { "Profils": "IPE 160", "Dimensions (mm)": { "h": 160, "b": 82, "e": 5.0, "a": 7.4, "r": 9 }, "Masse (kg/m)": 15.8, "Surface de peinture (m²/m)": 0.468, "Section A (cm²)": 20.1, "Moment d'inertie (cm⁴)": 869, "Module de flexion (cm³)": 109, "Rayon de giration (cm)": 6.58, "Distance entre ailes d (mm)": 145.2, "Moment statique Sx (cm³)": 61.2 },
+    { "Profils": "IPE 180", "Dimensions (mm)": { "h": 180, "b": 91, "e": 5.3, "a": 8.0, "r": 9 }, "Masse (kg/m)": 18.8, "Surface de peinture (m²/m)": 0.528, "Section A (cm²)": 23.9, "Moment d'inertie (cm⁴)": 1317, "Module de flexion (cm³)": 146, "Rayon de giration (cm)": 7.42, "Distance entre ailes d (mm)": 164, "Moment statique Sx (cm³)": 82.6 },
+    { "Profils": "IPE 200", "Dimensions (mm)": { "h": 200, "b": 100, "e": 5.6, "a": 8.5, "r": 12 }, "Masse (kg/m)": 22.4, "Surface de peinture (m²/m)": 0.589, "Section A (cm²)": 28.5, "Moment d'inertie (cm⁴)": 1943, "Module de flexion (cm³)": 194, "Rayon de giration (cm)": 8.25, "Distance entre ailes d (mm)": 183, "Moment statique Sx (cm³)": 109 },
+    { "Profils": "IPE 220", "Dimensions (mm)": { "h": 220, "b": 110, "e": 5.9, "a": 9.2, "r": 12 }, "Masse (kg/m)": 26.2, "Surface de peinture (m²/m)": 0.650, "Section A (cm²)": 33.4, "Moment d'inertie (cm⁴)": 2772, "Module de flexion (cm³)": 252, "Rayon de giration (cm)": 9.11, "Distance entre ailes d (mm)": 201.6, "Moment statique Sx (cm³)": 142 },
+    { "Profils": "IPE 240", "Dimensions (mm)": { "h": 240, "b": 120, "e": 6.2, "a": 9.8, "r": 15 }, "Masse (kg/m)": 30.7, "Surface de peinture (m²/m)": 0.712, "Section A (cm²)": 39.1, "Moment d'inertie (cm⁴)": 3892, "Module de flexion (cm³)": 324, "Rayon de giration (cm)": 9.99, "Distance entre ailes d (mm)": 220.4, "Moment statique Sx (cm³)": 182 },
+    { "Profils": "IPE 270", "Dimensions (mm)": { "h": 270, "b": 135, "e": 6.6, "a": 10.2, "r": 15 }, "Masse (kg/m)": 36.1, "Surface de peinture (m²/m)": 0.812, "Section A (cm²)": 45.9, "Moment d'inertie (cm⁴)": 5790, "Module de flexion (cm³)": 429, "Rayon de giration (cm)": 11.2, "Distance entre ailes d (mm)": 249.6, "Moment statique Sx (cm³)": 232 },
+    { "Profils": "IPE 300", "Dimensions (mm)": { "h": 300, "b": 150, "e": 7.1, "a": 10.7, "r": 15 }, "Masse (kg/m)": 42.2, "Surface de peinture (m²/m)": 0.905, "Section A (cm²)": 53.8, "Moment d'inertie (cm⁴)": 8356, "Module de flexion (cm³)": 557, "Rayon de giration (cm)": 12.5, "Distance entre ailes d (mm)": 278.6, "Moment statique Sx (cm³)": 304 },
+    { "Profils": "IPE 330", "Dimensions (mm)": { "h": 330, "b": 160, "e": 7.5, "a": 11.5, "r": 18 }, "Masse (kg/m)": 49.1, "Surface de peinture (m²/m)": 1.000, "Section A (cm²)": 62.6, "Moment d'inertie (cm⁴)": 11770, "Module de flexion (cm³)": 713, "Rayon de giration (cm)": 13.7, "Distance entre ailes d (mm)": 307, "Moment statique Sx (cm³)": 393 },
+    { "Profils": "IPE 360", "Dimensions (mm)": { "h": 360, "b": 170, "e": 8.0, "a": 12.7, "r": 18 }, "Masse (kg/m)": 57.1, "Surface de peinture (m²/m)": 1.100, "Section A (cm²)": 72.7, "Moment d'inertie (cm⁴)": 16270, "Module de flexion (cm³)": 904, "Rayon de giration (cm)": 15.0, "Distance entre ailes d (mm)": 334.6, "Moment statique Sx (cm³)": 510 },
+    { "Profils": "IPE 400", "Dimensions (mm)": { "h": 400, "b": 180, "e": 8.6, "a": 13.5, "r": 21 }, "Masse (kg/m)": 66.3, "Surface de peinture (m²/m)": 1.229, "Section A (cm²)": 84.5, "Moment d'inertie (cm⁴)": 23130, "Module de flexion (cm³)": 1160, "Rayon de giration (cm)": 16.5, "Distance entre ailes d (mm)": 373, "Moment statique Sx (cm³)": 663 },
+    { "Profils": "IPE 450", "Dimensions (mm)": { "h": 450, "b": 190, "e": 9.4, "a": 14.6, "r": 21 }, "Masse (kg/m)": 77.6, "Surface de peinture (m²/m)": 1.383, "Section A (cm²)": 98.8, "Moment d'inertie (cm⁴)": 33740, "Module de flexion (cm³)": 1500, "Rayon de giration (cm)": 18.5, "Distance entre ailes d (mm)": 420.8, "Moment statique Sx (cm³)": 851 },
+    { "Profils": "IPE 500", "Dimensions (mm)": { "h": 500, "b": 200, "e": 10.2, "a": 16.0, "r": 24 }, "Masse (kg/m)": 89.6, "Surface de peinture (m²/m)": 1.543, "Section A (cm²)": 116, "Moment d'inertie (cm⁴)": 48200, "Module de flexion (cm³)": 1920, "Rayon de giration (cm)": 20.4, "Distance entre ailes d (mm)": 468, "Moment statique Sx (cm³)": 1097 },
+    { "Profils": "IPE 550", "Dimensions (mm)": { "h": 550, "b": 210, "e": 11.1, "a": 17.2, "r": 24 }, "Masse (kg/m)": 106, "Surface de peinture (m²/m)": 1.708, "Section A (cm²)": 134, "Moment d'inertie (cm⁴)": 67120, "Module de flexion (cm³)": 2440, "Rayon de giration (cm)": 22.4, "Distance entre ailes d (mm)": 515.6, "Moment statique Sx (cm³)": 1394 },
+    { "Profils": "IPE 600", "Dimensions (mm)": { "h": 600, "b": 220, "e": 12.0, "a": 19.0, "r": 24 }, "Masse (kg/m)": 124, "Surface de peinture (m²/m)": 1.867, "Section A (cm²)": 156, "Moment d'inertie (cm⁴)": 92080, "Module de flexion (cm³)": 3070, "Rayon de giration (cm)": 24.3, "Distance entre ailes d (mm)": 562, "Moment statique Sx (cm³)": 1750 }
+  ]
+}
+
+{
+  "Vitesses et pressions dynamiques de base en fonction des temps de récurrences au Togo": [
+    { "Temps de récurrence (ans)": "10", "Valeur": "Vio (m/s)", "Région I": "20,50", "Région II": "21,00", "Région III": "21,20", "Région IV": "21,90", "Région V": "24,00", "Région VI": "29,10" },
+    { "Temps de récurrence (ans)": "10", "Valeur": "Wio (daN/m²)", "Région I": "13,66", "Région II": "13,84", "Région III": "14,94", "Région IV": "15,66", "Région V": "18,33", "Région VI": "25,18" },
+    { "Temps de récurrence (ans)": "20", "Valeur": "Vio (m/s)", "Région I": "24,80", "Région II": "25,00", "Région III": "25,80", "Région IV": "26,40", "Région V": "29,10", "Région VI": "33,64" },
+    { "Temps de récurrence (ans)": "20", "Valeur": "Wio (daN/m²)", "Région I": "19,93", "Région II": "20,20", "Région III": "21,20", "Région IV": "22,20", "Région V": "25,18", "Région VI": "34,46" },
+    { "Temps de récurrence (ans)": "30", "Valeur": "Vio (m/s)", "Région I": "27,20", "Région II": "27,50", "Région III": "28,20", "Région IV": "29,10", "Région V": "31,50", "Région VI": "35,40" },
+    { "Temps de récurrence (ans)": "30", "Valeur": "Wio (daN/m²)", "Région I": "23,23", "Région II": "23,70", "Région III": "25,20", "Région IV": "26,20", "Région V": "29,30", "Région VI": "38,50" },
+    { "Temps de récurrence (ans)": "40", "Valeur": "Vio (m/s)", "Région I": "28,40", "Région II": "28,80", "Région III": "29,70", "Région IV": "30,50", "Région V": "33,00", "Région VI": "36,90" },
+    { "Temps de récurrence (ans)": "40", "Valeur": "Wio (daN/m²)", "Région I": "25,20", "Région II": "25,80", "Région III": "27,20", "Région IV": "28,10", "Région V": "32,20", "Région VI": "40,23" },
+    { "Temps de récurrence (ans)": "50", "Valeur": "Vio (m/s)", "Région I": "29,50", "Région II": "29,80", "Région III": "30,80", "Région IV": "32,00", "Région V": "34,10", "Région VI": "38,10" },
+    { "Temps de récurrence (ans)": "50", "Valeur": "Wio (daN/m²)", "Région I": "27,20", "Région II": "28,40", "Région III": "29,30", "Région IV": "30,10", "Région V": "33,20", "Région VI": "45,50" },
+    { "Temps de récurrence (ans)": "60", "Valeur": "Vio (m/s)", "Région I": "30,50", "Région II": "31,10", "Région III": "32,00", "Région IV": "32,80", "Région V": "35,10", "Région VI": "39,10" },
+    { "Temps de récurrence (ans)": "60", "Valeur": "Wio (daN/m²)", "Région I": "28,40", "Région II": "29,20", "Région III": "31,10", "Région IV": "32,20", "Région V": "35,00", "Région VI": "46,80" },
+    { "Temps de récurrence (ans)": "70", "Valeur": "Vio (m/s)", "Région I": "31,14", "Région II": "32,26", "Région III": "33,00", "Région IV": "33,50", "Région V": "36,00", "Région VI": "40,00" },
+    { "Temps de récurrence (ans)": "70", "Valeur": "Wio (daN/m²)", "Région I": "29,50", "Région II": "30,20", "Région III": "32,00", "Région IV": "33,50", "Région V": "36,50", "Région VI": "48,90" },
+    { "Temps de récurrence (ans)": "80", "Valeur": "Vio (m/s)", "Région I": "32,00", "Région II": "33,00", "Région III": "33,80", "Région IV": "34,50", "Région V": "36,80", "Région VI": "40,80" },
+    { "Temps de récurrence (ans)": "80", "Valeur": "Wio (daN/m²)", "Région I": "31,42", "Région II": "32,50", "Région III": "34,00", "Région IV": "35,00", "Région V": "38,61", "Région VI": "50,00" },
+    { "Temps de récurrence (ans)": "90", "Valeur": "Vio (m/s)", "Région I": "32,87", "Région II": "33,82", "Région III": "34,50", "Région IV": "35,30", "Région V": "37,50", "Région VI": "41,50" },
+    { "Temps de récurrence (ans)": "90", "Valeur": "Wio (daN/m²)", "Région I": "32,36", "Région II": "33,50", "Région III": "35,00", "Région IV": "36,95", "Région V": "39,92", "Région VI": "51,40" },
+    { "Temps de récurrence (ans)": "100", "Valeur": "Vio (m/s)", "Région I": "33,52", "Région II": "34,50", "Région III": "35,30", "Région IV": "36,00", "Région V": "38,30", "Région VI": "42,20" },
+    { "Temps de récurrence (ans)": "100", "Valeur": "Wio (daN/m²)", "Région I": "34,00", "Région II": "35,00", "Région III": "36,20", "Région IV": "38,00", "Région V": "40,92", "Région VI": "53,20" }
+  ],
+  "Coefficients de site des différentes régions du Togo": [
+    { "Régions": "Site protégé", "I": "0,80", "II": "0,80", "III": "0,80", "IV": "0,80", "V": "0,80", "VI": "0,80" },
+    { "Régions": "Site normal", "I": "1,00", "II": "1,00", "III": "1,00", "IV": "1,00", "V": "1,00", "VI": "1,00" },
+    { "Régions": "Site exposé", "I": "1,35", "II": "1,35", "III": "1,35", "IV": "1,35", "V": "1,30", "VI": "1,30" }
+  ],
+  "Directions dominantes du vent dans différentes zones de Togo": [
+    { "Zone": "I", "Direction en degrés": "220", "Direction en point cardinal": "SW" },
+    { "Zone": "II", "Direction en degrés": "260", "Direction en point cardinal": "W" },
+    { "Zone": "III", "Direction en degrés": "220", "Direction en point cardinal": "SW" },
+    { "Zone": "IV", "Direction en degrés": "180", "Direction en point cardinal": "S" },
+    { "Zone": "V", "Direction en degrés": "180", "Direction en point cardinal": "S" },
+    { "Zone": "VI", "Direction en degrés": "180", "Direction en point cardinal": "S" },
+    { "Zone": "VII", "Direction en degrés": "280", "Direction en point cardinal": "E" },
+    { "Zone": "VIII", "Direction en degrés": "220", "Direction en point cardinal": "SW" },
+    { "Zone": "IX", "Direction en degrés": "180", "Direction en point cardinal": "S" },
+    { "Zone": "X", "Direction en degrés": "140", "Direction en point cardinal": "SE" }
+  ],
+  "Valeur des actions résultantes C'": [
+    { "N°": "1", "Type de parois": "Forces planes et pour les faces composant des ondes ou des plis normaux à la direction du vent", "Valeur du coefficient résultante C'": "0,01 Wc" },
+    { "N°": "2", "Type de parois": "Forces planes et pour les faces parallèles à la direction du vent", "Valeur du coefficient résultante C'": "0,02 Wc" },
+    { "N°": "3", "Type de parois": "Forces composant des ondes ou des plis normaux à la direction du vent", "Valeur du coefficient résultante C'": "0,04 Wc" },
+    { "N°": "4", "Type de parois": "Les faces composant des nervures normales à la direction du vent", "Valeur du coefficient résultante C'": "0,08 Wc" }
+  ],
+  "CARACTERISTIQUES DES PROFILS IPE": [
+    { "Profils": "IPE 80", "Dimensions (mm)": "h=80, b=46, e=3.8, a=5.2, r=5", "Masse (kg/m)": "6.0", "Surface de peinture (m²/m)": "0.237", "Section A (cm²)": "7.64", "Moment d'inertie (cm⁴)": "80.1", "Module de flexion (cm³)": "20.0", "Rayon de giration (cm)": "3.24", "Distance entre ailes d (mm)": "69.6", "Moment statique Sx (cm³)": "11.2" },
+    { "Profils": "IPE 100", "Dimensions (mm)": "h=100, b=55, e=4.1, a=5.7, r=7", "Masse (kg/m)": "8.1", "Surface de peinture (m²/m)": "0.292", "Section A (cm²)": "10.3", "Moment d'inertie (cm⁴)": "171", "Module de flexion (cm³)": "34.2", "Rayon de giration (cm)": "4.08", "Distance entre ailes d (mm)": "88.6", "Moment statique Sx (cm³)": "19.4" },
+    { "Profils": "IPE 120", "Dimensions (mm)": "h=120, b=64, e=4.4, a=6.3, r=7", "Masse (kg/m)": "10.4", "Surface de peinture (m²/m)": "0.351", "Section A (cm²)": "13.2", "Moment d'inertie (cm⁴)": "318", "Module de flexion (cm³)": "53.0", "Rayon de giration (cm)": "4.91", "Distance entre ailes d (mm)": "107.4", "Moment statique Sx (cm³)": "30.7" },
+    { "Profils": "IPE 140", "Dimensions (mm)": "h=140, b=73, e=4.7, a=6.9, r=7", "Masse (kg/m)": "12.9", "Surface de peinture (m²/m)": "0.409", "Section A (cm²)": "16.4", "Moment d'inertie (cm⁴)": "541", "Module de flexion (cm³)": "77.3", "Rayon de giration (cm)": "5.74", "Distance entre ailes d (mm)": "126.2", "Moment statique Sx (cm³)": "43.0" },
+    { "Profils": "IPE 160", "Dimensions (mm)": "h=160, b=82, e=5.0, a=7.4, r=9", "Masse (kg/m)": "15.8", "Surface de peinture (m²/m)": "0.468", "Section A (cm²)": "20.1", "Moment d'inertie (cm⁴)": "869", "Module de flexion (cm³)": "109", "Rayon de giration (cm)": "6.58", "Distance entre ailes d (mm)": "145.2", "Moment statique Sx (cm³)": "61.2" },
+    { "Profils": "IPE 180", "Dimensions (mm)": "h=180, b=91, e=5.3, a=8.0, r=9", "Masse (kg/m)": "18.8", "Surface de peinture (m²/m)": "0.528", "Section A (cm²)": "23.9", "Moment d'inertie (cm⁴)": "1317", "Module de flexion (cm³)": "146", "Rayon de giration (cm)": "7.42", "Distance entre ailes d (mm)": "164", "Moment statique Sx (cm³)": "82.6" },
+    { "Profils": "IPE 200", "Dimensions (mm)": "h=200, b=100, e=5.6, a=8.5, r=12", "Masse (kg/m)": "22.4", "Surface de peinture (m²/m)": "0.589", "Section A (cm²)": "28.5", "Moment d'inertie (cm⁴)": "1943", "Module de flexion (cm³)": "194", "Rayon de giration (cm)": "8.25", "Distance entre ailes d (mm)": "183", "Moment statique Sx (cm³)": "109" },
+    { "Profils": "IPE 220", "Dimensions (mm)": "h=220, b=110, e=5.9, a=9.2, r=12", "Masse (kg/m)": "26.2", "Surface de peinture (m²/m)": "0.650", "Section A (cm²)": "33.4", "Moment d'inertie (cm⁴)": "2772", "Module de flexion (cm³)": "252", "Rayon de giration (cm)": "9.11", "Distance entre ailes d (mm)": "201.6", "Moment statique Sx (cm³)": "142" },
+    { "Profils": "IPE 240", "Dimensions (mm)": "h=240, b=120, e=6.2, a=9.8, r=15", "Masse (kg/m)": "30.7", "Surface de peinture (m²/m)": "0.712", "Section A (cm²)": "39.1", "Moment d'inertie (cm⁴)": "3892", "Module de flexion (cm³)": "324", "Rayon de giration (cm)": "9.99", "Distance entre ailes d (mm)": "220.4", "Moment statique Sx (cm³)": "182" },
+    { "Profils": "IPE 270", "Dimensions (mm)": "h=270, b=135, e=6.6, a=10.2, r=15", "Masse (kg/m)": "36.1", "Surface de peinture (m²/m)": "0.812", "Section A (cm²)": "45.9", "Moment d'inertie (cm⁴)": "5790", "Module de flexion (cm³)": "429", "Rayon de giration (cm)": "11.2", "Distance entre ailes d (mm)": "249.6", "Moment statique Sx (cm³)": "232" },
+    { "Profils": "IPE 300", "Dimensions (mm)": "h=300, b=150, e=7.1, a=10.7, r=15", "Masse (kg/m)": "42.2", "Surface de peinture (m²/m)": "0.905", "Section A (cm²)": "53.8", "Moment d'inertie (cm⁴)": "8356", "Module de flexion (cm³)": "557", "Rayon de giration (cm)": "12.5", "Distance entre ailes d (mm)": "278.6", "Moment statique Sx (cm³)": "304" },
+    { "Profils": "IPE 330", "Dimensions (mm)": "h=330, b=160, e=7.5, a=11.5, r=18", "Masse (kg/m)": "49.1", "Surface de peinture (m²/m)": "1.000", "Section A (cm²)": "62.6", "Moment d'inertie (cm⁴)": "11770", "Module de flexion (cm³)": "713", "Rayon de giration (cm)": "13.7", "Distance entre ailes d (mm)": "307", "Moment statique Sx (cm³)": "393" },
+    { "Profils": "IPE 360", "Dimensions (mm)": "h=360, b=170, e=8.0, a=12.7, r=18", "Masse (kg/m)": "57.1", "Surface de peinture (m²/m)": "1.100", "Section A (cm²)": "72.7", "Moment d'inertie (cm⁴)": "16270", "Module de flexion (cm³)": "904", "Rayon de giration (cm)": "15.0", "Distance entre ailes d (mm)": "334.6", "Moment statique Sx (cm³)": "510" },
+    { "Profils": "IPE 400", "Dimensions (mm)": "h=400, b=180, e=8.6, a=13.5, r=21", "Masse (kg/m)": "66.3", "Surface de peinture (m²/m)": "1.229", "Section A (cm²)": "84.5", "Moment d'inertie (cm⁴)": "23130", "Module de flexion (cm³)": "1160", "Rayon de giration (cm)": "16.5", "Distance entre ailes d (mm)": "373", "Moment statique Sx (cm³)": "663" },
+    { "Profils": "IPE 450", "Dimensions (mm)": "h=450, b=190, e=9.4, a=14.6, r=21", "Masse (kg/m)": "77.6", "Surface de peinture (m²/m)": "1.383", "Section A (cm²)": "98.8", "Moment d'inertie (cm⁴)": "33740", "Module de flexion (cm³)": "1500", "Rayon de giration (cm)": "18.5", "Distance entre ailes d (mm)": "420.8", "Moment statique Sx (cm³)": "851" },
+    { "Profils": "IPE 500", "Dimensions (mm)": "h=500, b=200, e=10.2, a=16.0, r=24", "Masse (kg/m)": "89.6", "Surface de peinture (m²/m)": "1.543", "Section A (cm²)": "116", "Moment d'inertie (cm⁴)": "48200", "Module de flexion (cm³)": "1920", "Rayon de giration (cm)": "20.4", "Distance entre ailes d (mm)": "468", "Moment statique Sx (cm³)": "1097" },
+    { "Profils": "IPE 550", "Dimensions (mm)": "h=550, b=210, e=11.1, a=17.2, r=24", "Masse (kg/m)": "106", "Surface de peinture (m²/m)": "1.708", "Section A (cm²)": "134", "Moment d'inertie (cm⁴)": "67120", "Module de flexion (cm³)": "2440", "Rayon de giration (cm)": "22.4", "Distance entre ailes d (mm)": "515.6", "Moment statique Sx (cm³)": "1394" },
+    { "Profils": "IPE 600", "Dimensions (mm)": "h=600, b=220, e=12.0, a=19.0, r=24", "Masse (kg/m)": "124", "Surface de peinture (m²/m)": "1.867", "Section A (cm²)": "156", "Moment d'inertie (cm⁴)": "92080", "Module de flexion (cm³)": "3070", "Rayon de giration (cm)": "24.3", "Distance entre ailes d (mm)": "562", "Moment statique Sx (cm³)": "1750" }
+  ]
+}
+
+{
+  "CARACTERISTIQUES DES CORNIERES DOUBLES A AILES EGALES ET A BORDS ARRONDIS (axe y-y)": [
+    {
+      "Séries": "20",
+      "Dimensions (mm) e": 3,
+      "Masse (kg/m)": 1.84,
+      "Section (cm²)": 2.34,
+      "Moment d'inertie I_y (cm⁴)": 2.32,
+      "Module de flexion W_y (cm³)": 1.55,
+      "Rayon de giration i_y (cm)": 0.996
+    },
+    {
+      "Séries": "25",
+      "Dimensions (mm) e": 3,
+      "Masse (kg/m)": 2.35,
+      "Section (cm²)": 2.99,
+      "Moment d'inertie I_y (cm⁴)": 4.88,
+      "Module de flexion W_y (cm³)": 2.44,
+      "Rayon de giration i_y (cm)": 1.28
+    },
+    {
+      "Séries": "30",
+      "Dimensions (mm) e": 3,
+      "Masse (kg/m)": 2.87,
+      "Section (cm²)": 3.65,
+      "Moment d'inertie I_y (cm⁴)": 9.08,
+      "Module de flexion W_y (cm³)": 3.70,
+      "Rayon de giration i_y (cm)": 1.58
+    },
+    {
+      "Séries": "30",
+      "Dimensions (mm) e": 4,
+      "Masse (kg/m)": 3.77,
+      "Section (cm²)": 4.80,
+      "Moment d'inertie I_y (cm⁴)": 11.6,
+      "Module de flexion W_y (cm³)": 4.67,
+      "Rayon de giration i_y (cm)": 1.55
+    },
+    {
+      "Séries": "35",
+      "Dimensions (mm) e": 3.5,
+      "Masse (kg/m)": 3.92,
+      "Section (cm²)": 4.99,
+      "Moment d'inertie I_y (cm⁴)": 16.7,
+      "Module de flexion W_y (cm³)": 5.86,
+      "Rayon de giration i_y (cm)": 1.83
+    },
+    {
+      "Séries": "35",
+      "Dimensions (mm) e": 5,
+      "Masse (kg/m)": 5.42,
+      "Section (cm²)": 6.91,
+      "Moment d'inertie I_y (cm⁴)": 22.3,
+      "Module de flexion W_y (cm³)": 7.72,
+      "Rayon de giration i_y (cm)": 1.80
+    },
+    {
+      "Séries": "40",
+      "Dimensions (mm) e": 4,
+      "Masse (kg/m)": 4.87,
+      "Section (cm²)": 6.21,
+      "Moment d'inertie I_y (cm⁴)": 26.6,
+      "Module de flexion W_y (cm³)": 8.28,
+      "Rayon de giration i_y (cm)": 2.07
+    },
+    {
+      "Séries": "40",
+      "Dimensions (mm) e": 5,
+      "Masse (kg/m)": 6.02,
+      "Section (cm²)": 7.67,
+      "Moment d'inertie I_y (cm⁴)": 32.5,
+      "Module de flexion W_y (cm³)": 10.0,
+      "Rayon de giration i_y (cm)": 2.06
+    },
+    {
+      "Séries": "45",
+      "Dimensions (mm) e": 4.5,
+      "Masse (kg/m)": 6.22,
+      "Section (cm²)": 7.92,
+      "Moment d'inertie I_y (cm⁴)": 43.7,
+      "Module de flexion W_y (cm³)": 12.3,
+      "Rayon de giration i_y (cm)": 2.35
+    },
+    {
+      "Séries": "45",
+      "Dimensions (mm) e": 6,
+      "Masse (kg/m)": 8.13,
+      "Section (cm²)": 10.3,
+      "Moment d'inertie I_y (cm⁴)": 56.4,
+      "Module de flexion W_y (cm³)": 15.7,
+      "Rayon de giration i_y (cm)": 2.33
+    },
+    {
+      "Séries": "50",
+      "Dimensions (mm) e": 5,
+      "Masse (kg/m)": 7.64,
+      "Section (cm²)": 9.73,
+      "Moment d'inertie I_y (cm⁴)": 66.8,
+      "Module de flexion W_y (cm³)": 17.5,
+      "Rayon de giration i_y (cm)": 2.62
+    },
+    {
+      "Séries": "50",
+      "Dimensions (mm) e": 6,
+      "Masse (kg/m)": 9.03,
+      "Section (cm²)": 11.5,
+      "Moment d'inertie I_y (cm⁴)": 78.3,
+      "Module de flexion W_y (cm³)": 20.3,
+      "Rayon de giration i_y (cm)": 2.61
+    },
+    {
+      "Séries": "60",
+      "Dimensions (mm) e": 6,
+      "Masse (kg/m)": 10.9,
+      "Section (cm²)": 13.9,
+      "Moment d'inertie I_y (cm⁴)": 134,
+      "Module de flexion W_y (cm³)": 29.5,
+      "Rayon de giration i_y (cm)": 3.11
+    },
+    {
+      "Séries": "60",
+      "Dimensions (mm) e": 8,
+      "Masse (kg/m)": 14.2,
+      "Section (cm²)": 18.1,
+      "Moment d'inertie I_y (cm⁴)": 170,
+      "Module de flexion W_y (cm³)": 36.8,
+      "Rayon de giration i_y (cm)": 3.06
+    },
+    {
+      "Séries": "60",
+      "Dimensions (mm) e": 10,
+      "Masse (kg/m)": 17.4,
+      "Section (cm²)": 22.2,
+      "Moment d'inertie I_y (cm⁴)": 202,
+      "Module de flexion W_y (cm³)": 43.2,
+      "Rayon de giration i_y (cm)": 3.02
+    },
+    {
+      "Séries": "70",
+      "Dimensions (mm) e": 7,
+      "Masse (kg/m)": 15.0,
+      "Section (cm²)": 19.1,
+      "Moment d'inertie I_y (cm⁴)": 251,
+      "Module de flexion W_y (cm³)": 46.1,
+      "Rayon de giration i_y (cm)": 3.63
+    },
+    {
+      "Séries": "70",
+      "Dimensions (mm) e": 8,
+      "Masse (kg/m)": 17.0,
+      "Section (cm²)": 21.6,
+      "Moment d'inertie I_y (cm⁴)": 282,
+      "Module de flexion W_y (cm³)": 51.3,
+      "Rayon de giration i_y (cm)": 3.61
+    },
+    {
+      "Séries": "70",
+      "Dimensions (mm) e": 10,
+      "Masse (kg/m)": 20.9,
+      "Section (cm²)": 26.6,
+      "Moment d'inertie I_y (cm⁴)": 340,
+      "Module de flexion W_y (cm³)": 61.0,
+      "Rayon de giration i_y (cm)": 3.57
+    },
+    {
+      "Séries": "80",
+      "Dimensions (mm) e": 8,
+      "Masse (kg/m)": 19.5,
+      "Section (cm²)": 24.8,
+      "Moment d'inertie I_y (cm⁴)": 428,
+      "Module de flexion W_y (cm³)": 69.9,
+      "Rayon de giration i_y (cm)": 4.16
+    },
+    {
+      "Séries": "80",
+      "Dimensions (mm) e": 10,
+      "Masse (kg/m)": 24.0,
+      "Section (cm²)": 30.6,
+      "Moment d'inertie I_y (cm⁴)": 518,
+      "Module de flexion W_y (cm³)": 83.0,
+      "Rayon de giration i_y (cm)": 4.12
+    },
+    {
+      "Séries": "90",
+      "Dimensions (mm) e": 8,
+      "Masse (kg/m)": 22.1,
+      "Section (cm²)": 28.2,
+      "Moment d'inertie I_y (cm⁴)": 628,
+      "Module de flexion W_y (cm³)": 93.0,
+      "Rayon de giration i_y (cm)": 4.72
+    },
+    {
+      "Séries": "90",
+      "Dimensions (mm) e": 9,
+      "Masse (kg/m)": 24.7,
+      "Section (cm²)": 31.5,
+      "Moment d'inertie I_y (cm⁴)": 697,
+      "Module de flexion W_y (cm³)": 102.0,
+      "Rayon de giration i_y (cm)": 4.70
+    },
+    {
+      "Séries": "90",
+      "Dimensions (mm) e": 10,
+      "Masse (kg/m)": 27.3,
+      "Section (cm²)": 34.8,
+      "Moment d'inertie I_y (cm⁴)": 765,
+      "Module de flexion W_y (cm³)": 112.0,
+      "Rayon de giration i_y (cm)": 4.69
+    },
+    {
+      "Séries": "100",
+      "Dimensions (mm) e": 10,
+      "Masse (kg/m)": 30.6,
+      "Section (cm²)": 39.0,
+      "Moment d'inertie I_y (cm⁴)": 1100,
+      "Module de flexion W_y (cm³)": 146.0,
+      "Rayon de giration i_y (cm)": 5.31
+    },
+    {
+      "Séries": "100",
+      "Dimensions (mm) e": 12,
+      "Masse (kg/m)": 36.3,
+      "Section (cm²)": 46.2,
+      "Moment d'inertie I_y (cm⁴)": 1280,
+      "Module de flexion W_y (cm³)": 168.0,
+      "Rayon de giration i_y (cm)": 5.27
+    },
+    {
+      "Séries": "120",
+      "Dimensions (mm) e": 10,
+      "Masse (kg/m)": 37.1,
+      "Section (cm²)": 47.3,
+      "Moment d'inertie I_y (cm⁴)": 1910,
+      "Module de flexion W_y (cm³)": 223,
+      "Rayon de giration i_y (cm)": 6.36
+    },
+    {
+      "Séries": "120",
+      "Dimensions (mm) e": 12,
+      "Masse (kg/m)": 44.0,
+      "Section (cm²)": 56.1,
+      "Moment d'inertie I_y (cm⁴)": 2230,
+      "Module de flexion W_y (cm³)": 259,
+      "Rayon de giration i_y (cm)": 6.31
+    },
+    {
+      "Séries": "120",
+      "Dimensions (mm) e": 15,
+      "Masse (kg/m)": 54.1,
+      "Section (cm²)": 68.9,
+      "Moment d'inertie I_y (cm⁴)": 2710,
+      "Module de flexion W_y (cm³)": 310,
+      "Rayon de giration i_y (cm)": 6.27
+    },
+    {
+      "Séries": "150",
+      "Dimensions (mm) e": 12,
+      "Masse (kg/m)": 55.6,
+      "Section (cm²)": 70.8,
+      "Moment d'inertie I_y (cm⁴)": 4350,
+      "Module de flexion W_y (cm³)": 409,
+      "Rayon de giration i_y (cm)": 7.84
+    },
+    {
+      "Séries": "150",
+      "Dimensions (mm) e": 15,
+      "Masse (kg/m)": 68.6,
+      "Section (cm²)": 87.4,
+      "Moment d'inertie I_y (cm⁴)": 5280,
+      "Module de flexion W_y (cm³)": 491,
+      "Rayon de giration i_y (cm)": 7.78
+    },
+    {
+      "Séries": "150",
+      "Dimensions (mm) e": 18,
+      "Masse (kg/m)": 81.3,
+      "Section (cm²)": 103.0,
+      "Moment d'inertie I_y (cm⁴)": 6170,
+      "Module de flexion W_y (cm³)": 566,
+      "Rayon de giration i_y (cm)": 7.73
+    },
+    {
+      "Séries": "200",
+      "Dimensions (mm) e": 20,
+      "Masse (kg/m)": 121.0,
+      "Section (cm²)": 154.0,
+      "Moment d'inertie I_y (cm⁴)": 16000,
+      "Module de flexion W_y (cm³)": 1280,
+      "Rayon de giration i_y (cm)": 10.2
+    }
+  ],
+  "CARACTERISTIQUES DES CORNIERES DOUBLES A AILES EGALES ET A BORDS ARRONDIS (axe x-x)": [
+    {
+      "Séries": "20",
+      "e (mm)": 3,
+      "Ix_a0": 1.22,
+      "Wx_a0": 0.91
+    },
+    {
+      "Séries": "25",
+      "e (mm)": 3,
+      "Ix_a0": 2.82,
+      "Wx_a0": 1.70
+    },
+    {
+      "Séries": "30",
+      "e (mm)": 3,
+      "Ix_a0": 5.60,
+      "Wx_a0": 2.83,
+      "Ix_a6": 17.7,
+      "Wx_a6": 5.90,
+      "Ix_a10": 31.1,
+      "Wx_a10": 8.88
+    },
+    {
+      "Séries": "40",
+      "e (mm)": 4,
+      "Ix_a0": 14.3,
+      "Wx_a0": 5.84,
+      "Ix_a6": 43.1,
+      "Wx_a6": 13.0,
+      "Ix_a8": 55.3,
+      "Wx_a8": 16.0,
+      "Ix_a10": 68.7,
+      "Wx_a10": 19.1,
+      "Ix_a12": 83.3,
+      "Wx_a12": 22.5
+    },
+    {
+      "Séries": "45",
+      "e (mm)": 4.5,
+      "Ix_a0": 22.4,
+      "Wx_a0": 7.94,
+      "Ix_a6": 67.1,
+      "Wx_a6": 21.0,
+      "Ix_a10": 106,
+      "Wx_a10": 30.3
+    },
+    {
+      "Séries": "50",
+      "e (mm)": 5,
+      "Ix_a0": 34.9,
+      "Wx_a0": 10.9,
+      "Ix_a6": 99.8,
+      "Wx_a6": 29.1,
+      "Ix_a10": 156,
+      "Wx_a10": 41.9,
+      "Ix_a14": 218,
+      "Wx_a14": 55.9
+    },
+    {
+      "Séries": "60",
+      "e (mm)": 6,
+      "Ix_a0": 70.3,
+      "Wx_a0": 18.3,
+      "Ix_a6": 190,
+      "Wx_a6": 45.6,
+      "Ix_a10": 293,
+      "Wx_a10": 66.1,
+      "Ix_a14": 405,
+      "Wx_a14": 88.5,
+      "Ix_a16": 527,
+      "Wx_a16": 112
+    },
+    {
+      "Séries": "70",
+      "e (mm)": 7,
+      "Ix_a0": 127,
+      "Wx_a0": 28.1,
+      "Ix_a10": 494,
+      "Wx_a10": 101,
+      "Ix_a14": 686,
+      "Wx_a14": 135
+    },
+    {
+      "Séries": "80",
+      "e (mm)": 8,
+      "Ix_a0": 220,
+      "Wx_a0": 42.0,
+      "Ix_a10": 782,
+      "Wx_a10": 146,
+      "Ix_a16": 1390,
+      "Wx_a16": 244
+    },
+    {
+      "Séries": "90",
+      "e (mm)": 9,
+      "Ix_a0": 362,
+      "Wx_a0": 62.4,
+      "Ix_a10": 1180,
+      "Wx_a10": 205
+    },
+    {
+      "Séries": "100",
+      "e (mm)": 10,
+      "Ix_a0": 567,
+      "Wx_a0": 89.0,
+      "Ix_a10": 1740,
+      "Wx_a10": 280
+    },
+    {
+      "Séries": "120",
+      "e (mm)": 12,
+      "Ix_a0": 1270,
+      "Wx_a0": 166,
+      "Ix_a10": 3350,
+      "Wx_a10": 488
+    },
+    {
+      "Séries": "150",
+      "e (mm)": 15,
+      "Ix_a0": 3090,
+      "Wx_a0": 336
+    },
+    {
+      "Séries": "200",
+      "e (mm)": 20,
+      "Ix_a0": 9970,
+      "Wx_a0": 845
+    }
+  ],
+  "Classe d'emploi des bois": [
+    {
+      "Classe d'emploi": 1,
+      "Conditions": "Bois entièrement sous abri, humidité < 18 %",
+      "Altérations": "Peut-être altéré par des insectes à larves ou des termites",
+      "Utilisation": "Menuiseries intérieures"
+    },
+    {
+      "Classe d'emploi": 2,
+      "Conditions": "Bois sous abri avec humidité ambiante élevée. Bois prolongé des intempéries mais sans contact avec le sol",
+      "Altérations": "Peut être attaqué par des insectes, pourriture superficielle",
+      "Utilisation": "Charpentes"
+    },
+    {
+      "Classe d'emploi": 3,
+      "Conditions": "Bois non sous abri, exposé aux intempéries, mais sans contact avec le sol, avec une humidité > 20 %",
+      "Altérations": "Peut être attaqué par des insectes, des termites, des champignons qui provoquent la pourriture",
+      "Utilisation": "Menuiseries extérieures, portails et fenêtres"
+    },
+    {
+      "Classe d'emploi": 4,
+      "Conditions": "Bois en contact avec le sol ou de l'eau douce, exposé en permanence à l'humification",
+      "Altérations": "Peut être attaqué par des insectes mais aussi de façon virulente par les termites et les champignons (pourriture)",
+      "Utilisation": "Poteaux de réseaux, pontons, bateaux"
+    },
+    {
+      "Classe d'emploi": 5,
+      "Conditions": "Bois en permanence exposé à l'eau salée",
+      "Altérations": "Tout le volume du bois est attaquable",
+      "Utilisation": "Pontons, pieux"
+    }
+  ],
+  "Classes de résistance (NF EN 338-2003)": [
+    {
+      "Type de bois": "Résineux",
+      "Classe de résistance": "C18 - C24",
+      "Domaine d'utilisation": "Bois facile à abattre, à mettre en débit, à scier"
+    },
+    {
+      "Type de bois": "Résineux",
+      "Classe de résistance": "C22 - C30",
+      "Domaine d'utilisation": null
+    },
+    {
+      "Type de bois": "Feuillus",
+      "Classe de résistance": "D30 - D35",
+      "Domaine d'utilisation": "Bois dur, à user rapidement les outils de sciage et de façonnage"
+    },
+    {
+      "Type de bois": "Feuillus",
+      "Classe de résistance": "D40 - D50",
+      "Domaine d'utilisation": null
+    },
+    {
+      "Type de bois": "Feuillus",
+      "Classe de résistance": "D70",
+      "Domaine d'utilisation": null
+    }
+  ],
+  "Classe de service en fonction de leur humidité et hygrométrie": [
+    {
+      "Classe de service": "Classe de service 1",
+      "Humidité relative de l'air ambiante à 20 °C": "65 %",
+      "Humidité relative de l'air ne dépassant 85%": "7 à 13 %",
+      "Types de structures": "Structures situées à l'intérieur des locaux chauffés"
+    },
+    {
+      "Classe de service": "Classe de service 2",
+      "Humidité relative de l'air ambiante à 20 °C": "85 %",
+      "Humidité relative de l'air ne dépassant 85%": "13 à 20 %",
+      "Types de structures": "Charpentes ventilées ou des murs ossatures bois"
+    },
+    {
+      "Classe de service": "Classe de service 3",
+      "Humidité relative de l'air ambiante à 20 °C": ">20%",
+      "Humidité relative de l'air ne dépassant 85%": ">20%",
+      "Types de structures": "Structures situées soumis aux variations hygrométriques"
+    }
+  ],
+  "Classes de bois en fonction de leur humidité H": [
+    {
+      "Nature de bois": "Bois vert",
+      "Valeur de H (%)": "> 30",
+      "Observation": "Bois au-delà de son point de saturation (gonflement maximal)",
+      "Emploi": "Construction hydraulique"
+    },
+    {
+      "Nature de bois": "Bois mi-sec",
+      "Valeur de H (%)": "23 à 30",
+      "Observation": "Bois d'humidité inférieure au point de saturation",
+      "Emploi": "Construction exposée à la pluie"
+    },
+    {
+      "Nature de bois": "Bois sec à l'air",
+      "Valeur de H (%)": "13 à 18",
+      "Observation": "Bois à l'abri des échauffourées et des pourritures",
+      "Emploi": "Construction en local couvert"
+    },
+    {
+      "Nature de bois": "Bois sec (séchoir)",
+      "Valeur de H (%)": "0 à 13",
+      "Observation": null,
+      "Emploi": "Construction en local chauffé"
+    }
+  ],
+  "Classes de bois en fonction de leur retrait rᵥ (%)": [
+    {
+      "Nature de bois": "Faible retrait",
+      "Valeur de rᵥ (%)": "5 à 10"
+    },
+    {
+      "Nature de bois": "Retrait moyen",
+      "Valeur de rᵥ (%)": "10 à 15"
+    },
+    {
+      "Nature de bois": "Fort retrait",
+      "Valeur de rᵥ (%)": "15 à 20"
+    }
+  ]
+}
+
+{
+  "Classes de bois en fonction de leur nervosité": [
+    {
+      "Nature de bois": "Peu nerveux",
+      "Valeur de v (%)": "0,15 à 0,35",
+      "Observation": "Ce sont par excellence les bois de construction et les bois de charpente"
+    },
+    {
+      "Nature de bois": "Nerveux",
+      "Valeur de v (%)": "0,35 à 0,55",
+      "Observation": null
+    },
+    {
+      "Nature de bois": "Très nerveux",
+      "Valeur de v (%)": "0,55 à 1 si v > 0,75%",
+      "Observation": "Ils ne sont toutefois utilisables que"
+    }
+  ],
+  "Densité des bois": [
+    {
+      "Nature de bois": "Bois feuillus",
+      "Type": "Très légers",
+      "Valeur de d": "< 0,5",
+      "Exemple de bois": "Peuplier"
+    },
+    {
+      "Nature de bois": "Bois feuillus",
+      "Type": "Légers",
+      "Valeur de d": "0,5 à 0,65",
+      "Exemple de bois": "Tilleul ; bouleau ; chêne ; hêtre ; Acajou"
+    },
+    {
+      "Nature de bois": "Bois feuillus",
+      "Type": "Mi-lourds",
+      "Valeur de d": "0,65 à 0,8",
+      "Exemple de bois": "Chêne dur ; hêtre dur ; Teck ; Iroko"
+    },
+    {
+      "Nature de bois": "Bois feuillus",
+      "Type": "Lourd",
+      "Valeur de d": "0,8 à 1",
+      "Exemple de bois": "Charme ; Ebène"
+    },
+    {
+      "Nature de bois": "Bois feuillus",
+      "Type": "Très lourd",
+      "Valeur de d": "> 1",
+      "Exemple de bois": null
+    },
+    {
+      "Nature de bois": "Bois résineux",
+      "Type": "Légers",
+      "Valeur de d": "0,4 à 0,5",
+      "Exemple de bois": "Sapin ; épicéa"
+    },
+    {
+      "Nature de bois": "Bois résineux",
+      "Type": "Mi-lourds",
+      "Valeur de d": "0,5 à 0,6",
+      "Exemple de bois": "Pin sylvestre et maritime"
+    },
+    {
+      "Nature de bois": "Bois résineux",
+      "Type": "Lourds",
+      "Valeur de d": "> 0,6",
+      "Exemple de bois": null
+    }
+  ],
+  "Valeurs caractéristiques des bois massifs résineux": [
+    {
+      "Symbole": "f_m,k",
+      "Désignation": "Contrainte de flexion",
+      "Unité": "MPa",
+      "C18": 18,
+      "C22": 22,
+      "C24": 24,
+      "C27": 27,
+      "C30": 30,
+      "C35": 35,
+      "C40": 40
+    },
+    {
+      "Symbole": "f_t,0,k",
+      "Désignation": "Contrainte de traction axiale",
+      "Unité": "MPa",
+      "C18": 11,
+      "C22": 13,
+      "C24": 14,
+      "C27": 16,
+      "C30": 18,
+      "C35": 21,
+      "C40": 24
+    },
+    {
+      "Symbole": "f_t,90,k",
+      "Désignation": "Contrainte de traction perpendiculaire",
+      "Unité": "MPa",
+      "C18": 0.5,
+      "C22": 0.5,
+      "C24": 0.5,
+      "C27": 0.5,
+      "C30": 0.5,
+      "C35": 0.5,
+      "C40": 0.6
+    },
+    {
+      "Symbole": "f_c,0,k",
+      "Désignation": "Contrainte de compression",
+      "Unité": "MPa",
+      "C18": 18,
+      "C22": 20,
+      "C24": 22,
+      "C27": 24,
+      "C30": 25,
+      "C35": 26,
+      "C40": 29
+    },
+    {
+      "Symbole": "f_c,90,k",
+      "Désignation": "Contrainte de compression perpendiculaire",
+      "Unité": "MPa",
+      "C18": 2.2,
+      "C22": 2.4,
+      "C24": 2.5,
+      "C27": 2.6,
+      "C30": 2.7,
+      "C35": 2.8,
+      "C40": 2.9
+    },
+    {
+      "Symbole": "f_v,k",
+      "Désignation": "Contrainte de cisaillement",
+      "Unité": "MPa",
+      "C18": 1.7,
+      "C22": 2.8,
+      "C24": 4.0,
+      "C27": 3.0,
+      "C30": 3.4,
+      "C35": 3.8,
+      "C40": 3.8
+    },
+    {
+      "Symbole": "E_0,mean",
+      "Désignation": "Module moyen axial",
+      "Unité": "N/mm²",
+      "C18": 9,
+      "C22": 10,
+      "C24": 11,
+      "C27": 11.5,
+      "C30": 12,
+      "C35": 13,
+      "C40": 14
+    },
+    {
+      "Symbole": "E_0,05",
+      "Désignation": "Module axial au 5ᵉ percentile",
+      "Unité": "N/mm²",
+      "C18": 6,
+      "C22": 6.7,
+      "C24": 7.4,
+      "C27": 7.7,
+      "C30": 8,
+      "C35": 8.7,
+      "C40": 9.4
+    },
+    {
+      "Symbole": "E_90,mean",
+      "Désignation": "Module moyen transversal",
+      "Unité": "N/mm²",
+      "C18": 0.30,
+      "C22": 0.33,
+      "C24": 0.37,
+      "C27": 0.38,
+      "C30": 0.40,
+      "C35": 0.43,
+      "C40": 0.47
+    },
+    {
+      "Symbole": "G_mean",
+      "Désignation": "Module de cisaillement",
+      "Unité": "kg/m³",
+      "C18": 0.56,
+      "C22": 0.63,
+      "C24": 0.69,
+      "C27": 0.72,
+      "C30": 0.75,
+      "C35": 0.81,
+      "C40": 0.88
+    },
+    {
+      "Symbole": "ρ_k",
+      "Désignation": "Masse volumique caractéristique",
+      "Unité": "kg/m³",
+      "C18": 320,
+      "C22": 340,
+      "C24": 350,
+      "C27": 370,
+      "C30": 380,
+      "C35": 400,
+      "C40": 420
+    },
+    {
+      "Symbole": "ρ_mean",
+      "Désignation": "Masse volumique moyenne",
+      "Unité": "kg/m³",
+      "C18": 380,
+      "C22": 410,
+      "C24": 420,
+      "C27": 450,
+      "C30": 460,
+      "C35": 480,
+      "C40": 500
+    }
+  ],
+  "Valeurs caractéristiques des bois lamellés-collés homogènes": [
+    {
+      "Symbole": "f_m,k",
+      "Désignation": "Contrainte de flexion",
+      "Unité": "MPa",
+      "GL24h": 24,
+      "GL28h": 28,
+      "GL32h": 32,
+      "GL36h": 36
+    },
+    {
+      "Symbole": "f_t,0,k",
+      "Désignation": "Contrainte de traction",
+      "Unité": "MPa",
+      "GL24h": 16.5,
+      "GL28h": 19.5,
+      "GL32h": 22.5,
+      "GL36h": 26.0
+    },
+    {
+      "Symbole": "f_c,0,k",
+      "Désignation": "Contrainte de compression",
+      "Unité": "MPa",
+      "GL24h": 24,
+      "GL28h": 26.5,
+      "GL32h": 29,
+      "GL36h": 31
+    },
+    {
+      "Symbole": "f_c,90,k",
+      "Désignation": "Contrainte de compression perpendiculaire",
+      "Unité": "MPa",
+      "GL24h": 2.7,
+      "GL28h": 3.0,
+      "GL32h": 3.3,
+      "GL36h": 3.6
+    },
+    {
+      "Symbole": "f_v,k",
+      "Désignation": "Contrainte de cisaillement",
+      "Unité": "MPa",
+      "GL24h": 2.7,
+      "GL28h": 3.2,
+      "GL32h": 3.8,
+      "GL36h": 4.3
+    },
+    {
+      "Symbole": "E_0,mean",
+      "Désignation": "Module moyen axial",
+      "Unité": "KN/mm²",
+      "GL24h": 11.6,
+      "GL28h": 12.6,
+      "GL32h": 13.7,
+      "GL36h": 14.7
+    },
+    {
+      "Symbole": "E_0,05",
+      "Désignation": "Module axial au 5ᵉ pourcentile",
+      "Unité": "KN/mm²",
+      "GL24h": 9.4,
+      "GL28h": 10.2,
+      "GL32h": 11.1,
+      "GL36h": 11.9
+    },
+    {
+      "Symbole": "E_90,mean",
+      "Désignation": "Module moyen transversal",
+      "Unité": "KN/mm²",
+      "GL24h": 0.39,
+      "GL28h": 0.42,
+      "GL32h": 0.46,
+      "GL36h": 0.49
+    },
+    {
+      "Symbole": "G_mean",
+      "Désignation": "Module de cisaillement",
+      "Unité": "KN/mm²",
+      "GL24h": 0.72,
+      "GL28h": 0.78,
+      "GL32h": 0.85,
+      "GL36h": 0.91
+    },
+    {
+      "Symbole": "ρ_k",
+      "Désignation": "Masse volumique",
+      "Unité": "Kg/m³",
+      "GL24h": 385,
+      "GL28h": 425,
+      "GL32h": 460,
+      "GL36h": 480
+    }
+  ],
+  "Classement des lamelles constituant les poutres en bois lamellé-collé": [
+    {
+      "Classe du bois lamellé-collé": "GL24c",
+      "Bois des lamelles extérieures": "C24",
+      "Bois des lamelles intérieures panaché ou combiné": "C18"
+    },
+    {
+      "Classe du bois lamellé-collé": "GL28c",
+      "Bois des lamelles extérieures": "C30",
+      "Bois des lamelles intérieures panaché ou combiné": "C24"
+    },
+    {
+      "Classe du bois lamellé-collé": "GL32c",
+      "Bois des lamelles extérieures": "C40",
+      "Bois des lamelles intérieures panaché ou combiné": "C30"
+    },
+    {
+      "Classe du bois lamellé-collé": "GL36c",
+      "Bois des lamelles extérieures": "C40",
+      "Bois des lamelles intérieures panaché ou combiné": "C35"
+    }
+  ],
+  "Caractéristiques de bois tropicaux": [
+    {
+      "Essence de bois": "EBENE",
+      "Densité": 0.9,
+      "Résistance à la compression": 98,
+      "Résistance à la flexion": 130,
+      "Module E": 15000,
+      "Retrait tangentiel": 11,
+      "Retrait radial": 7,
+      "Termite": "Durable",
+      "Classe de Durabilité": "Mi-dur",
+      "Classe de densité": "Mi-lourd",
+      "Classe d'emploi (sans traitement)": "Forte",
+      "Résistance mécanique": "Forte",
+      "Type de bois": "Feuillus"
+    },
+    {
+      "Essence de bois": "TECK",
+      "Densité": 0.67,
+      "Résistance à la compression": 56,
+      "Résistance à la flexion": 98,
+      "Module E": 13740,
+      "Retrait tangentiel": 4.7,
+      "Retrait radial": 2.6,
+      "Termite": "Moyennement Durable",
+      "Classe de Durabilité": "Mi-dur",
+      "Classe de densité": "Mi-lourd",
+      "Classe d'emploi (sans traitement)": "Bonne",
+      "Résistance mécanique": "Bonne",
+      "Type de bois": "Feuillus"
+    },
+    {
+      "Essence de bois": "IROKO",
+      "Densité": 0.64,
+      "Résistance à la compression": 54,
+      "Résistance à la flexion": 87,
+      "Module E": 12840,
+      "Retrait tangentiel": 5.4,
+      "Retrait radial": 3.5,
+      "Termite": "Sensible",
+      "Classe de Durabilité": "Mi-dur",
+      "Classe de densité": "Mi-lourd",
+      "Classe d'emploi (sans traitement)": "Bonne",
+      "Résistance mécanique": "Moyenne",
+      "Type de bois": "Feuillus"
+    },
+    {
+      "Essence de bois": "ACAJOU",
+      "Densité": 0.58,
+      "Résistance à la compression": 54,
+      "Résistance à la flexion": 77,
+      "Module E": 11830,
+      "Retrait tangentiel": 5.8,
+      "Retrait radial": 3.7,
+      "Termite": null,
+      "Classe de Durabilité": "Mi-dur",
+      "Classe de densité": "Tendre",
+      "Classe d'emploi (sans traitement)": "Faible",
+      "Résistance mécanique": "Faible",
+      "Type de bois": "Feuillus"
+    }
+  ],
+  "Valeurs des charges d'exploitation en fonction de l'usage du bâtiment": [
+    {
+      "Catégorie": "A. Logement - Plancher",
+      "qk (daN/m²)": 150,
+      "Qk (daN)": 200
+    },
+    {
+      "Catégorie": "A. Logement - Balcon",
+      "qk (daN/m²)": 250,
+      "Qk (daN)": 200
+    },
+    {
+      "Catégorie": "A. Logement - Escalier",
+      "qk (daN/m²)": 250,
+      "Qk (daN)": 200
+    },
+    {
+      "Catégorie": "B. Bureau",
+      "qk (daN/m²)": 150,
+      "Qk (daN)": 200
+    },
+    {
+      "Catégorie": "C. Locaux avec tables (écoles, restaurants, etc.) - C1 Locaux avec tables",
+      "qk (daN/m²)": 250,
+      "Qk (daN)": 300
+    },
+    {
+      "Catégorie": "C. Locaux avec tables (écoles, restaurants, etc.) - C2 Locaux avec sièges (églises, théâtres, cinémas, etc.)",
+      "qk (daN/m²)": 400,
+      "Qk (daN)": 400
+    },
+    {
+      "Catégorie": "C. Locaux avec tables (écoles, restaurants, etc.) - C3 Locaux sans obstacles à la circulation (musées, salles d'exposition, etc.)",
+      "qk (daN/m²)": 400,
+      "Qk (daN)": 400
+    },
+    {
+      "Catégorie": "C. Locaux avec tables (écoles, restaurants, etc.) - C4 Locaux pour activités physiques (dancings, salles de gymnastiques, etc.)",
+      "qk (daN/m²)": 500,
+      "Qk (daN)": 700
+    },
+    {
+      "Catégorie": "C. Locaux avec tables (écoles, restaurants, etc.) - C5 Locaux susceptibles d'être surpeuplés (salles de concert, terrasses, etc.)",
+      "qk (daN/m²)": 500,
+      "Qk (daN)": 450
+    },
+    {
+      "Catégorie": "D. Commerces - D1 Commerces de détail courant",
+      "qk (daN/m²)": 500,
+      "Qk (daN)": 500
+    },
+    {
+      "Catégorie": "D. Commerces - D2 Grands magasins",
+      "qk (daN/m²)": 500,
+      "Qk (daN)": 700
+    },
+    {
+      "Catégorie": "E. Aires de stockage et locaux industriels - E1 Surfaces de stockage (entrepôts, bibliothèques...)",
+      "qk (daN/m²)": 750,
+      "Qk (daN)": 700
+    },
+    {
+      "Catégorie": "E. Aires de stockage et locaux industriels - E2 Usage industriel",
+      "qk (daN/m²)": 700,
+      "Qk (daN)": null
+    },
+    {
+      "Catégorie": "H. Toitures accessibles",
+      "qk (daN/m²)": 150,
+      "Qk (daN)": null
+    },
+    {
+      "Catégorie": "I. Toitures accessibles pour des usages des catégories A à D",
+      "qk (daN/m²)": null,
+      "Qk (daN)": null
+    },
+    {
+      "Catégorie": "S. aménagement paysager",
+      "qk (daN/m²)": null,
+      "Qk (daN)": null
+    },
+    {
+      "Catégorie": "Q. charge uniformément répartie",
+      "qk (daN/m²)": "≥ 300",
+      "Qk (daN)": null
+    },
+    {
+      "Catégorie": "F. charge ponctuelle",
+      "qk (daN/m²)": null,
+      "Qk (daN)": null
+    }
+  ],
+  "Charge des cloisons": [
+    {
+      "Poids propre (par mètre de longueur de cloison)": "≤ 100 daN/m",
+      "Charge répartie équivalente qk (daN/m²)": 50
+    },
+    {
+      "Poids propre (par mètre de longueur de cloison)": "≤ 200 daN/m",
+      "Charge répartie équivalente qk (daN/m²)": 80
+    },
+    {
+      "Poids propre (par mètre de longueur de cloison)": "≤ 300 daN/m",
+      "Charge répartie équivalente qk (daN/m²)": 120
+    }
+  ],
+  "Quelques exemples de combinaisons": [
+    {
+      "Etat limite vérifié": "ELU (STR : résistance de la structure)",
+      "Action Permanente (Gk)": "Poids de la structure",
+      "Action variable de base (Qk,1)": "Neige",
+      "Actions variables d'accompagnement (Qk,i)": "Vent (pression)",
+      "Action Accidentelle (γ_A*A_dk)": null,
+      "Combinaison": "γ_G,sup*Gk + γ_Q,1*Q_k,1 + ψ_0,1*γ_Q,i*Q_k,i"
+    },
+    {
+      "Etat limite vérifié": "ELU (STR : résistance de la structure au soulèvement)",
+      "Action Permanente (Gk)": "Poids de la structure",
+      "Action variable de base (Qk,1)": "Vent (dépression)",
+      "Actions variables d'accompagnement (Qk,i)": "Neige",
+      "Action Accidentelle (γ_A*A_dk)": null,
+      "Combinaison": "γ_G,inf*Gk + γ_Q,1*Q_k,1 + ψ_0,1*γ_Q,i*Q_k,i"
+    },
+    {
+      "Etat limite vérifié": "ELU (EQU : risque de soulèvement au vent)",
+      "Action Permanente (Gk)": "Poids de la structure",
+      "Action variable de base (Qk,1)": "Vent (dépression)",
+      "Actions variables d'accompagnement (Qk,i)": "Neige",
+      "Action Accidentelle (γ_A*A_dk)": null,
+      "Combinaison": "γ_G,inf*Gk + γ_Q,1*Q_k,1 + ψ_0,1*γ_Q,i*Q_k,i"
+    },
+    {
+      "Etat limite vérifié": "ELS (STR et EQU en situation accidentelle)",
+      "Action Permanente (Gk)": "Poids de la structure",
+      "Action variable de base (Qk,1)": "Vent (dépression)",
+      "Actions variables d'accompagnement (Qk,i)": "Neige accidentelle",
+      "Action Accidentelle (γ_A*A_dk)": "γ_A*A_dk",
+      "Combinaison": "Gk + ψ_2,1*Qk,1 + ψ_1,1*Qk,1 + ψ_2,i*Qk,i"
+    },
+    {
+      "Etat limite vérifié": "ELS (INST : caractéristique)",
+      "Action Permanente (Gk)": "Poids de la structure",
+      "Action variable de base (Qk,1)": "Charge d'exploitation",
+      "Actions variables d'accompagnement (Qk,i)": "Vent (pression), Neige",
+      "Action Accidentelle (γ_A*A_dk)": null,
+      "Combinaison": "Gk + Qk,1 + ψ_0,i*Qk,i"
+    },
+    {
+      "Etat limite vérifié": "ELS (QIF) quasi-permanente",
+      "Action Permanente (Gk)": "Poids de la structure",
+      "Action variable de base (Qk,1)": "Charge d'exploitation",
+      "Actions variables d'accompagnement (Qk,i)": "Neige",
+      "Action Accidentelle (γ_A*A_dk)": null,
+      "Combinaison": "Gk + ψ_2,1*Qk,1 + ψ_2,i*Qk,i"
+    },
+    {
+      "Etat limite vérifié": "ELS (DIF) quasi-permanente",
+      "Action Permanente (Gk)": "Poids de la structure",
+      "Action variable de base (Qk,1)": "Charge d'exploitation",
+      "Actions variables d'accompagnement (Qk,i)": null,
+      "Action Accidentelle (γ_A*A_dk)": null,
+      "Combinaison": "Gk"
+    }
+  ],
+  "Valeurs des coefficients partiels": [
+    {
+      "Coefficients partiels en fonction du type d'action": "Durée indicative d'utilisation du bâtiment",
+      "Bâtiment usuel": "50 ans"
+    },
+    {
+      "Coefficients partiels en fonction du type d'action": "Action permanente (STR) : γG,sup",
+      "Bâtiment usuel": 1.35
+    },
+    {
+      "Coefficients partiels en fonction du type d'action": "Action permanente (STR) : γG,inf",
+      "Bâtiment usuel": 1
+    },
+    {
+      "Coefficients partiels en fonction du type d'action": "Action permanente (EQU) : γG",
+      "Bâtiment usuel": 0.9
+    },
+    {
+      "Coefficients partiels en fonction du type d'action": "Action variable (STR) : γQ",
+      "Bâtiment usuel": 1.5
+    },
+    {
+      "Coefficients partiels en fonction du type d'action": "Charges d'exploitation des bâtiments - Catégorie A : habitations",
+      "Bâtiment usuel": {
+        "ψ₀ Action variable d'accompagnement": 0.7,
+        "ψ₁ Action fréquente": 0.5,
+        "ψ₂ Action quasi-permanente": 0.3,
+        "Facteur combiné ψ₂ si Action accidentelle (If incendie) s": null
+      }
+    },
+    {
+      "Coefficients partiels en fonction du type d'action": "Charges d'exploitation des bâtiments - Catégorie B : Bureaux",
+      "Bâtiment usuel": {
+        "ψ₀ Action variable d'accompagnement": 0.7,
+        "ψ₁ Action fréquente": 0.5,
+        "ψ₂ Action quasi-permanente": 0.3,
+        "Facteur combiné ψ₂ si Action accidentelle (If incendie) s": null
+      }
+    },
+    {
+      "Coefficients partiels en fonction du type d'action": "Charges d'exploitation des bâtiments - Catégorie C : lieu de réunion",
+      "Bâtiment usuel": {
+        "ψ₀ Action variable d'accompagnement": 0.7,
+        "ψ₁ Action fréquente": 0.7,
+        "ψ₂ Action quasi-permanente": 0.6,
+        "Facteur combiné ψ₂ si Action accidentelle (If incendie) s": null
+      }
+    },
+    {
+      "Coefficients partiels en fonction du type d'action": "Charges d'exploitation des bâtiments - Catégorie D : commerce",
+      "Bâtiment usuel": {
+        "ψ₀ Action variable d'accompagnement": 0.7,
+        "ψ₁ Action fréquente": 0.7,
+        "ψ₂ Action quasi-permanente": 0.6,
+        "Facteur combiné ψ₂ si Action accidentelle (If incendie) s": null
+      }
+    },
+    {
+      "Coefficients partiels en fonction du type d'action": "Charges d'exploitation des bâtiments - Catégorie E : stockage",
+      "Bâtiment usuel": {
+        "ψ₀ Action variable d'accompagnement": 1,
+        "ψ₁ Action fréquente": 0.9,
+        "ψ₂ Action quasi-permanente": 0.8,
+        "Facteur combiné ψ₂ si Action accidentelle (If incendie) s": null
+      }
+    },
+    {
+      "Coefficients partiels en fonction du type d'action": "Charges d'exploitation des bâtiments - Catégorie H : toits",
+      "Bâtiment usuel": {
+        "ψ₀ Action variable d'accompagnement": 0,
+        "ψ₁ Action fréquente": 0,
+        "ψ₂ Action quasi-permanente": 0,
+        "Facteur combiné ψ₂ si Action accidentelle (If incendie) s": null
+      }
+    },
+    {
+      "Coefficients partiels en fonction du type d'action": "Charges de neige - Altitude > 1000 m",
+      "Bâtiment usuel": {
+        "ψ₀ Action variable d'accompagnement": 0.7,
+        "ψ₁ Action fréquente": 0.5,
+        "ψ₂ Action quasi-permanente": 0.2,
+        "Facteur combiné ψ₂ si Action accidentelle (If incendie) s": null
+      }
+    },
+    {
+      "Coefficients partiels en fonction du type d'action": "Charges de neige - Altitude ≤ 1000 m",
+      "Bâtiment usuel": {
+        "ψ₀ Action variable d'accompagnement": 0.5,
+        "ψ₁ Action fréquente": 0.2,
+        "ψ₂ Action quasi-permanente": 0,
+        "Facteur combiné ψ₂ si Action accidentelle (If incendie) s": null
+      }
+    },
+    {
+      "Coefficients partiels en fonction du type d'action": "Action du vent",
+      "Bâtiment usuel": {
+        "ψ₀ Action variable d'accompagnement": 0.3,
+        "ψ₁ Action fréquente": 0.2,
+        "ψ₂ Action quasi-permanente": 0,
+        "Facteur combiné ψ₂ si Action accidentelle (If incendie) s": null
+      }
+    }
+  ],
+  "Directions dominantes du vent dans différentes zones de Togo": [
+    {
+      "Paramètres": "Direction (en degrés cardinaux)",
+      "Zone I": 220,
+      "Zone II": 260,
+      "Zone III": 220,
+      "Zone IV": 180,
+      "Zone V": 180,
+      "Zone VI": 180,
+      "Zone VII": 280,
+      "Zone VIII": 220,
+      "Zone IX": 180,
+      "Zone X": "140, 220"
+    },
+    {
+      "Paramètres": "Directions",
+      "Zone I": "SW",
+      "Zone II": "W",
+      "Zone III": "SW",
+      "Zone IV": "S",
+      "Zone V": "S",
+      "Zone VI": "S",
+      "Zone VII": "E",
+      "Zone VIII": "SW",
+      "Zone IX": "W",
+      "Zone X": "S, NE, SW"
+    }
+  ],
+  "Vitesses (en m/s) dynamique de base en fonction des temps de récurrences au Togo": [
+    {
+      "Temps de récurrence (an)": 10,
+      "Régions I": 20.5,
+      "Régions II": 21.9,
+      "Régions III": 23.2,
+      "Régions IV": 23.2,
+      "Régions V": 24,
+      "Régions VI": 29.3
+    },
+    {
+      "Temps de récurrence (an)": 20,
+      "Régions I": 22.9,
+      "Régions II": 24.3,
+      "Régions III": 25.9,
+      "Régions IV": 26.7,
+      "Régions V": 27.2,
+      "Régions VI": 33.2
+    },
+    {
+      "Temps de récurrence (an)": 30,
+      "Régions I": 24.3,
+      "Régions II": 25.9,
+      "Régions III": 27.2,
+      "Régions IV": 28.7,
+      "Régions V": 29.1,
+      "Régions VI": 35.4
+    },
+    {
+      "Temps de récurrence (an)": 40,
+      "Régions I": 25.2,
+      "Régions II": 27,
+      "Régions III": 28.2,
+      "Régions IV": 30.1,
+      "Régions V": 30.4,
+      "Régions VI": 36.9
+    },
+    {
+      "Temps de récurrence (an)": 50,
+      "Régions I": 26,
+      "Régions II": 27.8,
+      "Régions III": 29.2,
+      "Régions IV": 31.2,
+      "Régions V": 31.4,
+      "Régions VI": 38.1
+    },
+    {
+      "Temps de récurrence (an)": 60,
+      "Régions I": 26.6,
+      "Régions II": 28.4,
+      "Régions III": 29.5,
+      "Régions IV": 32.1,
+      "Régions V": 32.2,
+      "Régions VI": 39.1
+    },
+    {
+      "Temps de récurrence (an)": 70,
+      "Régions I": 27.1,
+      "Régions II": 29,
+      "Régions III": 30,
+      "Régions IV": 32.8,
+      "Régions V": 32.9,
+      "Régions VI": 39.9
+    },
+    {
+      "Temps de récurrence (an)": 80,
+      "Régions I": 27.6,
+      "Régions II": 29.4,
+      "Régions III": 30.4,
+      "Régions IV": 33.5,
+      "Régions V": 34.1,
+      "Régions VI": 40.7
+    },
+    {
+      "Temps de récurrence (an)": 90,
+      "Régions I": 28,
+      "Régions II": 29.8,
+      "Régions III": 30.8,
+      "Régions IV": 34,
+      "Régions V": 34.5,
+      "Régions VI": 40.9
+    },
+    {
+      "Temps de récurrence (an)": 100,
+      "Régions I": 28.3,
+      "Régions II": 30.2,
+      "Régions III": 31.2,
+      "Régions IV": 34.5,
+      "Régions V": 34.5,
+      "Régions VI": 41.92
+    }
+  ],
+  "Durée indicative d'utilisation des ouvrages de BTP": [
+    {
+      "Réf.": 1,
+      "Durée indicative (en année)": 10,
+      "Ouvrages": "Structures provisoires non réutilisables"
+    },
+    {
+      "Réf.": 2,
+      "Durée indicative (en année)": 25,
+      "Ouvrages": "Eléments structuraux remplaçables"
+    },
+    {
+      "Réf.": 3,
+      "Durée indicative (en année)": 50,
+      "Ouvrages": "Structures de bâtiments courants"
+    },
+    {
+      "Réf.": 4,
+      "Durée indicative (en année)": 100,
+      "Ouvrages": "Bâtiments monumentaux, ponts et autres ouvrages de génie civil"
+    }
+  ],
+  "Définition des catégories de rugosité": [
+    {
+      "Catégorie de rugosité": 0,
+      "Description": "Mer ou zone côtière exposée au vent ; lacs et plans d'eau parcourus par le vent sur une distance d'au moins 5 km",
+      "Z₀ (m)": 0.005,
+      "Z_min (m)": 1
+    },
+    {
+      "Catégorie de rugosité": "I",
+      "Description": "Rase campagne, avec ou non quelques obstacles isolés (arbre, bâtiments) séparés les uns des autres de plus de 40 fois leur hauteur",
+      "Z₀ (m)": 0.05,
+      "Z_min (m)": 2
+    },
+    {
+      "Catégorie de rugosité": "II",
+      "Description": "Campagne avec des haies ; bocage ; habitat dispersé",
+      "Z₀ (m)": 0.20,
+      "Z_min (m)": 5
+    },
+    {
+      "Catégorie de rugosité": "IIIa",
+      "Description": "Zones habitées ou industrielles, bocage dense, vergers",
+      "Z₀ (m)": 0.5,
+      "Z_min (m)": 9
+    },
+    {
+      "Catégorie de rugosité": "IIIb",
+      "Description": "Zones urbaines dont au moins 15 % de la surface sont recouverts de bâtiments dont la hauteur moyenne est supérieure à 15 m ; forêts",
+      "Z₀ (m)": 1.0,
+      "Z_min (m)": 15
+    }
+  ]
+}
+
+{
+  "Coefficient C_pe de justification des éléments": [
+    {
+      "Ref": "1",
+      "Coefficients C_pe": "C_pe,10",
+      "Surface (S) reprenant l'action du vent (m²)": "A > 10 m²"
+    },
+    {
+      "Ref": "2",
+      "Coefficients C_pe": "C_pe,1",
+      "Surface (S) reprenant l'action du vent (m²)": "A = 1 m²"
+    },
+    {
+      "Ref": "3",
+      "Coefficients C_pe": "C_pe,A = C_pe,1 - (C_pe,1 - C_pe,10) * log₁₀(A)",
+      "Surface (S) reprenant l'action du vent (m²)": "1 m² ≤ A < 10 m²"
+    }
+  ],
+  "Valeur des coefficients de pression extérieure sur les murs verticaux des bâtiments de base rectangulaire": [
+    {
+      "h/d": "5",
+      "A_C_pe,10": "-1,2",
+      "A_C_pe,1": "-1,4",
+      "B_C_pe,10": "-0,8",
+      "B_C_pe,1": "-1,1",
+      "C_C_pe,10": "+0,8",
+      "C_C_pe,1": "+1",
+      "D_C_pe,10": "-0,7",
+      "D_C_pe,1": "-0,5",
+      "E_C_pe,10": "-0,3",
+      "E_C_pe,1": "-0,3"
+    },
+    {
+      "h/d": "1",
+      "A_C_pe,10": "-1,2",
+      "A_C_pe,1": "-1,4",
+      "B_C_pe,10": "-0,8",
+      "B_C_pe,1": "-1,1",
+      "C_C_pe,10": "-0,5",
+      "C_C_pe,1": "+1",
+      "D_C_pe,10": "-0,5",
+      "D_C_pe,1": "-0,3",
+      "E_C_pe,10": "-0,3",
+      "E_C_pe,1": "-0,3"
+    },
+    {
+      "h/d": "0,25",
+      "A_C_pe,10": "-1,2",
+      "A_C_pe,1": "-1,4",
+      "B_C_pe,10": "-0,8",
+      "B_C_pe,1": "-1,1",
+      "C_C_pe,10": "+0,7",
+      "C_C_pe,1": "+1",
+      "D_C_pe,10": "-0,5",
+      "D_C_pe,1": "-0,3",
+      "E_C_pe,10": "-0,3",
+      "E_C_pe,1": "-0,3"
+    }
+  ],
+  "Valeur des coefficients de pression ou dépression extérieurs sur les versants de toitures à deux versants pour la direction du vent θ = 0° (long pan)": [
+    {
+      "Angle de pente α": "5°",
+      "F_C_pe,10_Au_Vent": "-1,7",
+      "F_C_pe,10_Sous_Vent": "-0,9",
+      "F_C_pe,1_Au_Vent": "-2,5",
+      "F_C_pe,1_Sous_Vent": "-1,2",
+      "G_C_pe,10_Au_Vent": "-1,2",
+      "G_C_pe,10_Sous_Vent": "-0,6",
+      "G_C_pe,1_Au_Vent": "-2,0",
+      "G_C_pe,1_Sous_Vent": "-1,2",
+      "H_C_pe,10_Au_Vent": "-0,8",
+      "H_C_pe,10_Sous_Vent": "-0,6",
+      "H_C_pe,1_Au_Vent": "-1,5",
+      "H_C_pe,1_Sous_Vent": "-1,2",
+      "I_C_pe,10_Au_Vent": "-0,6",
+      "I_C_pe,10_Sous_Vent": null,
+      "I_C_pe,1_Au_Vent": "-1,0",
+      "I_C_pe,1_Sous_Vent": "-0,6",
+      "J_C_pe,10_Au_Vent": "+0,2",
+      "J_C_pe,10_Sous_Vent": null,
+      "J_C_pe,1_Au_Vent": "-1,5",
+      "J_C_pe,1_Sous_Vent": null
+    },
+    {
+      "Angle de pente α": "15°",
+      "F_C_pe,10_Au_Vent": "-0,9",
+      "F_C_pe,10_Sous_Vent": "-1,5",
+      "F_C_pe,1_Au_Vent": "-2,0",
+      "F_C_pe,1_Sous_Vent": "-1,5",
+      "G_C_pe,10_Au_Vent": "-0,8",
+      "G_C_pe,10_Sous_Vent": "-1,3",
+      "G_C_pe,1_Au_Vent": "-1,5",
+      "G_C_pe,1_Sous_Vent": "-1,3",
+      "H_C_pe,10_Au_Vent": "-0,3",
+      "H_C_pe,10_Sous_Vent": null,
+      "H_C_pe,1_Au_Vent": "-0,4",
+      "H_C_pe,1_Sous_Vent": "-0,4",
+      "I_C_pe,10_Au_Vent": "-0,4",
+      "I_C_pe,10_Sous_Vent": null,
+      "I_C_pe,1_Au_Vent": "-1,0",
+      "I_C_pe,1_Sous_Vent": "-0,4",
+      "J_C_pe,10_Au_Vent": "+0,2",
+      "J_C_pe,10_Sous_Vent": null,
+      "J_C_pe,1_Au_Vent": "-1,5",
+      "J_C_pe,1_Sous_Vent": null
+    },
+    {
+      "Angle de pente α": "30°",
+      "F_C_pe,10_Au_Vent": "-0,5",
+      "F_C_pe,10_Sous_Vent": "-1,5",
+      "F_C_pe,1_Au_Vent": "+0,7",
+      "F_C_pe,1_Sous_Vent": "-0,4",
+      "G_C_pe,10_Au_Vent": "-0,2",
+      "G_C_pe,10_Sous_Vent": "-0,4",
+      "G_C_pe,1_Au_Vent": "+0,7",
+      "G_C_pe,1_Sous_Vent": "-0,4",
+      "H_C_pe,10_Au_Vent": "+0,7",
+      "H_C_pe,10_Sous_Vent": null,
+      "H_C_pe,1_Au_Vent": "-0,2",
+      "H_C_pe,1_Sous_Vent": "-0,2",
+      "I_C_pe,10_Au_Vent": "-0,2",
+      "I_C_pe,10_Sous_Vent": null,
+      "I_C_pe,1_Au_Vent": "-0,5",
+      "I_C_pe,1_Sous_Vent": "-0,2",
+      "J_C_pe,10_Au_Vent": "+0,2",
+      "J_C_pe,10_Sous_Vent": null,
+      "J_C_pe,1_Au_Vent": "-0,5",
+      "J_C_pe,1_Sous_Vent": null
+    },
+    {
+      "Angle de pente α": "45°",
+      "F_C_pe,10_Au_Vent": "+0,0",
+      "F_C_pe,10_Sous_Vent": "+0,7",
+      "F_C_pe,1_Au_Vent": "+0,7",
+      "F_C_pe,1_Sous_Vent": "+0,7",
+      "G_C_pe,10_Au_Vent": "+0,0",
+      "G_C_pe,10_Sous_Vent": "+0,7",
+      "G_C_pe,1_Au_Vent": "+0,0",
+      "G_C_pe,1_Sous_Vent": "+0,7",
+      "H_C_pe,10_Au_Vent": "+0,0",
+      "H_C_pe,10_Sous_Vent": null,
+      "H_C_pe,1_Au_Vent": "+0,0",
+      "H_C_pe,1_Sous_Vent": null,
+      "I_C_pe,10_Au_Vent": "+0,0",
+      "I_C_pe,10_Sous_Vent": null,
+      "I_C_pe,1_Au_Vent": "-0,3",
+      "I_C_pe,1_Sous_Vent": null,
+      "J_C_pe,10_Au_Vent": "+0,0",
+      "J_C_pe,10_Sous_Vent": null,
+      "J_C_pe,1_Au_Vent": "-0,3",
+      "J_C_pe,1_Sous_Vent": null
+    },
+    {
+      "Angle de pente α": "60°",
+      "F_C_pe,10_Au_Vent": "+0,7",
+      "F_C_pe,10_Sous_Vent": "+0,7",
+      "F_C_pe,1_Au_Vent": "+0,7",
+      "F_C_pe,1_Sous_Vent": "+0,7",
+      "G_C_pe,10_Au_Vent": "+0,7",
+      "G_C_pe,10_Sous_Vent": "+0,7",
+      "G_C_pe,1_Au_Vent": "+0,7",
+      "G_C_pe,1_Sous_Vent": "+0,7",
+      "H_C_pe,10_Au_Vent": "+0,7",
+      "H_C_pe,10_Sous_Vent": null,
+      "H_C_pe,1_Au_Vent": "+0,6",
+      "H_C_pe,1_Sous_Vent": null,
+      "I_C_pe,10_Au_Vent": "+0,0",
+      "I_C_pe,10_Sous_Vent": null,
+      "I_C_pe,1_Au_Vent": "+0,0",
+      "I_C_pe,1_Sous_Vent": null,
+      "J_C_pe,10_Au_Vent": "+0,0",
+      "J_C_pe,10_Sous_Vent": null,
+      "J_C_pe,1_Au_Vent": "-0,3",
+      "J_C_pe,1_Sous_Vent": null
+    },
+    {
+      "Angle de pente α": "75°",
+      "F_C_pe,10_Au_Vent": "+0,8",
+      "F_C_pe,10_Sous_Vent": "+0,8",
+      "F_C_pe,1_Au_Vent": "+0,8",
+      "F_C_pe,1_Sous_Vent": "+0,8",
+      "G_C_pe,10_Au_Vent": "+0,8",
+      "G_C_pe,10_Sous_Vent": "+0,8",
+      "G_C_pe,1_Au_Vent": "+0,8",
+      "G_C_pe,1_Sous_Vent": "+0,8",
+      "H_C_pe,10_Au_Vent": "+0,8",
+      "H_C_pe,10_Sous_Vent": null,
+      "H_C_pe,1_Au_Vent": "+0,8",
+      "H_C_pe,1_Sous_Vent": null,
+      "I_C_pe,10_Au_Vent": "-0,2",
+      "I_C_pe,10_Sous_Vent": null,
+      "I_C_pe,1_Au_Vent": "-0,3",
+      "I_C_pe,1_Sous_Vent": null,
+      "J_C_pe,10_Au_Vent": "-0,2",
+      "J_C_pe,10_Sous_Vent": null,
+      "J_C_pe,1_Au_Vent": "-0,3",
+      "J_C_pe,1_Sous_Vent": null
+    }
+  ],
+  "Valeur des coefficients de pression ou dépression extérieurs sur les versants de toitures à deux versants pour la direction du vent θ = 90° (pignon)": [
+    {
+      "Angle de pente α": "5°",
+      "F_C_pe,10": "-1,8",
+      "F_C_pe,1": "-2,2",
+      "G_C_pe,10": "-1,3",
+      "G_C_pe,1": "-2,0",
+      "H_C_pe,10": "-0,7",
+      "H_C_pe,1": "-1,2",
+      "I_C_pe,10": "-0,6",
+      "I_C_pe,1": null
+    },
+    {
+      "Angle de pente α": "15°",
+      "F_C_pe,10": "-1,3",
+      "F_C_pe,1": "-2,0",
+      "G_C_pe,10": "-0,8",
+      "G_C_pe,1": "-1,5",
+      "H_C_pe,10": "-0,8",
+      "H_C_pe,1": "-1,2",
+      "I_C_pe,10": "-0,8",
+      "I_C_pe,1": null
+    },
+    {
+      "Angle de pente α": "30°",
+      "F_C_pe,10": "-1,1",
+      "F_C_pe,1": "-1,5",
+      "G_C_pe,10": "-1,2",
+      "G_C_pe,1": "-1,4",
+      "H_C_pe,10": "-0,9",
+      "H_C_pe,1": "-1,0",
+      "I_C_pe,10": "-0,8",
+      "I_C_pe,1": null
+    },
+    {
+      "Angle de pente α": "45°",
+      "F_C_pe,10": "-1,1",
+      "F_C_pe,1": "-1,5",
+      "G_C_pe,10": "-1,2",
+      "G_C_pe,1": "-1,4",
+      "H_C_pe,10": "-0,8",
+      "H_C_pe,1": "-1,0",
+      "I_C_pe,10": "-0,8",
+      "I_C_pe,1": null
+    },
+    {
+      "Angle de pente α": "60°",
+      "F_C_pe,10": "-1,1",
+      "F_C_pe,1": "-1,5",
+      "G_C_pe,10": "-1,2",
+      "G_C_pe,1": "-1,4",
+      "H_C_pe,10": "-0,8",
+      "H_C_pe,1": "-1,0",
+      "I_C_pe,10": "-0,8",
+      "I_C_pe,1": null
+    },
+    {
+      "Angle de pente α": "75°",
+      "F_C_pe,10": "-1,1",
+      "F_C_pe,1": "-1,5",
+      "G_C_pe,10": "-1,2",
+      "G_C_pe,1": "-1,4",
+      "H_C_pe,10": "-0,8",
+      "H_C_pe,1": "-1,0",
+      "I_C_pe,10": "-0,8",
+      "I_C_pe,1": null
+    }
+  ],
+  "Différents cas de pression du vent": [
+    {
+      "Cas": "Cas 1",
+      "Pression intérieure C_pi": "Pression / Succion",
+      "Description": {
+        "Versant au vent": "Pression",
+        "Versant sous le vent": "Succion"
+      }
+    },
+    {
+      "Cas": "Cas 2",
+      "Pression intérieure C_pi": "Pression / Pression",
+      "Description": {
+        "Versant au vent": "Pression",
+        "Versant sous le vent": "Pression"
+      }
+    },
+    {
+      "Cas": "Cas 3",
+      "Pression intérieure C_pi": "Succion / Succion",
+      "Description": {
+        "Versant au vent": "Succion",
+        "Versant sous le vent": "Succion"
+      }
+    },
+    {
+      "Cas": "Cas 4",
+      "Pression intérieure C_pi": "Pression / Succion",
+      "Description": {
+        "Versant au vent": "Pression",
+        "Versant sous le vent": "Succion"
+      }
+    },
+    {
+      "Cas": "En situation accidentelle",
+      "Pression intérieure C_pi": "0,9C_pe",
+      "Description": "Pour les faces « Au vent »"
+    }
+  ],
+    "Valeur du γ_M en fonction de la dispersion du matériau": [
+    {
+      "Matériaux": "Bois",
+      "Combinaisons fondamentales": 1.3,
+      "Combinaisons accidentelles": 1.0,
+      "Etats limites de service": 1.0
+    },
+    {
+      "Matériaux": "Lamellé-collé",
+      "Combinaisons fondamentales": 1.25,
+      "Combinaisons accidentelles": 1.0,
+      "Etats limites de service": 1.0
+    },
+    {
+      "Matériaux": "Lambois (LVL), OSB",
+      "Combinaisons fondamentales": 1.2,
+      "Combinaisons accidentelles": 1.0,
+      "Etats limites de service": 1.0
+    },
+    {
+      "Matériaux": "Assemblages",
+      "Combinaisons fondamentales": 1.3,
+      "Combinaisons accidentelles": 1.0,
+      "Etats limites de service": 1.0
+    }
+  ],
+  "Valeur de k_def (fluage)": [
+    {
+      "Matérial": "Bois massif",
+      "Norme": "EN 14081-1",
+      "Classe de service 1": 0.60,
+      "Classe de service 2": 0.80,
+      "Classe de service 3": 2.00
+    },
+    {
+      "Matérial": "Bois lamellé",
+      "Norme": "EN 14080",
+      "Classe de service 1": 0.60,
+      "Classe de service 2": 0.80,
+      "Classe de service 3": 2.00
+    },
+    {
+      "Matérial": "Contreplaqué",
+      "Norme": "Type EN 636-1",
+      "Classe de service 1": 0.80,
+      "Classe de service 2": 1.00,
+      "Classe de service 3": 2.50
+    },
+    {
+      "Matérial": "OSB",
+      "Norme": "Type OBS/2",
+      "Classe de service 1": 2.25,
+      "Classe de service 2": null,
+      "Classe de service 3": null
+    },
+    {
+      "Matérial": "OSB",
+      "Norme": "Type OBS/3, OBS/4",
+      "Classe de service 1": 0.80,
+      "Classe de service 2": 1.50,
+      "Classe de service 3": 2.25
+    },
+    {
+      "Matérial": "Panneau de particules",
+      "Norme": "Type P4",
+      "Classe de service 1": 2.25,
+      "Classe de service 2": null,
+      "Classe de service 3": null
+    },
+    {
+      "Matérial": "Panneau de particules",
+      "Norme": "Type P5",
+      "Classe de service 1": 1.50,
+      "Classe de service 2": 2.25,
+      "Classe de service 3": null
+    },
+    {
+      "Matérial": "Panneau de fibres dur",
+      "Norme": "HB,HLa",
+      "Classe de service 1": 2.25,
+      "Classe de service 2": 3.00,
+      "Classe de service 3": null
+    },
+    {
+      "Matérial": "Panneau de fibres, semi-dur",
+      "Norme": "MBH,LA, MHB,LA2",
+      "Classe de service 1": 2.25,
+      "Classe de service 2": 3.00,
+      "Classe de service 3": null
+    },
+    {
+      "Matérial": "Panneau de fibres, semi-dur",
+      "Norme": "MBH,HLS, HMB,H",
+      "Classe de service 1": 3.00,
+      "Classe de service 2": 4.00,
+      "Classe de service 3": null
+    },
+    {
+      "Matérial": "Panneau de fibres, MDF",
+      "Norme": "MDF,HLS",
+      "Classe de service 1": 2.25,
+      "Classe de service 2": 3.00,
+      "Classe de service 3": null
+    }
+  ],
+  "Valeurs limites pour les flèches verticales et horizontales": [
+    {
+      "Type d'ouvrage": "Bâtiments courants",
+      "W_inst/lim": "L/300",
+      "W_net,fin/lim": "L/200",
+      "W_fin/lim": "L/150"
+    },
+    {
+      "Type d'ouvrage": "Bâtiment agricole et similaires",
+      "W_inst/lim": "L/200",
+      "W_net,fin/lim": "L/150",
+      "W_fin/lim": "L/100"
+    }
+  ]
+}

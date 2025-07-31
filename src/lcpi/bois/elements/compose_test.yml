@@ -1,0 +1,13 @@
+description: "Vérification en flexion composée d'un poteau"
+profil:
+  dimensions_mm:
+    b: 120
+    h: 250
+materiau:
+  classe_resistance: "C30"
+  classe_service: 1
+  duree_charge: "Court terme"
+efforts_elu:
+  N_c_ed_kN: 50  # Effort axial (positif pour compression, négatif pour traction)
+  M_y_ed_kNm: 12 # Moment fléchissant autour de l'axe fort
+  M_z_ed_kNm: 3  # Moment fléchissant autour de l'axe faible 
