@@ -16,9 +16,10 @@ from rich.panel import Panel
 try:
     from .license_validator import check_license_and_exit
     # Vérifier la licence avant de continuer
-    check_license_and_exit()
+    check_license_and_exit() # Activé pour la production
 except ImportError:
     # Si le module de licence n'est pas disponible, continuer sans vérification
+    print("⚠️  Module de licence non disponible. Continuation sans vérification.")
     pass
 except Exception as e:
     # En cas d'erreur de licence, arrêter le programme
@@ -33,6 +34,13 @@ if sys.stderr.encoding != 'utf-8':
 
 console = Console()
 
+# Import du module UX
+try:
+    from .ux_enhancer import show_welcome, show_contextual_help, show_tips, show_examples, show_interactive_guide
+    UX_AVAILABLE = True
+except ImportError:
+    UX_AVAILABLE = False
+
 app = typer.Typer(
     name="lcpi",
     help="LCPI-CLI: Plateforme de Calcul Polyvalent pour l'Ingénierie.",
@@ -45,6 +53,10 @@ _json_output_enabled: bool = False
 def main_callback(json_output: bool = typer.Option(False, "--json", help="Activer la sortie JSON pour les résultats.")):
     global _json_output_enabled
     _json_output_enabled = json_output
+    
+    # Afficher le message de bienvenue si le module UX est disponible
+    if UX_AVAILABLE:
+        show_welcome()
 
 # -----------------------------------------------------------------------------
 # Configuration des chemins pour le développement
@@ -274,4 +286,42 @@ def print_plugin_status():
     console.print("[bold]----------------------------------[/bold]")
 
 # Appel de la fonction pour enregistrer les plugins au démarrage
-print_plugin_status()
+# On vérifie la variable d'environnement pour un lancement "core only"
+if os.getenv('LCPI_CORE_ONLY_LAUNCH') != '1':
+    print_plugin_status()
+
+@app.command()
+def tips():
+    """Affiche des astuces utiles pour LCPI-CLI."""
+    if UX_AVAILABLE:
+        show_tips()
+    else:
+        console.print(Panel("💡 Utilisez 'lcpi doctor' pour vérifier votre installation", 
+                           title="💡 Astuce", border_style="yellow"))
+
+@app.command()
+def guide(topic: str = typer.Argument(None, help="Topic du guide (installation, plugins, first_project, troubleshooting)")):
+    """Affiche un guide interactif pour LCPI-CLI."""
+    if UX_AVAILABLE:
+        show_interactive_guide(topic)
+    else:
+        console.print(Panel("📖 Guides disponibles dans la documentation: docs/GUIDE_UTILISATION.md", 
+                           title="📖 Guide", border_style="blue"))
+
+@app.command()
+def examples(plugin: str = typer.Argument(None, help="Nom du plugin pour des exemples spécifiques")):
+    """Affiche des exemples d'utilisation de LCPI-CLI."""
+    if UX_AVAILABLE:
+        show_examples(plugin)
+    else:
+        console.print(Panel("📚 Exemples disponibles dans docs/NOUVELLES_FONCTIONNALITES.md", 
+                           title="📚 Exemples", border_style="cyan"))
+
+@app.command()
+def welcome():
+    """Affiche le message de bienvenue et les informations de démarrage."""
+    if UX_AVAILABLE:
+        show_welcome()
+    else:
+        console.print(Panel("🚀 Bienvenue dans LCPI-CLI ! Utilisez 'lcpi --help' pour commencer.", 
+                           title="🚀 LCPI-CLI", border_style="blue"))

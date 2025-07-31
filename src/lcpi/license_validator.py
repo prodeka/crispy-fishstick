@@ -151,11 +151,20 @@ def check_license_and_exit():
         print("🌐 Email : support@lcpi-cli.com")
         print("📱 Téléphone : +33 1 23 45 67 89")
         print("="*70)
-        
-        # Arrêter le programme avec un code d'erreur
         import sys
         sys.exit(1)
     else:
-        # Optionnel: Afficher un message de succès silencieux
-        # print(f"✅ {message}")
-        pass 
+        # Message UX explicite
+        try:
+            from rich.panel import Panel
+            from rich.console import Console
+            console = Console()
+            # Extraire nom et date d'expiration
+            license_data = get_license_info()
+            user = license_data.get('user_name', 'Utilisateur') if license_data else 'Utilisateur'
+            exp = license_data.get('expiration_date', None) if license_data else None
+            exp_str = f" (valide jusqu'au {exp[:10]})" if exp else ''
+            console.print(Panel(f"✅ Licence activée avec succès pour [bold]{user}[/bold]{exp_str}", style="green"))
+        except Exception:
+            print("✅ Licence activée avec succès !")
+        print(message) 
