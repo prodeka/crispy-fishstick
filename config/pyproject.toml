@@ -14,5 +14,4 @@ dependencies = [
 lcpi = "lcpi.main:app"
 
 [tool.setuptools]
-package-dir = {"" = "src"}
 packages = ["lcpi", "lcpi.utils"]

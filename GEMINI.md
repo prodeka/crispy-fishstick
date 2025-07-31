@@ -101,4 +101,22 @@ Ce document retrace les étapes clés de la transition du projet `nanostruct` ve
     - [x] Le mode `interactive` a été ajouté avec un menu pour Poteau/Radier.
     - [x] La logique pour le calcul de Poteau est connectée.
 - **Plugin `assainissement` :**
-    - [ ] En attente de la refonte vers `hydrodrain`.
+    ## **Chantier 5 : Lanceur du Noyau et Autonomie des Plugins**
+
+**Date :** 31/07/2025
+
+**Objectifs :**
+- Créer un script unique qui gère l'installation et le lancement du noyau LCPI.
+- Rendre le chargement des plugins entièrement dépendant des commandes de l'utilisateur (`lcpi plugins install`).
+- Simplifier le premier contact avec l'application.
+
+**Avancement :**
+- **Nouveau Lanceur :**
+    - [x] Le script `scripts/install.py` a été renommé en `scripts/install_and_run_lcpi_core.py`.
+    - [x] Ce script gère désormais l'installation des dépendances (en ligne et hors ligne) puis lance directement le noyau de l'application.
+- **Démarrage du Noyau Seul :**
+    - [x] Le lanceur utilise une variable d'environnement (`LCPI_CORE_ONLY_LAUNCH=1`) pour démarrer l'application sans charger les plugins.
+    - [x] `src/lcpi/main.py` a été modifié pour ne pas appeler `print_plugin_status()` si cette variable est détectée.
+    - [x] L'utilisateur est maintenant accueilli par le noyau LCPI pur et doit utiliser `lcpi plugins install <nom>` pour activer les fonctionnalités.
+
+**Statut :** Le Chantier 5 est terminé. L'expérience de démarrage est plus propre et la gestion des plugins est désormais entièrement sous le contrôle de l'utilisateur.

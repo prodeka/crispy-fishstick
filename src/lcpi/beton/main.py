@@ -42,7 +42,7 @@ def _calculer_radier_beton_logic(data: dict) -> dict:
         w_u_Y = q_u_kPa * dim_A; positions_y = sorted(list(set(p['position_y_m'] for p in poteaux))); travées_y = [positions_y[i+1] - positions_y[i] for i in range(len(positions_y)-1)]
         if travées_y:
             moments_y = analyze_by_forfaitaire(travées_y, w_u_Y)
-            moments['bande_Y'] = {"charge_lineique_kN_m": round(w_u_Y, 2), "moments_travées_kNm": [round(m, 2) for m in moments_y["travees"]], "moments_appuis_kNm": [round(m, 2) for m in moments_y["appuis"]]}}
+            moments['bande_Y'] = {"charge_lineique_kN_m": round(w_u_Y, 2), "moments_travées_kNm": [round(m, 2) for m in moments_y["travees"]], "moments_appuis_kNm": [round(m, 2) for m in moments_y["appuis"]]}
         return {"statut": "OK", "pression_sol_elu_kPa": round(q_u_kPa, 2), "moments_calcules": moments}
     except Exception as e: return {"statut": "Erreur", "message": str(e)}
 

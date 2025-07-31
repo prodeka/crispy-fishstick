@@ -1,10 +1,16 @@
-
 {
     "active_plugins": [
-        "cm",
-        "bois",
+        "shell",
+        "utils"
+    ],
+    "available_plugins": [
+        "shell",
+        "utils",
         "beton",
-        "hydrodrain",
-        "shell"
-    ]
+        "bois",
+        "cm",
+        "hydro"
+    ],
+    "installation_date": "2025-07-31T07:51:27.312988",
+    "version": "2.0.0"
 }

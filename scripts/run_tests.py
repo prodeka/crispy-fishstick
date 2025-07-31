@@ -12,20 +12,22 @@ from pathlib import Path
 def run_command(cmd, description):
     """Exécute une commande et affiche le résultat."""
     print(f"\n{'='*60}")
-    print(f"🚀 {description}")
+    print(f" {description}")
     print(f"{'='*60}")
     print(f"Commande: {' '.join(cmd)}")
     print("-" * 60)
     
     try:
-        result = subprocess.run(cmd, capture_output=False, text=True)
+        env = os.environ.copy()
+        env['PYTHONIOENCODING'] = 'utf-8'
+        result = subprocess.run(cmd, capture_output=False, text=True, env=env)
         if result.returncode == 0:
-            print(f"\n✅ {description} - SUCCÈS")
+            print(f"\n {description} - SUCCÈS")
         else:
-            print(f"\n❌ {description} - ÉCHEC (code: {result.returncode})")
+            print(f"\n {description} - ÉCHEC (code: {result.returncode})")
         return result.returncode == 0
     except Exception as e:
-        print(f"\n❌ {description} - ERREUR: {e}")
+        print(f"\n {description} - ERREUR: {e}")
         return False
 
 def main():
@@ -48,13 +50,13 @@ def main():
     
     # Vérifier que pytest est installé
     try:
-        subprocess.run(["pytest", "--version"], capture_output=True, check=True)
+        subprocess.run([sys.executable, "-m", "pytest", "--version"], capture_output=True, check=True)
     except (subprocess.CalledProcessError, FileNotFoundError):
-        print("❌ pytest n'est pas installé. Installez-le avec: pip install pytest pytest-cov")
+        print(" pytest n'est pas installé. Installez-le avec: pip install pytest pytest-cov")
         return 1
     
     # Construire la commande pytest
-    cmd = ["pytest"]
+    cmd = [sys.executable, "-m", "pytest"]
     
     # Ajouter les options de base
     if args.verbose:
@@ -105,20 +107,20 @@ def main():
     # Afficher un résumé
     print(f"\n{'='*60}")
     if success:
-        print("🎉 TOUS LES TESTS SONT PASSÉS AVEC SUCCÈS!")
+        print(" TOUS LES TESTS SONT PASSÉS AVEC SUCCÈS!")
     else:
-        print("❌ CERTAINS TESTS ONT ÉCHOUÉ")
+        print(" CERTAINS TESTS ONT ÉCHOUÉ")
     print(f"{'='*60}")
     
     # Afficher les informations sur les tests
-    print("\n📊 INFORMATIONS SUR LES TESTS:")
+    print("\n INFORMATIONS SUR LES TESTS:")
     print(f"   - Module testé: {args.module}")
     print(f"   - Difficulté: {args.difficulty}")
     print(f"   - Couverture: {'Oui' if args.coverage or args.html else 'Non'}")
     print(f"   - Mode rapide: {'Oui' if args.fast else 'Non'}")
     
     # Afficher les commandes utiles
-    print("\n🔧 COMMANDES UTILES:")
+    print("\n COMMANDES UTILES:")
     print("   - Tests rapides: python run_tests.py --fast")
     print("   - Tests avec couverture: python run_tests.py --coverage")
     print("   - Tests verbeux: python run_tests.py --verbose")

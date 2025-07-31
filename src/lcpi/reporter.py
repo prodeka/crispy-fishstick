@@ -267,13 +267,6 @@ class ReportAnalyzer:
                                         'old': previous_val,
                                         'new': current_val
                                     })
-    else:
-                                changes.append({
-                                    'type': 'value',
-                                    'field': key,
-                                    'old': previous_val,
-                                    'new': current_val
-                                })
                         except (ValueError, TypeError):
                             changes.append({
                                 'type': 'value',
@@ -331,44 +324,44 @@ class ReportGenerator:
             script_path = pathlib.Path(__file__).parent.parent / "main.py"
             cmd = [sys.executable, str(script_path), plugin_name, command, str(yml_file), "--json"]
             
-                process = subprocess.run(
-                    cmd, capture_output=True, text=True, check=False, encoding='utf-8', errors='ignore'
+            process = subprocess.run(
+                cmd, capture_output=True, text=True, check=False, encoding='utf-8', errors='ignore'
+            )
+            
+            if process.returncode != 0:
+                raise subprocess.CalledProcessError(
+                    returncode=process.returncode,
+                    cmd=cmd,
+                    stderr=process.stderr
                 )
-                
-                if process.returncode != 0:
-                    raise subprocess.CalledProcessError(
-                        returncode=process.returncode,
-                        cmd=cmd,
-                        stderr=process.stderr
-                    )
 
-                output = process.stdout
-                start = output.find('{')
-                end = output.rfind('}') + 1
-                if start != -1 and end != 0:
-                    json_output = output[start:end]
-                    data = json.loads(json_output)
+            output = process.stdout
+            start = output.find('{')
+            end = output.rfind('}') + 1
+            if start != -1 and end != 0:
+                json_output = output[start:end]
+                data = json.loads(json_output)
                 
                 # Mettre en cache le résultat
                 if self.cache:
                     self.cache.cache_result(yml_file, data)
                 
                 return data
-                else:
-                        console.log(f"[yellow]Avertissement[/yellow]: Pas de sortie JSON pour {yml_file.name}.")
+            else:
+                console.print(f"[yellow]Avertissement[/yellow]: Pas de sortie JSON pour {yml_file.name}.")
                 return None
 
-            except subprocess.CalledProcessError as e:
-                    console.print(f"[bold red]Erreur lors de l'analyse de {yml_file.name}[/bold red]")
-                    console.print(f"[red]  Code de sortie: {e.returncode}[/red]")
-                    error_output = e.stderr or e.stdout or ""
-                    console.print(f"[red]  Erreur: {error_output.strip()}[/red]")
+        except subprocess.CalledProcessError as e:
+            console.print(f"[bold red]Erreur lors de l'analyse de {yml_file.name}[/bold red]")
+            console.print(f"[red]  Code de sortie: {e.returncode}[/red]")
+            error_output = e.stderr or e.stdout or ""
+            console.print(f"[red]  Erreur: {error_output.strip()}[/red]")
             return None
-            except json.JSONDecodeError:
-                    console.print(f"[bold red]Erreur de décodage JSON pour {yml_file.name}[/bold red]")
+        except json.JSONDecodeError:
+            console.print(f"[bold red]Erreur de décodage JSON pour {yml_file.name}[/bold red]")
             return None
-            except Exception as e:
-                    console.print(f"[bold red]Une erreur inattendue est survenue avec {yml_file.name}: {e}[/bold red]")
+        except Exception as e:
+            console.print(f"[bold red]Une erreur inattendue est survenue avec {yml_file.name}: {e}[/bold red]")
             return None
     
     def analyze_project_parallel(self, plugin_commands: Dict[str, str]) -> List[Dict[str, Any]]:
