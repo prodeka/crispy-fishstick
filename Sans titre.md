@@ -22,3 +22,9 @@ Le fichier Markdown généré (formules_extraites.md) est très volumineux (>2 M
 
 
 effectue les 3 action et aussi il faut que les ligne des tableau dans Excel on de nom pour savoir quelle sont les élément dont les calcul ont été.
+
+analyse tout le projet et modifie la ou mon contacte doit etre par ceci  
+  
+Nom: TABE DJATO Serge  
+Mail: protazertyuiop@gmail.com  
+@https://github.com/prodeka/crispy-fishstick.git

@@ -59,8 +59,8 @@ Les auteurs se réservent le droit de modifier, suspendre ou arrêter le dévelo
 
 Pour toute question concernant cette clause de non-responsabilité :
 
-- **Email :** protawertyuiop@gmail.com
-- **Support :** https://lcpi-cli.com/support
+- **Email :** protazertyuiop@gmail.com
+- **GitHub :** https://github.com/prodeka/crispy-fishstick.git
 
 ---
 

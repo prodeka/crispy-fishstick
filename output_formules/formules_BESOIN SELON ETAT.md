@@ -1,0 +1,77 @@
+# Extraction des formules Excel
+
+## Feuille : BESOIN SELON ETAT
+
+| Ligne | Colonne | Cellule | Formule | Valeur calculée |
+|-------|---------|---------|---------|-----------------|
+| Ligne 14 | Col 6 | F14 | `=Q21` | =Q21 |
+| Ligne 14 | Col 7 | G14 | `=F14*(1+0.037)^G13` | =F14*(1+0.037)^G13 |
+| Ligne 14 | Col 8 | H14 | `=F14*(1+0.037)^H13` | =F14*(1+0.037)^H13 |
+| Ligne 14 | Col 9 | I14 | `=F14*(1+0.037)^I13` | =F14*(1+0.037)^I13 |
+| Ligne 14 | Col 10 | J14 | `=F14*(1+0.037)^J13` | =F14*(1+0.037)^J13 |
+| Ligne 16 | Col 6 | F16 | `=ROUND((F14*F15)/100,0)` | =ROUND((F14*F15)/100,0) |
+| Ligne 16 | Col 7 | G16 | `=ROUND((G14*G15)/100,0)` | =ROUND((G14*G15)/100,0) |
+| Ligne 16 | Col 8 | H16 | `=ROUND((H14*H15)/100,0)` | =ROUND((H14*H15)/100,0) |
+| Ligne 16 | Col 9 | I16 | `=ROUND((I14*I15)/100,0)` | =ROUND((I14*I15)/100,0) |
+| Ligne 16 | Col 10 | J16 | `=ROUND((J14*J15)/100,0)` | =ROUND((J14*J15)/100,0) |
+| Ligne 18 | Col 6 | F18 | `=ROUND(F16*(F17/100),0)` | =ROUND(F16*(F17/100),0) |
+| Ligne 18 | Col 7 | G18 | `=ROUND(G16*(G17/100),0)` | =ROUND(G16*(G17/100),0) |
+| Ligne 18 | Col 8 | H18 | `=ROUND(H16*(H17/100),0)` | =ROUND(H16*(H17/100),0) |
+| Ligne 18 | Col 9 | I18 | `=ROUND(I16*(I17/100),0)` | =ROUND(I16*(I17/100),0) |
+| Ligne 18 | Col 10 | J18 | `=ROUND(J16*(J17/100),0)` | =ROUND(J16*(J17/100),0) |
+| Ligne 20 | Col 6 | F20 | `=ROUND(F18/F19,0)` | =ROUND(F18/F19,0) |
+| Ligne 20 | Col 7 | G20 | `=ROUND(G18/G19,0)` | =ROUND(G18/G19,0) |
+| Ligne 20 | Col 8 | H20 | `=ROUND(H18/H19,0)` | =ROUND(H18/H19,0) |
+| Ligne 20 | Col 9 | I20 | `=ROUND(I18/I19,0)` | =ROUND(I18/I19,0) |
+| Ligne 20 | Col 10 | J20 | `=ROUND(J18/J19,0)` | =ROUND(J18/J19,0) |
+| Ligne 21 | Col 17 | Q21 | `=+SUM(Q13:S20)` | =+SUM(Q13:S20) |
+| Ligne 22 | Col 6 | F22 | `=F21*10^(-3)*F18` | =F21*10^(-3)*F18 |
+| Ligne 22 | Col 7 | G22 | `=G21*10^(-3)*G18` | =G21*10^(-3)*G18 |
+| Ligne 22 | Col 8 | H22 | `=H21*10^(-3)*H18` | =H21*10^(-3)*H18 |
+| Ligne 22 | Col 9 | I22 | `=I21*10^(-3)*I18` | =I21*10^(-3)*I18 |
+| Ligne 22 | Col 10 | J22 | `=J21*10^(-3)*J18` | =J21*10^(-3)*J18 |
+| Ligne 24 | Col 6 | F24 | `=ROUND((F14*F23)/100,0)` | =ROUND((F14*F23)/100,0) |
+| Ligne 24 | Col 7 | G24 | `=ROUND((G14*G23)/100,0)` | =ROUND((G14*G23)/100,0) |
+| Ligne 24 | Col 8 | H24 | `=ROUND((H14*H23)/100,0)` | =ROUND((H14*H23)/100,0) |
+| Ligne 24 | Col 9 | I24 | `=ROUND((I14*I23)/100,0)` | =ROUND((I14*I23)/100,0) |
+| Ligne 24 | Col 10 | J24 | `=ROUND((J14*J23)/100,0)` | =ROUND((J14*J23)/100,0) |
+| Ligne 26 | Col 6 | F26 | `=ROUND(F24/F25,0)` | =ROUND(F24/F25,0) |
+| Ligne 26 | Col 7 | G26 | `=ROUND(G24/G25,0)` | =ROUND(G24/G25,0) |
+| Ligne 26 | Col 8 | H26 | `=ROUND(H24/H25,0)` | =ROUND(H24/H25,0) |
+| Ligne 26 | Col 9 | I26 | `=ROUND(I24/I25,0)` | =ROUND(I24/I25,0) |
+| Ligne 26 | Col 10 | J26 | `=ROUND(J24/J25,0)` | =ROUND(J24/J25,0) |
+| Ligne 28 | Col 6 | F28 | `=F27*10^(-3)*F24` | =F27*10^(-3)*F24 |
+| Ligne 28 | Col 7 | G28 | `=G27*10^(-3)*G24` | =G27*10^(-3)*G24 |
+| Ligne 28 | Col 8 | H28 | `=H27*10^(-3)*H24` | =H27*10^(-3)*H24 |
+| Ligne 28 | Col 9 | I28 | `=I27*10^(-3)*I24` | =I27*10^(-3)*I24 |
+| Ligne 28 | Col 10 | J28 | `=J27*10^(-3)*J24` | =J27*10^(-3)*J24 |
+| Ligne 29 | Col 6 | F29 | `=F28+F22` | =F28+F22 |
+| Ligne 29 | Col 7 | G29 | `=G28+G22` | =G28+G22 |
+| Ligne 29 | Col 8 | H29 | `=H28+H22` | =H28+H22 |
+| Ligne 29 | Col 9 | I29 | `=I28+I22` | =I28+I22 |
+| Ligne 29 | Col 10 | J29 | `=J28+J22` | =J28+J22 |
+| Ligne 30 | Col 6 | F30 | `=F29*0.1` | =F29*0.1 |
+| Ligne 30 | Col 7 | G30 | `=G29*0.1` | =G29*0.1 |
+| Ligne 30 | Col 8 | H30 | `=H29*0.1` | =H29*0.1 |
+| Ligne 30 | Col 9 | I30 | `=I29*0.1` | =I29*0.1 |
+| Ligne 30 | Col 10 | J30 | `=J29*0.1` | =J29*0.1 |
+| Ligne 31 | Col 6 | F31 | `=F30+F29` | =F30+F29 |
+| Ligne 31 | Col 7 | G31 | `=G30+G29` | =G30+G29 |
+| Ligne 31 | Col 8 | H31 | `=H30+H29` | =H30+H29 |
+| Ligne 31 | Col 9 | I31 | `=I30+I29` | =I30+I29 |
+| Ligne 31 | Col 10 | J31 | `=J30+J29` | =J30+J29 |
+| Ligne 38 | Col 6 | F38 | `=F29+F30` | =F29+F30 |
+| Ligne 38 | Col 7 | G38 | `=G29+G30` | =G29+G30 |
+| Ligne 38 | Col 8 | H38 | `=H29+H30` | =H29+H30 |
+| Ligne 38 | Col 9 | I38 | `=I29+I30` | =I29+I30 |
+| Ligne 38 | Col 10 | J38 | `=J29+J30` | =J29+J30 |
+| Ligne 40 | Col 6 | F40 | `=F38*F39` | =F38*F39 |
+| Ligne 40 | Col 7 | G40 | `=G38*G39` | =G38*G39 |
+| Ligne 40 | Col 8 | H40 | `=H38*H39` | =H38*H39 |
+| Ligne 40 | Col 9 | I40 | `=I38*I39` | =I38*I39 |
+| Ligne 40 | Col 10 | J40 | `=J38*J39` | =J38*J39 |
+| Ligne 42 | Col 6 | F42 | `=F40/(F41/100)` | =F40/(F41/100) |
+| Ligne 42 | Col 7 | G42 | `=G40/(G41/100)` | =G40/(G41/100) |
+| Ligne 42 | Col 8 | H42 | `=H40/(H41/100)` | =H40/(H41/100) |
+| Ligne 42 | Col 9 | I42 | `=I40/(I41/100)` | =I40/(I41/100) |
+| Ligne 42 | Col 10 | J42 | `=J40/(J41/100)` | =J40/(J41/100) |

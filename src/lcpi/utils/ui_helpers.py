@@ -13,9 +13,10 @@ def display_header():
     current_year = datetime.now().year
     header = f"""
 ===================================================================
-    Copyright (c) {current_year} TABE DJATO Serge / intrepidcore
+    Copyright (c) {current_year} TABE DJATO Serge
     Auteur : TABE DJATO Serge
-    Dépôt GitHub : https://github.com/prodeka
+    Mail : protazertyuiop@gmail.com
+    Dépôt GitHub : https://github.com/prodeka/crispy-fishstick.git
 ===================================================================
     """
     afficher_resultat(header)

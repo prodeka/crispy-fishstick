@@ -41,7 +41,8 @@ Nous nous réservons le droit de modifier cette politique de confidentialité. T
 
 Si vous avez des questions concernant cette politique de confidentialité, veuillez nous contacter via :
 
-- **Email :** protawertyuiop@gmail.com
+- **Email :** protazertyuiop@gmail.com
+- **GitHub :** https://github.com/prodeka/crispy-fishstick.git
 - **Site web :** https://lcpi-cli.com
 - **Support :** https://lcpi-cli.com/support
 
