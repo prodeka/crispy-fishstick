@@ -1,0 +1,39 @@
+# Template pour poteau en bois
+element_id: P_BOIS_1
+description: "Poteau en bois - Structure principale"
+
+# Caractéristiques du profil
+profil:
+  type: "rectangulaire"  # rectangulaire, circulaire, compose
+  dimensions_mm:
+    b: 150  # Largeur
+    h: 200  # Hauteur
+  section_mm2: 30000  # Section calculée automatiquement
+
+# Caractéristiques du matériau
+materiau:
+  classe_resistance: "C24"  # C14, C16, C18, C20, C22, C24, C27, C30, C35, C40, C45, C50
+  classe_service: 2  # 1, 2, 3
+  duree_charge: "Moyen terme"  # Permanente, Long terme, Moyen terme, Court terme, Instantanée
+  kmod: 0.8  # Coefficient de modification (calculé automatiquement)
+
+# Géométrie et stabilité
+longueur_flambement_m: 4.5
+coefficient_flambement: 1.0  # Coefficient de longueur effective
+
+# Efforts appliqués (en kN et kNm)
+efforts_elu:
+  N_c_ed_kN: 80  # Effort de compression axial
+  M_y_ed_kNm: 5  # Moment de flexion selon Y
+  M_z_ed_kNm: 2  # Moment de flexion selon Z
+  V_ed_kN: 10    # Effort tranchant
+
+# Paramètres de calcul
+parametres_calcul:
+  verification_compression: true
+  verification_flambement: true
+  verification_flexion_compression: true
+  verification_cisaillement: true
+  
+  # Coefficients de sécurité
+  gamma_M: 1.3  # Coefficient partiel pour le matériau 

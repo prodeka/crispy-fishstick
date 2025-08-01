@@ -1,13 +1,11 @@
-import typer
-from src.lcpi.cm.main import app as cm_app
+import sys
+import os
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
-cli = typer.Typer()
-cli.add_typer(cm_app, name="cm")
-
-# (Plus tard : cli.add_typer(bois_app, name="bois"))
+from src.lcpi.main import app
 
 def main():
-    cli()
+    app()
 
 if __name__ == "__main__":
     main()

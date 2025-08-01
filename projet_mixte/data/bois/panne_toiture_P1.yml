@@ -1,0 +1,22 @@
+# Fichier de définition pour la panne de toiture P1
+element_id: P1
+description: "Panne courante en toiture"
+
+materiau:
+  classe_bois: C24
+  classe_service: classe_1 # Options: classe_1, classe_2, classe_3
+  duree_charge: permanente # Options: permanente, long_terme, moyen_terme, breve, instantanee
+
+geometrie:
+  type_section: rectangulaire
+  b_mm: 100 # Largeur en mm
+  h_mm: 300 # Hauteur en mm
+  longueur_m: 4.0
+
+charges: # En kN ou kN/m
+  permanentes_G:
+    - type: repartie
+      valeur: 2.0
+  exploitation_Q:
+    - type: repartie
+      valeur: 3.0

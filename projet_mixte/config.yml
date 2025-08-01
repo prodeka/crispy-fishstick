@@ -1,0 +1,23 @@
+# Configuration du projet LCPI
+projet:
+  nom: "projet_mixte"
+  version: "1.0.0"
+  date_creation: "2025-08-01"
+  description: "Projet d'ingénierie utilisant LCPI-CLI"
+
+plugins_actifs:
+  - cm
+  - bois
+  - hydrodrain
+
+parametres_globaux:
+  unite_longueur: "m"
+  unite_force: "kN"
+  unite_contrainte: "MPa"
+  langue: "fr"
+
+chemins:
+  data: "./data"
+  output: "./output"
+  reports: "./reports"
+  templates: "./templates"

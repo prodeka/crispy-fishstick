@@ -1,0 +1,21 @@
+# Fichier de définition pour un déversoir de crue
+
+# --- Paramètres Hydrauliques ---
+debit_projet_m3s: 100.0
+cote_crete_barrage_m: 100.0
+cote_crete_deversoir_m: 95.0
+revanche_m: 1.0
+
+# --- Paramètres Géométriques ---
+profil_crete: "creux"
+largeur_m: 10.0
+hauteur_m: 5.0
+nombre_cellules: 1
+longueur_m: 100.0
+pente_m_m: 0.001
+
+# --- Paramètres de Rugosité ---
+manning: 0.013
+
+# --- Paramètres de Sécurité ---
+coefficient_securite: 1.5

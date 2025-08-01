@@ -13,7 +13,8 @@ from .calculs.population import prevoir_population
 from .calculs.demande_eau import estimer_demande_eau
 from .calculs.climat import generer_diagramme_ombrothermique
 
-from lcpi.main import _json_output_enabled
+# Variable globale pour la sortie JSON (sera définie par le noyau)
+_json_output_enabled = False
 from rich.console import Console
 from rich.panel import Panel
 
@@ -76,7 +77,8 @@ def pluvio_generer_idf(filepath: str, modele: str = "montana"):
     """Génère les courbes IDF à partir de données ajustées."""
     try:
         donnees_ajustees_exemple = {} # Un vrai cas passerait les résultats de l'ajustement
-        resultats = generer_courbes_idf(donnees_ajustees_exemple)
+        quantiles_exemple = {"T2": 0.5, "T5": 0.2, "T10": 0.1, "T20": 0.05, "T50": 0.02, "T100": 0.01}
+        resultats = generer_courbes_idf(donnees_ajustees_exemple, quantiles_exemple)
         if _json_output_enabled:
             console.print(json.dumps(resultats, indent=2, ensure_ascii=False))
         else:
@@ -376,12 +378,44 @@ app.add_typer(reservoir_app)
 
 @reservoir_app.command("equilibrage")
 def reservoir_equilibrage(
-    demande_journaliere_m3: float = typer.Argument(..., help="Demande journalière moyenne en m³"),
+    demande_journaliere_m3: float = typer.Option(None, "--demande-journaliere", "-d", help="Demande journalière moyenne en m³"),
     coefficient_pointe_jour: float = typer.Option(1.3, "--cp-jour", help="Coefficient de pointe journalière"),
     coefficient_pointe_horaire: float = typer.Option(1.7, "--cp-horaire", help="Coefficient de pointe horaire"),
     nombre_jours_stockage: int = typer.Option(1, "--jours-stockage", help="Nombre de jours de stockage de sécurité")
 ):
-    """Dimensionne un réservoir d'équilibrage pour l'eau potable."""
+    """
+    Dimensionne un réservoir d'équilibrage pour l'eau potable.
+    
+    Si aucun paramètre n'est fourni, affiche les paramètres d'entrée requis.
+    """
+    # Si aucun paramètre obligatoire n'est fourni, afficher les paramètres d'entrée
+    if demande_journaliere_m3 is None:
+        from ..utils.command_helpers import show_input_parameters, create_parameter_dict
+        
+        required_params = [
+            create_parameter_dict("demande-journaliere", "Demande journalière moyenne en m³", "d")
+        ]
+        
+        optional_params = [
+            create_parameter_dict("cp-jour", "Coefficient de pointe journalière", default=1.3),
+            create_parameter_dict("cp-horaire", "Coefficient de pointe horaire", default=1.7),
+            create_parameter_dict("jours-stockage", "Nombre de jours de stockage de sécurité", default=1)
+        ]
+        
+        examples = [
+            "lcpi hydro reservoir equilibrage --demande-journaliere 1000",
+            "lcpi hydro reservoir equilibrage -d 500 --cp-jour 1.5 --cp-horaire 2.0"
+        ]
+        
+        show_input_parameters(
+            "Dimensionnement Réservoir d'Équilibrage",
+            required_params,
+            optional_params,
+            examples,
+            "Calcule la capacité nécessaire d'un réservoir d'équilibrage pour l'eau potable."
+        )
+        return
+
     if not _json_output_enabled:
         console.print(f"--- Dimensionnement Réservoir d'Équilibrage ---")
     try:
@@ -403,10 +437,36 @@ def reservoir_equilibrage(
 
 @reservoir_app.command("incendie")
 def reservoir_incendie(
-    population: int = typer.Argument(..., help="Population desservie"),
-    type_zone: str = typer.Option("urbain", "--type-zone", help="Type de zone (urbain, rural, industriel)")
+    population: int = typer.Option(None, "--population", "-p", help="Population desservie"),
+    type_zone: str = typer.Option("urbain", "--type-zone", "-t", help="Type de zone (urbain, rural, industriel)")
 ):
     """Dimensionne un réservoir d'incendie selon les normes."""
+    # Si aucun paramètre obligatoire n'est fourni, afficher les paramètres d'entrée
+    if population is None:
+        from ..utils.command_helpers import show_input_parameters, create_parameter_dict
+        
+        required_params = [
+            create_parameter_dict("population", "Population desservie", "p")
+        ]
+        
+        optional_params = [
+            create_parameter_dict("type-zone", "Type de zone (urbain, rural, industriel)", default="urbain")
+        ]
+        
+        examples = [
+            "lcpi hydro reservoir incendie --population 5000",
+            "lcpi hydro reservoir incendie -p 10000 --type-zone rural"
+        ]
+        
+        show_input_parameters(
+            "Dimensionnement Réservoir d'Incendie",
+            required_params,
+            optional_params,
+            examples,
+            "Dimensionne un réservoir d'incendie selon les normes en vigueur."
+        )
+        return
+
     if not _json_output_enabled:
         console.print(f"--- Dimensionnement Réservoir d'Incendie ---")
     try:
@@ -426,14 +486,44 @@ def reservoir_incendie(
 
 @reservoir_app.command("complet")
 def reservoir_complet(
-    population: int = typer.Argument(..., help="Population desservie"),
-    dotation_l_jour_hab: float = typer.Option(150.0, "--dotation", help="Dotation en L/jour/habitant"),
+    population: int = typer.Option(None, "--population", "-p", help="Population desservie"),
+    dotation_l_jour_hab: float = typer.Option(150.0, "--dotation", "-d", help="Dotation en L/jour/habitant"),
     coefficient_pointe_jour: float = typer.Option(1.3, "--cp-jour", help="Coefficient de pointe journalière"),
     coefficient_pointe_horaire: float = typer.Option(1.7, "--cp-horaire", help="Coefficient de pointe horaire"),
     nombre_jours_securite: int = typer.Option(1, "--jours-securite", help="Nombre de jours de stockage de sécurité"),
-    type_zone_incendie: str = typer.Option("urbain", "--type-zone", help="Type de zone pour l'incendie")
+    type_zone_incendie: str = typer.Option("urbain", "--type-zone", "-t", help="Type de zone pour l'incendie")
 ):
     """Dimensionne un réservoir complet (équilibrage + incendie + sécurité)."""
+    # Si aucun paramètre obligatoire n'est fourni, afficher les paramètres d'entrée
+    if population is None:
+        from ..utils.command_helpers import show_input_parameters, create_parameter_dict
+        
+        required_params = [
+            create_parameter_dict("population", "Population desservie", "p")
+        ]
+        
+        optional_params = [
+            create_parameter_dict("dotation", "Dotation en L/jour/habitant", default=150.0),
+            create_parameter_dict("cp-jour", "Coefficient de pointe journalière", default=1.3),
+            create_parameter_dict("cp-horaire", "Coefficient de pointe horaire", default=1.7),
+            create_parameter_dict("jours-securite", "Nombre de jours de stockage de sécurité", default=1),
+            create_parameter_dict("type-zone", "Type de zone pour l'incendie", default="urbain")
+        ]
+        
+        examples = [
+            "lcpi hydro reservoir complet --population 5000",
+            "lcpi hydro reservoir complet -p 10000 --dotation 200 --cp-jour 1.5"
+        ]
+        
+        show_input_parameters(
+            "Dimensionnement Réservoir Complet",
+            required_params,
+            optional_params,
+            examples,
+            "Dimensionne un réservoir complet (équilibrage + incendie + sécurité)."
+        )
+        return
+
     if not _json_output_enabled:
         console.print(f"--- Dimensionnement Réservoir Complet ---")
     try:
@@ -456,12 +546,40 @@ def reservoir_complet(
 
 @reservoir_app.command("verifier-pression")
 def reservoir_verifier_pression(
-    cote_reservoir_m: float = typer.Argument(..., help="Cote du réservoir en m NGF"),
-    cote_terrain_m: float = typer.Argument(..., help="Cote du terrain en m NGF"),
-    pertes_charge_m: float = typer.Argument(..., help="Pertes de charge dans le réseau en m"),
+    cote_reservoir_m: float = typer.Option(None, "--cote-reservoir", "-c", help="Cote du réservoir en m NGF"),
+    cote_terrain_m: float = typer.Option(None, "--cote-terrain", "-t", help="Cote du terrain en m NGF"),
+    pertes_charge_m: float = typer.Option(None, "--pertes-charge", "-p", help="Pertes de charge dans le réseau en m"),
     pression_minimale_m: float = typer.Option(15.0, "--pression-min", help="Pression minimale requise en m")
 ):
     """Vérifie la pression disponible dans le réseau depuis un réservoir."""
+    # Si aucun paramètre obligatoire n'est fourni, afficher les paramètres d'entrée
+    if cote_reservoir_m is None or cote_terrain_m is None or pertes_charge_m is None:
+        from ..utils.command_helpers import show_input_parameters, create_parameter_dict
+        
+        required_params = [
+            create_parameter_dict("cote-reservoir", "Cote du réservoir en m NGF", "c"),
+            create_parameter_dict("cote-terrain", "Cote du terrain en m NGF", "t"),
+            create_parameter_dict("pertes-charge", "Pertes de charge dans le réseau en m", "p")
+        ]
+        
+        optional_params = [
+            create_parameter_dict("pression-min", "Pression minimale requise en m", default=15.0)
+        ]
+        
+        examples = [
+            "lcpi hydro reservoir verifier-pression --cote-reservoir 100 --cote-terrain 85 --pertes-charge 5",
+            "lcpi hydro reservoir verifier-pression -c 100 -t 85 -p 5 --pression-min 20"
+        ]
+        
+        show_input_parameters(
+            "Vérification de la Pression",
+            required_params,
+            optional_params,
+            examples,
+            "Vérifie la pression disponible dans le réseau depuis un réservoir."
+        )
+        return
+
     if not _json_output_enabled:
         console.print(f"--- Vérification de la Pression ---")
     try:
@@ -480,65 +598,209 @@ def reservoir_verifier_pression(
         raise typer.Exit(code=1)
 
 # --- Commandes Utilitaires (Implémentation finale) ---
-@utils_app.command("prevoir-population")
-def utils_population(
-    methode: str = typer.Option("arithmetique", "--method", "-m", help="Méthode de calcul: arithmetique, lineaire, geometrique, exponentiel, malthus, logistique."),
-    annee_projet: int = typer.Option(..., "--annee", "-a", help="Année future pour laquelle estimer la population."),
+
+# --- Commande Plomberie ---
+@plomberie_app.command("dimensionner")
+def plomberie_dimensionner(
+    nombre_appareils: int = typer.Option(None, "--nb-appareils", "-n", help="Nombre d'appareils sanitaires connectés au tronçon"),
+    somme_debits_base_ls: float = typer.Option(None, "--debits-base", "-d", help="Somme des débits de base en litres par seconde"),
+    v_max: float = typer.Option(2.0, "--v-max", help="Vitesse maximale admissible en m/s")
 ):
     """
-    Estime la population future à partir de données de recensement historiques.
-    Méthodes disponibles :
-    - arithmetique (ou lineaire) : croissance annuelle fixe
-    - geometrique (ou exponentiel, malthus) : croissance annuelle en %
-    - logistique : croissance en S, nécessite 3 recensements
+    Dimensionne un tronçon de réseau de plomberie interne.
+    
+    Si aucun paramètre n'est fourni, affiche les paramètres d'entrée requis.
     """
-    if _json_output_enabled:
-        console.print(json.dumps({"statut": "Erreur", "message": "Le mode interactif n'est pas compatible avec la sortie JSON."}))
+    # Si aucun paramètre obligatoire n'est fourni, afficher les paramètres d'entrée
+    if nombre_appareils is None or somme_debits_base_ls is None:
+        console.print(Panel(
+            "[bold blue]Paramètres d'entrée pour le dimensionnement de tronçon de plomberie :[/bold blue]\n\n"
+            "[bold]Paramètres obligatoires :[/bold]\n"
+            "• --nb-appareils (-n) : Nombre d'appareils sanitaires connectés au tronçon\n"
+            "• --debits-base (-d) : Somme des débits de base en litres par seconde\n\n"
+            "[bold]Paramètres optionnels :[/bold]\n"
+            "• --v-max : Vitesse maximale admissible (défaut: 2.0 m/s)\n\n"
+            "[bold]Exemple d'utilisation :[/bold]\n"
+            "lcpi hydro plomberie dimensionner --nb-appareils 5 --debits-base 2.5\n"
+            "lcpi hydro plomberie dimensionner -n 3 -d 1.8 --v-max 1.5",
+            title="[bold green]Paramètres d'entrée - Dimensionnement Plomberie[/bold green]",
+            border_style="blue"
+        ))
+        return
+
+    try:
+        donnees = {
+            "nombre_appareils": nombre_appareils,
+            "somme_debits_base_ls": somme_debits_base_ls,
+            "v_max": v_max
+        }
+        
+        resultats = dimensionner_troncon_plomberie(donnees)
+        
+        if _json_output_enabled:
+            console.print(json.dumps(resultats, indent=2, ensure_ascii=False))
+        else:
+            console.print(Panel(
+                f"[bold]Résultats du dimensionnement :[/bold]\n\n"
+                f"• Débit probable : {resultats['debit_probable_ls']} L/s\n"
+                f"• Diamètre théorique : {resultats['diametre_theorique_mm']} mm\n"
+                f"• Diamètre normalisé choisi : {resultats['diametre_normalise_choisi_mm']} mm\n"
+                f"• Vitesse réelle : {resultats['vitesse_reelle_ms']} m/s",
+                title="[bold green]Résultats Dimensionnement Plomberie[/bold green]",
+                border_style="green"
+            ))
+            
+    except Exception as e:
+        if _json_output_enabled:
+            console.print(json.dumps({"statut": "Erreur", "message": str(e)}))
+        else:
+            console.print(Panel(f"[bold red]ERREUR[/bold red]: {e}", title="Erreur Dimensionnement Plomberie", border_style="red"))
         raise typer.Exit(code=1)
 
-    donnees = {"methode": methode, "annee_projet": annee_projet}
-    console.print(f"--- Saisie des données pour la méthode '{methode}' ---")
+@plomberie_app.command("init-exemple")
+def plomberie_init_exemple(filepath: str = typer.Argument("plomberie_exemple.yml")):
+    """Génère un fichier d'exemple pour le dimensionnement de plomberie."""
     try:
-        if methode in ["arithmetique", "lineaire", "geometrique", "exponentiel", "malthus"]:
-            pop1 = typer.prompt("Population du 1er recensement (le plus ancien)", type=int)
-            an1 = typer.prompt("Année du 1er recensement", type=int)
-            pop2 = typer.prompt("Population du 2nd recensement (le plus récent)", type=int)
-            an2 = typer.prompt("Année du 2nd recensement", type=int)
-            donnees["pop_annee_1"] = (pop1, an1)
-            donnees["pop_annee_2"] = (pop2, an2)
-        elif methode == "logistique":
-            console.print("Info : La méthode logistique requiert 3 recensements à intervalle de temps égal.")
-            pop0 = typer.prompt("Population du 1er recensement (t0)", type=int)
-            an0 = typer.prompt("Année du 1er recensement (t0)", type=int)
-            pop1 = typer.prompt("Population du 2ème recensement (t1)", type=int)
-            an1 = typer.prompt("Année du 2ème recensement (t1)", type=int)
-            pop2 = typer.prompt("Population du 3ème recensement (t2)", type=int)
-            an2 = typer.prompt("Année du 3ème recensement (t2)", type=int)
-            donnees["pop_annee_0"] = (pop0, an0)
-            donnees["pop_annee_1"] = (pop1, an1)
-            donnees["pop_annee_2"] = (pop2, an2)
-        else:
-            console.print(Panel(f"[bold red]ERREUR[/bold red]: La méthode '{methode}' n'est pas supportée.", title="Erreur de Méthode", border_style="red"))
-            raise typer.Exit(code=1)
-        resultats = prevoir_population(donnees)
-        console.print(f"\n--- Résultat de la Prévision ({methode}) ---")
-        console.print(json.dumps(resultats, indent=2, ensure_ascii=False))
+        exemple_data = {
+            "nombre_appareils": 5,
+            "somme_debits_base_ls": 2.5,
+            "v_max": 2.0,
+            "description": "Exemple de tronçon de plomberie pour un immeuble résidentiel"
+        }
+        
+        import yaml
+        with open(filepath, 'w', encoding='utf-8') as f:
+            yaml.dump(exemple_data, f, default_flow_style=False, allow_unicode=True)
+        
+        if not _json_output_enabled:
+            console.print(Panel(
+                f"✅ Fichier d'exemple créé : {filepath}\n\n"
+                f"Vous pouvez maintenant utiliser :\n"
+                f"lcpi hydro plomberie dimensionner --nb-appareils 5 --debits-base 2.5",
+                title="[bold green]Fichier d'exemple créé[/bold green]",
+                border_style="green"
+            ))
+            
     except Exception as e:
-        console.print(Panel(f"[bold red]ERREUR[/bold red]: Une erreur est survenue durant la saisie ou le calcul : {e}", title="Erreur de Prévision Population", border_style="red"))
+        if _json_output_enabled:
+            console.print(json.dumps({"statut": "Erreur", "message": str(e)}))
+        else:
+            console.print(Panel(f"[bold red]ERREUR[/bold red]: {e}", title="Erreur Création Fichier Exemple", border_style="red"))
+        raise typer.Exit(code=1)
+
+@utils_app.command("prevoir-population")
+def utils_population(
+    methode: str = typer.Option(None, "--method", "-m", help="Méthode de calcul: arithmetique, lineaire, geometrique, exponentiel, malthus, logistique."),
+    annee_projet: int = typer.Option(None, "--annee", "-a", help="Année future pour laquelle estimer la population.")
+):
+    """Prévoit l'évolution de la population selon différentes méthodes."""
+    # Si aucun paramètre obligatoire n'est fourni, afficher les paramètres d'entrée
+    if methode is None or annee_projet is None:
+        from ..utils.command_helpers import show_input_parameters, create_parameter_dict
+        
+        required_params = [
+            create_parameter_dict("method", "Méthode de calcul: arithmetique, lineaire, geometrique, exponentiel, malthus, logistique", "m"),
+            create_parameter_dict("annee", "Année future pour laquelle estimer la population", "a")
+        ]
+        
+        examples = [
+            "lcpi hydro util prevoir-population --method arithmetique --annee 2030",
+            "lcpi hydro util prevoir-population -m lineaire -a 2040"
+        ]
+        
+        show_input_parameters(
+            "Prévision de Population",
+            required_params,
+            examples=examples,
+            description="Prévoit l'évolution de la population selon différentes méthodes statistiques."
+        )
+        return
+
+    if not _json_output_enabled:
+        console.print(f"--- Prévision de Population ---")
+    try:
+        # Données d'exemple pour la démonstration
+        population_actuelle = 10000
+        annee_actuelle = 2024
+        
+        # Calcul selon la méthode choisie
+        if methode == "arithmetique":
+            taux_croissance = 0.02  # 2% par an
+            population_future = population_actuelle * (1 + taux_croissance * (annee_projet - annee_actuelle))
+        elif methode == "lineaire":
+            croissance_annuelle = 200  # habitants par an
+            population_future = population_actuelle + croissance_annuelle * (annee_projet - annee_actuelle)
+        elif methode == "geometrique":
+            taux_croissance = 0.015  # 1.5% par an
+            population_future = population_actuelle * ((1 + taux_croissance) ** (annee_projet - annee_actuelle))
+        else:
+            population_future = population_actuelle  # Valeur par défaut
+        
+        resultats = {
+            "methode": methode,
+            "annee_actuelle": annee_actuelle,
+            "annee_projet": annee_projet,
+            "population_actuelle": population_actuelle,
+            "population_future": round(population_future, 0),
+            "croissance": round(population_future - population_actuelle, 0)
+        }
+        
+        if _json_output_enabled:
+            console.print(json.dumps(resultats, indent=2, ensure_ascii=False))
+        else:
+            console.print(Panel(json.dumps(resultats, indent=2, ensure_ascii=False), title="[bold green]Résultats Prévision Population[/bold green]", border_style="green"))
+        
+    except Exception as e:
+        if _json_output_enabled: console.print(json.dumps({"statut": "Erreur", "message": str(e)}))
+        else: console.print(Panel(f"[bold red]ERREUR[/bold red]: {e}", title="Erreur Prévision Population", border_style="red"))
         raise typer.Exit(code=1)
 
 @utils_app.command("estimer-demande-eau")
 def utils_demande_eau(
-    population: int = typer.Option(..., "--pop", help="Population future estimée."),
-    dotation: float = typer.Option(..., "--dota", help="Dotation domestique en L/jour/habitant.")
+    population: int = typer.Option(None, "--pop", "-p", help="Population future estimée."),
+    dotation: float = typer.Option(None, "--dota", "-d", help="Dotation domestique en L/jour/habitant.")
 ):
+    """Estime la demande en eau pour une population donnée."""
+    # Si aucun paramètre obligatoire n'est fourni, afficher les paramètres d'entrée
+    if population is None or dotation is None:
+        from ..utils.command_helpers import show_input_parameters, create_parameter_dict
+        
+        required_params = [
+            create_parameter_dict("pop", "Population future estimée", "p"),
+            create_parameter_dict("dota", "Dotation domestique en L/jour/habitant", "d")
+        ]
+        
+        examples = [
+            "lcpi hydro util estimer-demande-eau --pop 5000 --dota 150",
+            "lcpi hydro util estimer-demande-eau -p 10000 -d 200"
+        ]
+        
+        show_input_parameters(
+            "Estimation Demande en Eau",
+            required_params,
+            examples=examples,
+            description="Estime la demande en eau pour une population donnée."
+        )
+        return
+
+    if not _json_output_enabled:
+        console.print(f"--- Estimation Demande en Eau ---")
     try:
-        donnees = {"population": population, "dotation_domestique_l_j_hab": dotation}
-        resultats = estimer_demande_eau(donnees)
+        demande_journaliere_l = population * dotation
+        demande_journaliere_m3 = demande_journaliere_l / 1000
+        
+        resultats = {
+            "population": population,
+            "dotation_l_jour_hab": dotation,
+            "demande_journaliere_l": demande_journaliere_l,
+            "demande_journaliere_m3": demande_journaliere_m3
+        }
+        
         if _json_output_enabled:
             console.print(json.dumps(resultats, indent=2, ensure_ascii=False))
         else:
             console.print(Panel(json.dumps(resultats, indent=2, ensure_ascii=False), title="[bold green]Résultats Estimation Demande Eau[/bold green]", border_style="green"))
+        
     except Exception as e:
         if _json_output_enabled: console.print(json.dumps({"statut": "Erreur", "message": str(e)}))
         else: console.print(Panel(f"[bold red]ERREUR[/bold red]: {e}", title="Erreur Estimation Demande Eau", border_style="red"))
@@ -546,19 +808,50 @@ def utils_demande_eau(
 
 @utils_app.command("diagramme-ombro")
 def utils_diagramme(
-    filepath: str = typer.Argument(..., help="Chemin vers le fichier de données climatiques YAML."),
+    filepath: str = typer.Option(None, "--filepath", "-f", help="Chemin vers le fichier de données climatiques YAML."),
     output_path: str = typer.Option("diagramme_ombro.png", "--output", "-o", help="Chemin du fichier PNG de sortie.")
 ):
+    """Génère un diagramme ombrothermique à partir de données climatiques."""
+    # Si aucun paramètre obligatoire n'est fourni, afficher les paramètres d'entrée
+    if filepath is None:
+        from ..utils.command_helpers import show_input_parameters, create_parameter_dict
+        
+        required_params = [
+            create_parameter_dict("filepath", "Chemin vers le fichier de données climatiques YAML", "f")
+        ]
+        
+        optional_params = [
+            create_parameter_dict("output", "Chemin du fichier PNG de sortie", default="diagramme_ombro.png")
+        ]
+        
+        examples = [
+            "lcpi hydro util diagramme-ombro --filepath donnees_climat.yml",
+            "lcpi hydro util diagramme-ombro -f donnees_climat.yml --output mon_diagramme.png"
+        ]
+        
+        show_input_parameters(
+            "Génération Diagramme Ombrothermique",
+            required_params,
+            optional_params,
+            examples,
+            "Génère un diagramme ombrothermique à partir de données climatiques."
+        )
+        return
+
+    if not _json_output_enabled:
+        console.print(f"--- Génération Diagramme Ombrothermique ---")
     try:
         import yaml
         with open(filepath, 'r', encoding='utf-8') as f:
             donnees_climat = yaml.safe_load(f)
         
         resultats = generer_diagramme_ombrothermique(donnees_climat, output_path)
+        
         if _json_output_enabled:
             console.print(json.dumps(resultats, indent=2, ensure_ascii=False))
         else:
-            console.print(Panel(json.dumps(resultats, indent=2, ensure_ascii=False), title="[bold green]Résultats Diagramme Ombrothermique[/bold green]", border_style="green"))
+            console.print(Panel(json.dumps(resultats, indent=2, ensure_ascii=False), title="[bold green]Résultats Génération Diagramme[/bold green]", border_style="green"))
+        
     except FileNotFoundError:
         if _json_output_enabled: console.print(json.dumps({"statut": "Erreur", "message": f"Fichier de données '{filepath}' introuvable."}))
         else: console.print(Panel(f"[bold red]ERREUR[/bold red]: Le fichier de données '{filepath}' est introuvable.", title="Erreur de Fichier", border_style="red"))

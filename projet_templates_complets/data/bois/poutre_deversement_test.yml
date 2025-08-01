@@ -1,0 +1,11 @@
+description: "Vérification au déversement d'une poutre"
+profil:
+  type: "rectangulaire"
+  dimensions_mm:
+    b: 80
+    h: 240
+materiau:
+  classe_resistance: "C24"
+longueur_appuis_Lef_m: 5.0 # Longueur efficace entre appuis latéraux
+efforts_elu:
+  M_y_ed_kNm: 15.0 # Moment fléchissant appliqué 

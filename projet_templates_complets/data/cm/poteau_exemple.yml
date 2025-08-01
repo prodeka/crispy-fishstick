@@ -1,0 +1,39 @@
+# Template pour poteau en construction métallique
+element_id: P1
+description: "Poteau principal - RDC"
+
+# Caractéristiques du matériau
+materiau:
+  nuance: S235
+  fy_MPa: 235.0
+  E_MPa: 210000.0
+  gamma_M0: 1.0
+  gamma_M1: 1.0
+
+# Géométrie
+geometrie:
+  type_profil: HEA
+  famille_profil: HEA
+  longueur_m: 4.5
+  longueur_flambement_y_m: 4.5  # Longueur de flambement selon Y
+  longueur_flambement_z_m: 4.5  # Longueur de flambement selon Z
+
+# Efforts appliqués (en kN et kNm)
+efforts_elu:
+  N_ed_kN: 800
+  M_y_ed_kNm: 50
+  M_z_ed_kNm: 20
+  V_y_ed_kN: 30
+  V_z_ed_kN: 15
+
+# Conditions aux limites
+conditions_limites:
+  type_appui: "encastrement_base"  # encastrement_base, articulation_base, libre
+  type_tete: "articulation_tete"   # encastrement_tete, articulation_tete, libre
+
+# Paramètres de calcul
+parametres_calcul:
+  classe_section: 1  # 1, 2, 3, 4
+  methode_flambement: "methode_generale"  # methode_generale, methode_simplifiee
+  verification_voilement: true
+  verification_flambement: true 

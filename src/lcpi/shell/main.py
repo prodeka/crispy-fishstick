@@ -1,5 +1,6 @@
 # src/lcpi/shell/main.py
 import sys
+import typer
 
 VERSION = "1.0.0"  # À synchroniser avec la version réelle du projet
 
@@ -9,7 +10,11 @@ Tapez 'help' pour la liste des commandes disponibles.
 Tapez 'exit' ou Ctrl+C pour quitter.
 """
 
+app = typer.Typer(name="shell", help="Interpréteur de commandes interactif")
+
+@app.command()
 def main():
+    """Lance le shell interactif."""
     print(WELCOME)
     while True:
         try:
@@ -26,8 +31,12 @@ def main():
             else:
                 print(f"Commande inconnue : {cmd}")
         except (KeyboardInterrupt, EOFError):
-            print("\nAu revoir !")
+            print("Au revoir !")
             break
+
+def register():
+    """Enregistre le plugin avec le noyau."""
+    return app
 
 if __name__ == '__main__':
     main()

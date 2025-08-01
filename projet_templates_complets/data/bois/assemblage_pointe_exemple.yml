@@ -1,0 +1,44 @@
+# Template pour assemblage à pointes
+element_id: ASS_POINTE_1
+description: "Assemblage poutre-poteau à pointes"
+
+# Caractéristiques des pointes
+pointes:
+  type: "lisse"  # lisse, crantee, torsadee
+  diametre_mm: 4.0
+  longueur_mm: 80
+  nombre: 8
+  disposition: "2x4"  # 2 rangées x 4 colonnes
+  
+  # Géométrie de l'assemblage
+  espacement_vertical_mm: 60
+  espacement_horizontal_mm: 80
+  distance_bord_mm: 40
+
+# Caractéristiques des éléments assemblés
+elements:
+  element_principal:
+    epaisseur_mm: 45
+    largeur_mm: 150
+    classe_bois: "C24"
+  
+  element_secondaire:
+    epaisseur_mm: 45
+    largeur_mm: 150
+    classe_bois: "C24"
+
+# Efforts appliqués
+efforts_elu:
+  N_ed_kN: 15
+  V_ed_kN: 12
+  M_ed_kNm: 8
+
+# Paramètres de calcul
+parametres_calcul:
+  type_assemblage: "cisaillement"  # cisaillement, traction, combine
+  verification_cisaillement: true
+  verification_traction: true
+  verification_pression_lamiere: true
+  
+  # Coefficients de sécurité
+  gamma_M: 1.3 

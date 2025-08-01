@@ -5,7 +5,8 @@ from .core.design.column_design import design_rectangular_column, design_column_
 from .core.materials import Beton, Acier
 from .core.sections import SectionRectangulaire
 from .core.analysis.continuous_beam import analyze_by_forfaitaire
-from lcpi.main import _json_output_enabled
+# Variable globale pour la sortie JSON (sera définie par le noyau)
+_json_output_enabled = False
 from rich.console import Console
 from rich.panel import Panel
 
@@ -51,11 +52,40 @@ app = typer.Typer(name="beton", help="Plugin pour le Béton Armé (BAEL 91 / Eur
 
 @app.command(name="calc-poteau")
 def run_calc_from_file(
-    filepath: str = typer.Option(None, "--filepath", help="Chemin vers le fichier de définition YAML unique."),
-    batch_file: str = typer.Option(None, "--batch-file", help="Chemin vers le fichier CSV pour le traitement par lot de POTEAUX."),
-    output_file: str = typer.Option("resultats_batch_beton.csv", "--output-file", help="Chemin pour le fichier de résultats CSV.")
+    filepath: str = typer.Option(None, "--filepath", "-f", help="Chemin vers le fichier de définition YAML unique."),
+    batch_file: str = typer.Option(None, "--batch-file", "-b", help="Chemin vers le fichier CSV pour le traitement par lot de POTEAUX."),
+    output_file: str = typer.Option("resultats_batch_beton.csv", "--output-file", "-o", help="Chemin pour le fichier de résultats CSV.")
 ):
     """Calcule un ou plusieurs poteaux en béton à partir d'un fichier."""
+    # Si aucun paramètre obligatoire n'est fourni, afficher les paramètres d'entrée
+    if filepath is None and batch_file is None:
+        from ..utils.command_helpers import show_input_parameters, create_parameter_dict
+        
+        required_params = [
+            create_parameter_dict("filepath", "Chemin vers le fichier de définition YAML unique", "f"),
+            create_parameter_dict("batch-file", "Chemin vers le fichier CSV pour le traitement par lot", "b")
+        ]
+        
+        optional_params = [
+            create_parameter_dict("output-file", "Chemin pour le fichier de résultats CSV", default="resultats_batch_beton.csv")
+        ]
+        
+        examples = [
+            "lcpi beton calc-poteau --filepath poteau_beton.yml",
+            "lcpi beton calc-poteau --batch-file lot_poteaux.csv --output-file resultats.csv",
+            "lcpi beton calc-poteau -f poteau_beton.yml",
+            "lcpi beton calc-poteau -b lot_poteaux.csv -o resultats.csv"
+        ]
+        
+        show_input_parameters(
+            "Calcul Poteau (Béton)",
+            required_params,
+            optional_params,
+            examples,
+            "Calcule un ou plusieurs poteaux en béton selon BAEL 91 / Eurocode 2."
+        )
+        return
+
     if batch_file:
         try:
             import pandas as pd
@@ -127,8 +157,29 @@ def run_calc_from_file(
         raise typer.Exit(code=1)
 
 @app.command(name="calc-radier")
-def run_calc_radier_from_file(filepath: str = typer.Option(..., "--filepath", help="Chemin vers le fichier de définition YAML du radier.")):
+def run_calc_radier_from_file(filepath: str = typer.Option(None, "--filepath", "-f", help="Chemin vers le fichier de définition YAML du radier.")):
     """Calcule un radier en béton à partir d'un fichier YAML."""
+    # Si aucun paramètre obligatoire n'est fourni, afficher les paramètres d'entrée
+    if filepath is None:
+        from ..utils.command_helpers import show_input_parameters, create_parameter_dict
+        
+        required_params = [
+            create_parameter_dict("filepath", "Chemin vers le fichier de définition YAML du radier", "f")
+        ]
+        
+        examples = [
+            "lcpi beton calc-radier --filepath radier_beton.yml",
+            "lcpi beton calc-radier -f radier_beton.yml"
+        ]
+        
+        show_input_parameters(
+            "Calcul Radier (Béton)",
+            required_params,
+            examples=examples,
+            description="Calcule un radier en béton selon BAEL 91 / Eurocode 2."
+        )
+        return
+
     try:
         with open(filepath, 'r') as f:
             config = yaml.safe_load(f)
@@ -157,40 +208,13 @@ def run_interactive_mode():
         console.print(json.dumps({"statut": "Erreur", "message": "Le mode interactif n'est pas compatible avec la sortie JSON."}))
         raise typer.Exit(code=1)
 
-    console.print("--- Mode Interactif : Béton Armé ---")
-    choix = typer.prompt("Quel élément voulez-vous calculer ? (1: Poteau, 2: Radier)", type=int)
-
-    if choix == 1:
-        console.print("\n-- Calcul d'un Poteau --")
-        try:
-            nu = typer.prompt("Effort normal ultime Nu (MN)", type=float)
-            mu = typer.prompt("Moment ultime Mu (MN.m)", type=float, default=0.0)
-            b = typer.prompt("Largeur b (m)", type=float)
-            h = typer.prompt("Hauteur h (m)", type=float)
-            longueur = typer.prompt("Longueur de flambement (m)", type=float)
-            
-            donnees_calcul = {
-                "Nu_MN": nu, "Mu_MNm": mu,
-                "largeur_b_m": b, "hauteur_h_m": h,
-                "longueur_L_m": longueur, "k_flambement": 1.0, # Simplification
-                "fc28_MPa": 25.0, "fe_MPa": 500.0,
-                "type_calcul": "flexion_composee" if mu > 0 else "compression_centree"
-            }
-
-            resultats = _calculer_poteau_beton_logic(donnees_calcul)
-            console.print("\n--- Résultats du Calcul Poteau ---")
-            console.print(json.dumps(resultats, indent=2, ensure_ascii=False))
-
-        except Exception as e:
-            console.print(Panel(f"[bold red]ERREUR[/bold red]: {e}", title="Erreur", border_style="red"))
-
-    elif choix == 2:
-        console.print("\n-- Calcul d'un Radier --")
-        console.print("Le mode interactif pour le calcul des radiers est en cours de développement.")
-        # TODO: Ajouter les prompts pour collecter les données du radier
-        # et appeler _calculer_radier_beton_logic
-    else:
-        console.print(Panel("Choix invalide.", title="Erreur de Choix", border_style="red"))
+    console.print(Panel(
+        "[bold blue]Mode Interactif - Calcul Béton Armé[/bold blue]\n\n"
+        "Ce mode interactif vous guide dans le calcul d'éléments en béton armé.\n"
+        "Fonctionnalité en cours de développement...",
+        title="[bold green]Mode Interactif Béton[/bold green]",
+        border_style="blue"
+    ))
 
 def register():
     return app

@@ -1,0 +1,13 @@
+description: "Vérification au flambement d'un poteau en bois C24"
+profil:
+  type: "rectangulaire"
+  dimensions_mm:
+    b: 150 # Largeur
+    h: 150 # Hauteur
+materiau:
+  classe_resistance: "C24" # ex: C24, D30, GL28h
+  classe_service: 2 # 1, 2 ou 3
+  duree_charge: "Moyen terme" # Permanente, Long terme, Moyen terme, Court terme, Instantanée
+longueur_flambement_m: 4.5
+efforts_elu:
+  N_c_ed_kN: 80 # Effort de compression axial 

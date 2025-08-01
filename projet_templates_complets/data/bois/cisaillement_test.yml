@@ -1,0 +1,14 @@
+description: "Vérification au cisaillement d'une poutre en bois"
+profil:
+  type: "rectangulaire"
+  dimensions_mm:
+    b: 100
+    h: 200
+materiau:
+  classe_resistance: "C24"
+  classe_service: 2
+  duree_charge: "Moyen terme"
+fissuration:
+  presence_fissures: true # true ou false
+efforts_elu:
+  V_ed_kN: 40 # Effort tranchant 
