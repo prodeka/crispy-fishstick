@@ -1,0 +1,36 @@
+# Template pour réservoir d'eau
+element_id: RESERVOIR_1
+description: "Réservoir d'eau potable - Zone urbaine"
+
+# Paramètres de population et demande
+population: 5000        # Population desservie
+dotation_l_jour: 150    # Dotation par habitant (L/jour/hab)
+coefficient_pointe_jour: 1.5    # Coefficient de pointe journalier
+coefficient_pointe_horaire: 2.0 # Coefficient de pointe horaire
+
+# Paramètres de sécurité
+jours_stockage: 2       # Jours de stockage de sécurité
+type_zone: "urbain"     # urbain, rural, industriel
+coefficient_incendie: 1.2  # Coefficient pour les besoins d'incendie
+
+# Géométrie du réservoir
+geometrie:
+  type: "rectangulaire"  # rectangulaire, circulaire, cylindrique
+  longueur_m: 20.0
+  largeur_m: 15.0
+  hauteur_utile_m: 4.0
+  hauteur_totale_m: 5.0  # Hauteur totale avec revanche
+  
+  # Capacités
+  volume_utile_m3: 1200
+  volume_total_m3: 1500
+
+# Paramètres de calcul
+parametres_calcul:
+  verification_capacite: true      # Vérification de la capacité
+  verification_equilibrage: true   # Vérification de l'équilibrage
+  verification_incendie: true      # Vérification des besoins d'incendie
+  verification_pression: true      # Vérification des pressions
+  
+  # Coefficients de sécurité
+  coefficient_securite: 1.1        # Coefficient de sécurité global 

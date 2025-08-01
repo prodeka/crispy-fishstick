@@ -1,0 +1,53 @@
+# Template pour poutre en bois
+element_id: POUTRE_BOIS_1
+description: "Poutre en bois - Plancher principal"
+
+# Caractéristiques du profil
+profil:
+  type: "rectangulaire"  # rectangulaire, circulaire, compose, lamelle_colle
+  dimensions_mm:
+    b: 100  # Largeur
+    h: 300  # Hauteur
+  section_mm2: 30000  # Section calculée automatiquement
+
+# Caractéristiques du matériau
+materiau:
+  classe_resistance: "C24"  # C14, C16, C18, C20, C22, C24, C27, C30, C35, C40, C45, C50
+  classe_service: 2  # 1, 2, 3
+  duree_charge: "Moyen terme"  # Permanente, Long terme, Moyen terme, Court terme, Instantanée
+  kmod: 0.8  # Coefficient de modification
+
+# Géométrie
+longueur_m: 6.0
+portee_effective_m: 5.8  # Portée effective pour calcul des moments
+
+# Charges appliquées (en kN/m et kN)
+charges:
+  permanentes_G:
+    - type: repartie
+      valeur: 3.0
+      description: "Poids propre + charges permanentes"
+  
+  exploitation_Q:
+    - type: repartie
+      valeur: 5.0
+      description: "Charge d'exploitation"
+
+# Conditions aux limites
+conditions_limites:
+  type_appui_gauche: "articulation"  # encastrement, articulation, libre
+  type_appui_droit: "articulation"   # encastrement, articulation, libre
+
+# Paramètres de calcul
+parametres_calcul:
+  verification_flexion: true
+  verification_cisaillement: true
+  verification_deversement: true
+  verification_fleche: true
+  
+  # Limites de flèche
+  fleche_max_limite: 1/300  # L/300 par défaut
+  fleche_charge_permanente: 1/400  # L/400 pour charges permanentes
+  
+  # Coefficients de sécurité
+  gamma_M: 1.3 

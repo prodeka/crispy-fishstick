@@ -1,0 +1,44 @@
+# Template pour assemblage soudé
+element_id: ASS_SOUDE_1
+description: "Assemblage poutre-poteau soudé"
+
+# Caractéristiques des soudures
+soudures:
+  type: "angle"  # angle, bout_a_bout, en_lap
+  epaisseur_gorge_mm: 6.0
+  longueur_soudure_mm: 200
+  nombre_soudures: 4
+  
+  # Géométrie de l'assemblage
+  disposition: "2x2"  # 2 rangées x 2 colonnes
+  espacement_vertical_mm: 100
+  espacement_horizontal_mm: 150
+  distance_bord_mm: 50
+
+# Caractéristiques des éléments assemblés
+elements:
+  element_principal:
+    epaisseur_mm: 12
+    largeur_mm: 200
+    nuance: S235
+  
+  element_secondaire:
+    epaisseur_mm: 10
+    largeur_mm: 180
+    nuance: S235
+
+# Efforts appliqués
+efforts_elu:
+  N_ed_kN: 300
+  V_ed_kN: 200
+  M_ed_kNm: 120
+
+# Paramètres de calcul
+parametres_calcul:
+  type_assemblage: "cisaillement"  # cisaillement, traction, combine
+  verification_cisaillement: true
+  verification_traction: true
+  verification_pression_lamiere: true
+  
+  # Coefficients de sécurité
+  gamma_Mw: 1.25  # Coefficient partiel pour les soudures 

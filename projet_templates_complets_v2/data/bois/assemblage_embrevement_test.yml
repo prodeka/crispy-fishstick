@@ -1,0 +1,11 @@
+description: "Vérification d'un assemblage par embrèvement"
+effort_compression_Ed_kN: 25.0
+embrevement:
+  largeur_b_mm: 100
+  hauteur_h_mm: 150
+  profondeur_t_mm: 30
+  angle_deg: 45
+materiau:
+  classe_resistance: "C24"
+  classe_service: 2
+  duree_charge: "Moyen terme" 

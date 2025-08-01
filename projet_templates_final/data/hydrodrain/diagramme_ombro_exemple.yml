@@ -1,0 +1,65 @@
+# Template pour diagramme ombrothermique
+element_id: DIAGRAMME_OMBRO_1
+description: "Diagramme ombrothermique - Station météorologique"
+
+# Paramètres de la station
+station:
+  nom: "Station météorologique principale"
+  code: "ST001"
+  altitude_m: 150
+  latitude: 48.8566
+  longitude: 2.3522
+  periode_analyse_ans: 10
+
+# Données climatiques mensuelles
+donnees_climatiques:
+  janvier:
+    temperature_moyenne_c: 5.0
+    precipitation_mm: 60
+  fevrier:
+    temperature_moyenne_c: 6.0
+    precipitation_mm: 50
+  mars:
+    temperature_moyenne_c: 9.0
+    precipitation_mm: 55
+  avril:
+    temperature_moyenne_c: 12.0
+    precipitation_mm: 65
+  mai:
+    temperature_moyenne_c: 16.0
+    precipitation_mm: 75
+  juin:
+    temperature_moyenne_c: 19.0
+    precipitation_mm: 70
+  juillet:
+    temperature_moyenne_c: 21.0
+    precipitation_mm: 60
+  aout:
+    temperature_moyenne_c: 21.0
+    precipitation_mm: 65
+  septembre:
+    temperature_moyenne_c: 18.0
+    precipitation_mm: 70
+  octobre:
+    temperature_moyenne_c: 14.0
+    precipitation_mm: 80
+  novembre:
+    temperature_moyenne_c: 9.0
+    precipitation_mm: 75
+  decembre:
+    temperature_moyenne_c: 6.0
+    precipitation_mm: 70
+
+# Paramètres de calcul
+parametres_calcul:
+  methode_classification: "de_martonne"  # de_martonne, emberger, bagnouls_gaussen
+  seuil_secheresse_mm: 30  # Seuil de sécheresse (mm)
+  seuil_temperature_c: 10  # Seuil de température (°C)
+  
+  # Analyse climatique
+  verification_homogeneite: true
+  analyse_tendance: true
+  classification_climat: true
+  
+  # Coefficients de sécurité
+  coefficient_securite: 1.0 

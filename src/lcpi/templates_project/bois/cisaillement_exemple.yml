@@ -1,0 +1,40 @@
+# Template pour vérification au cisaillement
+element_id: CISAILLEMENT_BOIS_1
+description: "Vérification au cisaillement d'une poutre en bois"
+
+# Caractéristiques du profil
+profil:
+  type: "rectangulaire"  # rectangulaire, circulaire, compose
+  dimensions_mm:
+    b: 100  # Largeur
+    h: 300  # Hauteur
+  section_mm2: 30000  # Section calculée automatiquement
+
+# Caractéristiques du matériau
+materiau:
+  classe_resistance: "C24"  # C14, C16, C18, C20, C22, C24, C27, C30, C35, C40, C45, C50
+  classe_service: 2  # 1, 2, 3
+  duree_charge: "Moyen terme"  # Permanente, Long terme, Moyen terme, Court terme, Instantanée
+  kmod: 0.8  # Coefficient de modification
+
+# Géométrie
+longueur_m: 5.0
+portee_effective_m: 4.8  # Portée effective pour calcul des efforts
+
+# Efforts appliqués (en kN)
+efforts_elu:
+  V_ed_kN: 25  # Effort tranchant de calcul
+  M_ed_kNm: 30  # Moment de flexion associé
+
+# Paramètres de calcul
+parametres_calcul:
+  verification_cisaillement: true
+  verification_pression_lamiere: true
+  verification_rupture: true
+  
+  # Coefficients de sécurité
+  gamma_M: 1.3
+  
+  # Paramètres spécifiques au cisaillement
+  coefficient_kv: 1.0  # Coefficient de forme pour cisaillement
+  largeur_effective_mm: 100  # Largeur effective pour le cisaillement 

@@ -1,0 +1,46 @@
+# Template pour poteau en béton armé
+element_id: P_BETON_1
+description: "Poteau béton armé - RDC"
+
+# Caractéristiques des matériaux
+materiaux:
+  fc28_MPa: 25.0  # Résistance caractéristique du béton à 28 jours
+  fe_MPa: 500.0   # Limite d'élasticité de l'acier
+  gamma_c: 1.5    # Coefficient partiel béton
+  gamma_s: 1.15   # Coefficient partiel acier
+
+# Géométrie
+geometrie:
+  section_mm:
+    b: 300  # Largeur
+    h: 300  # Hauteur
+  longueur_m: 3.0
+  longueur_flambement_m: 3.0  # Longueur de flambement
+
+# Armatures
+armatures:
+  type: "rectangulaire"  # rectangulaire, circulaire
+  nombre_armatures_longitudinales: 8
+  diametre_armatures_mm: 16
+  section_armatures_mm2: 1608  # Section calculée automatiquement
+  
+  # Armatures transversales
+  diametre_armatures_transversales_mm: 8
+  espacement_armatures_transversales_mm: 200
+
+# Efforts appliqués (en kN et kNm)
+efforts:
+  N_ed_kN: 500    # Effort normal de compression
+  M_ed_kNm: 50    # Moment de flexion
+  V_ed_kN: 30     # Effort tranchant
+
+# Paramètres de calcul
+parametres_calcul:
+  verification_compression: true
+  verification_flambement: true
+  verification_flexion_compression: true
+  verification_cisaillement: true
+  verification_armatures_transversales: true
+  
+  # Coefficients de sécurité
+  alpha_cc: 1.0   # Coefficient tenant compte des effets à long terme 

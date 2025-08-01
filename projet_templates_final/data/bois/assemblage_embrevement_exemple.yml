@@ -1,0 +1,44 @@
+# Template pour assemblage par embrevement
+element_id: ASS_EMBREVEMENT_1
+description: "Assemblage poutre-poteau par embrevement"
+
+# Caractéristiques de l'embrevement
+embrevement:
+  type: "tenon_mortaise"  # tenon_mortaise, queue_aronde, mi_bois
+  profondeur_embrevement_mm: 30
+  largeur_embrevement_mm: 100
+  longueur_embrevement_mm: 150
+  
+  # Géométrie de l'embrevement
+  angle_embrevement_deg: 90  # Angle de l'embrevement
+  epaisseur_tenon_mm: 20
+  largeur_tenon_mm: 80
+
+# Caractéristiques des éléments assemblés
+elements:
+  element_principal:
+    epaisseur_mm: 45
+    largeur_mm: 150
+    classe_bois: "C24"
+  
+  element_secondaire:
+    epaisseur_mm: 45
+    largeur_mm: 150
+    classe_bois: "C24"
+
+# Efforts appliqués
+efforts_elu:
+  N_ed_kN: 25
+  V_ed_kN: 20
+  M_ed_kNm: 15
+
+# Paramètres de calcul
+parametres_calcul:
+  type_assemblage: "compression"  # compression, traction, cisaillement, combine
+  verification_compression: true
+  verification_cisaillement: true
+  verification_traction: true
+  verification_pression_lamiere: true
+  
+  # Coefficients de sécurité
+  gamma_M: 1.3 

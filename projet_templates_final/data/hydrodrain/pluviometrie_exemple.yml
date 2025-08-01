@@ -1,0 +1,37 @@
+# Template pour analyse pluviométrique
+element_id: PLUVIOMETRIE_1
+description: "Analyse pluviométrique - Station météorologique"
+
+# Paramètres de la station
+station:
+  nom: "Station météorologique principale"
+  code: "ST001"
+  altitude_m: 150
+  latitude: 48.8566
+  longitude: 2.3522
+  periode_analyse_ans: 20
+
+# Données pluviométriques
+pluviometrie:
+  # Série de pluies maximales journalières (mm)
+  series_Hmj_mm: [85, 110, 95, 130, 78, 115, 125, 90, 105, 140, 120, 100, 135, 85, 110, 95, 130, 78, 115, 125]
+  
+  # Paramètres statistiques
+  moyenne_mm: 105.5
+  ecart_type_mm: 18.2
+  coefficient_variation: 0.17
+  
+  # Périodes de retour (mm)
+  periode_retour_10_ans: 140
+  periode_retour_50_ans: 180
+  periode_retour_100_ans: 210
+
+# Paramètres de calcul
+parametres_calcul:
+  methode_statistique: "gumbel"  # gumbel, gauss, lognormal
+  verification_homogeneite: true
+  verification_tendance: true
+  verification_extremes: true
+  
+  # Coefficients de sécurité
+  coefficient_securite: 1.1 

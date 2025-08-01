@@ -343,7 +343,16 @@ def create_examples(project_path: pathlib.Path, plugins: list):
     templates_src = pathlib.Path(__file__).parent / "templates_project"
     if templates_src.exists():
         for plugin in plugins:
-            plugin_templates_dir = templates_src / plugin
+            # Mapping des plugins vers les templates
+            plugin_mapping = {
+                "hydrodrain": "hydro",
+                "cm": "cm",
+                "bois": "bois",
+                "beton": "beton"
+            }
+            
+            template_plugin = plugin_mapping.get(plugin, plugin)
+            plugin_templates_dir = templates_src / template_plugin
             if plugin_templates_dir.exists():
                 plugin_data_dir = project_path / "data" / plugin
                 plugin_data_dir.mkdir(exist_ok=True)

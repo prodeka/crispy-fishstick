@@ -1,0 +1,26 @@
+# Fichiers de sortie LCPI
+output/
+reports/
+*.pdf
+*.html
+*.json
+
+# Fichiers temporaires
+temp/
+*.tmp
+*.log
+
+# Fichiers système
+.DS_Store
+Thumbs.db
+
+# Environnements virtuels
+venv/
+env/
+.venv/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo

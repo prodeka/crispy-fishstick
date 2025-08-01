@@ -1,0 +1,38 @@
+# Template pour déversoir de crue
+element_id: DEVERSOIR_1
+description: "Déversoir de crue à seuil fixe"
+
+# Paramètres hydrauliques
+debit_projet_m3s: 50.0  # Débit de crue à déverser (m³/s)
+coefficient_deversement: 2.1  # Coefficient de déversement (formule de Bazin)
+hauteur_charge_m: 1.5   # Hauteur de charge sur le seuil (m)
+largeur_deversoir_m: 10.0  # Largeur du déversoir
+
+# Paramètres géométriques
+seuil:
+  type: "rectangulaire"  # rectangulaire, triangulaire, trapezoidal
+  hauteur_seuil_m: 2.0   # Hauteur du seuil par rapport au fond
+  epaisseur_seuil_mm: 500  # Épaisseur du seuil
+  
+  # Profil du seuil
+  profil_amont: "vertical"  # vertical, incline, arrondi
+  profil_aval: "vertical"   # vertical, incline, arrondi
+
+# Caractéristiques de l'ouvrage
+ouvrage:
+  materiau: "beton"      # beton, maconnerie, metal
+  revetement: "lisse"    # lisse, rugueux, enduit
+  
+  # Conditions d'écoulement
+  type_ecoulement: "nappe_libre"  # nappe_libre, noye, mixte
+
+# Paramètres de calcul
+parametres_calcul:
+  verification_capacite: true      # Vérification de la capacité de déversement
+  verification_charge: true       # Vérification de la charge hydraulique
+  verification_stabilite: true    # Vérification de la stabilité de l'ouvrage
+  verification_erosion: true      # Vérification de l'érosion aval
+  
+  # Coefficients de sécurité
+  coefficient_securite: 1.2        # Coefficient de sécurité global
+  coefficient_deversement_min: 1.8  # Coefficient de déversement minimal 

@@ -1,0 +1,12 @@
+description: "Vérification de l'écrasement à l'appui d'une poutre"
+profil:
+  dimensions_mm:
+    b: 100 # Largeur de la poutre
+materiau:
+  classe_resistance: "C24"
+  classe_service: 1
+  duree_charge: "Permanente"
+appui:
+  longueur_appui_la_mm: 150 # Longueur de la surface d'appui
+efforts_elu:
+  Reaction_appui_F_c90_ed_kN: 50 

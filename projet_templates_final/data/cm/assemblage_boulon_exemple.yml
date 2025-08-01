@@ -1,0 +1,43 @@
+# Template pour assemblage boulonné
+element_id: ASS_B1
+description: "Assemblage poutre-poteau boulonné"
+
+# Caractéristiques des boulons
+boulons:
+  classe: 8.8  # Classe de résistance (4.6, 5.6, 6.8, 8.8, 10.9)
+  diametre_mm: 20
+  nombre: 6
+  disposition: "2x3"  # 2 rangées x 3 colonnes
+  
+  # Géométrie de l'assemblage
+  espacement_vertical_mm: 80
+  espacement_horizontal_mm: 100
+  distance_bord_mm: 50
+
+# Caractéristiques des plaques
+plaques:
+  plaque_ame:
+    epaisseur_mm: 10
+    largeur_mm: 200
+    hauteur_mm: 300
+    nuance: S235
+  
+  plaque_semelle:
+    epaisseur_mm: 15
+    largeur_mm: 200
+    hauteur_mm: 150
+    nuance: S235
+
+# Efforts appliqués
+efforts_elu:
+  N_ed_kN: 200
+  V_ed_kN: 150
+  M_ed_kNm: 80
+
+# Paramètres de calcul
+parametres_calcul:
+  type_assemblage: "cisaillement"  # cisaillement, traction, combine
+  verification_cisaillement: true
+  verification_traction: true
+  verification_pression_lamiere: true
+  verification_rupture_lamiere: true 

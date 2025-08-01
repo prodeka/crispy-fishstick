@@ -1,0 +1,60 @@
+# Template pour optimisation de section
+element_id: OPTIM_1
+description: "Optimisation de section en construction métallique"
+
+# Type de vérification à optimiser
+type_verification: "flexion"  # flexion, compression, cisaillement, compose
+
+# Caractéristiques du matériau
+materiau:
+  nuance: S235
+  fy_MPa: 235.0
+  E_MPa: 210000.0
+  gamma_M0: 1.0
+  gamma_M1: 1.0
+
+# Efforts appliqués (en kN et kNm)
+efforts_elu:
+  N_ed_kN: 500
+  M_y_ed_kNm: 100
+  M_z_ed_kNm: 30
+  V_ed_kN: 80
+
+# Géométrie et contraintes
+geometrie:
+  longueur_m: 6.0
+  longueur_flambement_m: 6.0
+  
+  # Contraintes géométriques
+  hauteur_max_mm: 400
+  largeur_max_mm: 200
+  poids_max_kg_m: 50
+
+# Familles de profils à considérer
+familles_profils:
+  - "IPE"
+  - "HEA"
+  - "HEB"
+  - "UPN"
+  - "L"
+
+# Paramètres d'optimisation
+parametres_optimisation:
+  critere_optimisation: "poids"  # poids, cout, section_min
+  tolerance: 0.01  # Tolérance pour la convergence
+  nombre_iterations_max: 100
+  
+  # Coefficients de pondération
+  poids_poids: 1.0
+  poids_cout: 0.8
+  poids_section: 0.6
+
+# Paramètres de calcul
+parametres_calcul:
+  verification_flambement: true
+  verification_deversement: true
+  verification_cisaillement: true
+  verification_fleche: true
+  
+  # Limites de flèche
+  fleche_max_limite: 1/400  # L/400 par défaut 
