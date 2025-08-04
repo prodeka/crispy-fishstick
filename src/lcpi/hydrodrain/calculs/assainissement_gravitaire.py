@@ -188,13 +188,14 @@ def agreger_donnees_amont(troncon: Troncon, reseau: Reseau):
     troncon.surface_cumulee_ha = surface_cumulee + surface_totale_amont
     troncon.coefficient_moyen = (troncon.coefficient_ruissellement * surface_cumulee + coefficient_total_pondere) / troncon.surface_cumulee_ha if troncon.surface_cumulee_ha > 0 else 0.0
 
-def run_calcul_rationnelle(troncon: Troncon, params_pluie: Dict) -> Dict:
+def run_calcul_rationnelle(troncon: Troncon, params_pluie: Dict, afficher_iterations: bool = False) -> Dict:
     """
     Exécute le calcul rationnel itératif pour un tronçon.
     
     Args:
         troncon: Tronçon à calculer
         params_pluie: Paramètres de la pluie
+        afficher_iterations: Afficher les détails de chaque itération
     
     Returns:
         dict: Résultats du calcul
@@ -204,6 +205,12 @@ def run_calcul_rationnelle(troncon: Troncon, params_pluie: Dict) -> Dict:
         tc_surface = calculer_tc_surface(troncon)
         tc_amont_max = max([reseau.troncons[amont_id].tc_final_min or 0 for amont_id in troncon.amont_ids]) if troncon.amont_ids else 0
         tc_iteration = max(tc_surface, tc_amont_max, TC_MINIMUM_MIN)
+        
+        if afficher_iterations:
+            print(f"🔄 Calcul rationnel pour tronçon {troncon.id}")
+            print(f"📊 tc_surface: {tc_surface:.2f} min, tc_amont_max: {tc_amont_max:.2f} min")
+            print(f"🎯 tc_initial: {tc_iteration:.2f} min")
+            print("-" * 50)
         
         for iteration in range(MAX_ITERATIONS):
             # 1. Calcul de l'intensité
@@ -223,8 +230,20 @@ def run_calcul_rationnelle(troncon: Troncon, params_pluie: Dict) -> Dict:
             temps_parcours = troncon.longueur_parcours_m / (vitesse * 60)  # en minutes
             tc_calcule_nouveau = tc_amont_max + temps_parcours
             
+            if afficher_iterations:
+                print(f"🔄 Itération {iteration + 1:2d}:")
+                print(f"    tc_iteration: {tc_iteration:.2f} min")
+                print(f"    intensité: {intensite:.2f} mm/h")
+                print(f"    débit: {debit_projet:.3f} m³/s")
+                print(f"    vitesse: {vitesse:.2f} m/s")
+                print(f"    temps_parcours: {temps_parcours:.2f} min")
+                print(f"    tc_calculé: {tc_calcule_nouveau:.2f} min")
+                print(f"    différence: {abs(tc_calcule_nouveau - tc_iteration):.4f} min")
+            
             # 5. Test de convergence
             if abs(tc_calcule_nouveau - tc_iteration) < TOLERANCE:
+                if afficher_iterations:
+                    print(f"✅ Convergence atteinte après {iteration + 1} itérations")
                 return {
                     "statut": "OK",
                     "debit_projet": debit_projet,
@@ -235,6 +254,8 @@ def run_calcul_rationnelle(troncon: Troncon, params_pluie: Dict) -> Dict:
             # 6. Préparation de la prochaine itération
             tc_iteration = max(tc_calcule_nouveau, TC_MINIMUM_MIN)
         
+        if afficher_iterations:
+            print(f"⚠️  Convergence non atteinte après {MAX_ITERATIONS} itérations")
         return {"statut": "Erreur", "message": "Convergence non atteinte"}
         
     except Exception as e:

@@ -1,0 +1,61 @@
+# Template pour les calculs de demande en eau AEP
+# Fichier: demande_exemple.yml
+
+# Données de base
+population: 20847  # Population projetée à l'horizon 2045
+
+# Dotation en eau (litres par jour et par habitant)
+dotation_domestique_l_j_hab: 60  # Selon document AEP
+
+# Rendement du réseau (inverse des pertes)
+rendement_reseau: 0.95  # 95% = 5% de pertes (selon document AEP)
+
+# Besoins publics (optionnel)
+besoins_publics_m3_j: 0  # À ajuster selon les besoins spécifiques
+
+# Coefficients de pointe
+coefficient_pointe_journaliere: 1.5  # Selon document AEP
+coefficient_pointe_horaire: null  # Calculé automatiquement selon la formule du génie rural
+
+# Paramètres de calcul spécifiques AEP
+parametres_aep:
+  # Pourcentage des besoins annexes par rapport aux besoins domestiques
+  pourcentage_besoins_annexes: 0.10  # 10% selon document AEP
+  
+  # Temps de distribution (heures par jour)
+  temps_distribution: 24  # Distribution continue
+  
+  # Type de consommation
+  type_consommation: "branchement_prive"  # branchement_prive, borne_fontaine, etc.
+
+# Informations du projet
+projet:
+  nom: "Projet AEP Fidokpui-Dikame"
+  localite: "Fidokpui et Dikame, Togo"
+  horizon_planification: 2045
+  description: "Calcul des besoins en eau potable pour le projet AEP"
+
+# Scénarios de comparaison (optionnel)
+scenarios:
+  scenario_conservateur:
+    nom: "Scénario Conservateur"
+    dotation: 50
+    coefficient_pointe: 1.3
+    
+  scenario_optimiste:
+    nom: "Scénario Optimiste"
+    dotation: 80
+    coefficient_pointe: 1.7
+    
+  scenario_document_aep:
+    nom: "Scénario Document AEP"
+    dotation: 60
+    coefficient_pointe: 1.5
+
+# Métadonnées
+metadata:
+  auteur: "LCPI Team"
+  date_creation: "2024"
+  version: "1.0"
+  source_donnees: "Document AEP Fidokpui-Dikame"
+  commentaires: "Calcul des besoins en eau selon les standards du document AEP" 

@@ -1,0 +1,125 @@
+# Template pour un projet AEP complet
+# Fichier: projet_complet_exemple.yml
+
+# =============================================================================
+# SECTION 1: PROJECTION DÉMOGRAPHIQUE
+# =============================================================================
+population:
+  methode: "malthus"
+  annee_projet: 2045
+  pop_annee_1: [9967, 2025]
+  pop_annee_2: [10340, 2026]
+  taux_croissance_annuel: 0.037
+
+# =============================================================================
+# SECTION 2: CALCULS DE DEMANDE EN EAU
+# =============================================================================
+demande:
+  population: 20847  # Résultat de la projection démographique
+  dotation_domestique_l_j_hab: 60
+  rendement_reseau: 0.95
+  besoins_publics_m3_j: 0
+  coefficient_pointe_journaliere: 1.5
+  pourcentage_besoins_annexes: 0.10
+
+# =============================================================================
+# SECTION 3: DIMENSIONNEMENT RÉSEAU
+# =============================================================================
+reseau:
+  debit_m3h: 215  # Débit de pointe horaire calculé
+  longueur_m: 5000
+  material: "PVC"
+  ks: 120  # Coefficient de rugosité Strickler
+  hauteur_geometrique_m: 30  # Différence d'altitude
+  diametre_commercial_mm: 200  # Diamètre commercial choisi
+
+# =============================================================================
+# SECTION 4: DIMENSIONNEMENT RÉSERVOIR
+# =============================================================================
+reservoir:
+  volume_journalier_m3: 2064  # Besoin brut journalier
+  type_adduction: "continue"
+  volume_incendie_m3: 120
+  duree_couverture_securite_h: 6
+  hauteur_max_m: 12
+
+# =============================================================================
+# SECTION 5: DIMENSIONNEMENT POMPAGE
+# =============================================================================
+pompage:
+  debit_m3h: 86  # Débit d'adduction
+  hmt_m: 45.3  # Hauteur manométrique totale
+  rendement_pompe: 0.75
+  rendement_moteur: 0.85
+  facteur_puissance: 0.85
+
+# =============================================================================
+# SECTION 6: PROTECTION ANTI-BÉLIER
+# =============================================================================
+protection:
+  diametre_mm: 200
+  vitesse_initial_ms: 1.2
+  epaisseur_mm: 6
+  k_materiau: 33  # Coefficient pour PVC
+  hmt_m: 45.3
+  niveau_dynamique_max_m: 5
+
+# =============================================================================
+# SECTION 7: TRAITEMENT DE L'EAU
+# =============================================================================
+traitement:
+  dosage_chlore_mg_l: 2.0
+  chlore_residuel_mg_l: 0.5
+  temps_contact_desinfection_h: 2.0
+  duree_efficacite_desinfectant_h: 48.0
+
+# =============================================================================
+# INFORMATIONS DU PROJET
+# =============================================================================
+projet:
+  nom: "Projet AEP Fidokpui-Dikame"
+  localite: "Fidokpui et Dikame, Togo"
+  region: "Région Maritime"
+  horizon_planification: 2045
+  description: "Projet d'alimentation en eau potable pour les quartiers périphériques de Lomé"
+  maitre_ouvrage: "Société Togolaise des Eaux (TdE)"
+  bureau_etudes: "LCPI"
+  date_etude: "2024"
+
+# =============================================================================
+# PARAMÈTRES DE CALCUL
+# =============================================================================
+parametres_calcul:
+  # Constantes physiques
+  acceleration_pesanteur: 9.81  # m/s²
+  masse_volumique_eau: 1000  # kg/m³
+  
+  # Coefficients de rugosité
+  ks_pvc: 120
+  ks_beton_lisse: 80
+  ks_acier_galvanise: 100
+  
+  # Vitesses et pressions
+  vitesse_min_m_s: 0.3
+  vitesse_max_m_s: 1.5
+  pression_service_min_mce: 10.0
+  
+  # Rendements
+  rendement_technique: 0.95
+  rendement_pompe_typique: 0.75
+  rendement_moteur_typique: 0.85
+
+# =============================================================================
+# MÉTADONNÉES
+# =============================================================================
+metadata:
+  auteur: "LCPI Team"
+  date_creation: "2024"
+  version: "1.0"
+  source_donnees: "Document AEP Fidokpui-Dikame"
+  commentaires: "Projet AEP complet selon les standards du document de référence"
+  references:
+    - "Document AEP Fidokpui-Dikame"
+    - "Standards TdE"
+    - "Recommandations OMS"
+    - "Eurocodes" 

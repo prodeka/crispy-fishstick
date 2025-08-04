@@ -1,0 +1,24 @@
+- acier: S235
+  charge_exploitation: 25.8
+  charge_permanente: 15.2
+  element_id: P1
+  longueur: 3.5
+  section: HEA200
+  statut: conforme
+  type: poteau
+- acier: S235
+  charge_exploitation: 30.2
+  charge_permanente: 18.5
+  element_id: P2
+  longueur: 4.0
+  section: HEA240
+  statut: conforme
+  type: poteau
+- acier: S355
+  charge_exploitation: 35.8
+  charge_permanente: 22.1
+  element_id: P3
+  longueur: 4.5
+  section: HEA300
+  statut: 'conforme '
+  type: poteau

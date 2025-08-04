@@ -66,7 +66,7 @@ class UXEnhancer:
 
 [bold]Plateforme de Calcul Polyvalent pour l'Ingénierie[/bold]
 
-[dim]Version 2.0.0 - Dernière utilisation: {self.preferences.get('last_used', 'Première utilisation')}[/dim]
+[dim]Version 2.1.0 - Dernière utilisation: {self.preferences.get('last_used', 'Première utilisation')}[/dim]
 
 [bold]Commandes rapides:[/bold]
 • [cyan]lcpi --help[/cyan] - Afficher l'aide générale

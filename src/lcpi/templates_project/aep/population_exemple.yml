@@ -1,0 +1,36 @@
+# Template pour les calculs de projection démographique AEP
+# Fichier: population_exemple.yml
+
+# Méthode de projection (arithmetique, lineaire, geometrique, exponentiel, malthus, logistique)
+methode: "malthus"
+
+# Année de projet (horizon de planification)
+annee_projet: 2045
+
+# Données de population pour les méthodes arithmétique, géométrique, malthus
+# Format: [population, année]
+pop_annee_1: [9967, 2025]  # Population de référence
+pop_annee_2: [10340, 2026] # Population année suivante (avec taux de croissance 3.7%)
+
+# Données pour la méthode logistique (optionnel)
+# pop_annee_0: [9000, 2024]  # Population année 0 (pour logistique)
+
+# Paramètres spécifiques au projet AEP
+# Taux de croissance annuel (pour vérification)
+taux_croissance_annuel: 0.037  # 3.7%
+
+# Informations du projet
+projet:
+  nom: "Projet AEP Fidokpui-Dikame"
+  localite: "Fidokpui et Dikame, Togo"
+  region: "Région Maritime"
+  horizon_planification: 2045
+  description: "Projet d'alimentation en eau potable pour les quartiers périphériques de Lomé"
+
+# Métadonnées
+metadata:
+  auteur: "LCPI Team"
+  date_creation: "2024"
+  version: "1.0"
+  source_donnees: "INSEED RGPH 2022"
+  commentaires: "Projection démographique selon la méthode de Malthus pour le projet AEP" 

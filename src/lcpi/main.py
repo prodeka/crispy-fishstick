@@ -68,27 +68,135 @@ if platform_path not in sys.path:
 # --- Commandes du noyau ---
 @app.command()
 def init(
-    nom_projet: str = typer.Argument("nouveau_projet_lcpi", help="Nom du projet à créer"),
+    nom_projet: str = typer.Argument(None, help="Nom du projet à créer"),
     template: str = typer.Option(None, "--template", "-t", help="Template spécifique (cm, bois, beton, hydro, complet)"),
     plugins: str = typer.Option(None, "--plugins", "-p", help="Plugins à inclure (séparés par des virgules)"),
-    force: bool = typer.Option(False, "--force", "-f", help="Forcer la création même si le dossier existe")
+    force: bool = typer.Option(False, "--force", "-f", help="Forcer la création même si le dossier existe"),
+    interactive: bool = typer.Option(True, "--no-interactive", help="Désactiver le mode interactif")
 ):
     """Initialise un nouveau projet LCPI avec une arborescence complète."""
+    
+    # Mode interactif pour collecter les informations
+    if interactive:
+        console.print(Panel(
+            "[bold blue]🚀 INITIALISATION D'UN NOUVEAU PROJET LCPI[/bold blue]\n\n"
+            "Je vais vous guider pour créer votre projet. Répondez aux questions ci-dessous.",
+            title="Assistant d'Initialisation",
+            border_style="blue"
+        ))
+        
+        # Collecter les informations du projet
+        if not nom_projet:
+            while True:
+                nom_projet = input("\n📝 Nom du projet: ").strip()
+                if nom_projet:
+                    # Valider le nom du projet
+                    if not nom_projet.replace("_", "").replace("-", "").isalnum():
+                        console.print("[red]❌ Le nom du projet ne peut contenir que des lettres, chiffres, tirets et underscores[/red]")
+                        continue
+                    if len(nom_projet) < 3:
+                        console.print("[red]❌ Le nom du projet doit contenir au moins 3 caractères[/red]")
+                        continue
+                    break
+                else:
+                    console.print("[red]❌ Le nom du projet est obligatoire[/red]")
+        
+        # Demander le nom de l'utilisateur
+        nom_utilisateur = input("👤 Nom de l'utilisateur/ingénieur: ").strip()
+        if not nom_utilisateur:
+            nom_utilisateur = "Ingénieur LCPI"
+        
+        # Demander la description
+        description = input("📋 Description du projet (optionnel): ").strip()
+        if not description:
+            description = f"Projet {nom_projet} créé avec LCPI"
+        
+        # Demander le template si pas spécifié
+        if not template:
+            console.print("\n🎯 Choisissez un template de projet:")
+            console.print("1. [cyan]cm[/cyan] - Construction métallique")
+            console.print("2. [cyan]bois[/cyan] - Construction bois")
+            console.print("3. [cyan]beton[/cyan] - Béton armé")
+            console.print("4. [cyan]hydro[/cyan] - Hydrologie/Assainissement")
+            console.print("5. [cyan]complet[/cyan] - Tous les modules")
+            console.print("6. [cyan]personnalise[/cyan] - Sélection manuelle des plugins")
+            
+            while True:
+                choix = input("\nVotre choix (1-6): ").strip()
+                template_map = {
+                    "1": "cm", "2": "bois", "3": "beton", 
+                    "4": "hydro", "5": "complet", "6": "personnalise"
+                }
+                if choix in template_map:
+                    template = template_map[choix]
+                    break
+                else:
+                    console.print("[red]❌ Choix invalide. Entrez un nombre entre 1 et 6.[/red]")
+        
+        # Si personnalisé, demander les plugins
+        if template == "personnalise" and not plugins:
+            available_plugins = get_available_plugins()
+            console.print(f"\n🔌 Plugins disponibles: {', '.join(available_plugins)}")
+            console.print("Entrez les plugins séparés par des virgules (ex: cm,bois,hydrodrain)")
+            
+            while True:
+                plugins_input = input("Plugins à inclure: ").strip()
+                if plugins_input:
+                    selected_plugins = [p.strip() for p in plugins_input.split(",")]
+                    invalid_plugins = [p for p in selected_plugins if p not in available_plugins]
+                    if invalid_plugins:
+                        console.print(f"[red]❌ Plugins invalides: {', '.join(invalid_plugins)}[/red]")
+                        console.print(f"Plugins valides: {', '.join(available_plugins)}")
+                        continue
+                    plugins = plugins_input
+                    break
+                else:
+                    console.print("[red]❌ Vous devez sélectionner au moins un plugin[/red]")
+    
+    else:
+        # Mode non-interactif
+        if not nom_projet:
+            nom_projet = "nouveau_projet_lcpi"
+        nom_utilisateur = "Ingénieur LCPI"
+        description = f"Projet {nom_projet} créé avec LCPI"
     
     project_path = pathlib.Path(nom_projet)
     
     # Vérifier si le dossier existe
     if project_path.exists() and not force:
+        if interactive:
+            console.print(f"\n⚠️  Le dossier '{nom_projet}' existe déjà.")
+            overwrite = input("Voulez-vous l'écraser ? (o/N): ").strip().lower()
+            if overwrite not in ['o', 'oui', 'y', 'yes']:
+                console.print("[yellow]Initialisation annulée.[/yellow]")
+                return
+        else:
+            console.print(Panel(
+                f"[bold red]ERREUR[/bold red]: Le dossier '{nom_projet}' existe déjà.\n"
+                f"Utilisez --force pour écraser le contenu existant.",
+                title="Erreur d'Initialisation",
+                border_style="red"
+            ))
+            return
+    
+    # Créer le dossier principal
+    try:
+        project_path.mkdir(parents=True, exist_ok=True)
+    except PermissionError:
         console.print(Panel(
-            f"[bold red]ERREUR[/bold red]: Le dossier '{nom_projet}' existe déjà.\n"
-            f"Utilisez --force pour écraser le contenu existant.",
-            title="Erreur d'Initialisation",
+            "[bold red]ERREUR[/bold red]: Permissions insuffisantes pour créer le dossier.\n"
+            "Vérifiez vos droits d'écriture dans le répertoire.",
+            title="Erreur de Permissions",
             border_style="red"
         ))
         return
-    
-    # Créer le dossier principal
-    project_path.mkdir(parents=True, exist_ok=True)
+    except Exception as e:
+        console.print(Panel(
+            f"[bold red]ERREUR[/bold red]: Impossible de créer le dossier: {str(e)}",
+            title="Erreur de Création",
+            border_style="red"
+        ))
+        return
     
     # Déterminer les plugins à inclure
     available_plugins = get_available_plugins()
@@ -122,18 +230,20 @@ def init(
         # Créer l'arborescence du projet
         create_project_structure(project_path, selected_plugins)
         
-        # Créer les fichiers de configuration
-        create_config_files(project_path, selected_plugins)
+        # Créer les fichiers de configuration avec les informations utilisateur
+        create_config_files(project_path, selected_plugins, nom_utilisateur, description)
         
         # Créer les exemples selon les plugins
         create_examples(project_path, selected_plugins)
         
         # Créer la documentation du projet
-        create_project_docs(project_path, selected_plugins)
+        create_project_docs(project_path, selected_plugins, nom_utilisateur, description)
         
         console.print(Panel(
             f"[bold green]SUCCÈS[/bold green]: Projet '{nom_projet}' initialisé avec succès !\n\n"
             f"📁 Structure créée: {project_path}\n"
+            f"👤 Utilisateur: {nom_utilisateur}\n"
+            f"📋 Description: {description}\n"
             f"🔌 Plugins inclus: {', '.join(selected_plugins)}\n"
             f"📚 Exemples et templates copiés\n"
             f"📖 Documentation générée\n\n"
@@ -154,7 +264,10 @@ def init(
         ))
         # Nettoyer en cas d'erreur
         if project_path.exists() and not force:
-            shutil.rmtree(project_path)
+            try:
+                shutil.rmtree(project_path)
+            except:
+                console.print("[yellow]⚠️  Impossible de nettoyer le dossier créé.[/yellow]")
 
 def create_project_structure(project_path: pathlib.Path, plugins: list):
     """Crée l'arborescence de base du projet."""
@@ -203,7 +316,7 @@ def create_project_structure(project_path: pathlib.Path, plugins: list):
     for directory in directories:
         (project_path / directory).mkdir(parents=True, exist_ok=True)
 
-def create_config_files(project_path: pathlib.Path, plugins: list):
+def create_config_files(project_path: pathlib.Path, plugins: list, nom_utilisateur: str, description: str):
     """Crée les fichiers de configuration du projet."""
     
     # Fichier de configuration principal
@@ -212,7 +325,8 @@ projet:
   nom: "{project_path.name}"
   version: "1.0.0"
   date_creation: "{time.strftime('%Y-%m-%d')}"
-  description: "Projet d'ingénierie utilisant LCPI-CLI"
+  description: "{description}"
+  utilisateur: "{nom_utilisateur}"
 
 plugins_actifs:
 {chr(10).join(f"  - {plugin}" for plugin in plugins)}
@@ -386,7 +500,7 @@ def create_examples(project_path: pathlib.Path, plugins: list):
                 for data_file in hydro_data_dir.glob("*.yml"):
                     shutil.copy2(data_file, project_hydro_dir)
 
-def create_project_docs(project_path: pathlib.Path, plugins: list):
+def create_project_docs(project_path: pathlib.Path, plugins: list, nom_utilisateur: str, description: str):
     """Crée la documentation du projet."""
     
     docs_dir = project_path / "docs"
@@ -778,6 +892,12 @@ def print_plugin_status():
         console.print("[green]✓[/green] Plugin 'hydro' chargé.")
     except ImportError as e:
         console.print(Panel(f"[bold red]✗[/bold red] Plugin 'hydro' non chargé. Erreur : {e}", title="Erreur de Chargement Plugin", border_style="red"))
+    try:
+        from .aep.cli import app as aep_app
+        app.add_typer(aep_app, name="aep")
+        console.print("[green]✓[/green] Plugin 'aep' chargé.")
+    except ImportError as e:
+        console.print(Panel(f"[bold red]✗[/bold red] Plugin 'aep' non chargé. Erreur : {e}", title="Erreur de Chargement Plugin", border_style="red"))
 
     # Charger le plugin shell
     try:

@@ -1,0 +1,45 @@
+# Compiled python files
+*.py[oc]
+
+# gedit files
+*~
+
+# virtual environment
+venv/
+
+# Python special dirs and files
+*.egg-info
+*.cache/
+*.coverage
+build/
+dist/
+bin/
+
+# Eclipse files
+.project
+.pydevproject
+.settings/
+
+# OS files
+Thumbs.db
+.DS_Store/
+.DS_Store
+
+# git files
+*.orig
+
+# Changelog generator
+CHANGELOG.temp
+labels.txt
+
+# SWMM files
+*.out
+*.rpt
+*.hsf
+*.mp4
+*.chi
+*.CSV
+*.thm
+
+#IDE Folders
+.vscode/

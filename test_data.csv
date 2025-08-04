@@ -1,0 +1,4 @@
+element_id,type,section,longueur,charge_permanente,charge_exploitation,acier,statut
+P1,poteau,HEA200,3.5,15.2,25.8,S235,conforme
+P2,poteau,HEA240,4.0,18.5,30.2,S235,conforme
+P3,poteau,HEA300,4.5,22.1,35.8,S355,conforme 
