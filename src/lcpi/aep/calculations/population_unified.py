@@ -51,7 +51,26 @@ class PopulationCalculationsUnified:
         Args:
             db_path: Chemin vers la base de données AEP
         """
-        self.db_path = db_path or "src/lcpi/db/aep_database.json"
+        # Utiliser un chemin absolu basé sur le répertoire du projet
+        if db_path:
+            self.db_path = db_path
+        else:
+            # Chercher le fichier dans différents emplacements possibles
+            possible_paths = [
+                "src/lcpi/db/aep_database.json",
+                "lcpi/db/aep_database.json",
+                "db/aep_database.json",
+                "aep_database.json"
+            ]
+            
+            import os
+            for path in possible_paths:
+                if os.path.exists(path):
+                    self.db_path = path
+                    break
+            else:
+                # Si aucun fichier trouvé, utiliser le chemin par défaut
+                self.db_path = "src/lcpi/db/aep_database.json"
         self.load_database()
         
     def load_database(self):

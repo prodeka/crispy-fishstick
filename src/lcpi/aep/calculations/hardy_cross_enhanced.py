@@ -15,6 +15,7 @@ import math
 from typing import Dict, List, Any, Optional, Tuple
 from pathlib import Path
 import pandas as pd
+import networkx as nx  # Ajout de NetworkX pour la théorie des graphes
 
 """
 Module Hardy-Cross Enhanced pour LCPI
@@ -129,7 +130,7 @@ def hardy_cross_network_enhanced(network_data: Dict[str, Any], max_iterations: i
     
     # Identifier les boucles automatiquement
     if "boucles" not in network_data:
-        network_data["boucles"] = analyzer._identify_loops(network_data["troncons"])
+        network_data["boucles"] = analyzer._identify_loops_robust(network_data["troncons"])
     
     return analyzer.hardy_cross_iteration(network_data, max_iterations, tolerance)
 
@@ -199,7 +200,7 @@ class HardyCrossEnhanced:
                 network["troncons"].append(troncon)
             
             # Identifier les boucles automatiquement
-            network["boucles"] = self._identify_loops(network["troncons"])
+            network["boucles"] = self._identify_loops_robust(network["troncons"])
             
             return network
             
@@ -231,64 +232,94 @@ class HardyCrossEnhanced:
         except Exception as e:
             raise ValueError(f"Erreur lors du chargement du YAML: {e}")
     
+    def _identify_loops_robust(self, troncons: List[Dict]) -> List[List[str]]:
+        """
+        Identifie les boucles du réseau via un processus robuste et multi-étapes.
+
+        1.  **Diagnostic :** Calcule le nombre cyclomatique pour vérifier si des boucles peuvent exister.
+        2.  **Adaptation :** Gère les réseaux non-connexes en analysant chaque composante séparément.
+        3.  **Exécution :** Utilise l'algorithme des cycles fondamentaux de NetworkX pour une
+            identification rapide et mathématiquement correcte.
+        """
+        print("\n--- DÉBUT DE L'ANALYSE TOPOLOGIQUE DU RÉSEAU ---")
+        
+        # --- ÉTAPE A : Construction du Graphe ---
+        try:
+            G = nx.Graph()
+            for troncon in troncons:
+                noeud_amont = troncon.get('noeud_amont') or troncon.get('noeud_debut')
+                noeud_aval = troncon.get('noeud_aval') or troncon.get('noeud_fin')
+                if noeud_amont and noeud_aval and noeud_amont != noeud_aval:
+                    G.add_edge(noeud_amont, noeud_aval)
+                else:
+                    print(f"⚠️ Tronçon ignoré car invalide : {troncon}")
+        except Exception as e:
+            print(f"❌ Erreur critique lors de la construction du graphe : {e}")
+            return []
+
+        if G.number_of_nodes() == 0:
+            print("❌ Le réseau est vide. Aucune boucle ne peut être trouvée.")
+            return []
+
+        # --- ÉTAPE B : Diagnostic via le Nombre Cyclomatique ---
+        num_nodes = G.number_of_nodes()
+        num_edges = G.number_of_edges()
+        num_components = nx.number_connected_components(G)
+        cyclomatic_number = num_edges - num_nodes + num_components
+
+        print(f"[Diagnostic] Nœuds: {num_nodes}, Conduites: {num_edges}, Parties Connexes: {num_components}")
+        print(f"[Diagnostic] Nombre Cyclomatique (μ = E - N + C): {cyclomatic_number}")
+
+        if cyclomatic_number <= 0:
+            print("✅ Le réseau est arborescent (non-maillé). Il ne contient aucune boucle. Fin de l'analyse.")
+            return []
+        
+        print("✅ Le réseau est maillé et doit contenir des boucles. Poursuite de l'analyse...")
+
+        # --- ÉTAPES C & D : Adaptation et Exécution ---
+        all_loops = []
+        
+        try:
+            if num_components > 1:
+                # --- C. Cas d'un réseau non-connexe ---
+                print(f"⚠️ Le réseau est composé de {num_components} parties distinctes. Analyse de chaque partie.")
+                
+                # On récupère les sous-graphes de chaque composante connexe
+                connected_subgraphs = (G.subgraph(c).copy() for c in nx.connected_components(G))
+                
+                for i, subgraph in enumerate(connected_subgraphs):
+                    # On applique la méthode des cycles fondamentaux sur chaque morceau
+                    loops_in_component = nx.cycle_basis(subgraph)
+                    if loops_in_component:
+                        print(f"  - Partie {i+1} : Trouvé {len(loops_in_component)} boucle(s).")
+                        all_loops.extend(loops_in_component)
+                    else:
+                        print(f"  - Partie {i+1} : Arborescente, pas de boucle.")
+
+            else:
+                # --- D. Cas d'un réseau connexe (idéal) ---
+                print("Le réseau est entièrement connexe. Recherche des boucles...")
+                # Application directe de la méthode la plus efficace
+                all_loops = nx.cycle_basis(G)
+
+            print(f"\n--- RÉSULTAT DE L'ANALYSE ---")
+            if all_loops:
+                print(f"✅ Succès : {len(all_loops)} boucles fondamentales identifiées au total.")
+            else:
+                # Ce cas ne devrait pas arriver si le nombre cyclomatique > 0, mais c'est une sécurité
+                print("⚠️ Avertissement : Aucune boucle trouvée malgré un nombre cyclomatique positif. Le réseau pourrait avoir une structure inhabituelle.")
+
+            return all_loops
+
+        except Exception as e:
+            print(f"❌ Erreur critique lors de la recherche des cycles : {e}")
+            return []
+
     def _identify_loops(self, troncons: List[Dict]) -> List[List[str]]:
         """
-        Identifie automatiquement les boucles dans le réseau.
-        
-        Args:
-            troncons: Liste des tronçons
-            
-        Returns:
-            List: Liste des boucles identifiées
+        Méthode de compatibilité qui appelle la version robuste.
         """
-        # Algorithme simplifié pour identifier les boucles
-        # En pratique, on utiliserait un algorithme de recherche de cycles
-        loops = []
-        
-        # Créer un graphe des connexions
-        graph = {}
-        for troncon in troncons:
-            # Gérer les deux formats possibles
-            if 'noeud_debut' in troncon and 'noeud_fin' in troncon:
-                debut = troncon['noeud_debut']
-                fin = troncon['noeud_fin']
-            elif 'noeud_amont' in troncon and 'noeud_aval' in troncon:
-                debut = troncon['noeud_amont']
-                fin = troncon['noeud_aval']
-            else:
-                continue
-            
-            if debut not in graph:
-                graph[debut] = []
-            if fin not in graph:
-                graph[fin] = []
-            
-            graph[debut].append(fin)
-            graph[fin].append(debut)
-        
-        # Recherche de cycles simples
-        visited = set()
-        
-        def find_cycles(node: str, path: List[str], start: str):
-            if node in path:
-                if node == start and len(path) > 2:
-                    loops.append(path[path.index(node):])
-                return
-            
-            path.append(node)
-            visited.add(node)
-            
-            for neighbor in graph.get(node, []):
-                find_cycles(neighbor, path, start)
-            
-            path.pop()
-            visited.remove(node)
-        
-        for node in graph:
-            if node not in visited:
-                find_cycles(node, [], node)
-        
-        return loops[:5]  # Limiter à 5 boucles pour éviter la complexité
+        return self._identify_loops_robust(troncons)
     
     def calculate_resistance_coefficient(self, longueur: float, diametre: float, 
                                       coefficient_rugosite: float) -> float:
@@ -378,47 +409,80 @@ class HardyCrossEnhanced:
                 
                 formule_parts = []
                 
+                # --- AJOUTER UNE VARIABLE DE DÉBOGAGE ---
+                unfound_pipes_count = 0
+                found_pipes_count = 0
+                
                 for j in range(len(boucle)):
                     noeud_actuel = boucle[j]
                     noeud_suivant = boucle[(j + 1) % len(boucle)]
                     
                     # Trouver le tronçon correspondant
-                    troncon_key = f"{noeud_actuel}-{noeud_suivant}"
-                    if troncon_key not in debits:
-                        troncon_key = f"{noeud_suivant}-{noeud_actuel}"
+                    troncon_key_forward = f"{noeud_actuel}-{noeud_suivant}"
+                    troncon_key_backward = f"{noeud_suivant}-{noeud_actuel}"
                     
-                    if troncon_key in debits:
-                        Q = debits[troncon_key]
-                        K = coefficients_K.get(troncon_key, 0)
-                        
-                        # Déterminer le signe selon le sens de la boucle
-                        signe = 1 if troncon_key == f"{noeud_actuel}-{noeud_suivant}" else -1
-                        
-                        terme_KQ = signe * K * Q * abs(Q)**0.85
-                        terme_K = K * abs(Q)**0.85
-                        
-                        somme_KQ += terme_KQ
-                        somme_K += terme_K
-                        
-                        formule_parts.append(f"{signe} × {K:.4f} × {Q:.4f} × |{Q:.4f}|^0.85 = {terme_KQ:.4f}")
+                    # --- MODIFICATION DE LA LOGIQUE DE RECHERCHE ---
+                    if troncon_key_forward in debits:
+                        troncon_key = troncon_key_forward
+                        signe = 1
+                        found_pipes_count += 1
+                    elif troncon_key_backward in debits:
+                        troncon_key = troncon_key_backward
+                        signe = -1
+                        found_pipes_count += 1
+                    else:
+                        # LE BUG EST PROBABLEMENT ICI !
+                        unfound_pipes_count += 1
+                        print(f"    ⚠️ [Debug] Tronçon non trouvé : {noeud_actuel} → {noeud_suivant}")
+                        print(f"       - Clés cherchées : '{troncon_key_forward}', '{troncon_key_backward}'")
+                        print(f"       - Clés disponibles : {list(debits.keys())[:5]}...")
+                        continue # On ne peut rien faire, on passe au tronçon suivant
+                    
+                    Q = debits[troncon_key]
+                    K = coefficients_K.get(troncon_key, 0)
+                    
+                    terme_KQ = signe * K * Q * abs(Q)**0.85
+                    terme_K = K * abs(Q)**0.85
+                    
+                    somme_KQ += terme_KQ
+                    somme_K += terme_K
+                    
+                    formule_parts.append(f"{signe} × {K:.4f} × {Q:.4f} × |{Q:.4f}|^0.85 = {terme_KQ:.4f}")
                 
-                # Calculer la correction ΔQ
+                # --- AJOUTER UN MESSAGE DE DÉBOGAGE APRÈS CHAQUE BOUCLE ---
+                if unfound_pipes_count > 0:
+                    print(f"  ⚠️ [Debug Itération {iteration+1}] Boucle {i+1}: Impossible de trouver {unfound_pipes_count} conduites sur {len(boucle)} (trouvées: {found_pipes_count})")
+                    print(f"     Boucle : {boucle}")
+                elif found_pipes_count > 0:
+                    print(f"  ✅ [Debug Itération {iteration+1}] Boucle {i+1}: {found_pipes_count} conduites trouvées sur {len(boucle)}")
+                
+                # Calculer la correction ΔQ avec facteur de sous-relaxation
                 if somme_K != 0:
-                    delta_Q = -somme_KQ / (1.85 * somme_K)
+                    # Vérifier que le dénominateur n'est pas trop petit
+                    epsilon = 1e-10
+                    if abs(somme_K) < epsilon:
+                        delta_Q = 0
+                    else:
+                        delta_Q = -somme_KQ / (1.85 * somme_K)
+                        
+                        # Appliquer le facteur de sous-relaxation pour améliorer la convergence
+                        relaxation_factor = 0.7
+                        delta_Q_relaxed = delta_Q * relaxation_factor
                 else:
                     delta_Q = 0
+                    delta_Q_relaxed = 0
                 
                 correction_formule = f"ΔQ = -Σ(KQ|Q|^0.85) / (1.85 × Σ(K|Q|^0.85))"
                 correction_calculation = f"ΔQ = -{somme_KQ:.4f} / (1.85 × {somme_K:.4f}) = {delta_Q:.6f}"
                 
                 iteration_data["corrections"][f"boucle_{i+1}"] = {
-                    "delta_Q": delta_Q,
+                    "delta_Q": delta_Q_relaxed,  # Utiliser la correction relaxée
                     "formule": correction_formule,
                     "calcul": correction_calculation,
                     "termes": formule_parts
                 }
                 
-                # Appliquer la correction aux débits de la boucle
+                # Appliquer la correction relaxée aux débits de la boucle
                 for j in range(len(boucle)):
                     noeud_actuel = boucle[j]
                     noeud_suivant = boucle[(j + 1) % len(boucle)]
@@ -428,11 +492,11 @@ class HardyCrossEnhanced:
                         troncon_key = f"{noeud_suivant}-{noeud_actuel}"
                     
                     if troncon_key in debits:
-                        # Appliquer la correction selon le sens
+                        # Appliquer la correction relaxée selon le sens
                         signe = 1 if troncon_key == f"{noeud_actuel}-{noeud_suivant}" else -1
-                        debits[troncon_key] += signe * delta_Q
+                        debits[troncon_key] += signe * delta_Q_relaxed
                 
-                corrections_total += abs(delta_Q)
+                corrections_total += abs(delta_Q_relaxed)  # Utiliser la correction relaxée pour le total
             
             iteration_data["corrections_total"] = corrections_total
             self.iterations.append(iteration_data)
@@ -441,14 +505,26 @@ class HardyCrossEnhanced:
             if corrections_total < tolerance:
                 break
         
-        # Résultats finaux
+        # --- DÉBUT DE LA CORRECTION ---
+        
+        # À la fin de la boucle, après la vérification de convergence, 
+        # le dictionnaire 'debits' contient l'état final après la dernière itération.
+        
+        # Résultats finaux - CETTE SECTION S'EXÉCUTE TOUJOURS
         self.results = {
-            "debits_finaux": debits,
+            "final_results": { # Assurer une structure cohérente
+                "flows": debits,
+                "pressures": {} # Le calcul des pressions n'est pas encore implémenté
+            },
+            "debits_finaux": debits, # Pour compatibilité
             "coefficients_K": coefficients_K,
+            "iterations": self.iterations,
             "nombre_iterations": len(self.iterations),
             "convergence": corrections_total < tolerance,
             "tolerance_finale": corrections_total
         }
+        
+        print(f"  [Info] Calcul terminé. Convergence: {self.results['convergence']}. Tolérance finale: {self.results['tolerance_finale']:.6f}")
         
         return self.results
     

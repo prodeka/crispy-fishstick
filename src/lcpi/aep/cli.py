@@ -36,8 +36,8 @@ def population(
     afficher_comparaison: bool = typer.Option(False, "--comparaison", "-c", help="Afficher la comparaison des méthodes")
 ):
     """Calcul de projection de population pour AEP"""
-    from .calculations.population import calculate_population_projection, compare_population_methods
-    
+        from .calculations.population import calculate_population_projection, compare_population_methods
+        
     try:
         if afficher_comparaison:
             resultats = compare_population_methods(fichier, annee_finale)
@@ -57,8 +57,8 @@ def demand(
     afficher_details: bool = typer.Option(False, "--details", "-d", help="Afficher les détails par type d'usage")
 ):
     """Calcul de demande en eau pour AEP"""
-    from .calculations.demand import calculate_water_demand, calculate_water_demand_by_type
-    
+        from .calculations.demand import calculate_water_demand, calculate_water_demand_by_type
+        
     try:
         if type_calcul == "par_type" or afficher_details:
             resultats = calculate_water_demand_by_type(fichier)
@@ -79,8 +79,8 @@ def network(
     formule: str = typer.Option("hazen_williams", "--formule", "-f", help="Formule de perte de charge (hazen_williams, manning, darcy_weisbach)")
 ):
     """Dimensionnement du réseau de distribution AEP"""
-    from .calculations.network import dimension_network, compare_network_scenarios
-    
+        from .calculations.network import dimension_network, compare_network_scenarios
+        
     try:
         if type_calcul == "comparaison":
             resultats = compare_network_scenarios(fichier)
@@ -103,8 +103,8 @@ def reservoir(
     forme: str = typer.Option("cylindrique", "--forme", "-f", help="Forme du réservoir (cylindrique, parallelepipedique)")
 ):
     """Dimensionnement du réservoir de stockage AEP"""
-    from .calculations.reservoir import dimension_reservoir, compare_reservoir_scenarios
-    
+        from .calculations.reservoir import dimension_reservoir, compare_reservoir_scenarios
+        
     try:
         if type_calcul == "comparaison":
             resultats = compare_reservoir_scenarios(fichier)
@@ -127,8 +127,8 @@ def pumping(
     rendement: float = typer.Option(0.75, "--rendement", "-r", help="Rendement de la pompe (0-1)")
 ):
     """Dimensionnement des équipements de pompage AEP"""
-    from .calculations.pumping import dimension_pumping, compare_pumping_scenarios
-    
+        from .calculations.pumping import dimension_pumping, compare_pumping_scenarios
+        
     try:
         if type_calcul == "comparaison":
             resultats = compare_pumping_scenarios(fichier)

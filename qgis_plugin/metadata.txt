@@ -1,0 +1,10 @@
+[general]
+name=LCPI-CLI Connector
+qgisMinimumVersion=3.10
+description=Un plugin pour connecter QGIS avec l'outil de calcul LCPI-CLI.
+about=Ce plugin sert d'interface entre QGIS et LCPI-CLI pour les calculs d'ingénierie (AEP, Beton, CM, Bois).
+version=0.1
+author=Gemini
+email=votre.email@example.com
+
+[plugin_dependencies]

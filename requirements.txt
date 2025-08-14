@@ -8,3 +8,4 @@ Jinja2
 python-docx
 rich
 cryptography
+networkx
