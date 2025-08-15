@@ -1,0 +1,5 @@
+population_base: 2000
+taux_croissance: 0.025
+annees: 10
+methode: malthus
+verbose: true

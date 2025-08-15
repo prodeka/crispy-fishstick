@@ -41,48 +41,23 @@ def _load_input_file(input_path: Path) -> Dict[str, Any]:
         raise ValueError(f"Erreur lors du chargement du fichier d'entrée: {e}")
 
 
-def _flatten_dict(nested: Any, parent_key: str = "", sep: str = ".") -> Dict[str, Any]:
-    """Aplati un dictionnaire pour export CSV/Markdown basique."""
-    flattened: Dict[str, Any] = {}
-    if isinstance(nested, dict):
-        for k, v in nested.items():
-            new_key = f"{parent_key}{sep}{k}" if parent_key else str(k)
-            flattened.update(_flatten_dict(v, new_key, sep))
-    elif isinstance(nested, list):
-        for idx, item in enumerate(nested):
-            new_key = f"{parent_key}{sep}{idx}" if parent_key else str(idx)
-            flattened.update(_flatten_dict(item, new_key, sep))
-    else:
-        flattened[parent_key or "value"] = nested
-    return flattened
+from .utils.exporters import export_content as _export_generic
+from .utils.exporters import _flatten_dict
+from .core.validators import (
+	check_physical_constraints,
+	validate_and_clean_data,
+	validate_population_unified_data,
+	validate_network_unified_data,
+)
 
 
-def _export_generic(result: Any, export_format: str) -> str:
-    """Exporte un résultat dans un format texte (json, yaml, markdown, csv, html)."""
-    export_format = (export_format or "json").lower()
-    if export_format == "json":
-        return json.dumps(result, indent=2, ensure_ascii=False)
-    if export_format == "yaml":
-        import yaml
-        return yaml.safe_dump(result, sort_keys=False, allow_unicode=True)
-    if export_format == "markdown":
-        flat = _flatten_dict(result)
-        lines = ["# Résultats", ""]
-        for k, v in flat.items():
-            lines.append(f"- **{k}**: {v}")
-        return "\n".join(lines)
-    if export_format == "csv":
-        flat = _flatten_dict(result)
-        lines = ["key,value"]
-        for k, v in flat.items():
-            # Remplacer retours ligne/virgules pour éviter de casser le CSV simple
-            v_str = str(v).replace("\n", " ").replace(",", ";")
-            lines.append(f"{k},{v_str}")
-        return "\n".join(lines)
-    if export_format == "html":
-        body = json.dumps(result, indent=2, ensure_ascii=False)
-        return f"""<!DOCTYPE html><html><head><meta charset='utf-8'><title>Résultats</title></head><body><pre>{body}</pre></body></html>"""
-    raise ValueError(f"Format d'export non supporté: {export_format}")
+def _make_result(valeurs: Dict[str, Any], diagnostics: Optional[Any] = None, iterations: Optional[Any] = None) -> Dict[str, Any]:
+	"""Normalise la structure de sortie (valeurs, diagnostics, iterations)."""
+	return {
+		"valeurs": valeurs or {},
+		"diagnostics": diagnostics or [],
+		"iterations": iterations,
+	}
 
 # =============================================================================
 # COMMANDES DE BASE
@@ -517,22 +492,22 @@ def hardy_cross(
           type: "acier"
     ```
     
-    **Exemple d'utilisation :**
-    ```bash
-    lcpi aep hardy-cross data/reseau.yml --tolerance 1e-6 --iterations 100
-    lcpi aep hardy-cross data/reseau.yml --formule manning --iterations 200
-    lcpi aep hardy-cross data/reseau.yml --export resultats.json
-    ```
+    Exemples:
+    - lcpi aep hardy-cross data/reseau.yml --tolerance 1e-6 --iterations 100
+    - lcpi aep hardy-cross data/reseau.yml --formule manning --iterations 200
+    - lcpi aep hardy-cross data/reseau.yml --export resultats.json
     
-    **Formules de perte de charge disponibles :**
+    Formules de perte de charge disponibles :
     - **hazen_williams**: Formule de Hazen-Williams (n=1.852) - Standard pour les conduites en service
     - **manning**: Formule de Manning (n=2.0) - Adaptée aux canaux et conduites à surface libre
     - **darcy_weisbach**: Formule de Darcy-Weisbach (n=2.0) - Précise mais nécessite le diagramme de Moody
     
-    **Paramètres de convergence :**
+    Paramètres de convergence :
     - **tolerance**: Précision de convergence (défaut: 1e-6)
     - **max_iterations**: Nombre maximum d'itérations (défaut: 100)
     - **afficher_iterations**: Afficher le détail de chaque itération
+    
+    Sortie standardisée: { valeurs, diagnostics, iterations }
     """
     try:
         from .calculations.hardy_cross import hardy_cross_network
@@ -638,7 +613,7 @@ def project(
 
 @app.command()
 def population_unified(
-    population_base: int = typer.Argument(..., help="Population de base"),
+    population_base: Optional[int] = typer.Argument(None, help="Population de base (optionnel si --input fourni)"),
     taux_croissance: float = typer.Option(0.037, "--taux", "-t", help="Taux de croissance annuel"),
     annees: int = typer.Option(20, "--annees", "-a", help="Nombre d'années de projection"),
     methode: str = typer.Option("malthus", "--methode", "-m", help="Méthode de projection"),
@@ -656,7 +631,11 @@ def population_unified(
     - geometrique: Croissance géométrique P(t) = P₀ × (1+r)^t
     - logistique: Croissance logistique avec saturation
     
-    Exemple: lcpi aep population-unified 1000 --taux 0.037 --annees 20
+    Exemple:
+    - lcpi aep population-unified 1000 --taux 0.037 --annees 20
+    - lcpi aep population-unified --input data/population.yml --export json
+    
+    Sortie standardisée: { valeurs, diagnostics, iterations }
     """
     try:
         result: Dict[str, Any]
@@ -678,15 +657,23 @@ def population_unified(
             from .calculations.population_enhanced import calculate_population_projection_enhanced
             result = calculate_population_projection_enhanced(data)
         else:
-            from .calculations.population_unified import calculate_population_projection
-            result = calculate_population_projection(
-                population_base, taux_croissance, annees, methode, verbose
-            )
+            if population_base is None:
+                raise ValueError("Population de base requise en mode simple (ou utilisez --input pour le mode enhanced)")
+            from .calculations.population_unified import calculate_population_projection_unified
+            data = {
+                "population_base": population_base,
+                "taux_croissance": taux_croissance,
+                "annees": annees,
+                "methode": methode,
+                "verbose": verbose
+            }
+            result = calculate_population_projection_unified(data)
 
         # Export si demandé
         if export or output:
             fmt = export or "json"
-            content = _export_generic(result, fmt)
+            std = _make_result(result, [], result.get("iterations") or result.get("nombre_iterations"))
+            content = _export_generic(std, fmt)
             if output:
                 output.write_text(content, encoding="utf-8")
                 typer.echo(f"✅ Export sauvegardé: {output}")
@@ -728,7 +715,11 @@ def demand_unified(
     - borne_fontaine: Borne fontaine
     - industriel: Consommation industrielle
     
-    Exemple: lcpi aep demand-unified 1000 --dotation 150 --coeff-pointe 1.5
+    Exemple:
+    - lcpi aep demand-unified 1000 --dotation 150 --coeff-pointe 1.5
+    - lcpi aep demand-unified --input data/demande.yml --export markdown
+    
+    Sortie standardisée: { valeurs, diagnostics, iterations }
     """
     try:
         use_enhanced = False
@@ -758,7 +749,12 @@ def demand_unified(
 
         if export or output:
             fmt = export or "json"
-            content = _export_generic(result, fmt)
+            diag_data = {
+                "population": population,
+            }
+            diags = check_physical_constraints(diag_data)
+            std = _make_result(result, diags, result.get("iterations") or result.get("nombre_iterations"))
+            content = _export_generic(std, fmt)
             if output:
                 output.write_text(content, encoding="utf-8")
                 typer.echo(f"✅ Export sauvegardé: {output}")
@@ -788,7 +784,7 @@ def network_unified(
     methode: str = typer.Option("darcy", "--methode", "-M", help="Méthode de calcul"),
     verbose: bool = typer.Option(False, "--verbose", "-v", help="Afficher les détails"),
     input_file: Optional[Path] = typer.Option(None, "--input", "-i", help="Fichier d'entrée YAML/JSON (active le mode enhanced par défaut)"),
-    mode: str = typer.Option("auto", "--mode", "-X", help="Mode de calcul: auto|simple|enhanced"),
+    mode: str = typer.Option("auto", "--mode", "-M", help="Mode de calcul: auto|simple|enhanced"),
     export: Optional[str] = typer.Option(None, "--export", "-e", help="Export: json|yaml|markdown|csv|html"),
     output: Optional[Path] = typer.Option(None, "--output", "-o", help="Fichier de sortie pour l'export")
 ):
@@ -799,7 +795,11 @@ def network_unified(
     - hazen: Formule de Hazen-Williams
     - manning: Formule de Manning
     
-    Exemple: lcpi aep network-unified 0.1 --longueur 1000 --materiau fonte
+    Exemple:
+    - lcpi aep network-unified 0.1 --longueur 1000 --materiau fonte
+    - lcpi aep network-unified --input data/reseau.yml --export yaml
+    
+    Sortie standardisée: { valeurs, diagnostics, iterations }
     """
     try:
         use_enhanced = False
@@ -830,7 +830,15 @@ def network_unified(
 
         if export or output:
             fmt = export or "json"
-            content = _export_generic(result, fmt)
+            d = result.get('diametre') or result.get('diametre_optimal_m', None)
+            diag_data = {
+                "debit_m3s": debit_m3s,
+                "longueur_m": longueur_m,
+                **({"diametre_m": d} if d is not None else {}),
+            }
+            diags = check_physical_constraints(diag_data)
+            std = _make_result(result, diags, result.get("iterations") or result.get("nombre_iterations"))
+            content = _export_generic(std, fmt)
             if output:
                 output.write_text(content, encoding="utf-8")
                 typer.echo(f"✅ Export sauvegardé: {output}")
@@ -875,7 +883,11 @@ def reservoir_unified(
     - cylindrique: Réservoir cylindrique
     - parallelepipedique: Réservoir parallélépipédique
     
-    Exemple: lcpi aep reservoir-unified 1000 --adduction continue --forme cylindrique
+    Exemple:
+    - lcpi aep reservoir-unified 1000 --adduction continue --forme cylindrique
+    - lcpi aep reservoir-unified --input data/reservoir.yml --export html
+    
+    Sortie standardisée: { valeurs, diagnostics, iterations }
     """
     try:
         use_enhanced = False
@@ -905,7 +917,8 @@ def reservoir_unified(
 
         if export or output:
             fmt = export or "json"
-            content = _export_generic(result, fmt)
+            std = _make_result(result, [], result.get("iterations") or result.get("nombre_iterations"))
+            content = _export_generic(std, fmt)
             if output:
                 output.write_text(content, encoding="utf-8")
                 typer.echo(f"✅ Export sauvegardé: {output}")
@@ -950,7 +963,11 @@ def pumping_unified(
     - helice: Pompe à hélice
     - piston: Pompe à piston
     
-    Exemple: lcpi aep pumping-unified 100 --hmt 50 --type centrifuge
+    Exemple:
+    - lcpi aep pumping-unified 100 --hmt 50 --type centrifuge
+    - lcpi aep pumping-unified --input data/pompage.yml --export csv
+    
+    Sortie standardisée: { valeurs, diagnostics, iterations }
     """
     try:
         use_enhanced = False
@@ -980,7 +997,13 @@ def pumping_unified(
 
         if export or output:
             fmt = export or "json"
-            content = _export_generic(result, fmt)
+            diag_data = {
+                "debit_m3s": debit_m3h / 3600.0,
+                "hmt_m": hmt_m,
+            }
+            diags = check_physical_constraints(diag_data)
+            std = _make_result(result, diags, result.get("iterations") or result.get("nombre_iterations"))
+            content = _export_generic(std, fmt)
             if output:
                 output.write_text(content, encoding="utf-8")
                 typer.echo(f"✅ Export sauvegardé: {output}")
@@ -1025,7 +1048,8 @@ def query(
     - constants: Constantes physiques
     - search: Recherche textuelle
     
-    Exemple: lcpi aep query coefficients --material fonte --format json
+    Exemples:
+    - lcpi aep query coefficients --material fonte --format json
     """
     try:
         from ..db.aep_database_manager import query_aep_database, AEPDatabaseManager
@@ -1271,6 +1295,88 @@ def hardy_cross_yaml(
         else:
             typer.echo(f"❌ Format non supporté: {output_format}")
             
+    except Exception as e:
+        typer.echo(f"❌ Erreur: {e}", err=True)
+        raise typer.Exit(code=1)
+
+# =============================================================================
+# HARDY-CROSS UNIFIED
+# =============================================================================
+
+@app.command()
+def hardy_cross_unified(
+    input_file: Optional[Path] = typer.Option(None, "--input", "-i", help="Fichier d'entrée YAML/CSV"),
+    tolerance: float = typer.Option(1e-6, "--tolerance", "-t", help="Tolérance de convergence"),
+    max_iterations: int = typer.Option(100, "--iterations", "-n", help="Nombre maximum d'itérations"),
+    formule: str = typer.Option("hazen_williams", "--formule", "-f", help="Formule de perte de charge"),
+    export: Optional[str] = typer.Option(None, "--export", "-e", help="Export: json|yaml|markdown|csv|html"),
+    output: Optional[Path] = typer.Option(None, "--output", "-o", help="Fichier de sortie pour l'export"),
+    verbose: bool = typer.Option(False, "--verbose", "-v", help="Afficher les détails")
+):
+    """🔄 Hardy-Cross unifié (inline ou via --input YAML/CSV) avec export générique.
+
+    Exemples:
+    - lcpi aep hardy-cross-unified --input reseau.yml --tolerance 1e-6 --export json
+    - lcpi aep hardy-cross-unified --input reseau.csv --iterations 200 --export markdown
+    
+    Sortie standardisée: { valeurs, diagnostics, iterations }
+    """
+    try:
+        from .calculations.hardy_cross_enhanced import HardyCrossEnhanced
+        import yaml
+        import pandas as pd
+
+        if input_file is None:
+            raise ValueError("--input est requis pour hardy_cross_unified (YAML ou CSV)")
+
+        if input_file.suffix.lower() in {".yml", ".yaml"}:
+            with open(input_file, "r", encoding="utf-8") as f:
+                network_data = yaml.safe_load(f)
+        elif input_file.suffix.lower() == ".csv":
+            df = pd.read_csv(input_file)
+            network_data = {
+                "network": {
+                    "nodes": {},
+                    "pipes": {}
+                }
+            }
+            all_nodes = set()
+            for _, row in df.iterrows():
+                all_nodes.add(row["from_node"])
+                all_nodes.add(row["to_node"])
+            for node in all_nodes:
+                network_data["network"]["nodes"][node] = {"elevation": 0, "demand": 0.0}
+            for _, row in df.iterrows():
+                pipe_id = row["pipe_id"]
+                network_data["network"]["pipes"][pipe_id] = {
+                    "from_node": row["from_node"],
+                    "to_node": row["to_node"],
+                    "length": row["length"],
+                    "diameter": row["diameter"],
+                    "roughness": row["roughness"],
+                    "initial_flow": row.get("initial_flow", 0.0),
+                }
+        else:
+            raise ValueError("Format d'entrée non supporté. Utilisez YAML ou CSV.")
+
+        hardy = HardyCrossEnhanced()
+        hardy.load_network_data(network_data)
+        results = hardy.hardy_cross_iteration(network_data)
+
+        if verbose:
+            typer.echo("🔄 Hardy-Cross unifié terminé")
+
+        if export or output:
+            fmt = export or "json"
+            std = _make_result(results, [], results.get("iterations") or results.get("nombre_iterations"))
+            content = _export_generic(std, fmt)
+            if output:
+                output.write_text(content, encoding="utf-8")
+                typer.echo(f"✅ Export sauvegardé: {output}")
+            typer.echo(content)
+            return
+        typer.echo(_export_generic(_make_result(results, [], results.get("iterations") or results.get("nombre_iterations")), "json"))
+
     except Exception as e:
         typer.echo(f"❌ Erreur: {e}", err=True)
         raise typer.Exit(code=1)
@@ -1606,6 +1712,113 @@ def _generate_workflow_reports(network_data, hardy_results, epanet_results, comp
 # =============================================================================
 
 @app.command()
+def validate_input(
+    input_file: Path = typer.Argument(..., help="Fichier d'entrée YAML/JSON"),
+    data_type: str = typer.Option("auto", "--type", "-t", help="Type de données: auto|population|demand|network|reservoir|pumping|protection"),
+    export: Optional[str] = typer.Option(None, "--export", "-e", help="Export: json|yaml|markdown|csv|html"),
+    output: Optional[Path] = typer.Option(None, "--output", "-o", help="Fichier de sortie pour l'export")
+):
+    """🧪 Valide un fichier d'entrée AEP (Phase 0).
+
+    Détecte le type automatiquement si --type=auto.
+
+    Sortie standardisée: { valeurs, diagnostics }
+    """
+    try:
+        import yaml
+        with open(input_file, 'r', encoding='utf-8') as f:
+            data = yaml.safe_load(f) if input_file.suffix.lower() in {'.yml', '.yaml'} else json.load(f)
+
+        detected = data_type
+        if data_type == "auto":
+            # Détection simple basée sur les clés
+            if isinstance(data, dict) and 'network' in data:
+                detected = 'network_unified'
+            elif isinstance(data, dict) and {'population_base','taux_croissance','annees'} <= set(data.keys()):
+                detected = 'population_unified'
+            elif isinstance(data, dict) and {'population','dotation_l_hab_j'} <= set(data.keys()):
+                detected = 'demand_unified'
+            elif isinstance(data, dict) and {'volume_journalier_m3'} <= set(data.keys()):
+                detected = 'reservoir_unified'
+            elif isinstance(data, dict) and {'debit_m3s','hmt_m'} & set(data.keys()):
+                detected = 'pumping_unified'
+            else:
+                detected = 'population_unified'
+
+        cleaned = validate_and_clean_data(data, detected)
+        diagnostics = check_physical_constraints(cleaned)
+        std = _make_result(cleaned, diagnostics)
+
+        if export or output:
+            fmt = export or 'json'
+            content = _export_generic(std, fmt)
+            if output:
+                output.write_text(content, encoding='utf-8')
+                typer.echo(f"✅ Export sauvegardé: {output}")
+            typer.echo(content)
+            return
+
+        typer.echo(_export_generic(std, 'json'))
+
+    except Exception as e:
+        typer.echo(f"❌ Erreur de validation: {e}", err=True)
+        raise typer.Exit(code=1)
+
+
+@app.command()
+def validate_population(
+    input_file: Path = typer.Argument(..., help="YAML/JSON de population unifiée (population_base, taux, annees, methode)"),
+    export: Optional[str] = typer.Option(None, "--export", "-e", help="Export: json|yaml|markdown|csv|html"),
+    output: Optional[Path] = typer.Option(None, "--output", "-o", help="Fichier de sortie pour l'export")
+):
+    """🧪 Valide les données de population (unified)."""
+    try:
+        import yaml
+        with open(input_file, 'r', encoding='utf-8') as f:
+            data = yaml.safe_load(f) if input_file.suffix.lower() in {'.yml', '.yaml'} else json.load(f)
+        cleaned = validate_population_unified_data(data)
+        diagnostics = check_physical_constraints(cleaned)
+        std = _make_result(cleaned, diagnostics)
+        if export or output:
+            fmt = export or 'json'
+            content = _export_generic(std, fmt)
+            if output:
+                output.write_text(content, encoding='utf-8')
+                typer.echo(f"✅ Export sauvegardé: {output}")
+            typer.echo(content)
+            return
+        typer.echo(_export_generic(std, 'json'))
+    except Exception as e:
+        typer.echo(f"❌ Erreur de validation population: {e}", err=True)
+        raise typer.Exit(code=1)
+
+
+@app.command()
+def validate_network(
+    input_file: Path = typer.Argument(..., help="YAML/JSON de réseau unifié (debit_m3s, longueur_m, materiau, ...)"),
+    export: Optional[str] = typer.Option(None, "--export", "-e", help="Export: json|yaml|markdown|csv|html"),
+    output: Optional[Path] = typer.Option(None, "--output", "-o", help="Fichier de sortie pour l'export")
+):
+    """🧪 Valide les données de réseau (unified)."""
+    try:
+        import yaml
+        with open(input_file, 'r', encoding='utf-8') as f:
+            data = yaml.safe_load(f) if input_file.suffix.lower() in {'.yml', '.yaml'} else json.load(f)
+        cleaned = validate_network_unified_data(data)
+        diagnostics = check_physical_constraints(cleaned)
+        std = _make_result(cleaned, diagnostics)
+        if export or output:
+            fmt = export or 'json'
+            content = _export_generic(std, fmt)
+            if output:
+                output.write_text(content, encoding='utf-8')
+                typer.echo(f"✅ Export sauvegardé: {output}")
+            typer.echo(content)
+            return
+        typer.echo(_export_generic(std, 'json'))
+    except Exception as e:
+        typer.echo(f"❌ Erreur de validation réseau: {e}", err=True)
+        raise typer.Exit(code=1)
 def convert_inp(
     inp_file: Path = typer.Argument(..., help="Chemin vers le fichier .inp EPANET", exists=True, file_okay=True, dir_okay=False, readable=True),
     output_file: Optional[Path] = typer.Option(None, "--output", "-o", help="Fichier YAML de sortie (optionnel)"),

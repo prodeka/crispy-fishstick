@@ -129,13 +129,26 @@ class EnhancedShell:
   calc <module> <cmd>   - Exécuter un calcul
 
 [bold green]AEP (Alimentation en Eau Potable):[/bold green]
-  aep population <file> - Projection démographique
-  aep demand <file>     - Calcul de demande en eau
-  aep network <file>    - Dimensionnement réseau
-  aep reservoir <file>  - Dimensionnement réservoir
-  aep pumping <file>    - Dimensionnement pompage
-  aep hardy-cross <file> - Méthode Hardy-Cross
-  aep workflow <file>   - Workflow AEP complet
+  aep population <file>           - Projection démographique (YAML/CSV)
+  aep demand <file>               - Calcul de demande en eau (YAML)
+  aep network <file>              - Dimensionnement réseau (YAML)
+  aep reservoir <file>            - Dimensionnement réservoir (YAML)
+  aep pumping <file>              - Dimensionnement pompage (YAML)
+  aep hardy-cross <file>          - Hardy-Cross (YAML)
+  aep hardy-cross-csv <file.csv>  - Hardy-Cross (CSV)
+  aep hardy-cross-yaml <file.yml> - Hardy-Cross (YAML)
+  aep hardy-cross-unified --input <file> [--export fmt] - Hardy-Cross unifié
+  aep population-unified [...]     - Commande unifiée (inline ou --input)
+  aep demand-unified [...]         - Commande unifiée (inline ou --input)
+  aep network-unified [...]        - Commande unifiée (inline ou --input)
+  aep reservoir-unified [...]      - Commande unifiée (inline ou --input)
+  aep pumping-unified [...]        - Commande unifiée (inline ou --input)
+  aep validate-input <file>        - Validation générique (Phase 0)
+  aep validate-population <file>   - Validation population (Phase 0)
+  aep validate-network <file>      - Validation réseau (Phase 0)
+  aep workflow <file>              - Workflow AEP complet
+  
+  Options communes unifiées: --input, --mode, --export, --output, --verbose
 
 [bold green]Rapports:[/bold green]
   report generate       - Générer un rapport
@@ -720,13 +733,13 @@ class EnhancedShell:
         if not args:
             console.print("[red]Usage: aep <command> [args...][/red]")
             console.print("[yellow]Commandes disponibles:[/yellow]")
-            console.print("  population <file> - Projection démographique")
-            console.print("  demand <file>     - Calcul de demande en eau")
-            console.print("  network <file>    - Dimensionnement réseau")
-            console.print("  reservoir <file>  - Dimensionnement réservoir")
-            console.print("  pumping <file>    - Dimensionnement pompage")
-            console.print("  hardy-cross <file> - Méthode Hardy-Cross")
-            console.print("  workflow <file>   - Workflow AEP complet")
+            console.print("  population, demand, network, reservoir, pumping")
+            console.print("  population-unified, demand-unified, network-unified, reservoir-unified, pumping-unified")
+            console.print("  hardy-cross, hardy-cross-csv, hardy-cross-yaml, hardy-cross-unified")
+            console.print("  validate-input, validate-population, validate-network")
+            console.print("  workflow-complete, convert-inp, diagnose-network, simulate-inp")
+            console.print("  ")
+            console.print("  Astuce: les *-unified acceptent --input, --mode, --export, --output, --verbose")
             return
         
         command = args[0]

@@ -1,0 +1,23 @@
+valeurs:
+  final_results:
+    flows: &id001
+      N1-N2: 0.1
+      N2-N3: 0.05
+    pressures: {}
+  debits_finaux: *id001
+  coefficients_K:
+    N1-N2: 332.1644413329228
+    N2-N3: 674.1783322298495
+  iterations: &id002
+  - iteration: 1
+    debits:
+      N1-N2: 0.1
+      N2-N3: 0.05
+    corrections: {}
+    formules: []
+    corrections_total: 0
+  nombre_iterations: 1
+  convergence: true
+  tolerance_finale: 0
+diagnostics: []
+iterations: *id002

@@ -1,0 +1,4 @@
+population_base: 1500
+taux_croissance: 0.03
+annees: 15
+methode: malthus

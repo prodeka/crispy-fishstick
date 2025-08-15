@@ -6,6 +6,26 @@ Ce document décrit le workflow complet pour l'étude et le dimensionnement d'un
 
 ---
 
+## ⚙️ Options communes des commandes `*-unified`
+
+Toutes les commandes unifiées acceptent des paramètres inline OU un fichier via `--input`.
+
+- **--input**: chemin d'un fichier `YAML/CSV/JSON`. Si fourni, `--mode` bascule par défaut sur `enhanced`.
+- **--mode**: `auto|simple|enhanced` (défaut: `auto`).
+- **--export**: `json|csv|markdown|yaml|html` (défaut: `json`).
+- **--output**: chemin de fichier pour sauvegarder l'export.
+- **--verbose**: affiche davantage de détails lorsque pertinent.
+
+La sortie est standardisée sous la forme:
+
+```yaml
+valeurs: {...}
+diagnostics: []   # liste d'avertissements ou messages
+iterations: ...   # présent si applicable (ex: Hardy-Cross)
+```
+
+---
+
 ## 🔍 **PHASE 0 : VALIDATION DES DONNÉES D'ENTRÉE**
 
 ### **0.1 Vérification d'Intégrité des Fichiers**
@@ -30,11 +50,11 @@ data/
 
 **Commande LCPI :**
 ```bash
-lcpi aep validate-input data/ --verbose
+lcpi aep validate-input data/besoins.yml --type auto --export json
 ```
 
 **Résultat :**
-- Rapport de validation des données
+- Rapport de validation (sortie standardisée: `valeurs`, `diagnostics`)
 - Identification des erreurs et incohérences
 - Recommandations de correction
 
@@ -50,7 +70,7 @@ lcpi aep validate-input data/ --verbose
 
 **Commande LCPI :**
 ```bash
-lcpi aep validate-population data/population.csv --check-consistency
+lcpi aep validate-population data/population.yml --export markdown
 ```
 
 **Résultat :**
@@ -70,7 +90,7 @@ lcpi aep validate-population data/population.csv --check-consistency
 
 **Commande LCPI :**
 ```bash
-lcpi aep validate-network data/reseau.yml --check-topology
+lcpi aep validate-network data/reseau.yml --export json
 ```
 
 **Résultat :**
@@ -149,6 +169,11 @@ lcpi aep demand data/besoins.yml --type global --details
 lcpi aep demand-unified 15000 --dotation 150 --coeff-pointe 1.5 --type branchement_prive --verbose
 ```
 
+**Commande LCPI (Unifiée avec --input) :**
+```bash
+lcpi aep demand-unified --input data/besoins.yml --export markdown
+```
+
 **Commande LCPI :**
 ```bash
 lcpi aep demand data/besoins.yml --type global --details
@@ -203,6 +228,11 @@ lcpi aep network data/reseau.yml --formule hazen_williams
 lcpi aep network-unified 0.1 --longueur 1000 --materiau fonte --perte-max 10.0 --methode darcy --verbose
 ```
 
+**Commande LCPI (Unifiée avec --input) :**
+```bash
+lcpi aep network-unified --input data/reseau.yml --export yaml
+```
+
 **Résultat :**
 - Diamètres préliminaires des conduites
 - Vitesses d'écoulement
@@ -246,6 +276,11 @@ lcpi aep reservoir data/reservoir.yml --forme cylindrique
 **Commande LCPI (Unifiée) :**
 ```bash
 lcpi aep reservoir-unified 1000 --adduction continue --forme cylindrique --zone ville_francaise_peu_importante --verbose
+```
+
+**Commande LCPI (Unifiée avec --input) :**
+```bash
+lcpi aep reservoir-unified --input data/reservoir.yml --export html
 ```
 
 **Résultat :**
@@ -297,6 +332,11 @@ lcpi aep pumping data/pompage.yml --rendement 0.75
 **Commande LCPI (Unifiée) :**
 ```bash
 lcpi aep pumping-unified 100 --hmt 50 --type centrifuge --rendement 0.75 --verbose
+```
+
+**Commande LCPI (Unifiée avec --input) :**
+```bash
+lcpi aep pumping-unified --input data/pompage.yml --export csv
 ```
 
 **Résultat :**
@@ -419,6 +459,14 @@ reseau:
 ```bash
 lcpi aep hardy-cross data/reseau_maille.yml --tolerance 1e-6 --iterations 100 --export resultats_hardy.json
 ```
+
+**Commande LCPI (Unifiée) :**
+```bash
+lcpi aep hardy-cross-unified --input data/reseau_maille.yml --tolerance 1e-6 --export json
+lcpi aep hardy-cross-unified --input data/reseau.csv --iterations 200 --export markdown
+```
+
+Sortie standardisée: `{ valeurs, diagnostics, iterations }`.
 
 **Résultat :**
 - Débits équilibrés dans chaque conduite

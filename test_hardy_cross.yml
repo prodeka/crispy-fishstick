@@ -1,0 +1,28 @@
+noeuds:
+  - id: "N1"
+    cote: 100
+    demande: 0.0
+  - id: "N2"
+    cote: 95
+    demande: 0.05
+  - id: "N3"
+    cote: 90
+    demande: 0.05
+
+troncons:
+  - id: "P1"
+    noeud_amont: "N1"
+    noeud_aval: "N2"
+    longueur: 100
+    diametre: 0.2
+    coefficient_rugosite: 130
+    debit_initial: 0.1
+  - id: "P2"
+    noeud_amont: "N2"
+    noeud_aval: "N3"
+    longueur: 50
+    diametre: 0.15
+    coefficient_rugosite: 130
+    debit_initial: 0.05
+
+boucles: []

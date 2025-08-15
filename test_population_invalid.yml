@@ -1,0 +1,4 @@
+population_base: -1000
+taux_croissance: 0.03
+annees: 10
+methode: malthus

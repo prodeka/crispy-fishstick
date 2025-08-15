@@ -1,0 +1,11 @@
+valeurs:
+  statut: SUCCES
+  population_base: 1000
+  taux_croissance: 0.02
+  annees: 5
+  methode: malthus
+  population_finale: 1104.0808032
+  croissance_relative_pct: 0
+  details: {}
+diagnostics: []
+iterations: null

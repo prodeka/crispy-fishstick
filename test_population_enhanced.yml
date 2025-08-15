@@ -1,0 +1,8 @@
+population_base: 3000
+taux_croissance: 0.028
+annees: 25
+methode: malthus
+verbose: true
+metadata:
+  source: "test_enhanced"
+  description: "Test du mode enhanced"

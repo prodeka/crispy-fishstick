@@ -799,4 +799,4 @@ def test_hardy_cross_converges(sample_hardy_csv, runner, tmp_path):
 
 ---
 
-Si tu veux que je génère **a)** le JSON-Schema complet (reseau+hardy+epanet+post), **b)** l’implémentation Python du noyau Hardy-Cross (avec tests pytest), ou **c)** le handler `workflow-complete` (orchestrator) prêt à coller — je peux le coder maintenant. Lequel tu veux que je produise tout de suite ?
+
