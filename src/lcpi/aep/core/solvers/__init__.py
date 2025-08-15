@@ -8,10 +8,12 @@ de manière interchangeable.
 
 from .base import HydraulicSolver
 from .lcpi_solver import LcpiHardyCrossSolver
+from .epanet_solver import EpanetSolver
 from .factory import SolverFactory
 
 __all__ = [
     'HydraulicSolver',
-    'LcpiHardyCrossSolver', 
+    'LcpiHardyCrossSolver',
+    'EpanetSolver',
     'SolverFactory'
 ]

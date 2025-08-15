@@ -8,6 +8,7 @@ les différentes instances de solveurs hydrauliques.
 from typing import Dict, Type, Any
 from .base import HydraulicSolver
 from .lcpi_solver import LcpiHardyCrossSolver
+from .epanet_solver import EpanetSolver
 
 
 class SolverFactory:
@@ -21,6 +22,7 @@ class SolverFactory:
     _solvers: Dict[str, Type[HydraulicSolver]] = {
         "lcpi": LcpiHardyCrossSolver,
         "hardy_cross": LcpiHardyCrossSolver,  # Alias pour compatibilité
+        "epanet": EpanetSolver,
     }
     
     @classmethod
@@ -55,8 +57,15 @@ class SolverFactory:
         """
         solvers_info = {}
         for name, solver_class in cls._solvers.items():
-            solver_instance = solver_class()
-            solvers_info[name] = solver_instance.get_solver_info()
+            try:
+                solver_instance = solver_class()
+                solvers_info[name] = solver_instance.get_solver_info()
+            except RuntimeError as e:
+                # Si le solveur n'est pas disponible (ex: EPANET), on l'ignore
+                if "EPANET n'est pas disponible" in str(e):
+                    continue
+                else:
+                    raise
         
         return solvers_info
     
@@ -115,6 +124,21 @@ class SolverFactory:
                 "capabilities": solver.get_solver_info()
             }
             
+        except RuntimeError as e:
+            # Gestion spécifique pour EPANET non disponible
+            if "EPANET n'est pas disponible" in str(e):
+                return {
+                    "solver_name": solver_name,
+                    "compatible": False,
+                    "validation": {
+                        "valid": False,
+                        "errors": [str(e)],
+                        "warnings": []
+                    },
+                    "capabilities": {}
+                }
+            else:
+                raise
         except Exception as e:
             return {
                 "solver_name": solver_name,

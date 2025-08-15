@@ -15,7 +15,7 @@ import json
 from ..core.solvers import SolverFactory
 from ..core.pydantic_models import ReseauCompletConfig, valider_reseau_seul
 from ..utils.rich_ui import RichUI, console, show_calculation_results, show_network_diagnostics
-from ..utils.exporters import export_results
+# from ..utils.exporters import export_results  # Commenté car non disponible
 
 
 app = typer.Typer()
@@ -227,3 +227,117 @@ def _perform_post_processing(simulation_results: Dict[str, Any],
 
 if __name__ == "__main__":
     app()
+
+
+def load_yaml_config(file_path: Path) -> Dict[str, Any]:
+    """Charge un fichier YAML."""
+    import yaml
+    try:
+        with open(file_path, 'r', encoding='utf-8') as f:
+            return yaml.safe_load(f)
+    except FileNotFoundError:
+        raise ValueError(f"Fichier non trouvé: {file_path}")
+    except yaml.YAMLError as e:
+        raise ValueError(f"Erreur de parsing YAML dans {file_path}: {e}")
+
+
+def export_results(data: Dict[str, Any], format: str, output_path: Path, verbose: bool = False):
+    """Exporte les données dans le format spécifié."""
+    import json
+    import yaml
+    
+    try:
+        if format == "json":
+            with open(output_path, 'w', encoding='utf-8') as f:
+                json.dump(data, f, indent=4, ensure_ascii=False)
+        elif format == "yaml":
+            with open(output_path, 'w', encoding='utf-8') as f:
+                yaml.dump(data, f, indent=4, allow_unicode=True)
+        elif format == "csv":
+            _export_to_csv(data, output_path)
+        elif format == "html":
+            _export_to_html(data, output_path)
+        else:
+            raise ValueError(f"Format d'export '{format}' non supporté.")
+            
+        if verbose:
+            RichUI.print_info(f"Export au format {format} vers {output_path}")
+            
+    except Exception as e:
+        raise RuntimeError(f"Erreur lors de l'export: {e}")
+
+
+def _export_to_csv(data: Dict[str, Any], output_path: Path):
+    """Exporte les données au format CSV."""
+    import csv
+    
+    # Extraire les données principales
+    valeurs = data.get("valeurs", {})
+    diagnostics = data.get("diagnostics", {})
+    
+    with open(output_path, 'w', newline='', encoding='utf-8') as f:
+        writer = csv.writer(f)
+        
+        # En-têtes
+        writer.writerow(["Section", "Paramètre", "Valeur"])
+        
+        # Valeurs principales
+        for key, value in valeurs.items():
+            writer.writerow(["Valeurs", key, value])
+        
+        # Diagnostics
+        for key, value in diagnostics.items():
+            writer.writerow(["Diagnostics", key, value])
+
+
+def _export_to_html(data: Dict[str, Any], output_path: Path):
+    """Exporte les données au format HTML."""
+    html_content = f"""
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Résultats Analyse Réseau</title>
+    <style>
+        body {{ font-family: Arial, sans-serif; margin: 20px; }}
+        .section {{ margin: 20px 0; padding: 10px; border: 1px solid #ccc; }}
+        .success {{ color: green; }}
+        .error {{ color: red; }}
+        .warning {{ color: orange; }}
+    </style>
+</head>
+<body>
+    <h1>Résultats de l'Analyse Réseau</h1>
+    
+    <div class="section">
+        <h2>Valeurs Principales</h2>
+        <ul>
+"""
+    
+    # Ajouter les valeurs principales
+    for key, value in data.get("valeurs", {}).items():
+        html_content += f"            <li><strong>{key}:</strong> {value}</li>\n"
+    
+    html_content += """
+        </ul>
+    </div>
+    
+    <div class="section">
+        <h2>Diagnostics</h2>
+        <ul>
+"""
+    
+    # Ajouter les diagnostics
+    for key, value in data.get("diagnostics", {}).items():
+        status_class = "success" if value else "error"
+        html_content += f"            <li class='{status_class}'><strong>{key}:</strong> {value}</li>\n"
+    
+    html_content += """
+        </ul>
+    </div>
+</body>
+</html>
+"""
+    
+    with open(output_path, 'w', encoding='utf-8') as f:
+        f.write(html_content)
