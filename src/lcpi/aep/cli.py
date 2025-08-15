@@ -2248,6 +2248,326 @@ def _convert_to_hardy_cross_format(network_data: Dict[str, Any]) -> Dict[str, An
     return hardy_data
 
 # =============================================================================
+# NOUVELLES COMMANDES POUR LES MODULES DES SUGGESTIONS
+# =============================================================================
+
+# Import des nouveaux modules
+from .core.database import AEPDatabase
+from .core.import_automatique import AEPImportAutomatique
+from .core.validation_donnees import AEPDataValidator
+from .core.recalcul_automatique import AEPRecalculEngine, TypeRecalcul
+
+@app.command()
+def database(
+    action: str = typer.Argument(..., help="Action à effectuer: init, info, add-project, add-survey, list, search, export, clean"),
+    db_path: str = typer.Option("aep_database.db", "--db", "-d", help="Chemin vers la base de données"),
+    project_name: str = typer.Option(None, "--name", "-n", help="Nom du projet"),
+    description: str = typer.Option(None, "--desc", help="Description du projet"),
+    metadata: str = typer.Option(None, "--metadata", help="Métadonnées JSON"),
+    search_term: str = typer.Option(None, "--search", help="Terme de recherche"),
+    project_id: int = typer.Option(None, "--id", help="ID du projet"),
+    export_format: str = typer.Option("json", "--format", help="Format d'export (json/yaml)"),
+    output_file: str = typer.Option(None, "--output", "-o", help="Fichier de sortie"),
+    verbose: bool = typer.Option(False, "--verbose", "-v", help="Mode verbeux")
+):
+    """Gestion de la base de données centralisée AEP"""
+    try:
+        db = AEPDatabase(db_path)
+        
+        if action == "init":
+            # Initialisation déjà faite dans le constructeur
+            typer.echo(f"✅ Base de données initialisée: {db_path}")
+            
+        elif action == "info":
+            info = db.obtenir_info_base()
+            if verbose:
+                typer.echo(f"📊 Informations de la base de données:")
+                typer.echo(f"   Chemin: {info['chemin']}")
+                typer.echo(f"   Taille: {info['taille_fichier']} octets")
+                typer.echo(f"   Tables: {', '.join(info['tables'])}")
+            else:
+                typer.echo(f"Base: {info['chemin']} ({info['taille_fichier']} octets)")
+                
+        elif action == "add-project":
+            if not project_name:
+                typer.echo("❌ Nom du projet requis")
+                raise typer.Exit(1)
+                
+            metadata_dict = {}
+            if metadata:
+                try:
+                    metadata_dict = json.loads(metadata)
+                except json.JSONDecodeError:
+                    typer.echo("❌ Métadonnées JSON invalides")
+                    raise typer.Exit(1)
+            
+            projet_id = db.ajouter_projet(project_name, description or "", metadata_dict)
+            typer.echo(f"✅ Projet ajouté avec ID: {projet_id}")
+            
+        elif action == "list":
+            projets = db.obtenir_projets()
+            if verbose:
+                for projet in projets:
+                    typer.echo(f"📁 Projet {projet['id']}: {projet['nom']}")
+                    typer.echo(f"   Description: {projet['description']}")
+                    typer.echo(f"   Créé: {projet['date_creation']}")
+                    typer.echo()
+            else:
+                for projet in projets:
+                    typer.echo(f"{projet['id']}: {projet['nom']}")
+                    
+        elif action == "search":
+            if not search_term or not project_id:
+                typer.echo("❌ Terme de recherche et ID de projet requis")
+                raise typer.Exit(1)
+                
+            resultats = db.rechercher_donnees(project_id, search_term)
+            typer.echo(f"🔍 Résultats pour '{search_term}' dans le projet {project_id}:")
+            typer.echo(f"   Relevés: {len(resultats['releves'])}")
+            typer.echo(f"   Calculs: {len(resultats['resultats_calculs'])}")
+            
+        elif action == "export":
+            if not project_id:
+                typer.echo("❌ ID de projet requis")
+                raise typer.Exit(1)
+                
+            export_data = db.exporter_projet(project_id, export_format)
+            
+            if output_file:
+                with open(output_file, 'w', encoding='utf-8') as f:
+                    f.write(export_data)
+                typer.echo(f"✅ Projet exporté vers: {output_file}")
+            else:
+                typer.echo(export_data)
+                
+        elif action == "clean":
+            if not project_id:
+                typer.echo("❌ ID de projet requis")
+                raise typer.Exit(1)
+                
+            stats = db.nettoyer_projet(project_id)
+            typer.echo(f"🧹 Nettoyage terminé:")
+            typer.echo(f"   Supprimés: {stats['supprimes']}")
+            typer.echo(f"   Conservés: {stats['conserves']}")
+            
+        else:
+            typer.echo(f"❌ Action inconnue: {action}")
+            raise typer.Exit(1)
+            
+    except Exception as e:
+        typer.echo(f"❌ Erreur: {str(e)}")
+        if verbose:
+            import traceback
+            traceback.print_exc()
+        raise typer.Exit(1)
+
+@app.command()
+def import_data(
+    file_path: str = typer.Argument(..., help="Chemin vers le fichier à importer"),
+    import_type: str = typer.Argument(..., help="Type d'import: forages, pompes, reservoirs, constantes, enquetes"),
+    db_path: str = typer.Option("aep_database.db", "--db", "-d", help="Chemin vers la base de données"),
+    project_id: int = typer.Option(..., "--project", "-p", help="ID du projet"),
+    template: bool = typer.Option(False, "--template", help="Générer un template"),
+    validate: bool = typer.Option(False, "--validate", help="Valider le fichier sans importer"),
+    output_file: str = typer.Option(None, "--output", "-o", help="Fichier de sortie pour le rapport"),
+    verbose: bool = typer.Option(False, "--verbose", "-v", help="Mode verbeux")
+):
+    """Import automatique de données depuis Excel/CSV"""
+    try:
+        db = AEPDatabase(db_path)
+        importateur = AEPImportAutomatique(db)
+        
+        if template:
+            if not output_file:
+                output_file = f"template_{import_type}.xlsx"
+            success = importateur.generer_template(import_type, output_file)
+            if success:
+                typer.echo(f"✅ Template généré: {output_file}")
+            else:
+                typer.echo("❌ Erreur lors de la génération du template")
+                raise typer.Exit(1)
+            return
+            
+        if validate:
+            resultat = importateur.valider_fichier(file_path, import_type)
+            if resultat["valide"]:
+                typer.echo(f"✅ Fichier valide: {resultat['statistiques']['lignes']} lignes")
+                if verbose:
+                    typer.echo(f"   Colonnes: {resultat['statistiques']['colonnes']}")
+            else:
+                typer.echo(f"❌ Fichier invalide: {resultat['erreur']}")
+                raise typer.Exit(1)
+            return
+            
+        # Import effectif
+        resultat = importateur.importer_fichier(file_path, import_type, project_id)
+        
+        if output_file:
+            rapport = importateur.generer_rapport_import(resultat, import_type)
+            with open(output_file, 'w', encoding='utf-8') as f:
+                f.write(rapport)
+            typer.echo(f"📄 Rapport d'import sauvegardé: {output_file}")
+        
+        # Affichage du résumé
+        taux_succes = (resultat["importes"] / (resultat["importes"] + resultat["erreurs"])) * 100 if (resultat["importes"] + resultat["erreurs"]) > 0 else 0
+        
+        if verbose:
+            typer.echo(f"📊 Résumé de l'import:")
+            typer.echo(f"   Importés: {resultat['importes']}")
+            typer.echo(f"   Erreurs: {resultat['erreurs']}")
+            typer.echo(f"   Taux de succès: {taux_succes:.1f}%")
+            
+            for detail in resultat["details"]:
+                status = "✅" if detail["type"] == "succes" else "❌"
+                typer.echo(f"   {status} Ligne {detail['ligne']}: {detail['message']}")
+        else:
+            typer.echo(f"✅ Import terminé: {resultat['importes']} importés, {resultat['erreurs']} erreurs ({taux_succes:.1f}%)")
+            
+    except Exception as e:
+        typer.echo(f"❌ Erreur: {str(e)}")
+        if verbose:
+            import traceback
+            traceback.print_exc()
+        raise typer.Exit(1)
+
+@app.command()
+def validate_project(
+    project_id: int = typer.Argument(..., help="ID du projet à valider"),
+    db_path: str = typer.Option("aep_database.db", "--db", "-d", help="Chemin vers la base de données"),
+    output_file: str = typer.Option(None, "--output", "-o", help="Fichier de sortie pour le rapport"),
+    verbose: bool = typer.Option(False, "--verbose", "-v", help="Mode verbeux")
+):
+    """Validation des données d'un projet"""
+    try:
+        db = AEPDatabase(db_path)
+        validateur = AEPDataValidator(db)
+        
+        # Validation complète du projet
+        resultat = validateur.valider_projet_complet(project_id)
+        
+        # Génération du rapport
+        rapport = validateur.generer_rapport_validation(resultat, project_id)
+        
+        if output_file:
+            with open(output_file, 'w', encoding='utf-8') as f:
+                f.write(rapport)
+            typer.echo(f"📄 Rapport de validation sauvegardé: {output_file}")
+        else:
+            typer.echo(rapport)
+        
+        # Affichage du résumé
+        if resultat.valide:
+            typer.echo(f"✅ Projet valide")
+        else:
+            typer.echo(f"❌ Projet invalide: {len(resultat.erreurs)} erreurs")
+            
+        if verbose:
+            typer.echo(f"   Erreurs: {len(resultat.erreurs)}")
+            typer.echo(f"   Avertissements: {len(resultat.avertissements)}")
+            
+        # Recommandations
+        recommandations = validateur.obtenir_recommandations(project_id)
+        if recommandations:
+            typer.echo(f"💡 Recommandations:")
+            for rec in recommandations:
+                typer.echo(f"   - {rec}")
+                
+    except Exception as e:
+        typer.echo(f"❌ Erreur: {str(e)}")
+        if verbose:
+            import traceback
+            traceback.print_exc()
+        raise typer.Exit(1)
+
+@app.command()
+def recalcul(
+    action: str = typer.Argument(..., help="Action: add, execute, status, clean"),
+    recalcul_type: str = typer.Option(None, "--type", help="Type de recalcul: population, hardy_cross, reservoir, pumping, demand, network"),
+    project_id: int = typer.Option(None, "--project", "-p", help="ID du projet"),
+    parameters: str = typer.Option(None, "--params", help="Paramètres JSON"),
+    cascade: bool = typer.Option(False, "--cascade", help="Déclencher un recalcul en cascade"),
+    db_path: str = typer.Option("aep_database.db", "--db", "-d", help="Chemin vers la base de données"),
+    verbose: bool = typer.Option(False, "--verbose", "-v", help="Mode verbeux")
+):
+    """Moteur de recalcul automatique"""
+    try:
+        db = AEPDatabase(db_path)
+        moteur = AEPRecalculEngine(db)
+        
+        if action == "add":
+            if not recalcul_type or not project_id or not parameters:
+                typer.echo("❌ Type, projet et paramètres requis")
+                raise typer.Exit(1)
+                
+            try:
+                params_dict = json.loads(parameters)
+            except json.JSONDecodeError:
+                typer.echo("❌ Paramètres JSON invalides")
+                raise typer.Exit(1)
+                
+            # Conversion du type
+            type_map = {
+                "population": TypeRecalcul.POPULATION,
+                "hardy_cross": TypeRecalcul.HARDY_CROSS,
+                "reservoir": TypeRecalcul.RESERVOIR,
+                "pumping": TypeRecalcul.POMPING,
+                "demand": TypeRecalcul.DEMAND,
+                "network": TypeRecalcul.NETWORK
+            }
+            
+            if recalcul_type not in type_map:
+                typer.echo(f"❌ Type de recalcul inconnu: {recalcul_type}")
+                raise typer.Exit(1)
+                
+            if cascade:
+                taches = moteur.declencher_recalcul_cascade(type_map[recalcul_type], project_id, params_dict)
+                typer.echo(f"✅ Recalcul en cascade déclenché: {len(taches)} tâches créées")
+            else:
+                task_id = moteur.ajouter_tache_recalcul(type_map[recalcul_type], project_id, params_dict)
+                typer.echo(f"✅ Tâche de recalcul ajoutée: {task_id}")
+                
+        elif action == "execute":
+            import asyncio
+            resultats = asyncio.run(moteur.executer_taches_en_attente())
+            
+            if verbose:
+                typer.echo(f"📊 Résultats de l'exécution:")
+                typer.echo(f"   Tâches exécutées: {resultats['taches_executees']}")
+                typer.echo(f"   Erreurs: {resultats['erreurs']}")
+                
+                for detail in resultats["details"]:
+                    status = "✅" if detail["statut"] == "succes" else "❌"
+                    typer.echo(f"   {status} {detail['tache_id']}: {detail['message']}")
+            else:
+                typer.echo(f"✅ Exécution terminée: {resultats['taches_executees']} tâches, {resultats['erreurs']} erreurs")
+                
+        elif action == "status":
+            statut = moteur.obtenir_statut_taches()
+            
+            if verbose:
+                typer.echo(f"📊 Statut des tâches:")
+                typer.echo(f"   En attente: {statut['taches_en_attente']}")
+                typer.echo(f"   Par priorité: {statut['taches_par_priorite']}")
+                typer.echo(f"   Par type: {statut['taches_par_type']}")
+            else:
+                typer.echo(f"Tâches en attente: {statut['taches_en_attente']}")
+                
+        elif action == "clean":
+            moteur.nettoyer_taches_terminees()
+            typer.echo("✅ Tâches terminées nettoyées")
+            
+        else:
+            typer.echo(f"❌ Action inconnue: {action}")
+            raise typer.Exit(1)
+            
+    except Exception as e:
+        typer.echo(f"❌ Erreur: {str(e)}")
+        if verbose:
+            import traceback
+            traceback.print_exc()
+        raise typer.Exit(1)
+
+# =============================================================================
 # POINT D'ENTRÉE PRINCIPAL
 # =============================================================================
 

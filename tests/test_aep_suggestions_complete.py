@@ -21,25 +21,39 @@ from datetime import datetime
 # Ajouter le répertoire src au path
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
+# Forcer l'import des modules
+try:
+    from lcpi.aep.core.database import AEPDatabase
+    from lcpi.aep.core.import_automatique import AEPImportAutomatique
+    from lcpi.aep.core.validation_donnees import AEPDataValidator
+    from lcpi.aep.core.recalcul_automatique import AEPRecalculEngine, TypeRecalcul
+    MODULES_AVAILABLE = True
+except ImportError as e:
+    print(f"Modules non disponibles: {e}")
+    MODULES_AVAILABLE = False
+
 # Tests pour le module Database (Suggestion 1)
 class TestAEPDatabase:
     """Tests pour la base de données centralisée"""
     
     def setup_method(self):
         """Initialise la base de données de test"""
+        if not MODULES_AVAILABLE:
+            pytest.skip("Modules non disponibles")
+            
         self.temp_dir = tempfile.mkdtemp()
         self.db_path = os.path.join(self.temp_dir, "test_aep.db")
-        
-        try:
-            from lcpi.aep.core.database import AEPDatabase
-            self.database = AEPDatabase(self.db_path)
-        except ImportError as e:
-            pytest.skip(f"Module database non disponible: {e}")
+        self.database = AEPDatabase(self.db_path)
     
     def teardown_method(self):
         """Nettoie après les tests"""
-        if os.path.exists(self.temp_dir):
-            shutil.rmtree(self.temp_dir)
+        try:
+            if hasattr(self, 'database'):
+                del self.database  # Fermer la connexion
+            if os.path.exists(self.temp_dir):
+                shutil.rmtree(self.temp_dir)
+        except Exception:
+            pass  # Ignorer les erreurs de nettoyage
     
     def test_initialisation_base(self):
         """Test l'initialisation de la base de données"""
@@ -169,21 +183,29 @@ class TestAEPDataValidator:
     
     def setup_method(self):
         """Initialise le validateur de test"""
+        if not MODULES_AVAILABLE:
+            pytest.skip("Modules non disponibles")
+            
         self.temp_dir = tempfile.mkdtemp()
         self.db_path = os.path.join(self.temp_dir, "test_validator.db")
-        
-        try:
-            from lcpi.aep.core.database import AEPDatabase
-            from lcpi.aep.core.validation_donnees import AEPDataValidator
-            self.database = AEPDatabase(self.db_path)
-            self.validateur = AEPDataValidator(self.database)
-        except ImportError as e:
-            pytest.skip(f"Module validation non disponible: {e}")
+        self.database = AEPDatabase(self.db_path)
+        self.validateur = AEPDataValidator(self.database)
     
     def teardown_method(self):
         """Nettoie après les tests"""
-        if os.path.exists(self.temp_dir):
-            shutil.rmtree(self.temp_dir)
+        try:
+            if hasattr(self, 'database'):
+                del self.database  # Fermer la connexion
+            if hasattr(self, 'validateur'):
+                del self.validateur
+            if hasattr(self, 'moteur'):
+                del self.moteur
+            if hasattr(self, 'importateur'):
+                del self.importateur
+            if os.path.exists(self.temp_dir):
+                shutil.rmtree(self.temp_dir)
+        except Exception:
+            pass  # Ignorer les erreurs de nettoyage
     
     def test_validation_coordonnees_gps_valides(self):
         """Test validation de coordonnées GPS valides"""
@@ -285,22 +307,30 @@ class TestAEPRecalculEngine:
     
     def setup_method(self):
         """Initialise le moteur de recalcul de test"""
+        if not MODULES_AVAILABLE:
+            pytest.skip("Modules non disponibles")
+            
         self.temp_dir = tempfile.mkdtemp()
         self.db_path = os.path.join(self.temp_dir, "test_recalcul.db")
-        
-        try:
-            from lcpi.aep.core.database import AEPDatabase
-            from lcpi.aep.core.recalcul_automatique import AEPRecalculEngine, TypeRecalcul
-            self.database = AEPDatabase(self.db_path)
-            self.moteur = AEPRecalculEngine(self.database)
-            self.TypeRecalcul = TypeRecalcul
-        except ImportError as e:
-            pytest.skip(f"Module recalcul non disponible: {e}")
+        self.database = AEPDatabase(self.db_path)
+        self.moteur = AEPRecalculEngine(self.database)
+        self.TypeRecalcul = TypeRecalcul
     
     def teardown_method(self):
         """Nettoie après les tests"""
-        if os.path.exists(self.temp_dir):
-            shutil.rmtree(self.temp_dir)
+        try:
+            if hasattr(self, 'database'):
+                del self.database  # Fermer la connexion
+            if hasattr(self, 'validateur'):
+                del self.validateur
+            if hasattr(self, 'moteur'):
+                del self.moteur
+            if hasattr(self, 'importateur'):
+                del self.importateur
+            if os.path.exists(self.temp_dir):
+                shutil.rmtree(self.temp_dir)
+        except Exception:
+            pass  # Ignorer les erreurs de nettoyage
     
     def test_ajout_tache_recalcul(self):
         """Test ajout d'une tâche de recalcul"""
@@ -418,21 +448,29 @@ class TestAEPImportAutomatique:
     
     def setup_method(self):
         """Initialise l'importateur de test"""
+        if not MODULES_AVAILABLE:
+            pytest.skip("Modules non disponibles")
+            
         self.temp_dir = tempfile.mkdtemp()
         self.db_path = os.path.join(self.temp_dir, "test_import.db")
-        
-        try:
-            from lcpi.aep.core.database import AEPDatabase
-            from lcpi.aep.core.import_automatique import AEPImportAutomatique
-            self.database = AEPDatabase(self.db_path)
-            self.importateur = AEPImportAutomatique(self.database)
-        except ImportError as e:
-            pytest.skip(f"Module import non disponible: {e}")
+        self.database = AEPDatabase(self.db_path)
+        self.importateur = AEPImportAutomatique(self.database)
     
     def teardown_method(self):
         """Nettoie après les tests"""
-        if os.path.exists(self.temp_dir):
-            shutil.rmtree(self.temp_dir)
+        try:
+            if hasattr(self, 'database'):
+                del self.database  # Fermer la connexion
+            if hasattr(self, 'validateur'):
+                del self.validateur
+            if hasattr(self, 'moteur'):
+                del self.moteur
+            if hasattr(self, 'importateur'):
+                del self.importateur
+            if os.path.exists(self.temp_dir):
+                shutil.rmtree(self.temp_dir)
+        except Exception:
+            pass  # Ignorer les erreurs de nettoyage
     
     def test_types_import_supportes(self):
         """Test des types d'import supportés"""

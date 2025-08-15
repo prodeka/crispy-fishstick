@@ -9,3 +9,6 @@ python-docx
 rich
 cryptography
 networkx
+openpyxl
+pytest
+pytest-asyncio

@@ -17,7 +17,7 @@ def test_database():
         print("✅ Module database importé avec succès")
         
         # Test d'initialisation
-        db = AEPDatabase(":memory:")  # Base en mémoire pour les tests
+        db = AEPDatabase("test_db.db")  # Base temporaire pour les tests
         print("✅ Base de données initialisée")
         
         # Test d'ajout de projet
@@ -27,6 +27,14 @@ def test_database():
         # Test d'obtention des projets
         projets = db.obtenir_projets()
         print(f"✅ {len(projets)} projet(s) récupéré(s)")
+        
+        # Nettoyer le fichier temporaire
+        import os
+        try:
+            if os.path.exists("test_db.db"):
+                os.remove("test_db.db")
+        except:
+            pass  # Ignorer les erreurs de suppression
         
         return True
         
@@ -42,7 +50,7 @@ def test_import_automatique():
         print("✅ Module import_automatique importé avec succès")
         
         # Test d'initialisation
-        db = AEPDatabase(":memory:")
+        db = AEPDatabase("test_import.db")
         importateur = AEPImportAutomatique(db)
         print("✅ Importateur initialisé")
         
@@ -64,7 +72,7 @@ def test_validation_donnees():
         print("✅ Module validation_donnees importé avec succès")
         
         # Test d'initialisation
-        db = AEPDatabase(":memory:")
+        db = AEPDatabase("test_validator.db")
         validateur = AEPDataValidator(db)
         print("✅ Validateur initialisé")
         
@@ -86,7 +94,7 @@ def test_recalcul_automatique():
         print("✅ Module recalcul_automatique importé avec succès")
         
         # Test d'initialisation
-        db = AEPDatabase(":memory:")
+        db = AEPDatabase("test_recalcul.db")
         moteur = AEPRecalculEngine(db)
         print("✅ Moteur de recalcul initialisé")
         
