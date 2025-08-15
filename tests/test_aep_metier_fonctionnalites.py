@@ -24,7 +24,7 @@ from lcpi.aep.calculations.sensitivity_analysis import (
     AEPSensitivityAnalyzer, SensitivityParameter, SensitivityResult
 )
 from lcpi.aep.calculations.phasing_planning import (
-    AEPPhasingPlanner, Phase, PlanningResult
+    AEPPhasingPlanner, Phase, PlanningResult, HorizonResult, TypePlanning
 )
 from lcpi.aep.calculations.load_curves import (
     AEPLoadCurveManager, LoadCurve, LoadCurvePoint
@@ -177,13 +177,13 @@ class TestAEPPhasingPlanning:
             cout_infrastructure_m3=1000.0
         )
         
-        assert "court_terme" in resultats
-        assert "moyen_terme" in resultats
-        assert "long_terme" in resultats
+        assert "Court terme" in resultats
+        assert "Moyen terme" in resultats
+        assert "Long terme" in resultats
         
         for nom_phase, resultat in resultats.items():
             assert isinstance(resultat, PlanningResult)
-            assert resultat.phase == self.planner.phases_standard[nom_phase].nom
+            assert resultat.phase == nom_phase  # Le nom de la phase est maintenant la clé
             assert resultat.population_phase > 0
             assert resultat.besoins_phase > 0
             assert resultat.cout_estime > 0
@@ -201,29 +201,29 @@ class TestAEPPhasingPlanning:
         for horizon in horizons:
             assert horizon in resultats
             resultat = resultats[horizon]
-            assert resultat["annee"] == horizon
-            assert resultat["population"] > 0
-            assert resultat["besoins_journaliers_m3_j"] > 0
-            assert resultat["besoins_annuels_m3_an"] > 0
-            assert resultat["besoins_cumules_m3"] > 0
+            assert isinstance(resultat, HorizonResult)
+            assert resultat.annee == horizon
+            assert resultat.population > 0
+            assert resultat.besoins > 0
+            assert resultat.cout_estime > 0
     
     def test_calculer_planning_phases_pourcentages(self):
         """Test le calcul de planning avec phases par pourcentages"""
-        phases_pourcentages = [
-            ("Phase 1", 0.50, 0.60),
-            ("Phase 2", 0.30, 0.30),
-            ("Phase 3", 0.20, 0.10)
-        ]
+        pourcentages_population = [0.50, 0.30, 0.20]
+        pourcentages_infrastructure = [0.60, 0.30, 0.10]
+        noms_phases = ["Phase 1", "Phase 2", "Phase 3"]
         
         resultats = self.planner.calculer_planning_phases_pourcentages(
             population_base=1000,
             taux_croissance=0.025,
-            phases_pourcentages=phases_pourcentages,
+            pourcentages_population=pourcentages_population,
+            pourcentages_infrastructure=pourcentages_infrastructure,
+            noms_phases=noms_phases,
             dotation=60.0,
             cout_infrastructure_m3=1000.0
         )
         
-        for nom_phase, _, _ in phases_pourcentages:
+        for nom_phase in noms_phases:
             assert nom_phase in resultats
             resultat = resultats[nom_phase]
             assert isinstance(resultat, PlanningResult)
@@ -240,9 +240,10 @@ class TestAEPPhasingPlanning:
         rapport = self.planner.generer_rapport_planning(resultats, "json")
         data = json.loads(rapport)
         
-        assert "court_terme" in data
-        assert "moyen_terme" in data
-        assert "long_terme" in data
+        assert "planning_aep" in data
+        assert "Court terme" in data["planning_aep"]["resultats"]
+        assert "Moyen terme" in data["planning_aep"]["resultats"]
+        assert "Long terme" in data["planning_aep"]["resultats"]
     
     def test_generer_rapport_planning_markdown(self):
         """Test la génération de rapport Markdown"""
@@ -253,7 +254,7 @@ class TestAEPPhasingPlanning:
         rapport = self.planner.generer_rapport_planning(resultats, "markdown")
         
         assert "# 📅 Rapport de Planning AEP" in rapport
-        assert "## 🎯 Planning par Phases" in rapport
+        assert "## 🎯 Résumé des Phases" in rapport
     
     def test_generer_rapport_planning_html(self):
         """Test la génération de rapport HTML"""
@@ -265,6 +266,59 @@ class TestAEPPhasingPlanning:
         
         assert "<!DOCTYPE html>" in rapport
         assert "<title>Rapport de Planning AEP</title>" in rapport
+    
+    def test_validation_phases_invalides(self):
+        """Test la validation des phases invalides"""
+        # Test avec pourcentages cumulés > 100%
+        phases_invalides = [
+            Phase("Phase 1", 2025, 2030, 0.60, 0.40, "Phase 1", 1),
+            Phase("Phase 2", 2030, 2035, 0.50, 0.30, "Phase 2", 2)
+        ]
+        
+        with pytest.raises(ValueError, match="pourcentages de population cumulés"):
+            self.planner._valider_phases(phases_invalides)
+        
+        # Test avec priorités dupliquées
+        phases_priorites_dupliquees = [
+            Phase("Phase 1", 2025, 2030, 0.50, 0.40, "Phase 1", 1),
+            Phase("Phase 2", 2030, 2035, 0.50, 0.60, "Phase 2", 1)
+        ]
+        
+        with pytest.raises(ValueError, match="priorités des phases doivent être uniques"):
+            self.planner._valider_phases(phases_priorites_dupliquees)
+        
+        # Test avec années incohérentes
+        phases_annees_incoherentes = [
+            Phase("Phase 1", 2025, 2030, 0.50, 0.40, "Phase 1", 1),
+            Phase("Phase 2", 2031, 2035, 0.50, 0.60, "Phase 2", 2)  # 2031 != 2030
+        ]
+        
+        with pytest.raises(ValueError, match="année de début"):
+            self.planner._valider_phases(phases_annees_incoherentes)
+    
+    def test_planning_generique(self):
+        """Test la méthode générique de planning"""
+        phases = [
+            Phase("Phase Test 1", 2025, 2030, 0.60, 0.50, "Phase de test 1", 1),
+            Phase("Phase Test 2", 2030, 2035, 0.40, 0.50, "Phase de test 2", 2)
+        ]
+        
+        resultats = self.planner.calculer_planning_generique(
+            population_base=1000,
+            taux_croissance=0.025,
+            phases=phases,
+            dotation=60.0,
+            cout_infrastructure_m3=1000.0
+        )
+        
+        assert "Phase Test 1" in resultats
+        assert "Phase Test 2" in resultats
+        
+        for nom_phase, resultat in resultats.items():
+            assert isinstance(resultat, PlanningResult)
+            assert resultat.type_planning == TypePlanning.PHASES
+            assert resultat.population_phase > 0
+            assert resultat.besoins_phase > 0
 
 class TestAEPLoadCurves:
     """Tests pour les courbes de charge"""
