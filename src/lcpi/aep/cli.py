@@ -2324,7 +2324,8 @@ def database(
             resultats = db.rechercher_donnees(project_id, search_term)
             typer.echo(f"🔍 Résultats pour '{search_term}' dans le projet {project_id}:")
             typer.echo(f"   Relevés: {len(resultats['releves'])}")
-            typer.echo(f"   Calculs: {len(resultats['resultats_calculs'])}")
+            typer.echo(f"   Calculs: {len(resultats['calculs'])}")
+            typer.echo(f"   Documents: {len(resultats['documents'])}")
             
         elif action == "export":
             if not project_id:

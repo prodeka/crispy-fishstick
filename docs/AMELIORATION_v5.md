@@ -1,5 +1,7 @@
 # AMELIORATION_v5 - Feuille de Route d'Implémentation
 
+Comment faire en sorte que ces taches soit en accord avec la structure presente
+
 ## 📋 **Contexte**
 
 Ce document constitue la feuille de route pour l'implémentation des fonctionnalités et améliorations techniques définies dans `AMELIORATION_v4`. L'objectif est de transformer la vision stratégique en un plan d'action concret, phasé et réalisable.
