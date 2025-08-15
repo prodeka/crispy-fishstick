@@ -27,7 +27,7 @@ from lcpi.aep.calculations.phasing_planning import (
     AEPPhasingPlanner, Phase, PlanningResult, HorizonResult, TypePlanning
 )
 from lcpi.aep.calculations.load_curves import (
-    AEPLoadCurveManager, LoadCurve, LoadCurvePoint
+    AEPLoadCurveManager, LoadCurve, LoadCurvePoint, TypeCourbe, MethodeCalcul, CalculResult
 )
 from lcpi.aep.core.dynamic_constants import (
     AEPDynamicConstantsManager, ReferenceLocale, DotationLocale, CoefficientLocal
@@ -341,7 +341,7 @@ class TestAEPLoadCurves:
         
         assert courbe is not None
         assert courbe.nom == "Courbe journalière standard"
-        assert courbe.type == "journaliere"
+        assert courbe.type == TypeCourbe.JOURNALIERE
         assert len(courbe.points) > 0
         assert courbe.coefficient_moyen == 1.0
         assert courbe.coefficient_max > 1.0
@@ -423,9 +423,9 @@ class TestAEPLoadCurves:
         )
         
         assert courbe.nom == "Test"
-        assert courbe.type == "test"
+        assert courbe.type == TypeCourbe.PERSONNALISEE
         assert len(courbe.points) == 3
-        assert courbe.coefficient_moyen == 0.8333333333333334
+        assert courbe.coefficient_moyen == 0.833
         assert courbe.coefficient_max == 1.5
     
     def test_calculer_besoin_pointe(self):
@@ -453,6 +453,212 @@ class TestAEPLoadCurves:
                 population=1000,
                 methode="methode_invalide"
             )
+    
+    def test_validation_entrees_positives(self):
+        """Test la validation des entrées positives"""
+        # Test avec population négative
+        with pytest.raises(ValueError, match="population.*doit être un nombre positif"):
+            self.manager.calculer_coefficient_pointe_journalier(population=-1000)
+        
+        # Test avec débit nul
+        with pytest.raises(ValueError, match="debit_moyen_horaire_m3h.*doit être un nombre positif"):
+            self.manager.calculer_coefficient_pointe_horaire(debit_moyen_horaire_m3h=0)
+        
+        # Test avec besoin négatif
+        with pytest.raises(ValueError, match="besoin_moyen_journalier.*doit être un nombre positif"):
+            self.manager.calculer_besoin_pointe(
+                besoin_moyen_journalier=-100.0,
+                coefficient_pointe_journalier=1.5,
+                coefficient_pointe_horaire=1.8
+            )
+    
+    def test_calculer_coefficient_pointe_unifie(self):
+        """Test la méthode unifiée de calcul des coefficients"""
+        # Test coefficients horaires
+        resultats_horaires = self.manager.calculer_coefficient_pointe_unifie(
+            parametres={"debit_moyen_horaire_m3h": 100.0},
+            methodes=[MethodeCalcul.GENIE_RURAL, MethodeCalcul.OMS],
+            type_calcul="horaire"
+        )
+        
+        assert "formule_genie_rural" in resultats_horaires
+        assert "formule_oms" in resultats_horaires
+        assert isinstance(resultats_horaires["formule_genie_rural"], CalculResult)
+        assert resultats_horaires["formule_oms"].valeur == 1.8
+        
+        # Test coefficients journaliers
+        resultats_journaliers = self.manager.calculer_coefficient_pointe_unifie(
+            parametres={"population": 1000},
+            methodes=[MethodeCalcul.STANDARD, MethodeCalcul.POPULATION],
+            type_calcul="journalier"
+        )
+        
+        assert "formule_standard" in resultats_journaliers
+        assert "formule_population" in resultats_journaliers
+        assert resultats_journaliers["formule_standard"].valeur == 1.5
+    
+    def test_generer_rapport_dimensionnement(self):
+        """Test la génération de rapport de dimensionnement"""
+        rapport = self.manager.generer_rapport_dimensionnement(
+            population=1000,
+            dotation=60.0,
+            nom_courbe="horaire_detaille"
+        )
+        
+        assert "parametres_entree" in rapport
+        assert "besoins" in rapport
+        assert "coefficients_pointe" in rapport
+        assert "dimensionnement_equipements" in rapport
+        assert "courbe_utilisee" in rapport
+        
+        # Vérifier les paramètres d'entrée
+        assert rapport["parametres_entree"]["population"] == 1000
+        assert rapport["parametres_entree"]["dotation_l_j_hab"] == 60.0
+        
+        # Vérifier les besoins
+        assert rapport["besoins"]["besoin_moyen_journalier_m3_j"] > 0
+        assert rapport["besoins"]["besoin_pointe_journalier_m3_j"] > 0
+        assert rapport["besoins"]["besoin_pointe_horaire_m3_h"] > 0
+        
+        # Vérifier le dimensionnement
+        assert rapport["dimensionnement_equipements"]["volume_reservoir_m3"] > 0
+        assert rapport["dimensionnement_equipements"]["puissance_pompe_kw"] > 0
+        assert rapport["dimensionnement_equipements"]["diametre_conduite_mm"] > 0
+    
+    def test_generer_rapport_complet(self):
+        """Test la génération de rapport complet"""
+        # Test format JSON
+        rapport_json = self.manager.generer_rapport_complet(
+            population=1000,
+            dotation=60.0,
+            format_sortie="json"
+        )
+        data = json.loads(rapport_json)
+        assert "parametres_entree" in data
+        
+        # Test format Markdown
+        rapport_md = self.manager.generer_rapport_complet(
+            population=1000,
+            dotation=60.0,
+            format_sortie="markdown"
+        )
+        assert "# 📊 Rapport de Dimensionnement AEP" in rapport_md
+        assert "## 🎯 Paramètres d'Entrée" in rapport_md
+        
+        # Test format HTML
+        rapport_html = self.manager.generer_rapport_complet(
+            population=1000,
+            dotation=60.0,
+            format_sortie="html"
+        )
+        assert "<!DOCTYPE html>" in rapport_html
+        assert "<title>Rapport de Dimensionnement AEP</title>" in rapport_html
+    
+    def test_comparer_methodes_calcul(self):
+        """Test la comparaison des méthodes de calcul"""
+        resultats = self.manager.comparer_methodes_calcul(
+            population=1000,
+            debit_moyen_horaire_m3h=100.0
+        )
+        
+        assert "coefficients_journaliers" in resultats
+        assert "coefficients_horaires" in resultats
+        assert "coefficients_globaux" in resultats
+        
+        # Vérifier les méthodes journalières
+        assert "formule_standard" in resultats["coefficients_journaliers"]
+        assert "formule_population" in resultats["coefficients_journaliers"]
+        assert "formule_zone" in resultats["coefficients_journaliers"]
+        
+        # Vérifier les méthodes horaires
+        assert "formule_genie_rural" in resultats["coefficients_horaires"]
+        assert "formule_oms" in resultats["coefficients_horaires"]
+        assert "formule_empirique" in resultats["coefficients_horaires"]
+    
+    def test_analyser_sensibilite_courbe(self):
+        """Test l'analyse de sensibilité des courbes"""
+        resultats = self.manager.analyser_sensibilite_courbe(
+            population=1000,
+            dotation=60.0,
+            variation_population=10.0,
+            variation_dotation=10.0
+        )
+        
+        assert "parametres_reference" in resultats
+        assert "resultats_reference" in resultats
+        assert "sensibilite_population" in resultats
+        assert "sensibilite_dotation" in resultats
+        
+        # Vérifier les paramètres de référence
+        assert resultats["parametres_reference"]["population"] == 1000
+        assert resultats["parametres_reference"]["dotation"] == 60.0
+        assert resultats["parametres_reference"]["variation_population_pct"] == 10.0
+        
+        # Vérifier la sensibilité population
+        sens_pop = resultats["sensibilite_population"]
+        assert sens_pop["population_min"] == 900
+        assert sens_pop["population_max"] == 1100
+        assert sens_pop["impact_besoin_min"] > 0
+        assert sens_pop["impact_besoin_max"] > 0
+    
+    def test_ajouter_courbe_zone(self):
+        """Test l'ajout de courbe pour une zone spécifique"""
+        # Créer une courbe personnalisée
+        points = [
+            (0, 0.5, "Nuit"),
+            (12, 1.5, "Midi"),
+            (24, 0.5, "Nuit")
+        ]
+        
+        courbe = self.manager.generer_courbe_personnalisee(
+            nom="Test Zone",
+            type_courbe="test",
+            points=points,
+            zone="zone_test"
+        )
+        
+        # Ajouter la courbe à une zone
+        success = self.manager.ajouter_courbe_zone("village_test", courbe)
+        assert success is True
+        
+        # Vérifier que la courbe est disponible
+        courbe_zone = self.manager.obtenir_courbes_zone("village_test")
+        assert courbe_zone is not None
+        assert courbe_zone.nom == "Test Zone"
+        assert courbe_zone.zone == "village_test"
+        
+        # Vérifier la liste des zones
+        zones = self.manager.lister_zones()
+        assert "village_test" in zones
+    
+    def test_generer_graphique_courbe(self):
+        """Test la génération de graphique de courbe"""
+        # Test avec une courbe existante
+        nom_fichier = self.manager.generer_graphique_courbe("horaire_detaille")
+        assert nom_fichier.endswith(".png")
+        
+        # Vérifier que le fichier a été créé
+        import os
+        assert os.path.exists(nom_fichier)
+        
+        # Nettoyer
+        os.remove(nom_fichier)
+    
+    def test_export_import_courbe_json(self):
+        """Test l'export et import de courbe JSON"""
+        # Exporter une courbe
+        json_data = self.manager.exporter_courbe_json("horaire_detaille")
+        data = json.loads(json_data)
+        
+        assert "nom" in data
+        assert "type" in data
+        assert "points" in data
+        assert data["nom"] == "Courbe horaire détaillée"
+        
+        # Importer la courbe
+        courbe_importee = self.manager.importer_courbe_json(json_data)
+        assert courbe_importee.nom == "Courbe horaire détaillée"
+        assert len(courbe_importee.points) > 0
 
 class TestAEPDynamicConstants:
     """Tests pour la gestion dynamique des constantes"""
