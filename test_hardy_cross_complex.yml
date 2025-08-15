@@ -1,0 +1,143 @@
+noeuds:
+  - id: "N1"
+    cote: 100
+    demande: 0.0
+  - id: "N2"
+    cote: 95
+    demande: 0.05
+  - id: "N3"
+    cote: 90
+    demande: 0.05
+  - id: "N4"
+    cote: 85
+    demande: 0.03
+  - id: "N5"
+    cote: 80
+    demande: 0.02
+  - id: "N6"
+    cote: 75
+    demande: 0.04
+  - id: "N7"
+    cote: 70
+    demande: 0.03
+  - id: "N8"
+    cote: 65
+    demande: 0.02
+
+troncons:
+  - id: "P1"
+    noeud_amont: "N1"
+    noeud_aval: "N2"
+    longueur: 100
+    diametre: 0.2
+    coefficient_rugosite: 130
+    debit_initial: 0.1
+  - id: "P2"
+    noeud_amont: "N2"
+    noeud_aval: "N3"
+    longueur: 50
+    diametre: 0.15
+    coefficient_rugosite: 130
+    debit_initial: 0.05
+  - id: "P3"
+    noeud_amont: "N3"
+    noeud_aval: "N4"
+    longueur: 60
+    diametre: 0.12
+    coefficient_rugosite: 130
+    debit_initial: 0.03
+  - id: "P4"
+    noeud_amont: "N4"
+    noeud_aval: "N5"
+    longueur: 70
+    diametre: 0.1
+    coefficient_rugosite: 130
+    debit_initial: 0.02
+  - id: "P5"
+    noeud_amont: "N5"
+    noeud_aval: "N6"
+    longueur: 80
+    diametre: 0.08
+    coefficient_rugosite: 130
+    debit_initial: 0.01
+  - id: "P6"
+    noeud_amont: "N6"
+    noeud_aval: "N7"
+    longueur: 90
+    diametre: 0.06
+    coefficient_rugosite: 130
+    debit_initial: 0.005
+  - id: "P7"
+    noeud_amont: "N7"
+    noeud_aval: "N8"
+    longueur: 100
+    diametre: 0.05
+    coefficient_rugosite: 130
+    debit_initial: 0.002
+  # Boucles supplémentaires pour tester la limitation
+  - id: "P8"
+    noeud_amont: "N1"
+    noeud_aval: "N3"
+    longueur: 120
+    diametre: 0.18
+    coefficient_rugosite: 130
+    debit_initial: 0.08
+  - id: "P9"
+    noeud_amont: "N2"
+    noeud_aval: "N4"
+    longueur: 110
+    diametre: 0.16
+    coefficient_rugosite: 130
+    debit_initial: 0.06
+  - id: "P10"
+    noeud_amont: "N3"
+    noeud_aval: "N5"
+    longueur: 130
+    diametre: 0.14
+    coefficient_rugosite: 130
+    debit_initial: 0.04
+  - id: "P11"
+    noeud_amont: "N4"
+    noeud_aval: "N6"
+    longueur: 140
+    diametre: 0.12
+    coefficient_rugosite: 130
+    debit_initial: 0.03
+  - id: "P12"
+    noeud_amont: "N5"
+    noeud_aval: "N7"
+    longueur: 150
+    diametre: 0.1
+    coefficient_rugosite: 130
+    debit_initial: 0.02
+  - id: "P13"
+    noeud_amont: "N6"
+    noeud_aval: "N8"
+    longueur: 160
+    diametre: 0.08
+    coefficient_rugosite: 130
+    debit_initial: 0.01
+  # Boucles croisées pour créer plus de complexité
+  - id: "P14"
+    noeud_amont: "N1"
+    noeud_aval: "N5"
+    longueur: 200
+    diametre: 0.2
+    coefficient_rugosite: 130
+    debit_initial: 0.15
+  - id: "P15"
+    noeud_amont: "N2"
+    noeud_aval: "N6"
+    longueur: 180
+    diametre: 0.18
+    coefficient_rugosite: 130
+    debit_initial: 0.12
+  - id: "P16"
+    noeud_amont: "N3"
+    noeud_aval: "N7"
+    longueur: 190
+    diametre: 0.16
+    coefficient_rugosite: 130
+    debit_initial: 0.1
+
+boucles: []
