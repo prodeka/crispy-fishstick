@@ -1,0 +1,154 @@
+/* templates/style.css */
+@import url('https://fonts.googleapis.com/css2?family=Lato:wght@400;700&family=Roboto+Slab:wght@400;700&display=swap');
+
+:root {
+    --primary-color: #003366;
+    --secondary-color: #4a6a8a;
+    --border-color: #cccccc;
+    --bg-light: #f8f9fa;
+    --text-color: #333333;
+}
+
+body {
+    font-family: 'Lato', sans-serif;
+    line-height: 1.6;
+    color: var(--text-color);
+    margin: 0;
+    padding: 0;
+    background-color: #fff;
+}
+
+.report-container {
+    max-width: 800px;
+    margin: 40px auto;
+    padding: 20px 40px;
+    border: 1px solid var(--border-color);
+    box-shadow: 0 0 10px rgba(0,0,0,0.05);
+}
+
+header {
+    text-align: center;
+    border-bottom: 2px solid var(--primary-color);
+    padding-bottom: 20px;
+    margin-bottom: 30px;
+}
+
+header h1 {
+    font-family: 'Roboto Slab', serif;
+    color: var(--primary-color);
+    margin: 0;
+}
+
+header .project-meta {
+    font-size: 0.9em;
+    color: #666;
+}
+
+h2 {
+    font-family: 'Roboto Slab', serif;
+    color: var(--primary-color);
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 10px;
+    margin-top: 40px;
+}
+
+h3 {
+    font-family: 'Roboto Slab', serif;
+    color: var(--secondary-color);
+    margin-top: 30px;
+}
+
+.toc {
+    background: var(--bg-light);
+    border: 1px solid #e0e0e0;
+    padding: 15px 25px;
+    margin-bottom: 30px;
+}
+
+.toc ul {
+    list-style-type: none;
+    padding-left: 0;
+}
+
+.toc li a {
+    text-decoration: none;
+    color: var(--primary-color);
+}
+
+.calculation-section {
+    margin-bottom: 40px;
+    padding-bottom: 20px;
+    border-bottom: 1px dashed var(--border-color);
+}
+
+.calc-meta {
+    font-size: 0.8em;
+    color: #777;
+    background: var(--bg-light);
+    padding: 8px;
+    border: 1px solid #eee;
+    margin-bottom: 15px;
+    word-wrap: break-word;
+}
+
+.calc-meta code {
+    background: #e0e0e0;
+    padding: 2px 4px;
+    border-radius: 3px;
+}
+
+/* Style pour les tableaux récapitulatifs */
+.recap-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    margin-bottom: 20px;
+    font-size: 0.9em;
+}
+
+.recap-table th, .recap-table td {
+    border: 1px solid var(--border-color);
+    padding: 8px 12px;
+    text-align: left;
+}
+
+.recap-table thead {
+    background-color: var(--secondary-color);
+    color: white;
+    font-weight: bold;
+}
+
+.recap-table tbody tr:nth-child(even) {
+    background-color: var(--bg-light);
+}
+
+/* Transparence Mathématique */
+details {
+    margin-top: 15px;
+    background: #fafafa;
+    border: 1px solid #eee;
+    padding: 10px;
+}
+
+summary {
+    cursor: pointer;
+    font-weight: bold;
+    color: var(--secondary-color);
+}
+
+footer {
+    text-align: center;
+    margin-top: 40px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border-color);
+    font-size: 0.8em;
+    color: #888;
+}
+
+@media print {
+    body { font-size: 10pt; }
+    .report-container { border: none; box-shadow: none; margin: 0; padding: 0; max-width: 100%; }
+    .toc { display: none; }
+    footer { display: none; }
+    h2 { page-break-before: always; }
+}

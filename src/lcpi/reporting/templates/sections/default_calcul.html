@@ -1,0 +1,35 @@
+<!-- templates/sections/default_calcul.html -->
+<section id="section-{{ log.id }}" class="calculation-section">
+    <h2>{{ loop.index }}. {{ log.titre_calcul }}</h2>
+
+    <div class="calc-meta">
+        <strong>Date du calcul :</strong> {{ log.timestamp | dateformat('%Y-%m-%d %H:%M:%S') }}<br>
+        <strong>Commande exécutée :</strong> <code>{{ log.commande_executee }}</code>
+    </div>
+
+    <h3>Résultats</h3>
+    
+    <!-- Moteur d'affichage intelligent -->
+    {% for key, value in log.donnees_resultat.items() %}
+        {# Si la clé est un tableau reconnu, on utilise le template partiel #}
+        {% if 'tableau' in key and value is iterable and value is not string and value %}
+            {% include 'partials/tableau_recapitulatif.html' with {'table_data': value, 'title': key} %}
+        {# Sinon, on affiche en simple clé/valeur #}
+        {% else %}
+            <p><strong>{{ key | replace('_', ' ') | title }} :</strong> {{ value }}</p>
+        {% endif %}
+    {% endfor %}
+
+    {# Section pour la traçabilité des calculs #}
+    {% if log.transparence_mathematique %}
+    <details>
+        <summary>Transparence Mathématique</summary>
+        <ul>
+            {% for line in log.transparence_mathematique %}
+            <li>{{ line }}</li>
+            {% endfor %}
+        </ul>
+    </details>
+    {% endif %}
+
+</section>

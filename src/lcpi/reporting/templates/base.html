@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ projet_metadata.nom_projet }} - Rapport Technique</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="report-container">
+        <header>
+            <h1>RAPPORT TECHNIQUE</h1>
+            <h2>{{ projet_metadata.nom_projet }}</h2>
+            <div class="project-meta">
+                <p>
+                    Client: {{ projet_metadata.client }} | Indice: {{ projet_metadata.indice_revision }}<br>
+                    Rédigé par: {{ auteurs[0].nom }} ({{ auteurs[0].role }})<br>
+                    Date de génération: {{ generation_date }}
+                </p>
+            </div>
+        </header>
+
+        <main>
+            <section id="table-of-contents">
+                <h2>Table des Matières</h2>
+                <nav class="toc">
+                    <ul>
+                        {% for log in logs_selectionnes %}
+                        <li><a href="#section-{{ log.id }}">{{ loop.index }}. {{ log.titre_calcul }}</a></li>
+                        {% endfor %}
+                    </ul>
+                </nav>
+            </section>
+            
+            <!-- Injection des sections de calcul -->
+            {% for log in logs_selectionnes %}
+                {% include 'sections/default_calcul.html' %}
+            {% endfor %}
+        </main>
+        
+        <footer>
+            Rapport généré avec l'outil LCPI v{{ projet_metadata.version_lcpi }}.
+        </footer>
+    </div>
+</body>
+</html>

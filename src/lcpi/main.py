@@ -907,6 +907,14 @@ def print_plugin_status():
     except ImportError as e:
         console.print(Panel(f"[bold red]✗[/bold red] Plugin 'shell' non chargé. Erreur : {e}", title="Erreur de Chargement Plugin", border_style="red"))
 
+    # Charger le plugin de reporting
+    try:
+        from .reporting.cli import app as reporting_app
+        app.add_typer(reporting_app, name="rapport")
+        console.print("[green]✓[/green] Plugin 'reporting' chargé.")
+    except ImportError as e:
+        console.print(Panel(f"[bold red]✗[/bold red] Plugin 'reporting' non chargé. Erreur : {e}", title="Erreur de Chargement Plugin", border_style="red"))
+
     console.print("[bold]----------------------------------[/bold]")
 
 # Appel de la fonction pour enregistrer les plugins au démarrage

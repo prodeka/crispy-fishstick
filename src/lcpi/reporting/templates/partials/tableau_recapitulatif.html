@@ -1,0 +1,23 @@
+<!-- templates/partials/tableau_recapitulatif.html -->
+<h4>{{ title | replace('_', ' ') | title }}</h4>
+<table class="recap-table">
+    <thead>
+        <tr>
+            {# Génère les en-têtes à partir des clés du premier objet de la liste #}
+            {% for header in table_data[0].keys() %}
+                <th>{{ header | replace('_', ' ') | title }}</th>
+            {% endfor %}
+        </tr>
+    </thead>
+    <tbody>
+        {# Itère sur chaque ligne de données #}
+        {% for row in table_data %}
+            <tr>
+                {# Itère sur chaque valeur de la ligne #}
+                {% for value in row.values() %}
+                    <td>{{ value }}</td>
+                {% endfor %}
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>

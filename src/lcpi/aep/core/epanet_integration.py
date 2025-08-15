@@ -1,355 +1,358 @@
 """
-Module d'intégration EPANET avec diagnostic de connectivité
+Module d'intégration EPANET avec diagnostics pour LCPI-AEP.
 
-Ce module intègre la fonction de diagnostic de connectivité réseau
-avant l'appel à EPANET pour prévenir l'erreur 110.
+Ce module fournit une interface unifiée pour utiliser EPANET avec
+des diagnostics avancés et une gestion d'erreurs robuste.
 """
 
 import os
 import tempfile
-from typing import Dict, Any, Optional, Tuple
+import time
+from typing import Dict, Any, Optional, List
 from pathlib import Path
 
 try:
-    from .network_diagnostics import (
-        diagnose_network_connectivity,
-        analyze_network_topology,
-        validate_epanet_compatibility
-    )
-    from ..epanet_wrapper import EpanetSimulator, create_epanet_inp_file
+    import epanet
+    EPANET_PYTHON_AVAILABLE = True
 except ImportError:
-    # Fallback pour les imports dynamiques
-    import sys
-    import os
-    current_dir = os.path.dirname(os.path.abspath(__file__))
-    
-    # Import network_diagnostics
-    network_diagnostics_path = os.path.join(current_dir, "network_diagnostics.py")
-    import importlib.util
-    spec_diagnostics = importlib.util.spec_from_file_location("network_diagnostics", network_diagnostics_path)
-    if spec_diagnostics and spec_diagnostics.loader:
-        network_diagnostics = importlib.util.module_from_spec(spec_diagnostics)
-        spec_diagnostics.loader.exec_module(network_diagnostics)
-    else:
-        raise ImportError("Impossible de charger network_diagnostics")
-    
-    # Import epanet_wrapper
-    epanet_wrapper_path = os.path.join(os.path.dirname(current_dir), "epanet_wrapper.py")
-    spec_wrapper = importlib.util.spec_from_file_location("epanet_wrapper", epanet_wrapper_path)
-    if spec_wrapper and spec_wrapper.loader:
-        epanet_wrapper = importlib.util.module_from_spec(spec_wrapper)
-        spec_wrapper.loader.exec_module(epanet_wrapper)
-    else:
-        raise ImportError("Impossible de charger epanet_wrapper")
-    
-    # Assigner les fonctions
-    diagnose_network_connectivity = network_diagnostics.diagnose_network_connectivity
-    analyze_network_topology = network_diagnostics.analyze_network_topology
-    validate_epanet_compatibility = network_diagnostics.validate_epanet_compatibility
-    EpanetSimulator = epanet_wrapper.EpanetSimulator
-    create_epanet_inp_file = epanet_wrapper.create_epanet_inp_file
+    EPANET_PYTHON_AVAILABLE = False
+
+try:
+    from epanet_python import epanet as epanet_python
+    EPANET_PYTHON_ALT_AVAILABLE = True
+except ImportError:
+    EPANET_PYTHON_ALT_AVAILABLE = False
 
 
 class EpanetWithDiagnostics:
     """
-    Classe wrapper pour EPANET avec diagnostic automatique de connectivité.
+    Classe d'intégration EPANET avec diagnostics avancés.
     
-    Cette classe intègre les diagnostics de connectivité réseau avant
-    l'exécution d'EPANET pour prévenir l'erreur 110.
+    Fournit une interface unifiée pour utiliser EPANET avec des diagnostics
+    détaillés et une gestion d'erreurs robuste.
     """
     
     def __init__(self, epanet_path: Optional[str] = None):
         """
-        Initialise le wrapper EPANET avec diagnostics.
+        Initialise l'intégration EPANET.
         
         Args:
             epanet_path: Chemin vers la DLL EPANET (optionnel)
         """
-        self.epanet_simulator = EpanetSimulator(epanet_path)
-        self.diagnostic_results = {}
-        self.validation_results = {}
+        self.epanet_path = epanet_path
+        self.epanet_engine = None
+        self._initialize_epanet()
+    
+    def _initialize_epanet(self):
+        """Initialise le moteur EPANET."""
+        if not EPANET_PYTHON_AVAILABLE and not EPANET_PYTHON_ALT_AVAILABLE:
+            raise RuntimeError("Aucune bibliothèque EPANET Python disponible")
         
-    def run_with_diagnostics(self, network_data: Dict[str, Any], 
+        try:
+            if EPANET_PYTHON_AVAILABLE:
+                self.epanet_engine = epanet
+            elif EPANET_PYTHON_ALT_AVAILABLE:
+                self.epanet_engine = epanet_python
+        except Exception as e:
+            raise RuntimeError(f"Impossible d'initialiser EPANET: {e}")
+    
+    def run_with_diagnostics(self, 
+                           network_data: Dict[str, Any], 
                            inp_file_path: Optional[str] = None,
                            skip_diagnostics: bool = False) -> Dict[str, Any]:
         """
-        Exécute EPANET avec diagnostic automatique de connectivité.
+        Exécute une simulation EPANET avec diagnostics.
         
         Args:
-            network_data: Données du réseau au format LCPI
-            inp_file_path: Chemin du fichier .inp (optionnel, généré automatiquement si None)
-            skip_diagnostics: Si True, ignore les diagnostics (non recommandé)
+            network_data: Données du réseau (si inp_file_path n'est pas fourni)
+            inp_file_path: Chemin vers un fichier .inp existant
+            skip_diagnostics: Ignorer les diagnostics pour accélérer
             
         Returns:
-            Dict contenant les résultats de simulation et diagnostics
-            
-        Raises:
-            ValueError: Si le réseau présente des problèmes de connectivité critiques
-            RuntimeError: Si EPANET échoue après validation
+            Dictionnaire contenant les résultats et diagnostics
         """
-        
-        results = {
-            "success": False,
-            "diagnostics": {},
-            "validation": {},
-            "epanet_results": {},
-            "errors": [],
-            "warnings": []
-        }
+        start_time = time.time()
         
         try:
-            print("🚀 DÉMARRAGE SIMULATION EPANET AVEC DIAGNOSTICS")
-            print("=" * 60)
-            
-            # ÉTAPE 1: Diagnostic de connectivité
-            if not skip_diagnostics:
-                print("\n🔍 ÉTAPE 1: DIAGNOSTIC DE CONNECTIVITÉ")
-                print("-" * 40)
-                
-                try:
-                    is_connected = diagnose_network_connectivity(network_data)
-                    results["diagnostics"]["connectivity"] = is_connected
-                    
-                    if not is_connected:
-                        error_msg = "❌ RÉSEAU NON CONNECTÉ - Simulation EPANET annulée"
-                        results["errors"].append(error_msg)
-                        print(error_msg)
-                        print("💡 Corrigez les problèmes de connectivité avant de relancer EPANET")
-                        return results
-                    
-                    print("✅ Réseau connecté - Diagnostic réussi")
-                    
-                except Exception as e:
-                    error_msg = f"❌ Erreur lors du diagnostic: {e}"
-                    results["errors"].append(error_msg)
-                    print(error_msg)
-                    return results
-            
-            # ÉTAPE 2: Validation EPANET
-            print("\n🔧 ÉTAPE 2: VALIDATION COMPATIBILITÉ EPANET")
-            print("-" * 40)
-            
-            try:
-                validation = validate_epanet_compatibility(network_data)
-                results["validation"] = validation
-                
-                if not validation["compatible"]:
-                    error_msg = "❌ RÉSEAU INCOMPATIBLE AVEC EPANET - Simulation annulée"
-                    results["errors"].append(error_msg)
-                    print(error_msg)
-                    
-                    if validation["erreurs"]:
-                        print("📋 Erreurs détectées:")
-                        for error in validation["erreurs"]:
-                            print(f"   • {error}")
-                    
-                    return results
-                
-                print("✅ Réseau compatible avec EPANET")
-                
-            except Exception as e:
-                error_msg = f"❌ Erreur lors de la validation: {e}"
-                results["errors"].append(error_msg)
-                print(error_msg)
-                return results
-            
-            # ÉTAPE 3: Analyse topologique (optionnelle)
-            print("\n🔬 ÉTAPE 3: ANALYSE TOPOLOGIQUE")
-            print("-" * 40)
-            
-            try:
-                topology = analyze_network_topology(network_data)
-                results["diagnostics"]["topology"] = topology
-                print("✅ Analyse topologique terminée")
-                
-            except Exception as e:
-                warning_msg = f"⚠️  Erreur lors de l'analyse topologique: {e}"
-                results["warnings"].append(warning_msg)
-                print(warning_msg)
-            
-            # ÉTAPE 4: Génération du fichier .inp
-            print("\n📝 ÉTAPE 4: GÉNÉRATION FICHIER .INP")
-            print("-" * 40)
-            
+            # Générer le fichier .inp si nécessaire
             if inp_file_path is None:
-                # Créer un fichier temporaire
-                temp_dir = tempfile.gettempdir()
-                inp_file_path = os.path.join(temp_dir, "lcpi_epanet_temp.inp")
+                inp_file_path = self._generate_inp_file(network_data)
             
-            try:
-                success = create_epanet_inp_file(network_data, inp_file_path)
-                if not success:
-                    error_msg = "❌ Échec de la génération du fichier .inp"
-                    results["errors"].append(error_msg)
-                    print(error_msg)
-                    return results
-                
-                print(f"✅ Fichier .inp généré: {inp_file_path}")
-                
-            except Exception as e:
-                error_msg = f"❌ Erreur lors de la génération du fichier .inp: {e}"
-                results["errors"].append(error_msg)
-                print(error_msg)
-                return results
+            # Exécuter la simulation EPANET
+            simulation_results = self._run_epanet_simulation(inp_file_path)
             
-            # ÉTAPE 5: Simulation EPANET
-            print("\n⚡ ÉTAPE 5: SIMULATION EPANET")
-            print("-" * 40)
+            # Calculer le temps de simulation
+            simulation_time = time.time() - start_time
             
-            try:
-                # Ouvrir le fichier .inp
-                if not self.epanet_simulator.open_project(inp_file_path):
-                    raise Exception("Impossible d'ouvrir le projet EPANET")
-                
-                # Lancer la simulation hydraulique
-                print("   • Lancement de la simulation hydraulique...")
-                if not self.epanet_simulator.solve_hydraulics():
-                    raise Exception("Échec de la simulation hydraulique")
-                
-                # Sauvegarder les résultats
-                if not self.epanet_simulator.save_results():
-                    raise Exception("Impossible de sauvegarder les résultats")
-                
-                # Récupérer les résultats
-                print("   • Récupération des résultats...")
-                epanet_results = self._extract_epanet_results()
-                results["epanet_results"] = epanet_results
-                
-                # Fermer le fichier
-                self.epanet_simulator.close_project()
-                
-                print("✅ Simulation EPANET réussie")
-                results["success"] = True
-                
-            except Exception as e:
-                error_msg = f"❌ Erreur EPANET: {e}"
-                results["errors"].append(error_msg)
-                print(error_msg)
-                
-                # Nettoyer
-                try:
-                    self.epanet_simulator.close_project()
-                except:
-                    pass
-                
-                return results
+            # Ajouter les diagnostics si demandé
+            diagnostics = {}
+            if not skip_diagnostics:
+                diagnostics = self._generate_diagnostics(network_data, simulation_results)
             
-            # ÉTAPE 6: Nettoyage
-            if inp_file_path and "temp" in inp_file_path and os.path.exists(inp_file_path):
-                try:
-                    os.remove(inp_file_path)
-                    print(f"🧹 Fichier temporaire supprimé: {inp_file_path}")
-                except:
-                    pass
-            
-            print(f"\n{'='*60}")
-            print("✅ SIMULATION TERMINÉE AVEC SUCCÈS")
-            print(f"{'='*60}")
-            
-            return results
+            return {
+                "success": True,
+                "epanet_results": simulation_results,
+                "diagnostics": diagnostics,
+                "simulation_time": simulation_time,
+                "inp_file": inp_file_path
+            }
             
         except Exception as e:
-            error_msg = f"❌ Erreur générale: {e}"
-            results["errors"].append(error_msg)
-            print(error_msg)
-            return results
+            return {
+                "success": False,
+                "errors": [str(e)],
+                "epanet_results": {},
+                "diagnostics": {},
+                "simulation_time": time.time() - start_time
+            }
     
-    def _extract_epanet_results(self) -> Dict[str, Any]:
+    def _generate_inp_file(self, network_data: Dict[str, Any]) -> str:
         """
-        Extrait les résultats de simulation EPANET.
+        Génère un fichier .inp EPANET à partir des données réseau.
         
+        Args:
+            network_data: Données du réseau
+            
         Returns:
-            Dict contenant les résultats de simulation
+            Chemin du fichier .inp généré
         """
-        results = {
-            "nodes": {},
-            "pipes": {},
-            "statistics": {}
+        # Créer un fichier temporaire
+        temp_dir = tempfile.gettempdir()
+        inp_file = os.path.join(temp_dir, f"lcpi_epanet_{os.getpid()}.inp")
+        
+        # Générer le contenu du fichier .inp
+        inp_content = self._create_inp_content(network_data)
+        
+        # Écrire le fichier
+        with open(inp_file, 'w', encoding='utf-8') as f:
+            f.write(inp_content)
+        
+        return inp_file
+    
+    def _create_inp_content(self, network_data: Dict[str, Any]) -> str:
+        """
+        Crée le contenu d'un fichier .inp EPANET.
+        
+        Args:
+            network_data: Données du réseau
+            
+        Returns:
+            Contenu du fichier .inp
+        """
+        lines = []
+        
+        # En-tête
+        lines.append("[TITLE]")
+        lines.append("LCPI-AEP Network Analysis")
+        lines.append("Generated by LCPI-AEP")
+        lines.append("")
+        
+        # Nœuds
+        lines.append("[JUNCTIONS]")
+        lines.append(";ID\tElev\tDemand\tPattern")
+        noeuds = network_data.get("noeuds", {})
+        for node_id, node in noeuds.items():
+            if node.get("role") == "consommation":
+                elevation = node.get("cote_m", 0)
+                demand = node.get("demande_m3_s", 0) * 1000  # Convertir en L/s
+                lines.append(f"{node_id}\t{elevation:.2f}\t{demand:.3f}\t")
+        lines.append("")
+        
+        # Réservoirs
+        lines.append("[RESERVOIRS]")
+        lines.append(";ID\tHead\tPattern")
+        for node_id, node in noeuds.items():
+            if node.get("role") == "reservoir":
+                head = node.get("cote_m", 0)
+                lines.append(f"{node_id}\t{head:.2f}\t")
+        lines.append("")
+        
+        # Conduites
+        lines.append("[PIPES]")
+        lines.append(";ID\tNode1\tNode2\tLength\tDiameter\tRoughness\tMinorLoss\tStatus")
+        conduites = network_data.get("conduites", {})
+        for conduit_id, conduit in conduites.items():
+            node1 = conduit.get("noeud_amont", "")
+            node2 = conduit.get("noeud_aval", "")
+            length = conduit.get("longueur_m", 0)
+            diameter = conduit.get("diametre_m", 0) * 1000  # Convertir en mm
+            roughness = conduit.get("rugosite", 100)
+            lines.append(f"{conduit_id}\t{node1}\t{node2}\t{length:.1f}\t{diameter:.0f}\t{roughness:.0f}\t0\tOpen")
+        lines.append("")
+        
+        # Options
+        lines.append("[OPTIONS]")
+        lines.append("UNITS\tLPS")
+        lines.append("HEADLOSS\tH-W")
+        lines.append("QUALITY\tNone")
+        lines.append("")
+        
+        # Période de simulation
+        lines.append("[TIMES]")
+        lines.append("Duration\t24:00")
+        lines.append("Hydraulic\t01:00")
+        lines.append("")
+        
+        # Rapport
+        lines.append("[REPORT]")
+        lines.append("Status\tYES")
+        lines.append("Summary\tYES")
+        lines.append("")
+        
+        return "\n".join(lines)
+    
+    def _run_epanet_simulation(self, inp_file_path: str) -> Dict[str, Any]:
+        """
+        Exécute une simulation EPANET.
+        
+        Args:
+            inp_file_path: Chemin vers le fichier .inp
+            
+        Returns:
+            Résultats de la simulation
+        """
+        try:
+            # Ouvrir le fichier .inp
+            self.epanet_engine.ENopen(inp_file_path, inp_file_path.replace('.inp', '.rpt'), "")
+            
+            # Initialiser la simulation
+            self.epanet_engine.ENopenH()
+            self.epanet_engine.ENinitH(0)
+            
+            # Variables pour stocker les résultats
+            pressures = {}
+            flows = {}
+            velocities = {}
+            
+            # Exécuter la simulation pas par pas
+            t = 0
+            while True:
+                tstep = self.epanet_engine.ENrunH()
+                if tstep <= 0:
+                    break
+                
+                # Récupérer les résultats pour ce pas de temps
+                self._extract_results_at_timestep(pressures, flows, velocities)
+                
+                t += tstep
+                self.epanet_engine.ENnextH()
+            
+            # Fermer la simulation
+            self.epanet_engine.ENcloseH()
+            self.epanet_engine.ENclose()
+            
+            return {
+                "pressions": pressures,
+                "flows": flows,
+                "velocities": velocities
+            }
+            
+        except Exception as e:
+            # Fermer proprement en cas d'erreur
+            try:
+                self.epanet_engine.ENcloseH()
+                self.epanet_engine.ENclose()
+            except:
+                pass
+            raise e
+    
+    def _extract_results_at_timestep(self, pressures: Dict[str, float], 
+                                   flows: Dict[str, float], 
+                                   velocities: Dict[str, float]):
+        """
+        Extrait les résultats pour le pas de temps actuel.
+        
+        Args:
+            pressures: Dictionnaire des pressions à remplir
+            flows: Dictionnaire des débits à remplir
+            velocities: Dictionnaire des vitesses à remplir
+        """
+        try:
+            # Récupérer les pressions des nœuds
+            node_count = self.epanet_engine.ENgetcount(self.epanet_engine.EN_NODECOUNT)
+            for i in range(1, node_count + 1):
+                node_id = self.epanet_engine.ENgetnodeid(i)
+                pressure = self.epanet_engine.ENgetnodevalue(i, self.epanet_engine.EN_PRESSURE)
+                pressures[node_id] = pressure
+            
+            # Récupérer les débits et vitesses des conduites
+            link_count = self.epanet_engine.ENgetcount(self.epanet_engine.EN_LINKCOUNT)
+            for i in range(1, link_count + 1):
+                link_id = self.epanet_engine.ENgetlinkid(i)
+                flow = self.epanet_engine.ENgetlinkvalue(i, self.epanet_engine.EN_FLOW)
+                flows[link_id] = flow
+                
+                # Calculer la vitesse (approximatif)
+                link_type = self.epanet_engine.ENgetlinktype(i)
+                if link_type == self.epanet_engine.EN_PIPE:
+                    diameter = self.epanet_engine.ENgetlinkvalue(i, self.epanet_engine.EN_DIAMETER)
+                    if diameter > 0:
+                        area = 3.14159 * (diameter / 1000) ** 2 / 4  # m²
+                        velocity = abs(flow / 1000) / area  # m/s
+                        velocities[link_id] = velocity
+                        
+        except Exception as e:
+            # En cas d'erreur, on continue avec les données disponibles
+            pass
+    
+    def _generate_diagnostics(self, network_data: Dict[str, Any], 
+                            simulation_results: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Génère des diagnostics sur le réseau et les résultats.
+        
+        Args:
+            network_data: Données du réseau
+            simulation_results: Résultats de la simulation
+            
+        Returns:
+            Dictionnaire des diagnostics
+        """
+        diagnostics = {
+            "boucles_detectees": 0,
+            "nœuds_isoles": [],
+            "conduites_critiques": [],
+            "pression_min": float('inf'),
+            "pression_max": float('-inf'),
+            "vitesse_min": float('inf'),
+            "vitesse_max": float('-inf')
         }
         
-        try:
-            # Statistiques de simulation (simplifiées pour l'instant)
-            results["statistics"] = {
-                "status": "completed",
-                "message": "Simulation EPANET terminée avec succès"
-            }
-            
-            # Résultats des nœuds
-            node_ids = self.epanet_simulator.get_node_ids()
-            for node_id in node_ids:
-                # Pour l'instant, on récupère juste les IDs
-                # Les valeurs détaillées nécessiteraient des méthodes supplémentaires
-                results["nodes"][node_id] = {
-                    "status": "calculated",
-                    "id": node_id
-                }
-            
-            # Résultats des conduites (simplifiés)
-            summary = self.epanet_simulator.get_network_summary()
-            results["pipes"] = {
-                "total_count": summary.get('links', 0),
-                "status": "calculated"
-            }
-                
-        except Exception as e:
-            print(f"⚠️  Erreur lors de l'extraction des résultats: {e}")
+        # Analyser les pressions
+        pressures = simulation_results.get("pressions", {})
+        if pressures:
+            diagnostics["pression_min"] = min(pressures.values())
+            diagnostics["pression_max"] = max(pressures.values())
         
-        return results
-
-
-def run_epanet_with_diagnostics(network_data: Dict[str, Any], 
-                               epanet_path: Optional[str] = None,
-                               inp_file_path: Optional[str] = None) -> Dict[str, Any]:
-    """
-    Fonction utilitaire pour exécuter EPANET avec diagnostics.
-    
-    Args:
-        network_data: Données du réseau au format LCPI
-        epanet_path: Chemin vers la DLL EPANET (optionnel)
-        inp_file_path: Chemin du fichier .inp (optionnel)
+        # Analyser les vitesses
+        velocities = simulation_results.get("velocities", {})
+        if velocities:
+            diagnostics["vitesse_min"] = min(velocities.values())
+            diagnostics["vitesse_max"] = max(velocities.values())
         
-    Returns:
-        Dict contenant les résultats de simulation et diagnostics
-    """
-    epanet_wrapper = EpanetWithDiagnostics(epanet_path)
-    return epanet_wrapper.run_with_diagnostics(network_data, inp_file_path)
-
-
-def quick_diagnostic(network_data: Dict[str, Any]) -> Dict[str, Any]:
-    """
-    Diagnostic rapide du réseau sans simulation EPANET.
-    
-    Args:
-        network_data: Données du réseau au format LCPI
+        # Détecter les nœuds isolés
+        noeuds = network_data.get("noeuds", {})
+        conduites = network_data.get("conduites", {})
         
-    Returns:
-        Dict contenant les résultats de diagnostic
-    """
-    results = {
-        "connectivity": False,
-        "epanet_compatible": False,
-        "topology": {},
-        "errors": [],
-        "warnings": []
-    }
-    
-    try:
-        # Test de connectivité
-        results["connectivity"] = diagnose_network_connectivity(network_data)
+        connected_nodes = set()
+        for conduit in conduites.values():
+            connected_nodes.add(conduit.get("noeud_amont"))
+            connected_nodes.add(conduit.get("noeud_aval"))
         
-        # Validation EPANET
-        validation = validate_epanet_compatibility(network_data)
-        results["epanet_compatible"] = validation["compatible"]
-        results["errors"].extend(validation["erreurs"])
-        results["warnings"].extend(validation["avertissements"])
+        for node_id in noeuds:
+            if node_id not in connected_nodes:
+                diagnostics["nœuds_isoles"].append(node_id)
         
-        # Analyse topologique
-        try:
-            results["topology"] = analyze_network_topology(network_data)
-        except Exception as e:
-            results["warnings"].append(f"Erreur analyse topologique: {e}")
+        # Détecter les boucles (approximation simple)
+        # Une boucle est détectée si un nœud a plus de 2 connexions
+        node_connections = {}
+        for conduit in conduites.values():
+            node1 = conduit.get("noeud_amont")
+            node2 = conduit.get("noeud_aval")
+            node_connections[node1] = node_connections.get(node1, 0) + 1
+            node_connections[node2] = node_connections.get(node2, 0) + 1
         
-    except Exception as e:
-        results["errors"].append(f"Erreur diagnostic: {e}")
-    
-    return results 
+        for node_id, connections in node_connections.items():
+            if connections > 2:
+                diagnostics["boucles_detectees"] += 1
+        
+        return diagnostics 

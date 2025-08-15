@@ -14,7 +14,6 @@ from .base import HydraulicSolver
 
 try:
     from ..epanet_wrapper import EpanetSimulator, create_epanet_inp_file
-    from ..core.epanet_integration import EpanetWithDiagnostics
     EPANET_AVAILABLE = True
 except ImportError as e:
     print(f"⚠️ EPANET non disponible: {e}")
@@ -46,7 +45,7 @@ class EpanetSolver(HydraulicSolver):
     def _initialize_epanet(self):
         """Initialise le simulateur EPANET."""
         try:
-            self.epanet_simulator = EpanetWithDiagnostics(self.epanet_path)
+            self.epanet_simulator = EpanetSimulator(self.epanet_path)
         except Exception as e:
             raise RuntimeError(f"Impossible d'initialiser EPANET: {e}")
     
@@ -69,13 +68,12 @@ class EpanetSolver(HydraulicSolver):
             - diagnostics: Dict[str, Any] - Diagnostics du réseau
         """
         try:
-            # Exécuter la simulation avec diagnostics
-            results = self.epanet_simulator.run_with_diagnostics(
-                network_data, 
-                skip_diagnostics=False
-            )
+            # Créer un fichier .inp temporaire
+            temp_inp = tempfile.NamedTemporaryFile(suffix='.inp', delete=False)
+            temp_inp.close()
             
-            if not results["success"]:
+            # Générer le fichier .inp
+            if not create_epanet_inp_file(network_data, temp_inp.name):
                 return {
                     "pressions": {},
                     "flows": {},
@@ -83,23 +81,20 @@ class EpanetSolver(HydraulicSolver):
                     "status": "failure",
                     "solver": "epanet",
                     "convergence": {"converge": False},
-                    "diagnostics": results.get("diagnostics", {}),
-                    "errors": results.get("errors", [])
+                    "diagnostics": {},
+                    "errors": ["Impossible de créer le fichier .inp"]
                 }
             
-            # Extraire les résultats EPANET
-            epanet_results = results.get("epanet_results", {})
+            # Exécuter la simulation EPANET
+            results = self._run_epanet_simulation(temp_inp.name)
             
-            return {
-                "pressions": epanet_results.get("pressions", {}),
-                "flows": epanet_results.get("flows", {}),
-                "velocities": epanet_results.get("velocities", {}),
-                "status": "success",
-                "solver": "epanet",
-                "convergence": {"converge": True},
-                "diagnostics": results.get("diagnostics", {}),
-                "simulation_time": epanet_results.get("simulation_time", 0.0)
-            }
+            # Nettoyer le fichier temporaire
+            try:
+                os.unlink(temp_inp.name)
+            except:
+                pass
+            
+            return results
             
         except Exception as e:
             return {
@@ -112,6 +107,175 @@ class EpanetSolver(HydraulicSolver):
                 "diagnostics": {},
                 "errors": [str(e)]
             }
+    
+    def _run_epanet_simulation(self, inp_file_path: str) -> Dict[str, Any]:
+        """
+        Exécute une simulation EPANET complète.
+        
+        Args:
+            inp_file_path: Chemin vers le fichier .inp
+            
+        Returns:
+            Résultats de la simulation
+        """
+        try:
+            # Ouvrir le projet EPANET
+            if not self.epanet_simulator.open_project(inp_file_path):
+                return {
+                    "pressions": {},
+                    "flows": {},
+                    "velocities": {},
+                    "status": "failure",
+                    "solver": "epanet",
+                    "convergence": {"converge": False},
+                    "diagnostics": {},
+                    "errors": ["Impossible d'ouvrir le projet EPANET"]
+                }
+            
+            # Exécuter la simulation hydraulique
+            if not self.epanet_simulator.solve_hydraulics():
+                return {
+                    "pressions": {},
+                    "flows": {},
+                    "velocities": {},
+                    "status": "failure",
+                    "solver": "epanet",
+                    "convergence": {"converge": False},
+                    "diagnostics": {},
+                    "errors": ["Échec de la simulation hydraulique"]
+                }
+            
+            # Sauvegarder les résultats
+            if not self.epanet_simulator.save_results():
+                return {
+                    "pressions": {},
+                    "flows": {},
+                    "velocities": {},
+                    "status": "failure",
+                    "solver": "epanet",
+                    "convergence": {"converge": False},
+                    "diagnostics": {},
+                    "errors": ["Impossible de sauvegarder les résultats"]
+                }
+            
+            # Récupérer les résultats
+            pressures = self.epanet_simulator.get_node_pressures()
+            flows = self.epanet_simulator.get_link_flows()
+            
+            # Calculer les vitesses (approximatif)
+            velocities = self._calculate_velocities(flows, network_data)
+            
+            # Générer les diagnostics
+            diagnostics = self._generate_diagnostics(pressures, flows, velocities)
+            
+            # Fermer le projet
+            self.epanet_simulator.close_project()
+            
+            return {
+                "pressions": pressures,
+                "flows": flows,
+                "velocities": velocities,
+                "status": "success",
+                "solver": "epanet",
+                "convergence": {"converge": True},
+                "diagnostics": diagnostics
+            }
+            
+        except Exception as e:
+            # Fermer proprement en cas d'erreur
+            try:
+                self.epanet_simulator.close_project()
+            except:
+                pass
+            raise e
+    
+    def _calculate_velocities(self, flows: Dict[str, float], 
+                            network_data: Dict[str, Any]) -> Dict[str, float]:
+        """
+        Calcule les vitesses à partir des débits et des diamètres.
+        
+        Args:
+            flows: Débits par conduite
+            network_data: Données du réseau
+            
+        Returns:
+            Vitesses par conduite
+        """
+        velocities = {}
+        conduites = network_data.get("conduites", {})
+        
+        for conduit_id, flow in flows.items():
+            if conduit_id in conduites:
+                conduit = conduites[conduit_id]
+                diametre = conduit.get("diametre_m", 0)
+                if diametre > 0:
+                    # Convertir le débit de L/s en m³/s et calculer la vitesse
+                    flow_m3s = flow / 1000  # L/s vers m³/s
+                    area = 3.14159 * (diametre / 2) ** 2  # m²
+                    velocity = abs(flow_m3s) / area  # m/s
+                    velocities[conduit_id] = velocity
+        
+        return velocities
+    
+    def _generate_diagnostics(self, pressures: Dict[str, float], 
+                            flows: Dict[str, float], 
+                            velocities: Dict[str, float]) -> Dict[str, Any]:
+        """
+        Génère des diagnostics sur les résultats de simulation.
+        
+        Args:
+            pressures: Pressions par nœud
+            flows: Débits par conduite
+            velocities: Vitesses par conduite
+            
+        Returns:
+            Dictionnaire des diagnostics
+        """
+        diagnostics = {
+            "boucles_detectees": 0,
+            "nœuds_isoles": [],
+            "conduites_critiques": [],
+            "pression_min": float('inf'),
+            "pression_max": float('-inf'),
+            "vitesse_min": float('inf'),
+            "vitesse_max": float('-inf'),
+            "debit_total": 0.0,
+            "nombre_noeuds": len(pressures),
+            "nombre_conduites": len(flows)
+        }
+        
+        # Analyser les pressions
+        if pressures:
+            diagnostics["pression_min"] = min(pressures.values())
+            diagnostics["pression_max"] = max(pressures.values())
+        
+        # Analyser les vitesses
+        if velocities:
+            diagnostics["vitesse_min"] = min(velocities.values())
+            diagnostics["vitesse_max"] = max(velocities.values())
+        
+        # Calculer le débit total
+        if flows:
+            diagnostics["debit_total"] = sum(abs(flow) for flow in flows.values())
+        
+        # Détecter les conduites critiques (vitesse trop élevée ou trop faible)
+        for conduit_id, velocity in velocities.items():
+            if velocity < 0.5:  # Vitesse minimale recommandée
+                diagnostics["conduites_critiques"].append({
+                    "conduit": conduit_id,
+                    "type": "vitesse_trop_faible",
+                    "valeur": velocity,
+                    "seuil": 0.5
+                })
+            elif velocity > 2.5:  # Vitesse maximale recommandée
+                diagnostics["conduites_critiques"].append({
+                    "conduit": conduit_id,
+                    "type": "vitesse_trop_elevee",
+                    "valeur": velocity,
+                    "seuil": 2.5
+                })
+        
+        return diagnostics
     
     def get_solver_info(self) -> Dict[str, str]:
         """
@@ -187,6 +351,16 @@ class EpanetSolver(HydraulicSolver):
                 if "demande_m3_s" not in noeud:
                     warnings.append(f"Nœud {noeud_id}: demande_m3_s recommandée pour les nœuds de consommation")
         
+        # Vérifications des conduites
+        for conduit_id, conduit in conduites.items():
+            diametre = conduit.get("diametre_m", 0)
+            longueur = conduit.get("longueur_m", 0)
+            
+            if diametre <= 0:
+                errors.append(f"Conduite {conduit_id}: diamètre doit être positif")
+            if longueur <= 0:
+                errors.append(f"Conduite {conduit_id}: longueur doit être positive")
+        
         return {
             "valid": len(errors) == 0,
             "errors": errors,
@@ -231,7 +405,7 @@ class EpanetSolver(HydraulicSolver):
             output_path: Chemin de sortie (optionnel)
             
         Returns:
-            Chemin du fichier .inp généré
+            Chemin du fichier .inp
         """
         try:
             if output_path is None:
@@ -240,9 +414,10 @@ class EpanetSolver(HydraulicSolver):
                 output_path = os.path.join(temp_dir, f"lcpi_epanet_{os.getpid()}.inp")
             
             # Utiliser la fonction existante de création de fichier .inp
-            create_epanet_inp_file(network_data, output_path)
-            
-            return output_path
+            if create_epanet_inp_file(network_data, output_path):
+                return output_path
+            else:
+                raise RuntimeError("Échec de la création du fichier .inp")
             
         except Exception as e:
             raise RuntimeError(f"Erreur lors de la génération du fichier .inp: {e}")
@@ -257,19 +432,4 @@ class EpanetSolver(HydraulicSolver):
         Returns:
             Résultats de la simulation EPANET
         """
-        try:
-            # Utiliser le simulateur EPANET existant
-            results = self.epanet_simulator.run_with_diagnostics(
-                {},  # Données vides car on utilise le fichier .inp
-                inp_file_path=inp_file_path,
-                skip_diagnostics=True  # Pas besoin de diagnostics pour un fichier .inp
-            )
-            
-            return results
-            
-        except Exception as e:
-            return {
-                "success": False,
-                "errors": [str(e)],
-                "epanet_results": {}
-            }
+        return self._run_epanet_simulation(inp_file_path)
