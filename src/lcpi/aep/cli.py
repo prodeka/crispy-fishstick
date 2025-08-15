@@ -7,6 +7,9 @@ from pathlib import Path
 from typing import Optional, Dict, Any
 import json
 
+# Import du module Rich UI centralisé
+from .utils.rich_ui import RichUI, console, show_calculation_results, show_network_diagnostics
+
 app = typer.Typer(name="aep", help="Module Alimentation en Eau Potable")
 
 # =============================================================================
@@ -146,7 +149,7 @@ def population(
         print(f"Résultats sauvegardés dans: {output}")
         
     except Exception as e:
-        typer.echo(f"❌ Erreur lors du calcul de projection: {e}", err=True)
+        RichUI.print_error(f"Erreur lors du calcul de projection: {e}")
         raise typer.Exit(code=1)
 
 @app.command()
@@ -207,13 +210,19 @@ def demand(
         demande_pointe = demande_moyenne * pointe_journaliere
         
         if type_calcul == "par_type" or afficher_details:
-            typer.echo("💧 Demande en eau par type d'usage:")
-            typer.echo(f"  domestique: {demande_moyenne:.2f} m³/jour")
-            typer.echo(f"  industriel: {population_actuelle * data.get('consommation', {}).get('industriel', 50) / 1000:.2f} m³/jour")
-            typer.echo(f"  commercial: {population_actuelle * data.get('consommation', {}).get('commercial', 30) / 1000:.2f} m³/jour")
+            # Créer un tableau Rich pour les résultats détaillés
+            table = RichUI.create_parameters_table("Demande en Eau par Type d'Usage", {
+                "Domestique": (f"{demande_moyenne:.2f}", "m³/jour"),
+                "Industriel": (f"{population_actuelle * data.get('consommation', {}).get('industriel', 50) / 1000:.2f}", "m³/jour"),
+                "Commercial": (f"{population_actuelle * data.get('consommation', {}).get('commercial', 30) / 1000:.2f}", "m³/jour"),
+                "Demande totale": (f"{demande_moyenne:.2f}", "m³/jour"),
+                "Demande de pointe": (f"{demande_pointe:.2f}", "m³/jour")
+            })
+            console.print(table)
         else:
-            typer.echo(f"💧 Demande totale: {demande_moyenne:.2f} m³/jour")
-            typer.echo(f"💧 Demande de pointe: {demande_pointe:.2f} m³/jour")
+            # Affichage simple avec Rich
+            RichUI.print_info(f"Demande totale: {demande_moyenne:.2f} m³/jour")
+            RichUI.print_info(f"Demande de pointe: {demande_pointe:.2f} m³/jour")
             
     except Exception as e:
         typer.echo(f"❌ Erreur: {e}", err=True)

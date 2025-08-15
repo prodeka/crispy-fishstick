@@ -1,377 +1,814 @@
-# AMELIORATION_v5 - Feuille de Route d'Implémentation
+# AMELIORATION_v5 - Feuille de Route d'Alignement des Tâches
 
-Comment faire en sorte que ces taches soit en accord avec la structure presente
+## 📋 **Contexte et Objectif**
 
-## 📋 **Contexte**
+Ce document définit la feuille de route pour aligner les tâches de `AMELIORATION_v4` avec la structure et la logique déjà implémentées dans le projet LCPI-AEP. L'objectif est d'assurer une intégration harmonieuse des nouvelles fonctionnalités tout en respectant l'architecture existante.
 
-Ce document constitue la feuille de route pour l'implémentation des fonctionnalités et améliorations techniques définies dans `AMELIORATION_v4`. L'objectif est de transformer la vision stratégique en un plan d'action concret, phasé et réalisable.
-
-Cette feuille de route intègre directement les extraits de code, schémas de données et templates "prêts à l'emploi" de la v4 pour servir de guide de référence unique à l'équipe de développement.
+**Principe directeur :** Maintenir la compatibilité avec l'existant tout en enrichissant progressivement les fonctionnalités.
 
 ---
 
-## 🚀 **PHASE 1 : Refactoring du Cœur et Consolidation des Fondations**
+## 🏗️ **ANALYSE DE LA STRUCTURE EXISTANTE**
 
-**Objectif :** Solidifier l'architecture logicielle avant d'ajouter de nouvelles fonctionnalités majeures. Cette phase est interne et vise à améliorer la qualité, la robustesse et la maintenabilité du code.
+### **Architecture Actuelle Identifiée**
 
-| Priorité | Tâche | Description | Technologies Clés |
-|---|---|---|---|
-| **Haute** | **1. Intégration de Pydantic** | Remplacer la validation manuelle des fichiers YAML par des modèles Pydantic. | `Pydantic`, `YAML` |
-| **Haute** | **2. Application du "Strategy Pattern"** | Refactorer la sélection des algorithmes (Hazen-Williams vs. Darcy-Weisbach) | POO, Design Patterns |
-| **Moyenne**| **3. Amélioration de l'UX CLI avec `Rich`** | Intégrer des composants `Rich` de base pour améliorer l'expérience utilisateur. | `Rich` |
-| **Moyenne**| **4. Parallélisation des Calculs** | Utiliser `joblib` ou `multiprocessing` pour paralléliser les évaluations de l'AG et les analyses Monte-Carlo. | `joblib` |
-| **Basse** | **5. Optimisation avec `Numba`** | Appliquer le décorateur `@numba.jit` aux fonctions mathématiques intensives. | `Numba` |
+#### **1. Structure des Commandes CLI**
+```
+Commandes Simples (legacy)     Commandes Unifiées (actuelles)     Commandes de Gestion (nouvelles)
+├── population                 ├── population_unified            ├── database
+├── demand                     ├── demand_unified                ├── query
+├── network                    ├── network_unified               ├── import_data
+├── reservoir                  ├── reservoir_unified             ├── validate_project
+├── pumping                    ├── pumping_unified               ├── recalcul
+└── hardy_cross               └── hardy_cross_unified           └── rapport (à créer)
+```
 
-### **Implémentation de Référence - Phase 1**
+#### **2. Structure des Modules**
+```
+src/lcpi/aep/
+├── cli.py                    # Interface CLI principale (Typer)
+├── calculations/             # Modules de calcul
+│   ├── *_unified.py         # Commandes unifiées (actuelles)
+│   ├── *_enhanced.py        # Commandes avancées (existantes)
+│   └── *.py                 # Commandes simples (legacy)
+├── core/                    # Modules de base
+│   ├── database.py          # Base de données centralisée ✅
+│   ├── dynamic_constants.py # Constantes dynamiques ✅
+│   ├── validators.py        # Validation des données ✅
+│   ├── import_automatique.py # Import automatique ✅
+│   ├── validation_donnees.py # Validation des données ✅
+│   ├── recalcul_automatique.py # Recalcul automatique ✅
+│   └── ...
+└── utils/                   # Utilitaires
+    └── exporters.py         # Export des données ✅
+```
 
-#### **Exemple de Modèle Pydantic pour la validation du YAML (`Tâche 1`)**
+#### **3. Patterns de Sortie Standardisés**
+```json
+{
+  "valeurs": { /* résultats principaux */ },
+  "diagnostics": { /* informations de diagnostic */ },
+  "iterations": { /* détails des calculs */ }
+}
+```
 
+---
+
+## 🎯 **FEUILLE DE ROUTE D'ALIGNEMENT**
+
+### **PHASE 1 : Refactoring et Amélioration UX** ⚡ **PRIORITÉ HAUTE**
+
+#### **Objectif :** Améliorer la qualité du code et l'expérience utilisateur sans casser l'existant
+
+| Tâche | Description | Alignement avec l'Existant | Impact |
+|-------|-------------|---------------------------|---------|
+| **1.1 Intégration Rich** | Remplacer tous les `typer.echo()` par des composants Rich | Améliorer `cli.py` existant | UX immédiat |
+| **1.2 Validation Pydantic** | Remplacer la validation manuelle dans `validators.py` | Améliorer `core/validators.py` | Robustesse |
+| **1.3 Strategy Pattern** | Refactorer les algorithmes et implémenter l'architecture de solveurs | Améliorer `calculations/hardy_cross_unified.py` et créer `core/solvers/` | Maintenabilité |
+| **1.4 Parallélisation** | Optimiser les calculs intensifs | Améliorer tous les modules de calcul | Performance |
+
+#### **Implémentation Recommandée**
+
+**1.1 Intégration Rich - Exemple de Refactoring**
 ```python
-from pydantic import BaseModel, Field, Dict, List
+# AVANT (cli.py actuel)
+typer.echo(f"✅ Base de données initialisée: {db_path}")
 
-class Noeud(BaseModel):
-    role: str
-    cote_m: float
-    demande_m3_s: float = 0.0
-    pression_min_mce: int = Field(20, gt=0)
-    pression_max_mce: int = Field(80, gt=0)
-    profil_consommation: str = "residential"
+# APRÈS (avec Rich)
+from rich.console import Console
+from rich.table import Table
+from rich.status import Status
 
-class Conduite(BaseModel):
-    noeud_amont: str
-    noeud_aval: str
-    longueur_m: float = Field(..., gt=0)
-    diametre_m: float = Field(..., gt=0)
-    rugosite: float
-    materiau: str
-    statut: str = "existant"
-    coefficient_frottement: str = "hazen_williams"
+console = Console()
 
-class ReseauCompletConfig(BaseModel):
+# Pour les messages simples
+console.print(f"✅ Base de données initialisée: {db_path}", style="green")
+
+# Pour les tableaux de données
+table = Table(title="Résultats de calcul")
+table.add_column("Paramètre", style="cyan")
+table.add_column("Valeur", style="magenta")
+table.add_column("Unité", style="yellow")
+
+for param, value, unit in results:
+    table.add_row(param, str(value), unit)
+console.print(table)
+
+# Pour les opérations longues
+with console.status("[bold green]Calcul en cours..."):
+    result = perform_calculation()
+```
+
+**1.2 Validation Pydantic - Structure Proposée**
+```python
+# core/pydantic_models.py (nouveau fichier)
+from pydantic import BaseModel, Field, validator
+from typing import Dict, List, Optional
+
+class NoeudUnified(BaseModel):
+    role: str = Field(..., description="Rôle du nœud")
+    cote_m: float = Field(..., gt=0, description="Cote en mètres")
+    demande_m3_s: float = Field(0.0, ge=0, description="Demande en m³/s")
+    pression_min_mce: int = Field(20, gt=0, le=100)
+    pression_max_mce: int = Field(80, gt=0, le=200)
+    
+    @validator('pression_max_mce')
+    def pression_max_superieure_min(cls, v, values):
+        if 'pression_min_mce' in values and v <= values['pression_min_mce']:
+            raise ValueError('Pression max doit être > pression min')
+        return v
+
+class ReseauUnified(BaseModel):
     nom: str
-    type: str
-    noeuds: Dict[str, Noeud]
-    conduites: Dict[str, Conduite]
-    boucles: Dict[str, List[str]] = None
-
-# Utilisation dans le code:
-# import yaml
-# config_dict = yaml.safe_load(open("reseau.yml"))
-# try:
-#     config = ReseauCompletConfig(**config_dict["reseau_complet"])
-# except ValidationError as e:
-#     print(e)
+    type: str = Field(..., regex="^(maillé|ramifié)$")
+    noeuds: Dict[str, NoeudUnified]
+    conduites: Dict[str, 'ConduiteUnified']
+    
+    class Config:
+        extra = "forbid"  # Interdire les champs non définis
 ```
 
----
+### **PHASE 2 : Workflow `network-complete-unified`** 🚀 **PRIORITÉ HAUTE**
 
-## 🎯 **PHASE 2 : Implémentation du Workflow `network-complete-unified`**
+#### **Objectif :** Créer la première fonctionnalité majeure d'analyse de réseau complète
 
-**Objectif :** Livrer la première fonctionnalité majeure de l'analyse de réseau de bout en bout, en se concentrant sur la commande `network-complete-unified`.
+| Tâche | Description | Alignement | Nouveaux Fichiers |
+|-------|-------------|------------|-------------------|
+| **2.1 Hardy-Cross Amélioré** | Implémenter l'algorithme Hardy-Cross robuste | Étendre `hardy_cross_unified.py` | `core/strategies/hardy_cross.py` |
+| **2.2 Intégration EPANET** | Génération et exécution de fichiers .inp | Utiliser `core/epanet_integration.py` existant | Améliorer l'existant |
+| **2.3 Diagnostics Réseau** | Vérifications automatiques de connectivité | Utiliser `core/network_diagnostics.py` existant | Améliorer l'existant |
+| **2.4 Commande Unifiée** | Nouvelle commande `network-complete-unified` | Suivre le pattern des commandes unifiées | `calculations/network_complete_unified.py` |
 
-| Priorité | Tâche | Description | Entrées / Sorties |
-|---|---|---|---|
-| **Haute** | **1. Calcul Hardy-Cross** | Implémenter l'algorithme de Hardy-Cross. | **Entrée:** `reseau.yml`. **Sortie:** Débits corrigés. |
-| **Haute** | **2. Génération de Fichier EPANET** | Créer la logique pour générer un fichier `.inp` valide. | **Entrée:** `reseau.yml`. **Sortie:** `reseau.inp`. |
-| **Moyenne**| **3. Post-Traitement et Vérifications** | Ajouter les vérifications automatiques des contraintes. | **Entrée:** Résultats. **Sortie:** Rapport de violations. |
-| **Haute** | **4. Contrat de Sortie JSON** | Implémenter la génération du contrat de sortie JSON canonique. | **Sortie:** `results.json`. |
-| **Haute** | **5. Tests Unitaires et d'Intégration** | Développer une suite de tests complète pour le workflow. | `pytest` |
-
-### **Implémentation de Référence - Phase 2**
-
-#### **Schéma YAML d'Entrée (`reseau_complet`)**
-
-```yaml
-reseau_complet:
-  nom: "Réseau Principal"
-  type: "maillé"
-  noeuds:
-    N1:
-      role: "reservoir"
-      cote_m: 150.0
-    N2:
-      role: "consommation"
-      cote_m: 145.0
-      demande_m3_s: 0.02
-    N3:
-      role: "consommation"
-      cote_m: 140.0
-      demande_m3_s: 0.015
-  conduites:
-    C1:
-      noeud_amont: "N1"
-      noeud_aval: "N2"
-      longueur_m: 500
-      diametre_m: 0.2
-      rugosite: 100
-      materiau: "acier"
-    C2:
-      noeud_amont: "N2"
-      noeud_aval: "N3"
-      longueur_m: 300
-      diametre_m: 0.15
-      rugosite: 120
-      materiau: "pvc"
-hardy_cross:
-  tolerance: 1e-6
-  max_iterations: 200
-  methode: "hazen_williams"
-epanet:
-  run_options:
-    duration_h: 24
-    timestep_min: 60
-post_traitement:
-  verifications:
-    vitesse_min_m_s: 0.5
-    pression_min_mce: 20
-```
-
-#### **Contrat de Sortie JSON Canonique (`Tâche 4`)**
-
-```json
-{
-  "run_info": {
-    "lcpi_version": "1.5.0",
-    "timestamp_utc": "2025-08-16T10:00:00Z",
-    "input_file_hash": "sha256:abcdef..."
-  },
-  "inputs": {
-    "reseau_complet": { /* données d'entrée validées */ }
-  },
-  "diagnostics": {
-    "connectivite_ok": true,
-    "boucles_detectees": 3,
-    "epanet_compatible": true
-  },
-  "hardy_cross": {
-    "convergence": {
-      "converge": true,
-      "iterations": 12,
-      "temps_calcul_s": 0.15
-    },
-    "resultats": {
-      "debits_finaux": { "C1": 0.05, "C2": 0.03 },
-      "pertes_charge": { "C1": 1.2, "C2": 0.8 }
-    }
-  },
-  "epanet": {
-    "fichier_generer": "reseau.inp",
-    "execution": {
-      "succes": true
-    },
-    "resultats": {
-      "pressions": { "N2": 25.5, "N3": 22.1 },
-      "vitesses": { "C1": 1.1, "C2": 0.9 }
-    }
-  },
-  "post_traitement": {
-    "verifications": {
-      "vitesse_ok": true,
-      "pression_ok": false,
-      "violations": [
-        {"noeud": "N3", "parametre": "pression", "valeur": 18.5, "seuil": 20}
-      ]
-    }
-  }
-}
-```
-
----
-
-## 🔬 **PHASE 3 : Analyse Avancée et Optimisation**
-
-**Objectif :** Mettre en œuvre les fonctionnalités d'optimisation, d'analyse de sensibilité et de comparaison.
-
-| Priorité | Tâche | Description | Algorithmes / Sorties |
-|---|---|---|---|
-| **Haute** | **1. Commande `network-optimize-unified`** | Implémenter l'optimisation des diamètres. | Algorithme Génétique |
-| **Moyenne**| **2. Commande `network-sensitivity-unified`** | Permettre l'analyse de sensibilité des paramètres clés. | Monte-Carlo, Sobol |
-| **Moyenne**| **3. Commande `network-compare-unified`** | Comparer deux ou plusieurs variantes de réseau. | **Sortie:** `comparison.xlsx` |
-| **Haute** | **4. Contrat de Sortie JSON (Optimisation)** | Implémenter la génération du contrat de sortie pour l'optimisation. | **Sortie:** `optimization.json` |
-
-### **Implémentation de Référence - Phase 3**
-
-#### **Schéma YAML d'Entrée (`optimisation`)**
-
-```yaml
-optimisation:
-  criteres:
-    principal: "cout"
-    secondaires: ["energie", "performance"]
-    poids: [0.6, 0.25, 0.15]
-  contraintes:
-    budget:
-      cout_max_euros: 100000
-    techniques:
-      pression_min_mce: 20
-      vitesse_max_m_s: 2.5
-  algorithmes:
-    type: "genetique"
-    parametres:
-      population_size: 100
-      generations: 50
-      mutation_rate: 0.1
-  diametres_candidats:
-    commerciaux: [90, 110, 125, 140, 160, 200, 250]
-    couts_euros_m: [35, 45, 60, 80, 100, 150, 250]
-```
-
-#### **Contrat de Sortie JSON pour l'Optimisation (`Tâche 4`)**
-
-```json
-{
-  "optimisation": {
-    "algorithme": "genetique",
-    "convergence": {
-      "iterations": 45,
-      "fitness_finale": 0.92,
-      "temps_calcul_s": 125.3
-    },
-    "meilleure_solution": {
-      "diametres": {
-        "C1": 200,
-        "C2": 160,
-        "C3": 125
-      },
-      "performance": {
-        "cout_total_euros": 85000,
-        "energie_totale_kwh": 3200,
-        "performance_hydraulique": 0.95
-      }
-    },
-    "pareto_front": [
-      { "cout": 85000, "energie": 3200, "performance": 0.95 },
-      { "cout": 95000, "energie": 2800, "performance": 0.92 }
-    ]
-  },
-  "analyse_sensibilite": {
-    "parametres_critiques": [
-      { "parametre": "rugosite", "indice_sobol": 0.45, "impact": "eleve" },
-      { "parametre": "demande", "indice_sobol": 0.32, "impact": "moyen" }
-    ],
-    "robustesse": {
-      "score_global": 0.78,
-      "zones_critiques": ["N3", "C2"]
-    }
-  }
-}
-```
-
----
-
-##  **PHASE 4 : Moteur de Reporting Professionnel**
-
-**Objectif :** Créer le système de génération de rapports, une fonctionnalité à très haute valeur ajoutée pour la production de livrables de qualité.
-
-| Priorité | Tâche | Description | Livrables |
-|---|---|---|---|
-| **Haute** | **1. Module `table_templates.py`** | Centraliser la définition de toutes les structures de tableaux. | `table_templates.py` |
-| **Haute** | **2. Implémentation des Templates Jinja2** | Créer l'arborescence et coder les templates principaux. | Fichiers `.html`, `.css` |
-| **Haute** | **3. Logique de la Commande `lcpi rapport`** | Développer la logique de génération de rapport. | Commande `lcpi rapport` |
-| **Moyenne**| **4. Export Multi-Format** | Intégrer `WeasyPrint` pour PDF et `python-docx` pour DOCX. | PDF, DOCX |
-
-### **Implémentation de Référence - Phase 4**
-
-#### **Module `lcpi/reporting/table_templates.py` (`Tâche 1`) - Version Complète**
-
-Ce fichier doit être créé avec la liste exhaustive des tableaux pour garantir la standardisation.
-
+#### **Structure de la Nouvelle Commande**
 ```python
-# lcpi/reporting/table_templates.py
+@app.command()
+def network_complete_unified(
+    input_file: Path = typer.Argument(..., help="Fichier YAML réseau complet"),
+    mode: str = typer.Option("auto", "--mode", "-m", help="Mode (auto/simple/enhanced)"),
+    export: str = typer.Option("json", "--export", "-e", help="Format d'export"),
+    output: Optional[Path] = typer.Option(None, "--output", "-o", help="Fichier de sortie"),
+    verbose: bool = typer.Option(False, "--verbose", "-v", help="Mode verbeux")
+):
+    """🌐 Analyse complète de réseau avec Hardy-Cross et EPANET
+    
+    Cette commande effectue une analyse complète d'un réseau d'eau potable :
+    - Validation de la connectivité
+    - Calcul des débits par Hardy-Cross
+    - Simulation EPANET
+    - Vérifications de contraintes
+    """
+    try:
+        # 1. Chargement et validation des données
+        with console.status("[bold green]Chargement des données..."):
+            config = load_and_validate_network_config(input_file)
+        
+        # 2. Diagnostics de connectivité
+        with console.status("[bold blue]Analyse de connectivité..."):
+            diagnostics = analyze_network_connectivity(config)
+        
+        # 3. Calcul Hardy-Cross
+        with console.status("[bold yellow]Calcul Hardy-Cross..."):
+            hardy_cross_results = perform_hardy_cross_calculation(config)
+        
+        # 4. Génération et exécution EPANET
+        with console.status("[bold magenta]Simulation EPANET..."):
+            epanet_results = generate_and_run_epanet(config)
+        
+        # 5. Post-traitement et vérifications
+        with console.status("[bold cyan]Vérifications finales..."):
+            post_processing = perform_post_processing(config, hardy_cross_results, epanet_results)
+        
+        # 6. Génération du rapport final
+        results = {
+            "valeurs": {
+                "debits_finaux": hardy_cross_results["debits"],
+                "pressions": epanet_results["pressions"],
+                "vitesses": epanet_results["vitesses"]
+            },
+            "diagnostics": {
+                "connectivite_ok": diagnostics["connectivite"],
+                "convergence_hardy_cross": hardy_cross_results["convergence"],
+                "epanet_success": epanet_results["success"],
+                "violations": post_processing["violations"]
+            },
+            "iterations": {
+                "hardy_cross_iterations": hardy_cross_results["iterations"],
+                "epanet_timesteps": epanet_results["timesteps"]
+            }
+        }
+        
+        # 7. Export des résultats
+        export_results(results, export, output, verbose)
+        
+    except Exception as e:
+        console.print(f"❌ Erreur lors de l'analyse: {e}", style="red")
+        raise typer.Exit(code=1)
+```
 
-"""
-Module centralisé pour la définition et l'initialisation des structures
-de tableaux destinées à la journalisation et à la génération de rapports.
-"""
+### **PHASE 3 : Analyse Avancée et Optimisation** 🔬 **PRIORITÉ MOYENNE**
 
-TABLE_TEMPLATES = {
-    "enumeration_troncons": { "titre_defaut": "Énumération des tronçons", "type_tableau": "liste_enregistrements", "colonnes": ["DC_ID", "longueur", "NODE1", "NODE2"]},
-    "dimensionnement_troncons": { "titre_defaut": "Dimensionnement des tronçons", "type_tableau": "liste_enregistrements", "colonnes": ["DC_ID", "longueur", "Qd (m^3/s)", "DN (mm)", "V (m/s)", "ΔH (m)"]},
-    "dimensionnement_noeuds": { "titre_defaut": "Dimensionnement des nœuds", "type_tableau": "liste_enregistrements", "colonnes": ["JUNCTIONS", "X", "Y", "Z (m)", "P_réel (m)"]},
-    "recap_reservoir": { "titre_defaut": "Dimensionnement du réservoir", "type_tableau": "liste_parametres", "parametres": ["Identification", "Altitude", "Volume de Conception", "Hauteur sous Cuve"]},
-    "dimensionnement_adduction": { "titre_defaut": "Dimensionnement de l'adduction", "type_tableau": "liste_enregistrements", "colonnes": ["Approche", "Dth (mm)", "DN (mm)", "U (m/s)", "Vérification"]},
-    "calcul_hmt_resultats": { "titre_defaut": "Calcul de la HMT", "type_tableau": "liste_parametres", "parametres": ["H_géo (m)", "Pertes_de_charges_cond(ΔH)", "HMT (m)"]},
-    "verif_coup_belier": { "titre_defaut": "Vérification du coup de bélier", "type_tableau": "liste_parametres", "parametres": ["Pression Maximale Admissible (PMA)", "Pression Maximale (Hmax)", "Pression Minimale (Hmin)"]},
-    "fiche_technique_pompe": { "titre_defaut": "Fiche technique de la pompe", "type_tableau": "liste_parametres", "parametres": ["Marque", "Débit d’exploitation", "HMT", "Puissance nominale P2"]},
-    "comparatif_diametres_debits": { "titre_defaut": "Comparatif diamètres et débits", "type_tableau": "liste_enregistrements", "colonnes": ["TRONCONS", "D_CALCULE (mm)", "D_EPANET (mm)", "DN_CALCULE (mm)", "DN_EPANET (mm)", "Q_CALCULER (m³/s)", "Q_EPANET (m³/s)"]},
-    "comparatif_vitesses_pertes": { "titre_defaut": "Comparatif vitesses et pertes de charges", "type_tableau": "liste_enregistrements", "colonnes": ["TRONCONS", "V_CALCULE (m/s)", "V_EPANET (m/s)", "ΔH_i_CALCULER (m)", "ΔH_i_EPANET (m)"]},
-    "comparatif_pressions": { "titre_defaut": "Comparatif des pressions", "type_tableau": "liste_enregistrements", "colonnes": ["JUNCTIONS", "P_CALCULE (m)", "P_EPANET (m)"]},
-    "recap_diametres_conduites": { "titre_defaut": "Récapitulatif des diamètres", "type_tableau": "liste_enregistrements", "colonnes": ["Diamètre nominal (mm)", "Longueur Distribution", "Longueur refoulement", "Longueurs totales"]},
-    "devis_estimatif": { "titre_defaut": "Devis estimatif et quantitatif", "type_tableau": "liste_enregistrements", "colonnes": ["N°", "Désignations", "Unité", "Quantité", "Prix Unitaire", "MONTANT"]},
-    "evaluation_impacts_negatifs": { "titre_defaut": "Évaluation des impacts négatifs", "type_tableau": "liste_enregistrements", "colonnes": ["Impact", "Intensité", "Étendue", "Durée", "Importance Absolue", "Importance Relative"]},
-}
+#### **Objectif :** Implémenter les outils d'optimisation et d'analyse de sensibilité avec architecture de solveurs multiples
 
-def initialize_log_data(template_name: str, titre_personnalise: str = None) -> dict:
-    """Initialise la structure de données pour un tableau de log spécifique."""
-    if template_name not in TABLE_TEMPLATES: return None
-    template = TABLE_TEMPLATES[template_name]
-    log_data_object = {
-        "type_tableau": template_name,
-        "titre": titre_personnalise or template.get("titre_defaut", "Titre non défini"),
+| Tâche | Description | Alignement | Nouveaux Fichiers |
+|-------|-------------|------------|-------------------|
+| **3.1 Architecture de Solveurs** | Implémenter le Strategy Pattern pour les solveurs hydrauliques | Nouvelle architecture | `core/solvers/` |
+| **3.2 Optimisation Réseau** | Algorithme génétique avec choix de solveur | Suivre le pattern des commandes unifiées | `calculations/network_optimize_unified.py` |
+| **3.3 Analyse de Sensibilité** | Monte-Carlo et indices de Sobol | Étendre `sensitivity_analysis.py` existant | Améliorer l'existant |
+| **3.4 Comparaison de Variantes** | Comparaison de plusieurs scénarios | Nouvelle commande unifiée | `calculations/network_compare_unified.py` |
+
+#### **Architecture de Solveurs Multiples (Strategy Pattern)**
+
+**Principe :** L'outil `lcpi` reste le **cerveau** (l'algorithme génétique), mais l'utilisateur peut choisir quel **muscle** (le solveur hydraulique) il veut utiliser pour évaluer la "fitness" de chaque solution.
+
+##### **Structure des Solveurs**
+```
+src/lcpi/aep/core/solvers/
+├── __init__.py
+├── base.py                    # Interface abstraite HydraulicSolver
+├── lcpi_solver.py            # Solveur interne (Hardy-Cross)
+├── epanet_solver.py          # Solveur EPANET
+└── factory.py                # Factory pour sélectionner le solveur
+```
+
+##### **Interface de Base**
+```python
+# core/solvers/base.py
+from abc import ABC, abstractmethod
+from typing import Dict, Any
+
+class HydraulicSolver(ABC):
+    """Interface abstraite pour un solveur hydraulique."""
+    
+    @abstractmethod
+    def run_simulation(self, network_data: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Exécute une simulation hydraulique pour un réseau donné.
+        
+        Args:
+            network_data: Dictionnaire représentant le réseau avec les diamètres à tester
+            
+        Returns:
+            Dictionnaire contenant les résultats (pressions, débits, vitesses, etc.)
+        """
+        pass
+    
+    @abstractmethod
+    def get_solver_info(self) -> Dict[str, str]:
+        """Retourne les informations sur le solveur (nom, version, etc.)"""
+        pass
+```
+
+##### **Solveur LCPI (Hardy-Cross)**
+```python
+# core/solvers/lcpi_solver.py
+from .base import HydraulicSolver
+from typing import Dict, Any
+
+class LcpiHardyCrossSolver(HydraulicSolver):
+    """Solveur utilisant l'algorithme Hardy-Cross interne de LCPI."""
+    
+    def run_simulation(self, network_data: Dict[str, Any]) -> Dict[str, Any]:
+        # Appel de la fonction Hardy-Cross existante
+        results = run_hardy_cross_analysis(network_data)
+        
+        return {
+            "pressures": results.get("pressions_noeuds", {}),
+            "flows": results.get("debits_finaux", {}),
+            "velocities": results.get("vitesses", {}),
+            "status": "success" if results.get("convergence", {}).get("converge") else "failure",
+            "solver": "lcpi_hardy_cross"
+        }
+    
+    def get_solver_info(self) -> Dict[str, str]:
+        return {
+            "name": "LCPI Hardy-Cross",
+            "version": "2.0",
+            "description": "Solveur interne basé sur l'algorithme Hardy-Cross"
+        }
+```
+
+##### **Solveur EPANET**
+```python
+# core/solvers/epanet_solver.py
+from .base import HydraulicSolver
+from typing import Dict, Any
+import epanet_python as epanet
+
+class EpanetSolver(HydraulicSolver):
+    """Solveur utilisant le moteur de simulation EPANET."""
+    
+    def run_simulation(self, network_data: Dict[str, Any]) -> Dict[str, Any]:
+        # 1. Générer le fichier .inp temporaire
+        inp_content = self._generate_inp_from_data(network_data)
+        
+        with epanet.ENepanet() as en:
+            # 2. Lancer la simulation EPANET
+            en.ENrunproject(inp_content)
+            
+            # 3. Extraire les résultats
+            pressures, flows, velocities = self._extract_results(en)
+        
+        return {
+            "pressures": pressures,
+            "flows": flows,
+            "velocities": velocities,
+            "status": "success",
+            "solver": "epanet"
+        }
+    
+    def _generate_inp_from_data(self, network_data):
+        # Logique de conversion YAML vers .inp
+        pass
+    
+    def _extract_results(self, epanet_instance):
+        # Extraction des résultats EPANET
+        pass
+    
+    def get_solver_info(self) -> Dict[str, str]:
+        return {
+            "name": "EPANET",
+            "version": "2.2",
+            "description": "Moteur de simulation EPA"
+        }
+```
+
+##### **Factory de Solveurs**
+```python
+# core/solvers/factory.py
+from typing import Dict, Type
+from .base import HydraulicSolver
+from .lcpi_solver import LcpiHardyCrossSolver
+from .epanet_solver import EpanetSolver
+
+class SolverFactory:
+    """Factory pour créer les instances de solveurs."""
+    
+    _solvers: Dict[str, Type[HydraulicSolver]] = {
+        "lcpi": LcpiHardyCrossSolver,
+        "epanet": EpanetSolver
     }
-    if template["type_tableau"] == "liste_enregistrements":
-        log_data_object["donnees"] = []
-    elif template["type_tableau"] == "liste_parametres":
-        cle_nom = template.get("cle_nom", "Paramètre")
-        cle_valeur = template.get("cle_valeur", "Valeur")
-        log_data_object["donnees"] = [{cle_nom: param, cle_valeur: None} for param in template.get("parametres", [])]
-    return log_data_object
+    
+    @classmethod
+    def get_solver(cls, solver_name: str) -> HydraulicSolver:
+        """Retourne une instance du solveur demandé."""
+        if solver_name not in cls._solvers:
+            available = ", ".join(cls._solvers.keys())
+            raise ValueError(f"Solveur '{solver_name}' inconnu. Disponibles: {available}")
+        
+        return cls._solvers[solver_name]()
+    
+    @classmethod
+    def list_available_solvers(cls) -> Dict[str, Dict[str, str]]:
+        """Liste tous les solveurs disponibles avec leurs informations."""
+        return {
+            name: solver().get_solver_info() 
+            for name, solver in cls._solvers.items()
+        }
 ```
 
-#### **Arborescence et Contenu des Templates (`Tâche 2`)**
+#### **Structure des Nouvelles Commandes avec Choix de Solveur**
+```python
+@app.command()
+def network_optimize_unified(
+    input_file: Path = typer.Argument(..., help="Fichier YAML réseau à optimiser"),
+    solver: str = typer.Option("lcpi", "--solver", "-s", help="Solveur hydraulique (lcpi/epanet)"),
+    critere: str = typer.Option("cout", "--critere", "-c", help="Critère d'optimisation"),
+    budget_max: float = typer.Option(None, "--budget", "-b", help="Budget maximum"),
+    output: Optional[Path] = typer.Option(None, "--output", "-o", help="Fichier de sortie"),
+    verbose: bool = typer.Option(False, "--verbose", "-v", help="Mode verbeux")
+):
+    """🔧 Optimisation de réseau avec algorithme génétique et choix de solveur
+    
+    L'utilisateur peut choisir le solveur hydraulique pour évaluer les solutions :
+    - lcpi : Solveur interne rapide (Hardy-Cross)
+    - epanet : Solveur EPA plus précis mais plus lent
+    """
+    try:
+        # 1. Sélectionner le solveur
+        hydraulic_solver = SolverFactory.get_solver(solver)
+        
+        if verbose:
+            solver_info = hydraulic_solver.get_solver_info()
+            console.print(f"🔧 Solveur sélectionné: {solver_info['name']} v{solver_info['version']}")
+            console.print(f"📝 {solver_info['description']}")
+        
+        # 2. Charger la configuration du réseau
+        network_config = load_network_config(input_file)
+        
+        # 3. Lancer l'optimisation avec le solveur choisi
+        results = run_genetic_optimization(network_config, hydraulic_solver)
+        
+        # 4. Exporter les résultats
+        export_results(results, output)
+        
+    except Exception as e:
+        console.print(f"❌ Erreur d'optimisation: {e}", style="red")
+        raise typer.Exit(code=1)
 
-La structure du dossier `templates/` reste la même, mais le contenu des fichiers est crucial.
+@app.command()
+def network_sensitivity_unified(
+    input_file: Path = typer.Argument(..., help="Fichier YAML réseau de base"),
+    solver: str = typer.Option("lcpi", "--solver", "-s", help="Solveur hydraulique (lcpi/epanet)"),
+    parametres: List[str] = typer.Option(None, "--parametres", "-p", help="Paramètres à analyser"),
+    iterations: int = typer.Option(1000, "--iterations", "-i", help="Nombre d'itérations Monte-Carlo"),
+    output: Optional[Path] = typer.Option(None, "--output", "-o", help="Fichier de sortie"),
+    verbose: bool = typer.Option(False, "--verbose", "-v", help="Mode verbeux")
+):
+    """📊 Analyse de sensibilité des paramètres du réseau
+    
+    Utilise le solveur choisi pour évaluer l'impact des variations de paramètres.
+    """
+    try:
+        # Sélectionner le solveur
+        hydraulic_solver = SolverFactory.get_solver(solver)
+        
+        # Charger la configuration
+        network_config = load_network_config(input_file)
+        
+        # Lancer l'analyse de sensibilité
+        results = run_sensitivity_analysis(network_config, hydraulic_solver, parametres, iterations)
+        
+        # Exporter les résultats
+        export_results(results, output)
+        
+    except Exception as e:
+        console.print(f"❌ Erreur d'analyse: {e}", style="red")
+        raise typer.Exit(code=1)
 
-**(Les contenus de `style.css`, `base.html`, `sections/default_calcul.html`, et `tables/recap_reservoir.html` sont identiques à ceux de la v4 et sont supposés être copiés ici.)**
+@app.command()
+def network_compare_unified(
+    input_files: List[Path] = typer.Argument(..., help="Fichiers YAML des variantes à comparer"),
+    solver: str = typer.Option("lcpi", "--solver", "-s", help="Solveur hydraulique (lcpi/epanet)"),
+    criteres: List[str] = typer.Option(["cout", "performance"], "--criteres", "-c", help="Critères de comparaison"),
+    output: Optional[Path] = typer.Option(None, "--output", "-o", help="Fichier de sortie"),
+    verbose: bool = typer.Option(False, "--verbose", "-v", help="Mode verbeux")
+):
+    """⚖️ Comparaison de variantes de réseau
+    
+    Compare plusieurs variantes en utilisant le solveur choisi pour l'évaluation.
+    """
+    try:
+        # Sélectionner le solveur
+        hydraulic_solver = SolverFactory.get_solver(solver)
+        
+        # Charger toutes les configurations
+        network_configs = [load_network_config(f) for f in input_files]
+        
+        # Lancer la comparaison
+        results = run_network_comparison(network_configs, hydraulic_solver, criteres)
+        
+        # Exporter les résultats
+        export_results(results, output)
+        
+    except Exception as e:
+        console.print(f"❌ Erreur de comparaison: {e}", style="red")
+        raise typer.Exit(code=1)
 
----
+@app.command()
+def list_solvers():
+    """📋 Liste tous les solveurs hydrauliques disponibles"""
+    try:
+        solvers = SolverFactory.list_available_solvers()
+        
+        table = Table(title="🔧 Solveurs Hydrauliques Disponibles")
+        table.add_column("Nom", style="cyan")
+        table.add_column("Version", style="green")
+        table.add_column("Description", style="yellow")
+        
+        for name, info in solvers.items():
+            table.add_row(name, info["version"], info["description"])
+        
+        console.print(table)
+        
+    except Exception as e:
+        console.print(f"❌ Erreur: {e}", style="red")
+        raise typer.Exit(code=1)
 
-## 🧑‍💻 **PHASE 5 : Expérience Utilisateur et Traçabilité**
+#### **Avantages de l'Architecture de Solveurs Multiples**
 
-**Objectif :** Finaliser l'outil avec des fonctionnalités qui améliorent l'ergonomie, la reproductibilité et la traçabilité des calculs.
+##### **1. Flexibilité Maximale pour l'Utilisateur**
+```bash
+# Optimisation rapide avec le solveur interne
+lcpi aep network-optimize-unified --input reseau.yml --solver lcpi --criteria cout
 
-| Priorité | Tâche | Description |
-|---|---|---|
-| **Moyenne**| **1. Fichier de Projet `lcpi.yml`** | Utiliser un fichier `lcpi.yml` pour les métadonnées du projet. |
-| **Haute** | **2. Journalisation Enrichie** | Ajouter `hash_donnees_entree` et `dependances` aux logs pour une traçabilité complète. |
-| **Basse** | **3. Configuration Interactive** | Créer une commande `lcpi aep network-configure --interactive`. |
-| **Basse** | **4. Intégration `git`** | Ajouter une option `git init` à `lcpi init`. |
+# Optimisation précise avec EPANET
+lcpi aep network-optimize-unified --input reseau.yml --solver epanet --criteria "cout,energie,performance"
 
-### **Implémentation de Référence - Phase 5**
+# Analyse de sensibilité avec le solveur de choix
+lcpi aep network-sensitivity-unified --input reseau.yml --solver epanet --parametres "rugosite,demande"
+```
 
-#### **Exemple de Log Enrichi (`Tâche 2`)**
-```json
-{
-  "id": "20250815153000",
-  "titre_calcul": "Dimensionnement des Armatures",
-  "commande_executee": "lcpi calcul_armatures --input_calcul 20250815143005.json --log",
-  "dependances": ["20250815143005"],
-  "hash_donnees_entree": "sha256:abc...",
-  "donnees_resultat": { /* ... */ }
-}
+##### **2. Extensibilité du Code (Principe Ouvert/Fermé)**
+- **Ouvert à l'extension** : Ajouter un nouveau solveur (ex: SWMM, WaterGEMS) ne nécessite que de créer une nouvelle classe
+- **Fermé à la modification** : Le code de l'algorithme génétique reste stable et inchangé
+
+##### **3. Testabilité et Qualité**
+```python
+# Test avec un solveur mock pour développement rapide
+class MockSolver(HydraulicSolver):
+    def run_simulation(self, network_data):
+        return {
+            "pressures": {"N1": 25.0, "N2": 22.0},
+            "flows": {"C1": 0.05, "C2": 0.03},
+            "velocities": {"C1": 1.1, "C2": 0.9},
+            "status": "success",
+            "solver": "mock"
+        }
+```
+
+##### **4. Workflow Ingénieur Optimisé**
+1. **Phase exploratoire** : Utiliser `--solver lcpi` pour des tests rapides
+2. **Phase de validation** : Utiliser `--solver epanet` pour des résultats précis
+3. **Phase de comparaison** : Tester les deux solveurs sur le même réseau
+
+##### **5. Performance et Précision**
+| Solveur | Vitesse | Précision | Cas d'Usage |
+|---------|---------|-----------|-------------|
+| **LCPI** | ⚡⚡⚡⚡⚡ | ⚡⚡⚡ | Développement, tests rapides |
+| **EPANET** | ⚡⚡⚡ | ⚡⚡⚡⚡⚡ | Validation finale, rapports |
+
+##### **6. Exemples d'Utilisation Concrète**
+
+**Scénario 1 : Développement itératif**
+```bash
+# Itération 1 : Test rapide
+lcpi aep network-optimize-unified --input reseau_v1.yml --solver lcpi --criteria cout
+
+# Itération 2 : Validation avec EPANET
+lcpi aep network-optimize-unified --input reseau_v2.yml --solver epanet --criteria "cout,performance"
+
+# Itération 3 : Analyse de sensibilité
+lcpi aep network-sensitivity-unified --input reseau_final.yml --solver epanet --parametres "demande,rugosite"
+```
+
+**Scénario 2 : Comparaison de solveurs**
+```bash
+# Comparer les résultats des deux solveurs
+lcpi aep network-optimize-unified --input reseau.yml --solver lcpi --output resultats_lcpi.json
+lcpi aep network-optimize-unified --input reseau.yml --solver epanet --output resultats_epanet.json
+
+# Analyser les différences
+lcpi aep network-compare-unified reseau_lcpi.yml reseau_epanet.yml --solver epanet
+```
+```
+
+### **PHASE 4 : Moteur de Reporting Professionnel** 📄 **PRIORITÉ HAUTE**
+
+#### **Objectif :** Créer le système de génération de rapports professionnels
+
+| Tâche | Description | Alignement | Nouveaux Fichiers |
+|-------|-------------|------------|-------------------|
+| **4.1 Templates de Tableaux** | Centraliser les définitions de tableaux | Nouveau module | `src/lcpi/reporting/table_templates.py` |
+| **4.2 Templates Jinja2** | Créer les templates HTML/CSS | Nouveau module | `src/lcpi/reporting/templates/` |
+| **4.3 Commande Rapport** | Nouvelle commande `lcpi rapport` | Nouvelle commande principale | `src/lcpi/reporting/cli.py` |
+| **4.4 Export Multi-Format** | Support PDF, DOCX, HTML | Étendre `utils/exporters.py` | Améliorer l'existant |
+
+#### **Structure du Module Reporting**
+```
+src/lcpi/reporting/
+├── __init__.py
+├── cli.py                    # Commande lcpi rapport
+├── table_templates.py        # Définitions des tableaux
+├── report_generator.py       # Générateur de rapports
+├── templates/                # Templates Jinja2
+│   ├── base.html
+│   ├── style.css
+│   ├── sections/
+│   │   ├── default_calcul.html
+│   │   ├── network_analysis.html
+│   │   └── optimization.html
+│   └── tables/
+│       ├── recap_reservoir.html
+│       ├── dimensionnement_troncons.html
+│       └── ...
+└── utils/
+    ├── pdf_generator.py      # Export PDF avec WeasyPrint
+    └── docx_generator.py     # Export DOCX avec python-docx
+```
+
+#### **Commande Rapport Unifiée**
+```python
+# src/lcpi/reporting/cli.py
+@app.command()
+def rapport(
+    input_file: Path = typer.Argument(..., help="Fichier de résultats JSON"),
+    template: str = typer.Option("default", "--template", "-t", help="Template de rapport"),
+    output: Path = typer.Option(Path("rapport.html"), "--output", "-o", help="Fichier de sortie"),
+    format: str = typer.Option("html", "--format", "-f", help="Format (html/pdf/docx)"),
+    verbose: bool = typer.Option(False, "--verbose", "-v", help="Mode verbeux")
+):
+    """📄 Génération de rapport professionnel
+    
+    Génère un rapport complet à partir des résultats de calculs AEP.
+    Supporte les formats HTML, PDF et DOCX.
+    """
+    try:
+        with console.status("[bold green]Génération du rapport..."):
+            # 1. Charger les données de résultats
+            results_data = load_results_data(input_file)
+            
+            # 2. Sélectionner le template approprié
+            template_data = select_template(template, results_data)
+            
+            # 3. Générer le rapport
+            report_content = generate_report(template_data, results_data)
+            
+            # 4. Exporter dans le format demandé
+            export_report(report_content, output, format)
+            
+        console.print(f"✅ Rapport généré: {output}", style="green")
+        
+        if verbose:
+            # Afficher un résumé du rapport
+            display_report_summary(results_data)
+            
+    except Exception as e:
+        console.print(f"❌ Erreur lors de la génération: {e}", style="red")
+        raise typer.Exit(code=1)
+```
+
+### **PHASE 5 : Expérience Utilisateur et Traçabilité** 🎨 **PRIORITÉ MOYENNE**
+
+#### **Objectif :** Améliorer l'ergonomie et la traçabilité des calculs
+
+| Tâche | Description | Alignement | Impact |
+|-------|-------------|------------|---------|
+| **5.1 Fichier de Projet** | Utiliser `lcpi.yml` pour les métadonnées | Améliorer `lcpi init` | Traçabilité |
+| **5.2 Journalisation Enrichie** | Ajouter hash et dépendances aux logs | Améliorer `core/database.py` | Traçabilité |
+| **5.3 Configuration Interactive** | Interface interactive pour la configuration | Nouvelle commande | UX |
+| **5.4 Intégration Git** | Option `git init` dans `lcpi init` | Améliorer `lcpi init` | Versioning |
+
+#### **Amélioration de la Journalisation**
+```python
+# Amélioration de core/database.py
+def ajouter_calcul(self, projet_id: int, commande: str, resultats: dict, 
+                   hash_donnees: str = None, dependances: List[str] = None) -> int:
+    """Ajoute un calcul avec traçabilité complète"""
+    cursor = self.conn.cursor()
+    
+    # Calculer le hash des données d'entrée si non fourni
+    if hash_donnees is None:
+        hash_donnees = hashlib.sha256(json.dumps(resultats, sort_keys=True).encode()).hexdigest()
+    
+    # Vérifier les dépendances
+    if dependances:
+        for dep_id in dependances:
+            if not self.calcul_existe(dep_id):
+                raise ValueError(f"Dépendance {dep_id} non trouvée")
+    
+    cursor.execute("""
+        INSERT INTO calculs (projet_id, commande, resultats, hash_donnees, dependances, date_creation)
+        VALUES (?, ?, ?, ?, ?, ?)
+    """, (projet_id, commande, json.dumps(resultats), hash_donnees, 
+          json.dumps(dependances) if dependances else None, datetime.now()))
+    
+    self.conn.commit()
+    return cursor.lastrowid
 ```
 
 ---
 
-## 📦 **PHASE 6 : Scalabilité et Déploiement (Vision à Long Terme)**
+## 🛠️ **PLAN D'IMPLÉMENTATION DÉTAILLÉ**
 
-**Objectif :** Assurer la pérennité et l'évolutivité du projet en adoptant des pratiques de déploiement modernes.
+### **Étape 1 : Préparation de l'Infrastructure** (Semaine 1)
 
-| Priorité | Tâche | Description |
-|---|---|---|
-| **Moyenne**| **1. Containerisation avec Docker** | Fournir un `Dockerfile` pour un environnement d'exécution reproductible. |
-| **Basse** | **2. Exposition via une API** | Enrober le cœur logique dans une API REST avec `FastAPI` pour de futures interfaces. |
-| **Basse** | **3. Backend de Données Performant** | Envisager le support de `Apache Parquet` pour les très grands réseaux. |
+#### **1.1 Ajout des Dépendances**
+```bash
+# Ajouter dans requirements.txt
+pydantic>=2.0.0
+rich>=13.0.0
+jinja2>=3.0.0
+weasyprint>=60.0
+python-docx>=0.8.11
+joblib>=1.3.0
+numba>=0.58.0
+```
+
+#### **1.2 Création des Nouveaux Modules**
+```bash
+# Créer la structure de reporting
+mkdir -p src/lcpi/reporting/templates/sections
+mkdir -p src/lcpi/reporting/templates/tables
+mkdir -p src/lcpi/reporting/utils
+
+# Créer la structure de stratégies et solveurs
+mkdir -p src/lcpi/aep/core/strategies
+mkdir -p src/lcpi/aep/core/solvers
+```
+
+#### **1.3 Refactoring Rich - Migration Progressive**
+```python
+# 1. Créer utils/rich_ui.py pour centraliser les composants Rich
+# 2. Remplacer progressivement les typer.echo() par console.print()
+# 3. Ajouter des tableaux Rich pour l'affichage des données
+# 4. Implémenter les spinners pour les opérations longues
+```
+
+### **Étape 2 : Implémentation Progressive** (Semaines 2-6)
+
+#### **Semaine 2 : Phase 1 - Refactoring**
+- [ ] Intégration Rich dans `cli.py`
+- [ ] Validation Pydantic dans `core/validators.py`
+- [ ] Strategy Pattern pour Hardy-Cross
+- [ ] Tests de régression
+
+#### **Semaine 3-4 : Phase 2 - Network Complete**
+- [ ] Implémentation `network-complete-unified`
+- [ ] Amélioration Hardy-Cross
+- [ ] Intégration EPANET
+- [ ] Tests complets
+
+#### **Semaine 5 : Phase 4 - Reporting**
+- [ ] Module `table_templates.py`
+- [ ] Templates Jinja2
+- [ ] Commande `lcpi rapport`
+- [ ] Export multi-format
+
+#### **Semaine 6 : Phase 3 - Optimisation**
+- [ ] Architecture de solveurs (Strategy Pattern)
+- [ ] `network-optimize-unified` avec choix de solveur
+- [ ] `network-sensitivity-unified` avec choix de solveur
+- [ ] `network-compare-unified` avec choix de solveur
+- [ ] Tests et documentation
+
+### **Étape 3 : Tests et Validation** (Semaine 7)
+
+#### **3.1 Tests Unitaires**
+```bash
+# Tests pour chaque nouvelle commande
+pytest tests/test_network_complete_unified.py -v
+pytest tests/test_reporting.py -v
+pytest tests/test_optimization.py -v
+```
+
+#### **3.2 Tests d'Intégration**
+```bash
+# Tests de workflows complets
+pytest tests/test_workflows.py -v
+```
+
+#### **3.3 Tests de Régression**
+```bash
+# S'assurer que l'existant fonctionne
+pytest tests/test_aep_suggestions_complete.py -v
+pytest tests/test_aep_metier_fonctionnalites.py -v
+```
 
 ---
 
-## ✅ **Résumé de la Feuille de Route V5 (Mise à jour)**
+## 📊 **MÉTRIQUES DE SUCCÈS**
 
-| Phase | Titre | Objectif Principal | Statut |
-|---|---|---|---|
-| **1** | **Refactoring du Cœur** | Améliorer la qualité et la robustesse du code. | **À faire** |
-| **2** | **Workflow Réseau Complet** | Livrer la fonctionnalité d'analyse de réseau de bout en bout. | **À faire** |
-| **3** | **Analyse Avancée & Comparaison** | Implémenter les outils d'optimisation, sensibilité et comparaison. | **À faire** |
-| **4** | **Moteur de Reporting** | Créer le système de génération de rapports professionnels. | **À faire** |
-| **5** | **Expérience Utilisateur & Traçabilité** | Ajouter des fonctionnalités de confort et de gestion de projet. | **À faire** |
-| **6** | **Scalabilité & Déploiement** | Préparer l'avenir de l'application. | **À faire** |
+### **Qualité du Code**
+- [ ] Couverture de tests > 90%
+- [ ] Aucune régression sur les commandes existantes
+- [ ] Respect des patterns de nommage et d'architecture
+
+### **Performance**
+- [ ] Temps de calcul Hardy-Cross < 5s pour réseaux < 100 nœuds
+- [ ] Génération de rapport < 10s
+- [ ] Optimisation génétique < 60s pour réseaux moyens
+
+### **Expérience Utilisateur**
+- [ ] Interface Rich pour toutes les commandes
+- [ ] Messages d'erreur clairs et informatifs
+- [ ] Documentation complète et exemples
+
+### **Fonctionnalités**
+- [ ] Toutes les commandes unifiées implémentées
+- [ ] Architecture de solveurs multiples (LCPI + EPANET)
+- [ ] Système de reporting fonctionnel
+- [ ] Intégration EPANET opérationnelle
+
+---
+
+## 🔄 **MAINTENANCE ET ÉVOLUTION**
+
+### **Compatibilité Ascendante**
+- Maintenir toutes les commandes existantes
+- Ajouter des options de migration si nécessaire
+- Documentation des changements
+
+### **Évolutivité**
+- Architecture modulaire pour faciliter les extensions
+- Interfaces claires entre les modules
+- Tests automatisés pour éviter les régressions
+
+### **Documentation**
+- Guide utilisateur mis à jour
+- Exemples de code pour chaque nouvelle fonctionnalité
+- Documentation technique pour les développeurs
+
+---
+
+## ✅ **CONCLUSION**
+
+Cette feuille de route garantit une intégration harmonieuse des nouvelles fonctionnalités avec l'architecture existante, en respectant les patterns établis et en améliorant progressivement l'expérience utilisateur.
+
+**Principes clés :**
+1. **Compatibilité** : Ne jamais casser l'existant
+2. **Progression** : Implémentation par phases
+3. **Qualité** : Tests et documentation à chaque étape
+4. **UX** : Rich pour une interface moderne
+5. **Maintenabilité** : Code propre et modulaire
+
+**Prochaine étape :** Commencer par la Phase 1 (Refactoring et Rich) pour solidifier les fondations avant d'ajouter de nouvelles fonctionnalités.

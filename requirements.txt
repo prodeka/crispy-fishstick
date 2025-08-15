@@ -6,9 +6,13 @@ reportlab
 scipy
 Jinja2
 python-docx
-rich
+rich>=13.0.0
 cryptography
 networkx
 openpyxl
 pytest
 pytest-asyncio
+pydantic>=2.0.0
+weasyprint>=60.0
+joblib>=1.3.0
+numba>=0.58.0
