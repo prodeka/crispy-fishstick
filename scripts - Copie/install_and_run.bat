@@ -28,11 +28,11 @@ echo    Installation terminee. Lancement du programme...
 echo ==========================================================
 echo.
 
-REM Ajoute le répertoire src au PYTHONPATH pour que Python trouve le module nanostruct
+REM Ajoute le répertoire src au PYTHONPATH pour que Python trouve le module lcpi
 set PYTHONPATH=%CD%\src;%PYTHONPATH%
 
 REM Lance le programme principal
-python -m nanostruct.main_app
+python -m lcpi
 
 echo.
 echo Le programme s'est termine. Appuyez sur une touche pour fermer.

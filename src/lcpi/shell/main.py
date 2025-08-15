@@ -36,6 +36,7 @@ class EnhancedShell:
                 "• [yellow]vars[/yellow] - Afficher toutes les variables\n"
                 "• [yellow]csv[/yellow] - Commandes CSV\n"
                 "• [yellow]calc[/yellow] - Calculs\n"
+                "• [yellow]aep[/yellow] - Alimentation en Eau Potable\n"
                 "• [yellow]report[/yellow] - Rapports\n"
                 "• [yellow]exit[/yellow] - Quitter\n\n"
                 "[blue]Tapez 'help' pour plus d'informations[/blue]",
@@ -92,6 +93,8 @@ class EnhancedShell:
             self._cmd_csv(args)
         elif cmd == 'calc':
             self._cmd_calc(args)
+        elif cmd == 'aep':
+            self._cmd_aep(args)
         elif cmd == 'report':
             self._cmd_report(args)
         
@@ -124,6 +127,15 @@ class EnhancedShell:
 
 [bold green]Calculs:[/bold green]
   calc <module> <cmd>   - Exécuter un calcul
+
+[bold green]AEP (Alimentation en Eau Potable):[/bold green]
+  aep population <file> - Projection démographique
+  aep demand <file>     - Calcul de demande en eau
+  aep network <file>    - Dimensionnement réseau
+  aep reservoir <file>  - Dimensionnement réservoir
+  aep pumping <file>    - Dimensionnement pompage
+  aep hardy-cross <file> - Méthode Hardy-Cross
+  aep workflow <file>   - Workflow AEP complet
 
 [bold green]Rapports:[/bold green]
   report generate       - Générer un rapport
@@ -702,6 +714,42 @@ class EnhancedShell:
         if not row.get('matiere'):
             errors.append(f"Ligne {line_num}: matiere manquante")
         return errors
+    
+    def _cmd_aep(self, args):
+        """Commandes AEP (Alimentation en Eau Potable)."""
+        if not args:
+            console.print("[red]Usage: aep <command> [args...][/red]")
+            console.print("[yellow]Commandes disponibles:[/yellow]")
+            console.print("  population <file> - Projection démographique")
+            console.print("  demand <file>     - Calcul de demande en eau")
+            console.print("  network <file>    - Dimensionnement réseau")
+            console.print("  reservoir <file>  - Dimensionnement réservoir")
+            console.print("  pumping <file>    - Dimensionnement pompage")
+            console.print("  hardy-cross <file> - Méthode Hardy-Cross")
+            console.print("  workflow <file>   - Workflow AEP complet")
+            return
+        
+        command = args[0]
+        cmd_args = args[1:]
+        
+        try:
+            # Construire la commande LCPI AEP
+            lcpi_cmd = ["python", "-m", "src.lcpi.aep.cli", command] + cmd_args
+            
+            # Exécuter la commande
+            result = subprocess.run(lcpi_cmd, capture_output=True, text=True, encoding='utf-8')
+            
+            if result.returncode == 0:
+                console.print(f"[green]✓[/green] Commande AEP {command} réussie")
+                if result.stdout:
+                    console.print(Panel(result.stdout, title="Résultat AEP", border_style="green"))
+            else:
+                console.print(f"[red]✗[/red] Erreur dans la commande AEP {command}")
+                if result.stderr:
+                    console.print(Panel(result.stderr, title="Erreur AEP", border_style="red"))
+                    
+        except Exception as e:
+            console.print(f"[red]Erreur lors de l'exécution AEP: {e}[/red]")
     
     def _cmd_calc(self, args):
         """Exécute un calcul."""

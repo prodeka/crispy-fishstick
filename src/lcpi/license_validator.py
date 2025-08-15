@@ -154,17 +154,22 @@ def check_license_and_exit():
         import sys
         sys.exit(1)
     else:
-        # Message UX explicite
-        try:
-            from rich.panel import Panel
-            from rich.console import Console
-            console = Console()
-            # Extraire nom et date d'expiration
-            license_data = get_license_info()
-            user = license_data.get('user_name', 'Utilisateur') if license_data else 'Utilisateur'
-            exp = license_data.get('expiration_date', None) if license_data else None
-            exp_str = f" (valide jusqu'au {exp[:10]})" if exp else ''
-            console.print(Panel(f"✅ Licence activée avec succès pour [bold]{user}[/bold]{exp_str}", style="green"))
-        except Exception:
-            print("✅ Licence activée avec succès !")
+        # Vérifier si on est en mode test (pas d'affichage)
+        if os.environ.get('LCPI_TEST_MODE') == '1':
+            # Mode test : pas d'affichage visuel et pas d'arrêt
+            pass
+        else:
+            # Message UX explicite
+            try:
+                from rich.panel import Panel
+                from rich.console import Console
+                console = Console()
+                # Extraire nom et date d'expiration
+                license_data = get_license_info()
+                user = license_data.get('user_name', 'Utilisateur') if license_data else 'Utilisateur'
+                exp = license_data.get('expiration_date', None) if license_data else None
+                exp_str = f" (valide jusqu'au {exp[:10]})" if exp else ''
+                console.print(Panel(f"✅ Licence activée avec succès pour [bold]{user}[/bold]{exp_str}", style="green"))
+            except Exception:
+                print("✅ Licence activée avec succès !")
         print(message) 

@@ -2,6 +2,54 @@
 
 ## 🎯 **PRÉFÉRENCES ET CONVENTIONS**
 
+### **Préférences de Développement**
+
+#### **Interface CLI et Aide Détaillée**
+- **Utilisation de rich-click ou configuration équivalente** pour un affichage en couleur et structuré
+- **Présence d'une description courte** avec emoji inclus (ex: 📊, 💧, 🔧)
+- **Description plus longue** de la commande avec contexte et objectifs
+- **Exemple d'utilisation clair** avec tous les flags disponibles
+- **Sections distinctes et bien formatées** pour les Arguments et les Options
+
+#### **Modèle d'Aide CLI (basé sur lcpi aep population --help)**
+```bash
+Usage: lcpi aep population [OPTIONS] FICHIER_CSV
+
+📊 Calcul de projection de population
+Projette la population d'une zone donnée sur plusieurs années en utilisant un taux de croissance constant.
+
+**Structure du fichier CSV d'entrée :**
+```csv
+annee,population
+2020,15000
+2021,15200
+2022,15400
+```
+
+**Exemple d'utilisation :**
+```bash
+lcpi aep population data/population.csv --debut 2020 --fin 2050 --taux 0.025 --output projections.csv
+```
+
+╭─ Arguments ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ *    fichier_csv      FILE  Fichier CSV avec les données de population [default: None] [required]                                │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+╭─ Options ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ --debut   -d      INTEGER  Année de début de projection [default: 2020]                                                          │
+│ --fin     -f      INTEGER  Année de fin de projection [default: 2050]                                                            │
+│ --taux    -t      FLOAT    Taux de croissance annuel (décimal) [default: 0.02]                                                   │
+│ --output  -o      PATH     Fichier de sortie (par défaut: population_projetee.csv) [default: None]                               │
+│ --help                     Show this message and exit.                                                                           │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+```
+
+#### **Standards de Documentation CLI**
+- **Emojis contextuels** : 📊 (données), 💧 (eau), 🔧 (outils), ⚡ (énergie), 🏗️ (construction)
+- **Exemples de données** : Structure YAML/CSV complète avec commentaires
+- **Exemples d'utilisation** : Commandes complètes avec tous les flags
+- **Documentation des paramètres** : Explication détaillée de chaque option
+- **Types de calcul disponibles** : Liste exhaustive des méthodes supportées
+
 ### **Structure des Dossiers**
 - **Documentation** : Toujours dans `/docs`
 - **Tests** : Toujours dans `/tests`

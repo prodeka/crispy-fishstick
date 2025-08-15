@@ -1,0 +1,14 @@
+population:
+  actuelle: 15000
+  projetee_2030: 18000
+  projetee_2050: 22000
+
+consommation:
+  domestique: 150  # litres/habitant/jour
+  industriel: 50   # litres/habitant/jour
+  commercial: 30   # litres/habitant/jour
+
+coefficients:
+  pointe_journaliere: 1.3
+  pointe_horaire: 1.8
+  fuites: 0.15
