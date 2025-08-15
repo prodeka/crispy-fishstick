@@ -35,30 +35,7 @@
       "Bdjaoui"
     ]
   },
-  "Paramètres de calcul de la HMT": {
-    "colonnes": [
-      "Paramètres",
-      "Valeurs"
-    ]
-  },
-  "Récapitulatif de la vérification du coup de bélier": {
-    "colonnes": [
-      "Paramètres",
-      "Unités",
-      "Valeurs"
-    ]
-  },
-  "Fiche technique de la pompe GRUNDFOS SP 9-44": {
-    "colonnes": [
-      "Désignations",
-      "Caractéristique technique de la pompe"
-    ]
-  },
-  "La fiche technique du groupe électrogène": {
-    "colonnes": [
-      "Désignations",
-      "Valeurs"
-    ]
+  
   },
   "Comparatif des résultats des diamètres, DN et débits pour GAPE-CENTRE": {
     "colonnes": [
