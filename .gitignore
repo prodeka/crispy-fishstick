@@ -58,3 +58,5 @@ dist/
 *.egg-info/
 rapport_lcpi.pdf
 climat_test.yml
+!vendor/*.whl
+
