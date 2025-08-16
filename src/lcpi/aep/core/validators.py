@@ -5,8 +5,11 @@ Ce fichier contient les fonctions de validation des données d'entrée
 pour assurer la cohérence et la validité des calculs AEP.
 """
 
+import yaml
+from pathlib import Path
 from typing import Dict, List, Any, Tuple, Optional
 from .constants import *
+from pydantic import BaseModel, ValidationError
 
 class AEPValidationError(Exception):
     """Exception levée lors d'une erreur de validation des données AEP"""
@@ -603,3 +606,39 @@ def validate_and_clean_data(data: Dict[str, Any], data_type: str) -> Dict[str, A
             print(f"   - {warning}")
     
     return validated_data 
+
+def validate_network_config(config_path: Path) -> Dict[str, Any]:
+    """
+    Valide un fichier de configuration de réseau.
+    
+    Args:
+        config_path: Chemin vers le fichier de configuration
+        
+    Returns:
+        Dictionnaire des données validées
+        
+    Raises:
+        FileNotFoundError: Si le fichier n'existe pas
+        yaml.YAMLError: Si le fichier YAML est invalide
+        ValidationError: Si les données ne respectent pas le schéma
+    """
+    if not config_path.exists():
+        raise FileNotFoundError(f"Fichier de configuration non trouvé: {config_path}")
+    
+    try:
+        with open(config_path, 'r', encoding='utf-8') as f:
+            config_data = yaml.safe_load(f)
+    except yaml.YAMLError as e:
+        raise yaml.YAMLError(f"Erreur de parsing YAML: {e}")
+    
+    # Validation basique - à étendre selon les besoins
+    if not isinstance(config_data, dict):
+        raise ValidationError("La configuration doit être un dictionnaire")
+    
+    # Vérifier la présence des sections obligatoires
+    required_sections = ['reseau_complet']
+    for section in required_sections:
+        if section not in config_data:
+            raise ValidationError(f"Section obligatoire manquante: {section}")
+    
+    return config_data 

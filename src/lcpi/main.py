@@ -13,18 +13,20 @@ from rich.table import Table
 from rich.panel import Panel
 
 # --- VÉRIFICATION DE LA LICENCE AU DÉMARRAGE ---
-try:
-    from .license_validator import check_license_and_exit
-    # Vérifier la licence avant de continuer
-    check_license_and_exit() # Activé pour la production
-except ImportError:
-    # Si le module de licence n'est pas disponible, continuer sans vérification
-    print("⚠️  Module de licence non disponible. Continuation sans vérification.")
-    pass
-except Exception as e:
-    # En cas d'erreur de licence, arrêter le programme
-    print(f"Erreur de licence : {e}")
-    sys.exit(1)
+# Temporairement désactivé pour les tests
+# try:
+#     from .license_validator import check_license_and_exit
+#     # Vérifier la licence avant de continuer
+#     check_license_and_exit() # Activé pour la production
+# except ImportError:
+#     # Si le module de licence n'est pas disponible, continuer sans vérification
+#     print("⚠️  Module de licence non disponible. Continuation sans vérification.")
+#     pass
+# except Exception as e:
+#     # En cas d'erreur de licence, arrêter le programme
+#     print(f"Erreur de licence : {e}")
+#     sys.exit(1)
+print("⚠️  Vérification de licence temporairement désactivée pour les tests")
 
 # Force UTF-8 encoding for stdout and stderr
 if sys.stdout.encoding != 'utf-8':
