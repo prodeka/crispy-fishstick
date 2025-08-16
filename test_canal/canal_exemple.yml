@@ -1,0 +1,37 @@
+# Fichier d'exemple pour le dimensionnement d'un canal
+# Hydrodrain - Canal à ciel ouvert
+
+canal:
+  nom: "Canal principal d'irrigation"
+  description: "Canal en terre pour l'irrigation agricole"
+  
+  # Paramètres géométriques
+  geometrie:
+    type: "trapezoidal"  # trapezoidal, rectangular, triangular
+    largeur_fond: 2.0    # m
+    pente_talus: 1.5     # H/V (1.5 = 1.5H:1V)
+    profondeur: 1.2      # m
+    
+  # Paramètres hydrauliques
+  hydraulique:
+    debit_design: 5.0    # m³/s
+    pente_longitudinale: 0.001  # m/m
+    coefficient_rugosite: 0.025  # Manning
+    
+  # Paramètres de sécurité
+  securite:
+    revanche: 0.3        # m
+    vitesse_maximale: 2.0  # m/s
+    vitesse_minimale: 0.3  # m/s
+    
+  # Paramètres de construction
+  construction:
+    materiau: "terre"
+    revetement: "none"   # none, beton, enrochement
+    compactage: "normal"  # leger, normal, fort
+    
+  # Paramètres environnementaux
+  environnement:
+    zone_climatique: "tropical"
+    exposition: "exterieure"
+    protection_vegetation: true 

@@ -467,7 +467,7 @@ def dimension_pumping_unified(data: Dict[str, Any], verbose: bool = False) -> Di
             print(f"   Puissance électrique: {puissance_electrique['puissance_electrique_kw']:.1f} kW")
             print(f"   Puissance groupe: {puissance_groupe['puissance_groupe_kva']:.1f} kVA")
             print(f"   Énergie journalière: {energie_consommee['energie_kwh']:.1f} kWh")
-            print(f"   Coût journalier: {cout_energie['cout_euros']:.2f} €")
+            print(f"   Coût journalier: {cout_energie['cout_euros']:.2f} FCFA")
         
         return resultat_final
         

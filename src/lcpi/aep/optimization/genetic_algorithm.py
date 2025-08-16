@@ -205,7 +205,7 @@ class GeneticOptimizer:
             # Affichage de progression
             if generation % 10 == 0:
                 print(f"   Génération {generation:3d}: Fitness={self.population[0].fitness:.4f}, "
-                      f"Cout={self.population[0].cout_total:.0f}€, "
+                      f"Cout={self.population[0].cout_total:.0f} FCFA, "
                       f"Perf={self.population[0].performance_hydraulique:.3f}")
             
             # Créer la nouvelle génération
@@ -237,7 +237,7 @@ class GeneticOptimizer:
         print(f"✅ Optimisation terminée!")
         print(f"   Meilleure solution trouvée:")
         print(f"   - Diamètres: {self.best_solution.diametres}")
-        print(f"   - Coût total: {self.best_solution.cout_total:.0f}€")
+        print(f"   - Coût total: {self.best_solution.cout_total:.0f} FCFA")
         print(f"   - Performance: {self.best_solution.performance_hydraulique:.3f}")
         print(f"   - Fitness finale: {self.best_solution.fitness:.4f}")
         

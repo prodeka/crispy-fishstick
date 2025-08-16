@@ -1,0 +1,64 @@
+network:
+  nodes:
+    R1:
+      type: reservoir
+      elevation: 120
+      demand: 0
+    N1:
+      type: junction
+      elevation: 100
+      demand: 0.05
+    N2:
+      type: junction
+      elevation: 95
+      demand: 0.03
+    N3:
+      type: junction
+      elevation: 90
+      demand: 0.02
+    N4:
+      type: junction
+      elevation: 92
+      demand: 0.04
+  
+  pipes:
+    P1:
+      noeud_amont: R1
+      noeud_aval: N1
+      length: 1000
+      diameter: 0.2
+      roughness: 120
+      initial_flow: 0.1
+    P2:
+      noeud_amont: N1
+      noeud_aval: N2
+      length: 800
+      diameter: 0.15
+      roughness: 120
+      initial_flow: 0.05
+    P3:
+      noeud_amont: N2
+      noeud_aval: N3
+      length: 1200
+      diameter: 0.25
+      roughness: 120
+      initial_flow: 0.08
+    P4:
+      noeud_amont: N3
+      noeud_aval: N4
+      length: 600
+      diameter: 0.18
+      roughness: 120
+      initial_flow: 0.03
+    P5:
+      noeud_amont: N4
+      noeud_aval: N1
+      length: 900
+      diameter: 0.22
+      roughness: 120
+      initial_flow: 0.06
+
+metadata:
+  name: "Réseau de test avec source d'eau"
+  description: "Réseau simple avec 1 réservoir, 4 nœuds et 5 conduites"
+  date: "2024-01-01" 

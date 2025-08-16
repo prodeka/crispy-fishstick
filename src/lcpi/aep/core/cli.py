@@ -274,7 +274,7 @@ def project(
         typer.echo(f"📋 Analyse projet ({type_analyse}):")
         typer.echo(f"  Population: {resultat['population']:.0f} habitants")
         typer.echo(f"  Demande: {resultat['demande']:.2f} m³/jour")
-        typer.echo(f"  Coût estimé: {resultat['cout']:.0f} €")
+        typer.echo(f"  Coût estimé: {resultat['cout']:.0f} FCFA")
     except Exception as e:
         typer.echo(f"❌ Erreur: {e}", err=True)
 

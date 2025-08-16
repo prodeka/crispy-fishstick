@@ -6,12 +6,21 @@ import typer
 from pathlib import Path
 from typing import Optional, Dict, Any
 import json
+import yaml
 
 # Import du module Rich UI centralisé
 from .utils.rich_ui import RichUI, console, show_calculation_results, show_network_diagnostics
 
 # Import du module de journalisation
 from ..logging import log_calculation_result
+
+# Import du décorateur de contexte
+from ..core.context import require_project_context, ensure_project_structure
+
+# Import des modules d'optimisation
+from .optimization import GeneticOptimizer, ConstraintManager
+from .optimization.models import ConfigurationOptimisation
+from .core.solvers import SolverFactory
 
 app = typer.Typer(name="aep", help="Module Alimentation en Eau Potable")
 
@@ -582,10 +591,10 @@ def project(
           hauteur: 45           # mètres
       
       couts:
-        reseau: 450000          # €
-        reservoir: 80000        # €
-        pompage: 120000         # €
-        total: 650000           # €
+        reseau: 450000          # FCFA
+        reservoir: 80000        # FCFA
+        pompage: 120000         # FCFA
+        total: 650000           # FCFA
     ```
     
     **Exemple d'utilisation :**
@@ -614,7 +623,7 @@ def project(
         typer.echo(f"📋 Analyse projet ({type_analyse}):")
         typer.echo(f"  Population: {resultat['population']:.0f} habitants")
         typer.echo(f"  Demande: {resultat['demande']:.2f} m³/jour")
-        typer.echo(f"  Coût estimé: {resultat['cout']:.0f} €")
+        typer.echo(f"  Coût estimé: {resultat['cout']:.0f} FCFA")
     except Exception as e:
         typer.echo(f"❌ Erreur: {e}", err=True)
         raise typer.Exit(code=1)
@@ -916,6 +925,20 @@ def network_unified(
             vitesse = result.get('reseau', {}).get('vitesse_ms', 0)
             typer.echo(f"🔧 D={diametre:.3f}m, V={vitesse:.2f}m/s")
 
+        # Gestion du contexte de projet
+        from ..core.context import get_project_context, ensure_project_structure
+        context = get_project_context()
+        
+        if context['type'] == 'none':
+            # Aucun projet actif, demander le sandbox
+            from ..core.context import handle_sandbox_logic
+            project_path = handle_sandbox_logic()
+        else:
+            project_path = context['path']
+        
+        # S'assurer que la structure du projet existe
+        ensure_project_structure(project_path)
+        
         # Logique de journalisation
         should_log = log
         if log is None and not no_log:
@@ -959,6 +982,7 @@ def network_unified(
                     titre_calcul="Dimensionnement réseau unifié",
                     commande_executee=commande_executee,
                     donnees_resultat=result,
+                    projet_dir=project_path,  # Utiliser le chemin du projet
                     parametres_entree=parametres_entree,
                     transparence_mathematique=[
                         f"Débit: {debit_m3s} m³/s",
@@ -2732,6 +2756,378 @@ def recalcul(
             traceback.print_exc()
         raise typer.Exit(1)
 
+@app.command("network-optimize-unified")
+def network_optimize_unified(
+    input_file: Path = typer.Argument(..., help="Fichier YAML contenant la configuration d'optimisation"),
+    solver: str = typer.Option("lcpi", "--solver", "-s", help="Solveur hydraulique (lcpi/epanet)"),
+    critere: str = typer.Option("cout", "--critere", "-c", help="Critère d'optimisation principal (cout/energie/performance)"),
+    budget_max: float = typer.Option(None, "--budget", "-b", help="Budget maximum en FCFA"),
+    generations: int = typer.Option(50, "--generations", "-g", help="Nombre de générations"),
+    population: int = typer.Option(100, "--population", "-p", help="Taille de la population"),
+    output: Optional[Path] = typer.Option(None, "--output", "-o", help="Fichier de sortie JSON"),
+    verbose: bool = typer.Option(False, "--verbose", "-v", help="Affichage détaillé"),
+    log: Optional[bool] = typer.Option(None, "--log", help="Journaliser le calcul (demande confirmation si non spécifié)"),
+    no_log: bool = typer.Option(False, "--no-log", help="Ne pas journaliser le calcul")
+):
+    """🔧 Optimisation de réseau avec algorithme génétique et choix de solveur
+    
+    Optimise les diamètres d'un réseau d'eau potable en utilisant un algorithme génétique
+    et le solveur hydraulique de votre choix.
+    
+    **Solveurs disponibles :**
+    • lcpi : Solveur interne rapide (Hardy-Cross)
+    • epanet : Solveur EPA plus précis mais plus lent
+    
+    **Critères d'optimisation :**
+    • cout : Minimiser le coût d'investissement
+    • energie : Minimiser la consommation énergétique
+    • performance : Maximiser la performance hydraulique
+    
+    **Exemples d'utilisation :**
+    ```bash
+    # Optimisation basique avec solveur LCPI
+    lcpi aep network-optimize-unified reseau.yml --solver lcpi --critere cout
+    
+    # Optimisation avancée avec EPANET et budget
+    lcpi aep network-optimize-unified reseau.yml --solver epanet --critere cout --budget 100000
+    
+    # Optimisation avec paramètres personnalisés
+    lcpi aep network-optimize-unified reseau.yml --generations 100 --population 200 --verbose
+    ```
+    
+    **Structure de sortie standardisée :** { meilleure_solution, historique, statistiques }
+    """
+    try:
+        # Gestion du contexte de projet
+        from ..core.context import get_project_context, ensure_project_structure
+        context = get_project_context()
+        
+        if context['type'] == 'none':
+            # Aucun projet actif, demander le sandbox
+            from ..core.context import handle_sandbox_logic
+            project_path = handle_sandbox_logic()
+        else:
+            project_path = context['path']
+        
+        # S'assurer que la structure du projet existe
+        ensure_project_structure(project_path)
+        
+        # 1. Charger et valider la configuration
+        if not input_file.exists():
+            typer.secho(f"❌ Fichier d'entrée introuvable: {input_file}", fg=typer.colors.RED)
+            raise typer.Exit(1)
+        
+        with open(input_file, 'r', encoding='utf-8') as f:
+            config_data = yaml.safe_load(f)
+        
+        # 2. Créer la configuration d'optimisation
+        if 'optimisation' not in config_data:
+            typer.secho("❌ Section 'optimisation' manquante dans le fichier de configuration", fg=typer.colors.RED)
+            raise typer.Exit(1)
+        
+        # Ajuster les paramètres si spécifiés en ligne de commande
+        if budget_max:
+            config_data['optimisation']['contraintes_budget']['cout_max_fcfa'] = budget_max
+        
+        config_data['optimisation']['algorithme']['generations'] = generations
+        config_data['optimisation']['algorithme']['population_size'] = population
+        config_data['optimisation']['criteres']['principal'] = critere
+        
+        try:
+            config = ConfigurationOptimisation(**config_data['optimisation'])
+        except Exception as e:
+            typer.secho(f"❌ Erreur de validation de la configuration: {e}", fg=typer.colors.RED)
+            raise typer.Exit(1)
+        
+        if verbose:
+            typer.echo(f"🔧 Configuration d'optimisation:")
+            typer.echo(f"  Critère principal: {config.criteres.principal}")
+            typer.echo(f"  Budget max: {config.contraintes_budget.cout_max_fcfa} FCFA")
+            typer.echo(f"  Diamètres candidats: {len(config.diametres_candidats)}")
+            typer.echo(f"  Générations: {config.algorithme.generations}")
+            typer.echo(f"  Population: {config.algorithme.population_size}")
+        
+        # 3. Sélectionner le solveur hydraulique
+        try:
+            hydraulic_solver = SolverFactory.get_solver(solver)
+            solver_info = hydraulic_solver.get_solver_info()
+            
+            if verbose:
+                typer.echo(f"🔧 Solveur sélectionné: {solver_info['name']} v{solver_info['version']}")
+                typer.echo(f"📝 {solver_info['description']}")
+        except ValueError as e:
+            typer.secho(f"❌ Erreur de sélection du solveur: {e}", fg=typer.colors.RED)
+            raise typer.Exit(1)
+        
+        # 4. Créer le gestionnaire de contraintes
+        constraint_manager = ConstraintManager(
+            config.contraintes_budget,
+            config.contraintes_techniques
+        )
+        
+        # 5. Créer l'optimiseur génétique avec injection de dépendance
+        optimizer = GeneticOptimizer(config, constraint_manager)
+        
+        # 6. Charger les données du réseau
+        reseau_data = config_data.get('reseau_complet', {})
+        nb_conduites = len(reseau_data.get('conduites', []))
+        
+        if nb_conduites == 0:
+            typer.secho("❌ Aucune conduite trouvée dans le fichier de configuration", fg=typer.colors.RED)
+            raise typer.Exit(1)
+        
+        if verbose:
+            typer.echo(f"🌐 Réseau à optimiser: {nb_conduites} conduites")
+        
+        # 7. Lancer l'optimisation
+        with typer.progressbar(
+            range(config.algorithme.generations),
+            label="Optimisation en cours",
+            show_eta=True
+        ) as progress:
+            resultats = optimizer.optimiser(reseau_data, nb_conduites)
+        
+        # 8. Afficher les résultats
+        if verbose:
+            typer.echo(f"\n🎯 Résultats de l'optimisation:")
+            typer.echo(f"  Statut: {resultats.get('statut', 'inconnu')}")
+            typer.echo(f"  Itérations: {resultats.get('iterations', 0)}")
+            
+            meilleure_solution = resultats.get('meilleure_solution', {})
+            if meilleure_solution:
+                typer.echo(f"  Coût total: {meilleure_solution.get('performance', {}).get('cout_total_fcfa', 0):.0f} FCFA")
+                typer.echo(f"  Performance hydraulique: {meilleure_solution.get('performance', {}).get('performance_hydraulique', 0):.3f}")
+        else:
+            meilleure_solution = resultats.get('meilleure_solution', {})
+            if meilleure_solution:
+                cout = meilleure_solution.get('performance', {}).get('cout_total_fcfa', 0)
+                performance = meilleure_solution.get('performance', {}).get('performance_hydraulique', 0)
+                typer.echo(f"🎯 Optimisation terminée: Coût={cout:.0f}FCFA, Performance={performance:.3f}")
+        
+        # 9. Sauvegarder les résultats
+        if output:
+            with open(output, 'w', encoding='utf-8') as f:
+                json.dump(resultats, f, indent=2, ensure_ascii=False)
+            typer.echo(f"✅ Résultats sauvegardés: {output}")
+        
+        # 10. Logique de journalisation
+        should_log = log
+        if log is None and not no_log:
+            should_log = typer.confirm("📝 Voulez-vous journaliser cette optimisation ?")
+        
+        if should_log and not no_log:
+            try:
+                # Préparer les données pour la journalisation
+                parametres_entree = {
+                    "input_file": str(input_file),
+                    "solver": solver,
+                    "critere": critere,
+                    "budget_max": budget_max,
+                    "generations": generations,
+                    "population": population,
+                    "nb_conduites": nb_conduites
+                }
+                
+                # Construire la commande exécutée
+                commande_parts = ["lcpi", "aep", "network-optimize-unified", str(input_file)]
+                commande_parts.extend(["--solver", solver])
+                commande_parts.extend(["--critere", critere])
+                if budget_max:
+                    commande_parts.extend(["--budget", str(budget_max)])
+                commande_parts.extend(["--generations", str(generations)])
+                commande_parts.extend(["--population", str(population)])
+                if verbose:
+                    commande_parts.append("--verbose")
+                
+                commande_executee = " ".join(commande_parts)
+                
+                # Journaliser l'optimisation
+                log_id = log_calculation_result(
+                    titre_calcul="Optimisation de réseau unifiée",
+                    commande_executee=commande_executee,
+                    donnees_resultat=resultats,
+                    projet_dir=project_path,
+                    parametres_entree=parametres_entree,
+                    transparence_mathematique=[
+                        f"Solveur: {solver}",
+                        f"Critère: {critere}",
+                        f"Générations: {generations}",
+                        f"Population: {population}",
+                        f"Conduites: {nb_conduites}",
+                        f"Meilleur coût: {meilleure_solution.get('performance', {}).get('cout_total_fcfa', 0):.0f} FCFA",
+                        f"Performance: {meilleure_solution.get('performance', {}).get('performance_hydraulique', 0):.3f}"
+                    ],
+                    version_algorithme="2.1.0",
+                    verbose=verbose
+                )
+                
+                typer.echo(f"📊 Optimisation journalisée avec l'ID: {log_id}")
+                
+            except Exception as e:
+                typer.secho(f"⚠️ Erreur lors de la journalisation: {e}", fg=typer.colors.YELLOW)
+        
+        return resultats
+        
+    except Exception as e:
+        typer.secho(f"❌ Erreur lors de l'optimisation: {e}", fg=typer.colors.RED)
+        if verbose:
+            import traceback
+            traceback.print_exc()
+        raise typer.Exit(1)
+
+@app.command("network-analyze-scenarios")
+def network_analyze_scenarios(
+    input_file: Path = typer.Argument(..., help="Fichier YAML contenant la configuration et les scénarios"),
+    solver: str = typer.Option("lcpi", "--solver", "-s", help="Solveur hydraulique (lcpi/epanet)"),
+    output_format: str = typer.Option("tableau", "--format", "-f", help="Format de sortie (tableau/graphique/json)"),
+    output_dir: Optional[Path] = typer.Option(None, "--output-dir", "-o", help="Répertoire de sortie pour les résultats"),
+    verbose: bool = typer.Option(False, "--verbose", "-v", help="Affichage détaillé"),
+    log: Optional[bool] = typer.Option(None, "--log", help="Journaliser l'analyse (demande confirmation si non spécifié)"),
+    no_log: bool = typer.Option(False, "--no-log", help="Ne pas journaliser l'analyse")
+):
+    """📊 Analyse de scénarios multiples pour un projet AEP
+    
+    Exécute plusieurs scénarios définis dans le fichier de configuration
+    et génère une comparaison complète avec tableaux et graphiques.
+    
+    Exemple: lcpi aep network-analyze-scenarios projet.yml --solver lcpi --format tableau
+    """
+    try:
+        # Gestion du contexte de projet
+        from ..core.context import get_project_context, handle_sandbox_logic, ensure_project_structure
+        context = get_project_context()
+        
+        if context['type'] == 'none':
+            project_path = handle_sandbox_logic()
+        else:
+            project_path = context['path']
+        
+        # S'assurer que la structure du projet existe
+        ensure_project_structure(project_path)
+        
+        # Charger la configuration
+        with open(input_file, 'r', encoding='utf-8') as f:
+            config = yaml.safe_load(f)
+        
+        if verbose:
+            typer.echo(f"📁 Configuration chargée depuis: {input_file}")
+            typer.echo(f"🏗️ Projet: {project_path}")
+        
+        # Valider la configuration des scénarios
+        from .core.models import ScenarioAnalysis
+        try:
+            scenario_config = ScenarioAnalysis(**config.get('scenarios', {}))
+        except Exception as e:
+            typer.echo(f"❌ Erreur de validation des scénarios: {e}")
+            raise typer.Exit(1)
+        
+        if verbose:
+            typer.echo(f"📊 {len(scenario_config.scenarios)} scénarios à analyser")
+        
+        # Créer le répertoire de sortie
+        if output_dir is None:
+            output_dir = project_path / "output" / "scenarios"
+        output_dir.mkdir(parents=True, exist_ok=True)
+        
+        # Importer l'analyseur de scénarios
+        from .scenarios.analyzer import ScenarioAnalyzer
+        
+        # Créer l'analyseur
+        analyzer = ScenarioAnalyzer(
+            solver_name=solver,
+            project_path=project_path,
+            output_dir=output_dir,
+            verbose=verbose
+        )
+        
+        # Exécuter l'analyse des scénarios
+        typer.echo("🚀 Démarrage de l'analyse des scénarios...")
+        results = analyzer.analyze_scenarios(config)
+        
+        # Afficher les résultats
+        if verbose:
+            typer.echo("\n📊 RÉSULTATS DE L'ANALYSE DES SCÉNARIOS:")
+            for scenario in results.scenarios_analyses:
+                typer.echo(f"  • {scenario.nom_scenario}: {scenario.statut}")
+                if scenario.statut == "succes":
+                    typer.echo(f"    - Coût: {scenario.metriques.get('cout_total', 'N/A')} FCFA")
+                    typer.echo(f"    - Performance: {scenario.metriques.get('performance_hydraulique', 'N/A')}")
+        
+        # Générer les sorties selon le format demandé
+        if output_format == "tableau":
+            analyzer.generate_comparison_table(results, output_dir)
+            typer.echo(f"📋 Tableau comparatif généré: {output_dir / 'comparaison_scenarios.html'}")
+        
+        elif output_format == "graphique":
+            analyzer.generate_comparison_charts(results, output_dir)
+            typer.echo(f"📈 Graphiques générés dans: {output_dir / 'graphs'}")
+        
+        elif output_format == "json":
+            output_file = output_dir / "resultats_scenarios.json"
+            with open(output_file, 'w', encoding='utf-8') as f:
+                json.dump(results.dict(), f, indent=2, ensure_ascii=False, default=str)
+            typer.echo(f"💾 Résultats JSON sauvegardés: {output_file}")
+        
+        # Journalisation si demandée
+        if log is None and not no_log:
+            log = typer.confirm("📝 Voulez-vous journaliser cette analyse de scénarios ?")
+        
+        if log:
+            from ..logging import log_calculation_result
+            
+            # Préparer les données pour la journalisation
+            commande_executee = f"lcpi aep network-analyze-scenarios {input_file} --solver {solver} --format {output_format}"
+            parametres_entree = {
+                "input_file": str(input_file),
+                "solver": solver,
+                "output_format": output_format,
+                "scenarios_count": len(scenario_config.scenarios)
+            }
+            
+            # Créer un résumé des résultats
+            donnees_resultat = {
+                "scenarios_analyses": len(results.scenarios_analyses),
+                "scenarios_succes": len([s for s in results.scenarios_analyses if s.statut == "succes"]),
+                "scenarios_erreur": len([s for s in results.scenarios_analyses if s.statut != "succes"]),
+                "cout_min": min([s.metriques.get('cout_total', float('inf')) for s in results.scenarios_analyses if s.statut == "succes"], default=0),
+                "cout_max": max([s.metriques.get('cout_total', 0) for s in results.scenarios_analyses if s.statut == "succes"], default=0),
+                "performance_moyenne": sum([s.metriques.get('performance_hydraulique', 0) for s in results.scenarios_analyses if s.statut == "succes"]) / max(len([s for s in results.scenarios_analyses if s.statut == "succes"]), 1)
+            }
+            
+            log_id = log_calculation_result(
+                titre_calcul="Analyse de scénarios multiples",
+                commande_executee=commande_executee,
+                donnees_resultat=donnees_resultat,
+                projet_dir=project_path,
+                parametres_entree=parametres_entree,
+                transparence_mathematique=[
+                    "Analyse comparative de scénarios multiples",
+                    f"Solveur utilisé: {solver}",
+                    f"Format de sortie: {output_format}",
+                    "Méthode: Exécution séquentielle des scénarios avec comparaison des métriques"
+                ],
+                version_algorithme="3.0.0",
+                verbose=verbose
+            )
+            
+            typer.echo(f"📝 Analyse journalisée avec l'ID: {log_id}")
+        
+        typer.echo(f"✅ Analyse des scénarios terminée avec succès!")
+        typer.echo(f"📁 Résultats disponibles dans: {output_dir}")
+        
+        # Afficher les recommandations
+        if results.recommandations:
+            typer.echo("\n💡 RECOMMANDATIONS:")
+            for i, rec in enumerate(results.recommandations, 1):
+                typer.echo(f"  {i}. {rec}")
+        
+    except Exception as e:
+        typer.echo(f"❌ Erreur lors de l'analyse des scénarios: {e}")
+        if verbose:
+            import traceback
+            typer.echo(traceback.format_exc())
+        raise typer.Exit(1)
+
 # =============================================================================
 # POINT D'ENTRÉE PRINCIPAL
 # =============================================================================
@@ -2750,6 +3146,7 @@ def show_help():
     console.print("  lcpi aep population-unified <pop> [options] - Projection démographique unifiée")
     console.print("  lcpi aep demand-unified <pop> [options]     - Calcul de demande en eau unifié")
     console.print("  lcpi aep network-unified <debit> [options]  - Dimensionnement réseau unifié")
+    console.print("  lcpi aep network-optimize-unified <fichier> [options] - Optimisation réseau unifiée")
     console.print("  lcpi aep reservoir-unified <volume> [options] - Dimensionnement réservoir unifié")
     console.print("  lcpi aep pumping-unified <debit> [options]  - Dimensionnement pompage unifié")
     
@@ -2801,6 +3198,9 @@ def show_help():
     console.print("")
     console.print("  # Dimensionnement réseau")
     console.print("  lcpi aep network-unified 0.1 --longueur 1000 --materiau fonte")
+    console.print("")
+    console.print("  # Optimisation de réseau")
+    console.print("  lcpi aep network-optimize-unified reseau.yml --solver lcpi --critere cout")
     console.print("")
     console.print("  # Workflow complet")
     console.print("  lcpi aep workflow-complete reseau.yml --compare --reports --verbose")

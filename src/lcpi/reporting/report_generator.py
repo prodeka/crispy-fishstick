@@ -60,7 +60,7 @@ class ReportGenerator:
 
         # 3. Charger le template de base et le rendre
         try:
-            template = self.env.get_template("base.html")
+            template = self.env.get_template("base_simple.html")
             html_output = template.render(context)
             return html_output
         except Exception as e:

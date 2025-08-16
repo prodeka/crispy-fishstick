@@ -1,0 +1,105 @@
+# Configuration de test pour l'analyse de scénarios AEP
+# Test du Jalon 3 - AMELIORATION_V7.md
+
+# Configuration de base du projet
+population:
+  population_base: 1000
+  taux_croissance: 0.025
+  annees_projection: 20
+  methode: "arithmetique"
+
+demande:
+  population: 1000
+  dotation_l_hab_j: 150
+  coefficient_pointe: 1.8
+  type_consommation: "branchement_prive"
+
+reseau:
+  debit_m3s: 0.1
+  longueur_m: 500
+  materiau: "PVC"
+  perte_charge_max_m: 2.0
+  methode: "darcy_weisbach"
+
+reservoir:
+  volume_journalier_m3: 150
+  type_adduction: "continue"
+  forme_reservoir: "cylindrique"
+  type_zone: "ville_francaise_peu_importante"
+
+pompage:
+  debit_m3h: 10
+  hmt_m: 15
+  type_pompe: "centrifuge"
+  rendement_pompe: 0.75
+
+# Configuration des scénarios
+scenarios:
+  nom_analyse: "Test_Scenarios_AEP"
+  description: "Analyse de sensibilité pour un village de 1000 habitants"
+  scenarios:
+    - nom: "scenario_base"
+      description: "Scénario de référence avec paramètres standards"
+      parametres: {}
+    
+    - nom: "croissance_forte"
+      description: "Scénario avec forte croissance démographique"
+      parametres:
+        population:
+          taux_croissance: 0.035
+        demande:
+          dotation_l_hab_j: 180
+    
+    - nom: "economique"
+      description: "Scénario économique avec dotation réduite"
+      parametres:
+        demande:
+          dotation_l_hab_j: 120
+        reseau:
+          materiau: "PE"
+    
+    - nom: "performance"
+      description: "Scénario haute performance avec pompage optimisé"
+      parametres:
+        pompage:
+          rendement_pompe: 0.85
+        reseau:
+          perte_charge_max_m: 1.5
+    
+    - nom: "durable"
+      description: "Scénario durable avec énergies renouvelables"
+      parametres:
+        demande:
+          dotation_l_hab_j: 130
+        pompage:
+          type_pompe: "solaire"
+          rendement_pompe: 0.80
+
+# Configuration d'optimisation (optionnelle)
+optimisation:
+  critere_optimisation: "cout"
+  contraintes:
+    vitesse_min_ms: 0.5
+    vitesse_max_ms: 2.5
+    pression_min_bar: 1.0
+  parametres_algorithme:
+    population_size: 50
+    generations: 100
+    taux_mutation: 0.1
+    taux_croisement: 0.8
+
+# Réseau complet pour l'optimisation
+reseau_complet:
+  conduites:
+    - id: "C1"
+      longueur_m: 200
+      debit_m3s: 0.05
+      materiau: "PVC"
+    - id: "C2"
+      longueur_m: 300
+      debit_m3s: 0.03
+      materiau: "PVC"
+    - id: "C3"
+      longueur_m: 150
+      debit_m3s: 0.02
+      materiau: "PVC"

@@ -1,445 +1,364 @@
 """
-Gestionnaire de projets LCPI unifié avec support des fichiers lcpi.yml et base de données centralisée.
+Gestionnaire de projets pour LCPI.
+Gère la création, la configuration et la gestion des projets.
 """
 
-import json
-import yaml
+import os
+import shutil
+import git
 from pathlib import Path
-from typing import Dict, Any, Optional, List
+from typing import Dict, List, Optional, Union
+import yaml
 from datetime import datetime
-import hashlib
-import logging
 
-logger = logging.getLogger(__name__)
-
-# Import de la base de données unifiée
-try:
-    from .unified_database import UnifiedDatabase
-    UNIFIED_DB_AVAILABLE = True
-except ImportError as e:
-    UNIFIED_DB_AVAILABLE = False
-    logger.warning(f"Base de données unifiée non disponible: {e}")
+from .template_manager import create_project_from_template as create_from_template
+from .global_config import global_config
 
 class ProjectManager:
-    """Gestionnaire de projets LCPI avec support des métadonnées."""
+    """Gestionnaire de projets LCPI."""
     
-    def __init__(self, project_dir: Path):
-        """
-        Initialise le gestionnaire de projet.
+    def __init__(self):
+        self.projects_dir = Path.cwd()
+    
+    def create_project(
+        self,
+        nom_projet: str,
+        template: Optional[str] = None,
+        plugins: Optional[str] = None,
+        force: bool = False,
+        git_init: bool = False,
+        remote_url: Optional[str] = None
+    ) -> Path:
+        """Crée un nouveau projet LCPI."""
+        project_path = self.projects_dir / nom_projet
         
-        Args:
-            project_dir: Chemin vers le dossier du projet
-        """
-        self.project_dir = Path(project_dir)
-        self.config_file = self.project_dir / "lcpi.yml"
-        self.config = self._load_config()
+        if project_path.exists() and not force:
+            raise FileExistsError(f"Le projet '{nom_projet}' existe déjà. Utilisez --force pour écraser.")
         
-        # Initialiser la base de données unifiée si disponible
-        self.database = None
-        if UNIFIED_DB_AVAILABLE:
-            try:
-                db_path = self.project_dir / "database.db"
-                self.database = UnifiedDatabase(db_path)
-                logger.info(f"Base de données unifiée initialisée pour le projet: {db_path}")
-            except Exception as e:
-                logger.error(f"Erreur lors de l'initialisation de la base de données: {e}")
+        # Créer la structure de base
+        if template:
+            project_path = create_from_template(nom_projet, template, str(self.projects_dir), force)
         else:
-            logger.warning("Base de données unifiée non disponible - fonctionnalités limitées")
-    
-    def _load_config(self) -> Dict[str, Any]:
-        """Charge la configuration du projet depuis lcpi.yml."""
-        if not self.config_file.exists():
-            return self._create_default_config()
+            project_path = self._create_basic_project(nom_projet, force)
         
-        try:
-            with open(self.config_file, 'r', encoding='utf-8') as f:
-                config = yaml.safe_load(f)
-                logger.info(f"Configuration chargée depuis {self.config_file}")
-                return config or self._create_default_config()
-        except Exception as e:
-            logger.error(f"Erreur lors du chargement de la configuration: {e}")
-            return self._create_default_config()
+        # Configurer les plugins
+        if plugins:
+            self._configure_plugins(project_path, plugins)
+        
+        # Initialiser Git si demandé
+        if git_init:
+            self._init_git_repo(project_path, remote_url)
+        
+        # Ajouter à la configuration globale
+        global_config.add_project(nom_projet, str(project_path.resolve()))
+        
+        return project_path
     
-    def _create_default_config(self) -> Dict[str, Any]:
-        """Crée une configuration par défaut."""
-        default_config = {
-            "projet_metadata": {
-                "nom_projet": self.project_dir.name,
+    def _create_basic_project(self, nom_projet: str, force: bool = False) -> Path:
+        """Crée un projet de base sans template."""
+        project_path = self.projects_dir / nom_projet
+        
+        if project_path.exists() and not force:
+            raise FileExistsError(f"Le projet '{nom_projet}' existe déjà.")
+        
+        # Créer la structure de base
+        project_path.mkdir(parents=True, exist_ok=True)
+        
+        # Créer les répertoires
+        (project_path / "data").mkdir(exist_ok=True)
+        (project_path / "output").mkdir(exist_ok=True)
+        (project_path / "docs").mkdir(exist_ok=True)
+        (project_path / "temp").mkdir(exist_ok=True)
+        (project_path / "scripts").mkdir(exist_ok=True)
+        
+        # Créer la configuration de base
+        self._create_basic_config(project_path, nom_projet)
+        
+        # Créer le README
+        self._create_basic_readme(project_path, nom_projet)
+        
+        # Créer le .gitignore
+        self._create_gitignore(project_path)
+        
+        return project_path
+    
+    def _create_basic_config(self, project_path: Path, nom_projet: str):
+        """Crée la configuration de base du projet."""
+        config = {
+            "project": {
+                "name": nom_projet,
                 "version": "1.0.0",
-                "date_creation": datetime.now().isoformat(),
-                "auteur": "LCPI-CLI",
-                "description": "Projet LCPI généré automatiquement",
-                "tags": [],
-                "client": "Non spécifié",
-                "indice_revision": "A"
+                "description": f"Projet LCPI {nom_projet}",
+                "created": datetime.now().isoformat(),
+                "author": "LCPI CLI"
             },
-            "plugins_actifs": ["aep", "cm", "bois", "beton", "hydro"],
-            "configurations": {
-                "epanet": {
-                    "dll_path": "vendor/dlls/epanet2_64.dll",
-                    "version": "2.3.1"
-                },
-                "reporting": {
-                    "template_default": "default",
-                    "formats_supportes": ["html", "pdf", "docx"]
-                }
+            "plugins": ["core"],
+            "output": {
+                "formats": ["html", "json"],
+                "directory": "output/"
             },
-            "dossiers": {
-                "logs": "logs/",
-                "outputs": "outputs/",
-                "reports": "reports/",
-                "data": "data/",
-                "temp": "temp/"
+            "logging": {
+                "level": "INFO",
+                "file": "logs/project.log"
             }
         }
         
-        # Sauvegarder la configuration par défaut
-        self._save_config(default_config)
-        return default_config
+        with open(project_path / "lcpi.yml", "w", encoding="utf-8") as f:
+            yaml.dump(config, f, default_flow_style=False, allow_unicode=True)
     
-    def _save_config(self, config: Dict[str, Any]) -> None:
-        """Sauvegarde la configuration dans lcpi.yml."""
-        try:
-            with open(self.config_file, 'w', encoding='utf-8') as f:
-                yaml.dump(config, f, default_flow_style=False, allow_unicode=True, indent=2)
-            logger.info(f"Configuration sauvegardée dans {self.config_file}")
-        except Exception as e:
-            logger.error(f"Erreur lors de la sauvegarde de la configuration: {e}")
-    
-    def get_project_info(self) -> Dict[str, Any]:
-        """Retourne les informations du projet."""
-        return self.config.get("projet_metadata", {})
-    
-    def update_project_info(self, updates: Dict[str, Any]) -> None:
-        """Met à jour les informations du projet."""
-        if "projet_metadata" not in self.config:
-            self.config["projet_metadata"] = {}
-        
-        self.config["projet_metadata"].update(updates)
-        self._save_config(self.config)
-        logger.info("Informations du projet mises à jour")
-    
-    def get_plugin_config(self, plugin_name: str) -> Dict[str, Any]:
-        """Retourne la configuration d'un plugin."""
-        return self.config.get("configurations", {}).get(plugin_name, {})
-    
-    def set_plugin_config(self, plugin_name: str, config: Dict[str, Any]) -> None:
-        """Définit la configuration d'un plugin."""
-        if "configurations" not in self.config:
-            self.config["configurations"] = {}
-        
-        self.config["configurations"][plugin_name] = config
-        self._save_config(self.config)
-        logger.info(f"Configuration du plugin {plugin_name} mise à jour")
-    
-    def get_folder_path(self, folder_name: str) -> Path:
-        """Retourne le chemin d'un dossier du projet."""
-        folder_path = self.project_dir / self.config.get("dossiers", {}).get(folder_name, folder_name)
-        folder_path.mkdir(parents=True, exist_ok=True)
-        return folder_path
-    
-    def create_project_structure(self) -> None:
-        """Crée la structure de dossiers du projet."""
-        folders = self.config.get("dossiers", {})
-        for folder_name, folder_path in folders.items():
-            full_path = self.project_dir / folder_path
-            full_path.mkdir(parents=True, exist_ok=True)
-            logger.info(f"Dossier créé: {full_path}")
-    
-    def get_project_hash(self) -> str:
-        """Calcule le hash du projet basé sur la configuration et les fichiers."""
-        content = json.dumps(self.config, sort_keys=True)
-        return hashlib.sha256(content.encode()).hexdigest()[:8]
-    
-    def export_config(self, format: str = "json") -> str:
-        """Exporte la configuration dans différents formats."""
-        if format.lower() == "json":
-            return json.dumps(self.config, indent=2, ensure_ascii=False)
-        elif format.lower() == "yaml":
-            return yaml.dump(self.config, default_flow_style=False, allow_unicode=True)
-        else:
-            raise ValueError(f"Format non supporté: {format}")
-    
-    # === MÉTHODES DE BASE DE DONNÉES ===
-    
-    def create_project_in_database(self, nom: str = None, description: str = None, 
-                                 metadata: Dict[str, Any] = None) -> Optional[int]:
-        """
-        Crée le projet dans la base de données unifiée.
-        
-        Args:
-            nom: Nom du projet (utilise le nom du dossier si None)
-            description: Description du projet
-            metadata: Métadonnées supplémentaires
-        
-        Returns:
-            ID du projet créé ou None si échec
-        """
-        if not self.database:
-            logger.warning("Base de données non disponible")
-            return None
-        
-        try:
-            nom_projet = nom or self.project_dir.name
-            desc_projet = description or self.config.get("projet_metadata", {}).get("description", "")
-            
-            # Déterminer le module principal
-            module_principal = "general"
-            if "aep" in self.config.get("plugins_actifs", []):
-                module_principal = "aep"
-            elif "cm" in self.config.get("plugins_actifs", []):
-                module_principal = "cm"
-            elif "bois" in self.config.get("plugins_actifs", []):
-                module_principal = "bois"
-            elif "beton" in self.config.get("plugins_actifs", []):
-                module_principal = "beton"
-            
-            projet_id = self.database.ajouter_projet(
-                nom_projet, desc_projet, metadata, module_principal
-            )
-            
-            logger.info(f"Projet créé dans la base de données: {nom_projet} (ID: {projet_id})")
-            return projet_id
-            
-        except Exception as e:
-            logger.error(f"Erreur lors de la création du projet dans la base de données: {e}")
-            return None
-    
-    def add_calculation_to_database(self, commande: str, resultats: Dict[str, Any],
-                                  hash_donnees: str = None, dependances: List[int] = None,
-                                  duree_execution: float = None, version_algorithme: str = None,
-                                  metadata: Dict[str, Any] = None, module_source: str = None) -> Optional[int]:
-        """
-        Ajoute un calcul à la base de données.
-        
-        Args:
-            commande: Commande exécutée
-            resultats: Résultats du calcul
-            hash_donnees: Hash des données (calculé automatiquement si None)
-            dependances: Liste des IDs des calculs dont dépend ce calcul
-            duree_execution: Durée d'exécution en secondes
-            version_algorithme: Version de l'algorithme utilisé
-            metadata: Métadonnées supplémentaires
-            module_source: Module source (déterminé automatiquement si None)
-        
-        Returns:
-            ID du calcul créé ou None si échec
-        """
-        if not self.database:
-            logger.warning("Base de données non disponible")
-            return None
-        
-        try:
-            # Déterminer le module source
-            if module_source is None:
-                if "aep" in self.config.get("plugins_actifs", []):
-                    module_source = "aep"
-                elif "cm" in self.config.get("plugins_actifs", []):
-                    module_source = "cm"
-                elif "bois" in self.config.get("plugins_actifs", []):
-                    module_source = "bois"
-                elif "beton" in self.config.get("plugins_actifs", []):
-                    module_source = "beton"
-                else:
-                    module_source = "general"
-            
-            # Récupérer l'ID du projet depuis la base de données
-            projets = self.database.get_projets_par_module(module_source)
-            projet_id = None
-            for projet in projets:
-                if projet["nom"] == self.project_dir.name:
-                    projet_id = projet["id"]
-                    break
-            
-            if projet_id is None:
-                # Créer le projet s'il n'existe pas
-                projet_id = self.create_project_in_database(metadata={"module_source": module_source})
-                if projet_id is None:
-                    return None
-            
-            calcul_id = self.database.ajouter_calcul(
-                projet_id, commande, resultats, hash_donnees, dependances,
-                duree_execution, version_algorithme, metadata, module_source
-            )
-            
-            logger.info(f"Calcul ajouté à la base de données: {commande} (ID: {calcul_id})")
-            return calcul_id
-            
-        except Exception as e:
-            logger.error(f"Erreur lors de l'ajout du calcul à la base de données: {e}")
-            return None
-    
-    def add_aep_data_to_database(self, data_type: str, **kwargs) -> Optional[int]:
-        """
-        Ajoute des données AEP spécifiques à la base de données.
-        
-        Args:
-            data_type: Type de données ('releve', 'resultat', 'reseau', 'noeud', 'troncon')
-            **kwargs: Paramètres spécifiques au type de données
-        
-        Returns:
-            ID de l'élément créé ou None si échec
-        """
-        if not self.database:
-            logger.warning("Base de données non disponible")
-            return None
-        
-        try:
-            # Récupérer l'ID du projet
-            projets = self.database.get_projets_par_module("aep")
-            projet_id = None
-            for projet in projets:
-                if projet["nom"] == self.project_dir.name:
-                    projet_id = projet["id"]
-                    break
-            
-            if projet_id is None:
-                # Créer le projet s'il n'existe pas
-                projet_id = self.create_project_in_database(module_principal="aep")
-                if projet_id is None:
-                    return None
-            
-            if data_type == "releve":
-                return self.database.ajouter_releve_terrain_aep(projet_id, **kwargs)
-            elif data_type == "resultat":
-                return self.database.ajouter_resultat_calcul_aep(projet_id, **kwargs)
-            elif data_type == "reseau":
-                return self.database.ajouter_reseau_aep(projet_id, **kwargs)
-            elif data_type == "noeud":
-                # Pour les nœuds, on a besoin du reseau_id, pas du projet_id
-                reseau_id = kwargs.pop('reseau_id', None)
-                if reseau_id is None:
-                    logger.error("reseau_id requis pour ajouter un nœud")
-                    return None
-                return self.database.ajouter_noeud_aep(reseau_id, **kwargs)
-            elif data_type == "troncon":
-                # Pour les tronçons, on a besoin du reseau_id, pas du projet_id
-                reseau_id = kwargs.pop('reseau_id', None)
-                if reseau_id is None:
-                    logger.error("reseau_id requis pour ajouter un tronçon")
-                    return None
-                return self.database.ajouter_troncon_aep(reseau_id, **kwargs)
-            else:
-                logger.error(f"Type de données AEP non supporté: {data_type}")
-                return None
-                
-        except Exception as e:
-            logger.error(f"Erreur lors de l'ajout des données AEP: {e}")
-            return None
-    
-    def get_project_history(self, limite: int = 100) -> List[Dict[str, Any]]:
-        """
-        Récupère l'historique du projet depuis la base de données.
-        
-        Args:
-            limite: Nombre maximum d'éléments à récupérer
-        
-        Returns:
-            Liste des éléments d'historique
-        """
-        if not self.database:
-            logger.warning("Base de données non disponible")
-            return []
-        
-        try:
-            # Récupérer l'ID du projet
-            projets = self.database.get_projets_par_module("aep")
-            projet_id = None
-            for projet in projets:
-                if projet["nom"] == self.project_dir.name:
-                    projet_id = projet["id"]
-                    break
-            
-            if projet_id is None:
-                return []
-            
-            return self.database.get_historique_projet(projet_id, limite)
-            
-        except Exception as e:
-            logger.error(f"Erreur lors de la récupération de l'historique: {e}")
-            return []
-    
-    def add_log_to_database(self, niveau: str, message: str, 
-                           contexte: Dict[str, Any] = None, module_source: str = None):
-        """
-        Ajoute un log à la base de données.
-        
-        Args:
-            niveau: Niveau du log (INFO, WARNING, ERROR, DEBUG)
-            message: Message du log
-            contexte: Contexte supplémentaire
-            module_source: Module source (déterminé automatiquement si None)
-        """
-        if not self.database:
-            logger.warning("Base de données non disponible")
-            return
-        
-        try:
-            # Déterminer le module source
-            if module_source is None:
-                if "aep" in self.config.get("plugins_actifs", []):
-                    module_source = "aep"
-                elif "cm" in self.config.get("plugins_actifs", []):
-                    module_source = "cm"
-                elif "bois" in self.config.get("plugins_actifs", []):
-                    module_source = "bois"
-                elif "beton" in self.config.get("plugins_actifs", []):
-                    module_source = "beton"
-                else:
-                    module_source = "general"
-            
-            # Récupérer l'ID du projet
-            projets = self.database.get_projets_par_module(module_source)
-            projet_id = None
-            for projet in projets:
-                if projet["nom"] == self.project_dir.name:
-                    projet_id = projet["id"]
-                    break
-            
-            if projet_id is None:
-                # Créer le projet s'il n'existe pas
-                projet_id = self.create_project_in_database(metadata={"module_source": module_source})
-                if projet_id is None:
-                    return
-            
-            self.database.ajouter_log(projet_id, niveau, message, contexte, module_source)
-            
-        except Exception as e:
-            logger.error(f"Erreur lors de l'ajout du log: {e}")
+    def _create_basic_readme(self, project_path: Path, nom_projet: str):
+        """Crée le README de base du projet."""
+        readme_content = f"""# {nom_projet}
 
-def create_project(project_dir: Path, project_name: str = None, 
-                  author: str = None, description: str = None) -> ProjectManager:
-    """
-    Crée un nouveau projet LCPI.
+Projet LCPI créé le {datetime.now().strftime('%d/%m/%Y')}.
+
+## Structure
+
+```
+{nom_projet}/
+├── lcpi.yml          # Configuration du projet
+├── data/             # Données d'entrée
+├── output/           # Résultats et rapports
+├── docs/             # Documentation
+├── scripts/          # Scripts personnalisés
+└── temp/             # Fichiers temporaires
+```
+
+## Utilisation
+
+1. **Activer le projet :**
+   ```bash
+   lcpi project switch {nom_projet}
+   ```
+
+2. **Exécuter des calculs :**
+   ```bash
+   lcpi aep run data/network.yml
+   ```
+
+3. **Générer des rapports :**
+   ```bash
+   lcpi report generate
+   ```
+
+## Configuration
+
+Modifiez le fichier `lcpi.yml` pour personnaliser votre projet.
+"""
+        
+        with open(project_path / "README.md", "w", encoding="utf-8") as f:
+            f.write(readme_content)
     
-    Args:
-        project_dir: Chemin vers le dossier du projet
-        project_name: Nom du projet
-        author: Auteur du projet
-        description: Description du projet
+    def _create_gitignore(self, project_path: Path):
+        """Crée le fichier .gitignore du projet."""
+        gitignore_content = """# LCPI
+output/
+temp/
+*.log
+*.tmp
+logs/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Données sensibles
+*.key
+*.pem
+secrets/
+"""
+        
+        with open(project_path / ".gitignore", "w", encoding="utf-8") as f:
+            f.write(gitignore_content)
     
-    Returns:
-        Instance du gestionnaire de projet
-    """
-    project_dir = Path(project_dir)
-    project_dir.mkdir(parents=True, exist_ok=True)
+    def _configure_plugins(self, project_path: Path, plugins: str):
+        """Configure les plugins du projet."""
+        plugin_list = [p.strip() for p in plugins.split(",")]
+        
+        # Lire la configuration existante
+        config_file = project_path / "lcpi.yml"
+        if config_file.exists():
+            with open(config_file, "r", encoding="utf-8") as f:
+                config = yaml.safe_load(f)
+        else:
+            config = {}
+        
+        # Mettre à jour les plugins
+        if "project" not in config:
+            config["project"] = {}
+        
+        config["project"]["plugins"] = plugin_list
+        
+        # Sauvegarder la configuration
+        with open(config_file, "w", encoding="utf-8") as f:
+            yaml.dump(config, f, default_flow_style=False, allow_unicode=True)
     
-    manager = ProjectManager(project_dir)
+    def _init_git_repo(self, project_path: Path, remote_url: Optional[str] = None):
+        """Initialise un dépôt Git pour le projet."""
+        try:
+            # Initialiser le dépôt
+            repo = git.Repo.init(project_path)
+            
+            # Ajouter tous les fichiers
+            repo.index.add("*")
+            
+            # Premier commit
+            repo.index.commit("Initial commit - Projet LCPI créé")
+            
+            # Configurer le remote si fourni
+            if remote_url:
+                origin = repo.create_remote("origin", remote_url)
+                repo.index.commit("Configure remote origin")
+                
+        except git.GitCommandError as e:
+            print(f"⚠️  Erreur lors de l'initialisation Git: {e}")
+        except Exception as e:
+            print(f"⚠️  Erreur inattendue lors de l'initialisation Git: {e}")
     
-    # Mettre à jour les informations du projet
-    updates = {}
-    if project_name:
-        updates["nom_projet"] = project_name
-    if author:
-        updates["auteur"] = author
-    if description:
-        updates["description"] = description
+    def list_projects(self) -> Dict[str, Path]:
+        """Liste tous les projets connus."""
+        return global_config.list_projects()
     
-    if updates:
-        manager.update_project_info(updates)
+    def get_project_info(self, nom_projet: str) -> Optional[Dict]:
+        """Récupère les informations d'un projet."""
+        projects = self.list_projects()
+        if nom_projet not in projects:
+            return None
+        
+        project_path = Path(projects[nom_projet])
+        
+        # Lire la configuration
+        config_file = project_path / "lcpi.yml"
+        config = {}
+        if config_file.exists():
+            with open(config_file, "r", encoding="utf-8") as f:
+                config = yaml.safe_load(f)
+        
+        # Informations du projet
+        info = {
+            "name": nom_projet,
+            "path": str(project_path.resolve()),
+            "exists": project_path.exists(),
+            "config": config,
+            "created": project_path.stat().st_ctime if project_path.exists() else None,
+            "size": self._get_project_size(project_path) if project_path.exists() else 0
+        }
+        
+        return info
     
-    # Créer la structure de dossiers
-    manager.create_project_structure()
+    def _get_project_size(self, project_path: Path) -> int:
+        """Calcule la taille d'un projet en octets."""
+        total_size = 0
+        try:
+            for dirpath, dirnames, filenames in os.walk(project_path):
+                for filename in filenames:
+                    file_path = Path(dirpath) / filename
+                    if file_path.is_file():
+                        total_size += file_path.stat().st_size
+        except (OSError, PermissionError):
+            pass
+        
+        return total_size
     
-    logger.info(f"Projet créé: {project_dir}")
-    return manager
+    def delete_project(self, nom_projet: str, force: bool = False) -> bool:
+        """Supprime un projet."""
+        projects = self.list_projects()
+        if nom_projet not in projects:
+            return False
+        
+        project_path = Path(projects[nom_projet])
+        
+        if not force:
+            confirm = input(f"Êtes-vous sûr de vouloir supprimer le projet '{nom_projet}' ? (oui/non): ")
+            if confirm.lower() not in ["oui", "o", "yes", "y"]:
+                return False
+        
+        try:
+            # Supprimer le répertoire
+            if project_path.exists():
+                shutil.rmtree(project_path)
+            
+            # Retirer de la configuration globale
+            global_config.remove_project(nom_projet)
+            
+            return True
+            
+        except Exception as e:
+            print(f"❌ Erreur lors de la suppression: {e}")
+            return False
+    
+    def archive_project(self, nom_projet: str, output_path: Optional[str] = None) -> Optional[Path]:
+        """Archive un projet."""
+        projects = self.list_projects()
+        if nom_projet not in projects:
+            return None
+        
+        project_path = Path(projects[nom_projet])
+        
+        if not project_path.exists():
+            return None
+        
+        # Chemin de sortie par défaut
+        if not output_path:
+            output_path = f"{nom_projet}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.zip"
+        
+        output_path = Path(output_path)
+        
+        try:
+            # Créer l'archive
+            shutil.make_archive(
+                str(output_path.with_suffix("")),
+                "zip",
+                project_path.parent,
+                project_path.name
+            )
+            
+            return output_path.with_suffix(".zip")
+            
+        except Exception as e:
+            print(f"❌ Erreur lors de l'archivage: {e}")
+            return None
+
+# Instance globale
+project_manager = ProjectManager()
+
+# Fonctions d'interface
+def create_project(*args, **kwargs):
+    """Interface pour créer un projet."""
+    return project_manager.create_project(*args, **kwargs)
+
+def create_project_from_template(*args, **kwargs):
+    """Interface pour créer un projet à partir d'un template."""
+    return create_from_template(*args, **kwargs)
+
+def list_projects():
+    """Interface pour lister les projets."""
+    return project_manager.list_projects()
+
+def get_project_info(nom_projet: str):
+    """Interface pour récupérer les informations d'un projet."""
+    return project_manager.get_project_info(nom_projet)
+
+def delete_project(nom_projet: str, force: bool = False):
+    """Interface pour supprimer un projet."""
+    return project_manager.delete_project(nom_projet, force)
+
+def archive_project(nom_projet: str, output_path: Optional[str] = None):
+    """Interface pour archiver un projet."""
+    return project_manager.archive_project(nom_projet, output_path)

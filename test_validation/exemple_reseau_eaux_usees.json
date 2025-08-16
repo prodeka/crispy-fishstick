@@ -1,0 +1,37 @@
+{
+  "troncons": [
+    {
+      "id": "T1",
+      "type_section": "circulaire",
+      "longueur_troncon_m": 100.0,
+      "pente_troncon": 0.005,
+      "ks_manning_strickler": 70.0,
+      "amont_ids": [],
+      "population": 50,
+      "dotation_l_jour_hab": 150.0,
+      "coefficient_pointe": 2.5
+    },
+    {
+      "id": "T2",
+      "type_section": "circulaire",
+      "longueur_troncon_m": 150.0,
+      "pente_troncon": 0.004,
+      "ks_manning_strickler": 70.0,
+      "amont_ids": ["T1"],
+      "population": 75,
+      "dotation_l_jour_hab": 150.0,
+      "coefficient_pointe": 2.5
+    },
+    {
+      "id": "T3",
+      "type_section": "circulaire",
+      "longueur_troncon_m": 200.0,
+      "pente_troncon": 0.003,
+      "ks_manning_strickler": 70.0,
+      "amont_ids": ["T2"],
+      "population": 100,
+      "dotation_l_jour_hab": 150.0,
+      "coefficient_pointe": 2.5
+    }
+  ]
+} 

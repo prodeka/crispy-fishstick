@@ -8,9 +8,13 @@ import shutil
 import pathlib
 import importlib.util
 import time
+from pathlib import Path
 from rich.console import Console
 from rich.table import Table
 from rich.panel import Panel
+from rich.spinner import Spinner
+from rich.live import Live
+from rich.text import Text
 
 # Phase 5: Imports pour UX et traçabilité
 try:
@@ -38,6 +42,12 @@ except ImportError as e:
 #     sys.exit(1)
 print("⚠️  Vérification de licence temporairement désactivée pour les tests")
 
+# Import du gestionnaire de session
+from .core.session_manager import session_manager
+
+# Flag global pour l'initialisation des plugins
+_plugins_initialized = False
+
 # Force UTF-8 encoding for stdout and stderr
 if sys.stdout.encoding != 'utf-8':
     sys.stdout.reconfigure(encoding='utf-8')
@@ -63,8 +73,13 @@ _json_output_enabled: bool = False
 
 @app.callback()
 def main_callback(json_output: bool = typer.Option(False, "--json", help="Activer la sortie JSON pour les résultats.")):
-    global _json_output_enabled
+    global _json_output_enabled, _plugins_initialized
     _json_output_enabled = json_output
+    
+    # Initialiser les plugins si ce n'est pas déjà fait
+    if not _plugins_initialized:
+        print_plugin_status()
+        _plugins_initialized = True
     
     # Afficher le message de bienvenue si le module UX est disponible
     if UX_AVAILABLE:
@@ -865,6 +880,64 @@ def doctor():
     else:
         console.print(Panel("[bold yellow]⚠ Des dépendances sont manquantes. Veuillez les installer.[/bold yellow]", title="Vérification Système", border_style="yellow"))
 
+@app.command()
+def completion(
+    shell: str = typer.Option("bash", "--shell", "-s", help="Shell pour la complétion (bash, zsh, fish)"),
+    output: str = typer.Option(None, "--output", "-o", help="Fichier de sortie (par défaut: stdout)")
+):
+    """Générer les scripts de complétion shell pour LCPI-CLI."""
+    console.print(Panel(
+        f"[bold blue]🐚 GÉNÉRATION DE COMPLÉTION SHELL[/bold blue]\n\n"
+        f"Génération du script de complétion pour {shell}...",
+        title="Complétion Shell",
+        border_style="blue"
+    ))
+    
+    try:
+        # Générer le script de complétion
+        if shell == "bash":
+            completion_script = _generate_bash_completion()
+        elif shell == "zsh":
+            completion_script = _generate_zsh_completion()
+        elif shell == "fish":
+            completion_script = _generate_fish_completion()
+        else:
+            raise ValueError(f"Shell non supporté: {shell}")
+        
+        if output:
+            # Sauvegarder dans un fichier
+            output_path = Path(output)
+            output_path.parent.mkdir(parents=True, exist_ok=True)
+            
+            with open(output_path, 'w', encoding='utf-8') as f:
+                f.write(completion_script)
+            
+            console.print(f"[green]✅ Script de complétion sauvegardé dans: {output_path}[/green]")
+            
+            # Instructions d'installation
+            if shell == "bash":
+                console.print(f"\n💡 Pour activer la complétion, ajoutez à votre ~/.bashrc:")
+                console.print(f"   source {output_path}")
+            elif shell == "zsh":
+                console.print(f"\n💡 Pour activer la complétion, ajoutez à votre ~/.zshrc:")
+                console.print(f"   source {output_path}")
+            elif shell == "fish":
+                console.print(f"\n💡 Pour activer la complétion, copiez le fichier dans:")
+                console.print(f"   ~/.config/fish/completions/")
+        else:
+            # Afficher le script
+            console.print("\n[bold]Script de complétion généré:[/bold]")
+            console.print("```")
+            console.print(completion_script)
+            console.print("```")
+            
+            console.print(f"\n💡 Pour l'installer, redirigez vers un fichier:")
+            console.print(f"   lcpi completion --shell {shell} --output ~/.local/share/lcpi/completion.{shell}")
+        
+    except Exception as e:
+        console.print(f"[red]❌ Erreur lors de la génération: {e}[/red]")
+        console.print("💡 Vérifiez que le shell est supporté (bash, zsh, fish)")
+
 from .reporter import run_analysis_and_generate_report
 
 @app.command()
@@ -877,64 +950,432 @@ def report(
     """
     run_analysis_and_generate_report(project_dir, output_format)
 
+@app.command("validate")
+def validate_data(
+    file_path: str = typer.Argument(..., help="Chemin vers le fichier à valider"),
+    schema: str = typer.Option(None, "--schema", "-s", help="Schéma de validation à utiliser"),
+    output: str = typer.Option(None, "--output", "-o", help="Fichier de sortie pour le rapport"),
+    format: str = typer.Option("text", "--format", "-f", help="Format de sortie (text, json, html)")
+):
+    """Valide un fichier de données selon les schémas LCPI."""
+    try:
+        from .validation.validator import validator
+        
+        # Valider le fichier
+        result = validator.validate_file(file_path, schema)
+        
+        # Afficher le résultat
+        if result["valid"]:
+            console.print("✅ Validation réussie !", style="green")
+        else:
+            console.print(f"❌ Validation échouée avec {len(result['errors'])} erreur(s)", style="red")
+        
+        # Afficher les erreurs
+        if result.get("errors"):
+            console.print("\n❌ Erreurs de validation:")
+            for i, error in enumerate(result["errors"], 1):
+                console.print(f"  {i}. {error}")
+        
+        # Afficher les avertissements
+        if result.get("warnings"):
+            console.print("\n⚠️  Avertissements:")
+            for i, warning in enumerate(result["warnings"], 1):
+                console.print(f"  {i}. {warning}")
+        
+        # Générer le rapport
+        if output:
+            report = validator.get_validation_report(result)
+            
+            if format == "json":
+                import json
+                with open(output, 'w', encoding='utf-8') as f:
+                    json.dump(result, f, indent=2, ensure_ascii=False)
+            elif format == "html":
+                html_report = f"""
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>Rapport de Validation LCPI</title>
+                    <style>
+                        body {{ font-family: Arial, sans-serif; margin: 20px; }}
+                        .header {{ background: #f0f0f0; padding: 20px; border-radius: 5px; }}
+                        .error {{ color: #d32f2f; }}
+                        .warning {{ color: #f57c00; }}
+                        .success {{ color: #388e3c; }}
+                        .info {{ background: #e3f2fd; padding: 15px; border-radius: 5px; }}
+                    </style>
+                </head>
+                <body>
+                    <div class="header">
+                        <h1>📋 Rapport de Validation LCPI</h1>
+                        <p><strong>Fichier:</strong> {file_path}</p>
+                        <p><strong>Schéma:</strong> {result.get('schema', 'Auto-détecté')}</p>
+                        <p><strong>Statut:</strong> {'✅ VALIDÉ' if result.get('valid') else '❌ ERREURS DÉTECTÉES'}</p>
+                    </div>
+                    
+                    <div class="info">
+                        <h2>📊 Résumé des Données</h2>
+                        <ul>
+                            {''.join(f'<li><strong>{k}:</strong> {v}</li>' for k, v in result.get('data_summary', {}).items())}
+                        </ul>
+                    </div>
+                    
+                    {f'<h2 class="error">❌ Erreurs ({len(result.get("errors", []))})</h2><ul>' + ''.join(f'<li class="error">{error}</li>' for error in result.get("errors", [])) + '</ul>' if result.get("errors") else ''}
+                    
+                    {f'<h2 class="warning">⚠️ Avertissements ({len(result.get("warnings", []))})</h2><ul>' + ''.join(f'<li class="warning">{warning}</li>' for warning in result.get("warnings", [])) + '</ul>' if result.get("warnings") else ''}
+                    
+                    <div class="info">
+                        <h2>💡 Recommandations</h2>
+                        {'<p>Les données sont valides et prêtes pour le calcul.</p>' if result.get('valid') else '<p>Corrigez les erreurs listées ci-dessus avant de procéder aux calculs.</p>'}
+                    </div>
+                </body>
+                </html>
+                """
+                with open(output, 'w', encoding='utf-8') as f:
+                    f.write(html_report)
+            else:
+                # Format texte par défaut
+                with open(output, 'w', encoding='utf-8') as f:
+                    f.write(validator.get_validation_report(result))
+            
+            console.print(f"📄 Rapport sauvegardé dans: {output}")
+        
+        # Afficher le rapport complet si demandé
+        if not output:
+            console.print("\n" + "="*60)
+            console.print(validator.get_validation_report(result))
+        
+        # Code de sortie approprié
+        if not result["valid"]:
+            raise typer.Exit(1)
+            
+    except Exception as e:
+        typer.secho(f"❌ Erreur lors de la validation: {e}", fg=typer.colors.RED)
+        raise typer.Exit(1)
 
-# --- Logique de découverte et de chargement des plugins (VERSION CORRIGÉE) ---
-def print_plugin_status():
-    console.print("[bold]--- Initialisation de LCPI-CLI ---[/bold]")
-    # Charger les plugins de base
+@app.command("schemas")
+def list_schemas():
+    """Affiche la liste des schémas de validation disponibles."""
+    try:
+        from .validation.validator import validator
+        
+        schemas = validator.list_schemas()
+        
+        if not schemas:
+            console.print("📋 Aucun schéma de validation disponible.")
+            return
+        
+        # Créer une table Rich
+        table = Table(title="Schémas de Validation LCPI")
+        table.add_column("Nom", style="cyan", no_wrap=True)
+        table.add_column("Type", style="green")
+        table.add_column("Propriétés", style="yellow")
+        
+        for schema_name in schemas:
+            schema = validator.get_schema(schema_name)
+            if schema:
+                info = schema.get_schema_info()
+                table.add_row(
+                    schema_name,
+                    info.get("type", "object"),
+                    ", ".join(info.get("properties", [])[:3]) + ("..." if len(info.get("properties", [])) > 3 else "")
+                )
+        
+        console.print(table)
+        console.print("\n💡 Utilisez 'lcpi validate <fichier> --schema <nom>' pour valider avec un schéma spécifique.")
+        
+    except Exception as e:
+        typer.secho(f"❌ Erreur lors de la récupération des schémas: {e}", fg=typer.colors.RED)
+        raise typer.Exit(1)
+
+# --- Fonctions de génération de complétion shell ---
+def _generate_bash_completion():
+    """Génère le script de complétion bash."""
+    return """# Bash completion pour LCPI-CLI
+# Source: lcpi completion --shell bash
+
+_lcpi_completion() {
+    local cur prev opts cmds
+    COMPREPLY=()
+    cur="${COMP_WORDS[COMP_CWORD]}"
+    prev="${COMP_WORDS[COMP_CWORD-1]}"
+    
+    # Commandes principales
+    cmds="init doctor completion shell plugins aep cm bois beton hydro reporting project"
+    
+    # Sous-commandes AEP
+    if [[ ${prev} == "aep" ]]; then
+        opts="population-unified demand-unified network-unified reservoir-unified pumping-unified network-optimize-unified network-analyze-scenarios help"
+        COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
+        return 0
+    fi
+    
+    # Sous-commandes project
+    if [[ ${prev} == "project" ]]; then
+        opts="init list switch cd remove archive sandbox status"
+        COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
+        return 0
+    fi
+    
+    # Complétion des commandes principales
+    if [[ ${cur} == * ]] ; then
+        COMPREPLY=( $(compgen -W "${cmds}" -- ${cur}) )
+        return 0
+    fi
+}
+
+complete -F _lcpi_completion lcpi
+"""
+
+def _generate_zsh_completion():
+    """Génère le script de complétion zsh."""
+    return """# Zsh completion pour LCPI-CLI
+# Source: lcpi completion --shell zsh
+
+_lcpi() {
+    local curcontext="$curcontext" state line
+    typeset -A opt_args
+    
+    _arguments -C \\
+        ':command:->command' \\
+        '*:: :->args'
+    
+    case "$state" in
+        command)
+            local -a commands
+            commands=(
+                'init:Initialiser un projet'
+                'doctor:Vérifier l\'installation'
+                'completion:Générer la complétion'
+                'shell:Mode interactif'
+                'plugins:Gérer les plugins'
+                'aep:Commandes AEP'
+                'cm:Commandes CM'
+                'bois:Commandes BOIS'
+                'beton:Commandes BETON'
+                'hydro:Commandes HYDRO'
+                'reporting:Générer des rapports'
+                'project:Gérer les projets'
+            )
+            _describe -t commands 'lcpi commands' commands
+            ;;
+        args)
+            case $line[1] in
+                aep)
+                    local -a aep_commands
+                    aep_commands=(
+                        'population-unified:Calcul de population'
+                        'demand-unified:Calcul de demande'
+                        'network-unified:Dimensionnement réseau'
+                        'reservoir-unified:Dimensionnement réservoir'
+                        'pompage-unified:Dimensionnement pompage'
+                        'network-optimize-unified:Optimisation réseau'
+                        'network-analyze-scenarios:Analyse de scénarios'
+                        'help:Aide AEP'
+                    )
+                    _describe -t aep_commands 'aep commands' aep_commands
+                    ;;
+                project)
+                    local -a project_commands
+                    project_commands=(
+                        'init:Initialiser un projet'
+                        'list:Lister les projets'
+                        'switch:Changer de projet'
+                        'cd:Aller au projet'
+                        'remove:Supprimer un projet'
+                        'archive:Archiver un projet'
+                        'sandbox:Mode sandbox'
+                        'status:Statut du projet'
+                    )
+                    _describe -t project_commands 'project commands' project_commands
+                    ;;
+            esac
+            ;;
+    esac
+}
+
+compdef _lcpi lcpi
+"""
+
+def _generate_fish_completion():
+    """Génère le script de complétion fish."""
+    return """# Fish completion pour LCPI-CLI
+# Source: lcpi completion --shell fish
+
+complete -c lcpi -f
+
+# Commandes principales
+complete -c lcpi -n __fish_use_subcommand -a init -d "Initialiser un projet"
+complete -c lcpi -n __fish_use_subcommand -a doctor -d "Vérifier l'installation"
+complete -c lcpi -n __fish_use_subcommand -a completion -d "Générer la complétion"
+complete -c lcpi -n __fish_use_subcommand -a shell -d "Mode interactif"
+complete -c lcpi -n __fish_use_subcommand -a plugins -d "Gérer les plugins"
+complete -c lcpi -n __fish_use_subcommand -a aep -d "Commandes AEP"
+complete -c lcpi -n __fish_use_subcommand -a cm -d "Commandes CM"
+complete -c lcpi -n __fish_use_subcommand -a bois -d "Commandes BOIS"
+complete -c lcpi -n __fish_use_subcommand -a beton -d "Commandes BETON"
+complete -c lcpi -n __fish_use_subcommand -a hydro -d "Commandes HYDRO"
+complete -c lcpi -n __fish_use_subcommand -a reporting -d "Générer des rapports"
+complete -c lcpi -n __fish_use_subcommand -a project -d "Gérer les projets"
+
+# Sous-commandes AEP
+complete -c lcpi -n "__fish_seen_subcommand_from aep" -a "population-unified" -d "Calcul de population"
+complete -c lcpi -n "__fish_seen_subcommand_from aep" -a "demand-unified" -d "Calcul de demande"
+complete -c lcpi -n "__fish_seen_subcommand_from aep" -a "network-unified" -d "Dimensionnement réseau"
+complete -c lcpi -n "__fish_seen_subcommand_from aep" -a "reservoir-unified" -d "Dimensionnement réservoir"
+complete -c lcpi -n "__fish_seen_subcommand_from aep" -a "pompage-unified" -d "Dimensionnement pompage"
+complete -c lcpi -n "__fish_seen_subcommand_from aep" -a "network-optimize-unified" -d "Optimisation réseau"
+complete -c lcpi -n "__fish_seen_subcommand_from aep" -a "network-analyze-scenarios" -d "Analyse de scénarios"
+complete -c lcpi -n "__fish_seen_subcommand_from aep" -a "help" -d "Aide AEP"
+
+# Sous-commandes project
+complete -c lcpi -n "__fish_seen_subcommand_from project" -a "init" -d "Initialiser un projet"
+complete -c lcpi -n "__fish_seen_subcommand_from project" -a "list" -d "Lister les projets"
+complete -c lcpi -n "__fish_seen_subcommand_from project" -n "__fish_seen_subcommand_from project" -a "switch" -d "Changer de projet"
+complete -c lcpi -n "__fish_seen_subcommand_from project" -a "cd" -d "Aller au projet"
+complete -c lcpi -n "__fish_seen_subcommand_from project" -a "remove" -d "Supprimer un projet"
+complete -c lcpi -n "__fish_seen_subcommand_from project" -a "archive" -d "Archiver un projet"
+complete -c lcpi -n "__fish_seen_subcommand_from project" -a "sandbox" -d "Mode sandbox"
+complete -c lcpi -n "__fish_seen_subcommand_from project" -a "status" -d "Statut du projet"
+"""
+
+# --- Logique de découverte et de chargement des plugins avec gestion de session ---
+def initialize_plugins():
+    """Initialise les plugins et retourne les informations de session."""
+    global _plugins_initialized
+    plugins_info = {}
+    
+    # Vérifier si les plugins sont déjà chargés
+    if _plugins_initialized:
+        # Récupérer les informations des plugins déjà chargés
+        for plugin_name in ['cm', 'bois', 'beton', 'hydro', 'aep', 'shell', 'reporting', 'project']:
+            plugins_info[plugin_name] = {'status': 'loaded', 'path': f'{plugin_name}.main'}
+        return plugins_info
+    
+    # Charger le plugin cm
     try:
         from .cm.main import register as register_cm
         app.add_typer(register_cm(), name="cm")
+        plugins_info['cm'] = {'status': 'loaded', 'path': 'cm.main'}
         console.print("[green]✓[/green] Plugin 'cm' chargé.")
     except ImportError as e:
+        plugins_info['cm'] = {'status': 'error', 'error': str(e)}
         console.print(Panel(f"[bold red]✗[/bold red] Plugin 'cm' non chargé. Erreur : {e}", title="Erreur de Chargement Plugin", border_style="red"))
+    
+    # Charger le plugin bois
     try:
         from .bois.main import register as register_bois
         app.add_typer(register_bois(), name="bois")
+        plugins_info['bois'] = {'status': 'loaded', 'path': 'bois.main'}
         console.print("[green]✓[/green] Plugin 'bois' chargé.")
     except ImportError as e:
+        plugins_info['bois'] = {'status': 'error', 'error': str(e)}
         console.print(Panel(f"[bold red]✗[/bold red] Plugin 'bois' non chargé. Erreur : {e}", title="Erreur de Chargement Plugin", border_style="red"))
+    
     try:
         from .beton.main import register as register_beton
         app.add_typer(register_beton(), name="beton")
+        plugins_info['beton'] = {'status': 'loaded', 'path': 'beton.main'}
         console.print("[green]✓[/green] Plugin 'beton' chargé.")
     except ImportError as e:
+        plugins_info['beton'] = {'status': 'error', 'error': str(e)}
         console.print(Panel(f"[bold red]✗[/bold red] Plugin 'beton' non chargé. Erreur : {e}", title="Erreur de Chargement Plugin", border_style="red"))
+    
     try:
         from .hydrodrain.main import register as register_hydrodrain
         app.add_typer(register_hydrodrain(), name="hydro")
+        plugins_info['hydro'] = {'status': 'loaded', 'path': 'hydrodrain.main'}
         console.print("[green]✓[/green] Plugin 'hydro' chargé.")
     except ImportError as e:
+        plugins_info['hydro'] = {'status': 'error', 'error': str(e)}
         console.print(Panel(f"[bold red]✗[/bold red] Plugin 'hydro' non chargé. Erreur : {e}", title="Erreur de Chargement Plugin", border_style="red"))
+    
     try:
         from .aep.cli import app as aep_app
         app.add_typer(aep_app, name="aep")
+        plugins_info['aep'] = {'status': 'loaded', 'path': 'aep.cli'}
         console.print("[green]✓[/green] Plugin 'aep' chargé.")
     except ImportError as e:
+        plugins_info['aep'] = {'status': 'error', 'error': str(e)}
         console.print(Panel(f"[bold red]✗[/bold red] Plugin 'aep' non chargé. Erreur : {e}", title="Erreur de Chargement Plugin", border_style="red"))
 
     # Charger le plugin shell
     try:
         from .shell.main import register as register_shell
         app.add_typer(register_shell(), name="shell")
+        plugins_info['shell'] = {'status': 'loaded', 'path': 'shell.main'}
         console.print("[green]✓[/green] Plugin 'shell' chargé.")
     except ImportError as e:
+        plugins_info['shell'] = {'status': 'error', 'error': str(e)}
         console.print(Panel(f"[bold red]✗[/bold red] Plugin 'shell' non chargé. Erreur : {e}", title="Erreur de Chargement Plugin", border_style="red"))
 
     # Charger le plugin de reporting
     try:
         from .reporting.cli import app as reporting_app
         app.add_typer(reporting_app, name="rapport")
+        plugins_info['reporting'] = {'status': 'loaded', 'path': 'rapport.cli'}
         console.print("[green]✓[/green] Plugin 'reporting' chargé.")
     except ImportError as e:
+        plugins_info['reporting'] = {'status': 'error', 'error': str(e)}
         console.print(Panel(f"[bold red]✗[/bold red] Plugin 'reporting' non chargé. Erreur : {e}", title="Erreur de Chargement Plugin", border_style="red"))
 
+    # Charger le plugin de gestion des projets
+    try:
+        from .project_cli import app as project_app
+        app.add_typer(project_app, name="project")
+        plugins_info['project'] = {'status': 'loaded', 'path': 'project_cli'}
+        console.print("[green]✓[/green] Plugin 'project' chargé.")
+    except ImportError as e:
+        plugins_info['project'] = {'status': 'error', 'error': str(e)}
+        console.print(Panel(f"[bold red]✗[/bold red] Plugin 'project' non chargé. Erreur : {e}", title="Erreur de Chargement Plugin", border_style="red"))
+
+    # Marquer les plugins comme initialisés
+    _plugins_initialized = True
+    return plugins_info
+
+def print_plugin_status():
+    """Affiche le statut de chargement des plugins avec gestion de session."""
+    global _plugins_initialized
+    console.print("[bold]--- Initialisation de LCPI-CLI ---[/bold]")
+    
+    # Vérifier si les plugins sont déjà initialisés
+    if _plugins_initialized:
+        console.print(f"🚀 [green]Plugins déjà chargés[/green] - Session active")
+        console.print("[bold]----------------------------------[/bold]")
+        
+        # Afficher les plugins disponibles
+        for plugin_name in ['cm', 'bois', 'beton', 'hydro', 'aep', 'shell', 'reporting', 'project']:
+            console.print(f"[green]✓[/green] Plugin '{plugin_name}' disponible.")
+        
+        # Mettre à jour la session si elle existe
+        if session_manager.is_session_valid():
+            session_manager.update_session_usage()
+        return
+    
+    # Vérifier si une session valide existe
+    if session_manager.is_session_valid():
+        session_data = session_manager.get_session_data()
+        console.print(f"🚀 [green]Session restaurée[/green] - {session_data.get('plugins_count', 0)} plugins chargés")
+        console.print("[bold]----------------------------------[/bold]")
+        
+        # Marquer les plugins comme initialisés (ils sont déjà chargés dans l'app)
+        _plugins_initialized = True
+        
+        # Mettre à jour l'utilisation de la session
+        session_manager.update_session_usage()
+        return
+    
+    # Pas de session valide, initialiser les plugins
+    plugins_info = initialize_plugins()
     console.print("[bold]----------------------------------[/bold]")
+    
+    # Créer une nouvelle session
+    session_manager.create_session(plugins_info)
+    console.print(f"💾 [blue]Nouvelle session créée[/blue] - {len(plugins_info)} plugins initialisés")
 
 # Appel de la fonction pour enregistrer les plugins au démarrage
 # On vérifie la variable d'environnement pour un lancement "core only"
-if os.getenv('LCPI_CORE_ONLY_LAUNCH') != '1':
-    print_plugin_status()
+# Note: print_plugin_status() sera appelé lors de la première commande
 
 @app.command()
 def tips():
@@ -971,3 +1412,46 @@ def welcome():
     else:
         console.print(Panel("🚀 Bienvenue dans LCPI-CLI ! Utilisez 'lcpi --help' pour commencer.", 
                            title="🚀 LCPI-CLI", border_style="blue"))
+
+# Import des modules de logging et validation
+from .logging_cli import app as logs_app
+
+# Ajouter la sous-commande de logging
+app.add_typer(logs_app, name="logs", help="Gestion des logs avec signature et intégrité")
+
+@app.command()
+def session(
+    action: str = typer.Argument("info", help="Action: info, clear, status"),
+    verbose: bool = typer.Option(False, "--verbose", "-v", help="Afficher les détails complets")
+):
+    """Gère les sessions LCPI pour optimiser l'initialisation."""
+    if action == "info":
+        session_info = session_manager.get_session_info()
+        if session_info['status'] == 'active':
+            console.print(Panel("💾 Session LCPI Active", style="green"))
+            console.print(f"📁 Fichier: {session_info['session_file']}")
+            console.print(f"📅 Créée le: {session_info['created_at']}")
+            console.print(f"🕒 Dernière utilisation: {session_info['last_used']}")
+            console.print(f"🔌 Plugins: {session_info['plugins_count']}")
+            if verbose:
+                console.print(f"🔐 Hash environnement: {session_info['environment_hash']}")
+        else:
+            console.print(Panel("❌ Aucune session active", style="red"))
+            console.print("💡 Lancez une commande LCPI pour créer une session.")
+    
+    elif action == "clear":
+        if typer.confirm("Êtes-vous sûr de vouloir effacer la session actuelle ?"):
+            session_manager.clear_session()
+            console.print("✅ Session effacée. La prochaine commande initialisera une nouvelle session.")
+        else:
+            console.print("❌ Opération annulée.")
+    
+    elif action == "status":
+        if session_manager.is_session_valid():
+            console.print("✅ Session valide et active")
+        else:
+            console.print("❌ Aucune session valide")
+    
+    else:
+        console.print(f"❌ Action inconnue: {action}")
+        console.print("Actions disponibles: info, clear, status")

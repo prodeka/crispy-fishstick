@@ -1,0 +1,111 @@
+# Configuration d'optimisation de réseau AEP
+# Exemple pour le Jalon 2 - Moteur d'Optimisation
+
+optimisation:
+  criteres:
+    principal: "cout"  # ou "energie", "performance"
+    secondaires: ["energie", "performance"]
+    poids: [0.6, 0.25, 0.15]
+  
+  contraintes_budget:
+    cout_max_fcfa: 100000
+    cout_par_metre_max: 150
+  
+  contraintes_techniques:
+    pression_min_mce: 20.0
+    pression_max_mce: 80.0
+    vitesse_min_m_s: 0.5
+    vitesse_max_m_s: 2.5
+  
+  algorithme:
+    type: "genetique"
+    population_size: 50
+    generations: 20
+    mutation_rate: 0.1
+    crossover_rate: 0.8
+    tolerance: 1e-6
+  
+  diametres_candidats:
+    - diametre_mm: 90
+      cout_fcfa_m: 35
+      disponibilite: 0.95
+    - diametre_mm: 110
+      cout_fcfa_m: 45
+      disponibilite: 0.95
+    - diametre_mm: 125
+      cout_fcfa_m: 60
+      disponibilite: 0.90
+    - diametre_mm: 140
+      cout_fcfa_m: 80
+      disponibilite: 0.85
+    - diametre_mm: 160
+      cout_fcfa_m: 100
+      disponibilite: 0.80
+
+reseau_complet:
+  nom: "Réseau d'exemple pour optimisation"
+  description: "Réseau simple pour tester l'optimisation"
+  
+  noeuds:
+    - id: "N1"
+      nom: "Réservoir"
+      type: "reservoir"
+      cote_terrain: 100.0
+      cote_eau: 105.0
+      coordonnees: [0, 0]
+    
+    - id: "N2"
+      nom: "Point de distribution 1"
+      type: "consommation"
+      cote_terrain: 95.0
+      demande_m3s: 0.02
+      coordonnees: [500, 0]
+    
+    - id: "N3"
+      nom: "Point de distribution 2"
+      type: "consommation"
+      cote_terrain: 92.0
+      demande_m3s: 0.015
+      coordonnees: [1000, 0]
+    
+    - id: "N4"
+      nom: "Point de distribution 3"
+      type: "consommation"
+      cote_terrain: 90.0
+      demande_m3s: 0.025
+      coordonnees: [1500, 0]
+  
+  conduites:
+    - id: "C1"
+      nom: "Conduite principale 1"
+      noeud_amont: "N1"
+      noeud_aval: "N2"
+      longueur_m: 500.0
+      diametre_mm: 110  # Sera optimisé
+      materiau: "pvc"
+      rugosite_mm: 0.0015
+    
+    - id: "C2"
+      nom: "Conduite principale 2"
+      noeud_amont: "N2"
+      noeud_aval: "N3"
+      longueur_m: 500.0
+      diametre_mm: 110  # Sera optimisé
+      materiau: "pvc"
+      rugosite_mm: 0.0015
+    
+    - id: "C3"
+      nom: "Conduite principale 3"
+      noeud_amont: "N3"
+      noeud_aval: "N4"
+      longueur_m: 500.0
+      diametre_mm: 110  # Sera optimisé
+      materiau: "pvc"
+      rugosite_mm: 0.0015
+  
+  parametres_calcul:
+    methode_perte_charge: "hazen_williams"
+    coefficient_hazen_williams: 140
+    gravite_ms2: 9.81
+    tolerance_convergence: 1e-6
+    iterations_max: 100

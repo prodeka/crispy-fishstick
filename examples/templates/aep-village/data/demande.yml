@@ -1,0 +1,65 @@
+# Données de demande en eau pour le village
+# Template: aep-village
+
+# Population actuelle
+population: 1000
+
+# Dotation en litres par habitant par jour
+dotation_l_hab_j: 150
+
+# Coefficient de pointe (facteur de majoration)
+coefficient_pointe: 1.8
+
+# Type de consommation
+# Options: branchement_prive, borne_fontaine, industriel, commercial, public
+type_consommation: "branchement_prive"
+
+# Répartition par type de consommateur (en %)
+repartition_consommateurs:
+  branchement_prive: 80
+  borne_fontaine: 15
+  public: 3
+  commercial: 2
+
+# Coefficients de pointe par type
+coefficients_pointe:
+  branchement_prive: 1.8
+  borne_fontaine: 2.5
+  public: 1.2
+  commercial: 1.5
+  industriel: 1.3
+
+# Facteurs de correction saisonniers
+facteurs_saisonniers:
+  saison_seche: 1.2
+  saison_pluie: 0.9
+  saison_intermediaire: 1.0
+
+# Facteurs de correction journaliers
+facteurs_journaliers:
+  lundi: 1.1
+  mardi: 1.0
+  mercredi: 1.0
+  jeudi: 1.0
+  vendredi: 1.1
+  samedi: 1.2
+  dimanche: 0.8
+
+# Facteurs de correction horaires
+facteurs_horaires:
+  "06:00-08:00": 1.5
+  "08:00-12:00": 1.0
+  "12:00-14:00": 1.3
+  "14:00-18:00": 1.0
+  "18:00-22:00": 1.4
+  "22:00-06:00": 0.6
+
+# Pertes techniques (en %)
+pertes_techniques: 15
+
+# Métadonnées
+metadata:
+  source: "Étude de consommation locale 2024"
+  fiabilite: "élevée"
+  date_mise_a_jour: "2025-01-15"
+  commentaires: "Données basées sur des relevés de compteurs et des enquêtes"

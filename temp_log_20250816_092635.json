@@ -1,0 +1,54 @@
+{
+  "id": "20250816_092635",
+  "timestamp": "2025-08-16T09:26:35.521133",
+  "titre_calcul": "Dimensionnement réseau unifié",
+  "commande_executee": "lcpi aep network-unified 0.2 --longueur 500.0 --materiau pvc --verbose",
+  "donnees_resultat": {
+    "statut": "SUCCES",
+    "reseau": {
+      "debit_m3s": 0.2,
+      "longueur_m": 500.0,
+      "materiau": "pvc",
+      "methode": "darcy",
+      "diametre_optimal_mm": 355,
+      "diametre_optimal_m": 0.355,
+      "perte_charge_m": 8.508751406514234,
+      "vitesse_ms": 2.0206142348504867
+    },
+    "verifications": {
+      "vitesse": {
+        "vitesse_ms": 2.0206142348504867,
+        "dans_limites": false,
+        "limite_min": 0.3,
+        "limite_max": 1.5,
+        "recommandation": "Vitesse hors limites"
+      }
+    },
+    "recommandations": [
+      "Vitesse hors limites"
+    ]
+  },
+  "transparence_mathematique": [
+    "Débit: 0.2 m³/s",
+    "Longueur: 500.0 m",
+    "Matériau: pvc",
+    "Méthode: darcy",
+    "Diamètre calculé: 0.355 m",
+    "Vitesse: 2.02 m/s"
+  ],
+  "hash_donnees_entree": "a1c46ae183598e5b0cd9ae0da2186873aac8d5b4cb2c540a9155556ff1bdfce8",
+  "dependances": [],
+  "duree_execution": null,
+  "version_algorithme": "2.1.0",
+  "parametres_entree": {
+    "debit_m3s": 0.2,
+    "longueur_m": 500.0,
+    "materiau": "pvc",
+    "perte_charge_max_m": 10.0,
+    "methode": "darcy",
+    "mode": "auto",
+    "input_file": null
+  },
+  "diagnostics": {},
+  "iterations": {}
+}

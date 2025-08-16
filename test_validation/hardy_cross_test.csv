@@ -1,0 +1,6 @@
+pipe_id,from_node,to_node,length,diameter,roughness,initial_flow
+P1,N1,N2,1000,0.2,120,0.1
+P2,N2,N3,800,0.15,120,0.05
+P3,N3,N4,1200,0.25,120,0.08
+P4,N4,N1,600,0.18,120,0.03
+P5,N2,N4,900,0.22,120,0.06 

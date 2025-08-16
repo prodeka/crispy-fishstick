@@ -1,0 +1,52 @@
+{
+  "id": "20250816_090321",
+  "timestamp": "2025-08-16T09:03:21.140886",
+  "titre_calcul": "Dimensionnement réseau unifié",
+  "commande_executee": "lcpi aep network-unified 0.1 --verbose",
+  "donnees_resultat": {
+    "statut": "SUCCES",
+    "reseau": {
+      "debit_m3s": 0.1,
+      "longueur_m": 1000.0,
+      "materiau": "fonte",
+      "methode": "darcy",
+      "diametre_optimal_mm": 500,
+      "diametre_optimal_m": 0.5,
+      "perte_charge_m": 8.749745946667636,
+      "vitesse_ms": 0.5092958178940651
+    },
+    "verifications": {
+      "vitesse": {
+        "vitesse_ms": 0.5092958178940651,
+        "dans_limites": true,
+        "limite_min": 0.3,
+        "limite_max": 1.5,
+        "recommandation": "Vitesse correcte"
+      }
+    },
+    "recommandations": []
+  },
+  "transparence_mathematique": [
+    "Débit: 0.1 m³/s",
+    "Longueur: 1000.0 m",
+    "Matériau: fonte",
+    "Méthode: darcy",
+    "Diamètre calculé: 0.500 m",
+    "Vitesse: 0.51 m/s"
+  ],
+  "hash_donnees_entree": "fa55a9f1c4e5aa78798d7293a9f4da47715c9e1ae1b20310d8aa3b835937f0c6",
+  "dependances": [],
+  "duree_execution": null,
+  "version_algorithme": "2.1.0",
+  "parametres_entree": {
+    "debit_m3s": 0.1,
+    "longueur_m": 1000.0,
+    "materiau": "fonte",
+    "perte_charge_max_m": 10.0,
+    "methode": "darcy",
+    "mode": "auto",
+    "input_file": null
+  },
+  "diagnostics": {},
+  "iterations": {}
+}

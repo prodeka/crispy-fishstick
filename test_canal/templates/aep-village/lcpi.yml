@@ -1,0 +1,134 @@
+# Configuration LCPI pour Projet AEP Village
+# Template: aep-village
+# Version: 1.0.0
+
+# Métadonnées du projet
+project:
+  name: "Village AEP Template"
+  description: "Template pour projet d'Adduction d'Eau Potable d'un village"
+  version: "1.0.0"
+  author: "LCPI Team"
+  created_date: "2025-08-16"
+  template: "aep-village"
+
+# Configuration des modules
+modules:
+  aep:
+    enabled: true
+    version: "2.1.0"
+    features:
+      - population_projection
+      - water_demand_calculation
+      - network_design
+      - reservoir_design
+      - pumping_design
+      - scenario_analysis
+      - optimization
+
+# Configuration de la base de données
+database:
+  type: "sqlite"
+  path: "data/village_aep.db"
+  backup_enabled: true
+  backup_retention_days: 30
+
+# Configuration des logs
+logging:
+  level: "INFO"
+  format: "json"
+  retention_days: 90
+  max_file_size_mb: 10
+  compression_enabled: true
+
+# Configuration des rapports
+reporting:
+  default_format: "html"
+  available_formats: ["html", "pdf", "docx"]
+  template_path: "templates/reports"
+  output_path: "outputs/reports"
+  include_graphs: true
+  include_tables: true
+
+# Configuration des scénarios
+scenarios:
+  default_solver: "lcpi"
+  available_solvers: ["lcpi", "epanet"]
+  parallel_execution: true
+  max_workers: 4
+  timeout_seconds: 300
+
+# Configuration de l'optimisation
+optimization:
+  algorithm: "genetic"
+  population_size: 50
+  generations: 100
+  mutation_rate: 0.1
+  crossover_rate: 0.8
+  convergence_tolerance: 1e-6
+
+# Paramètres par défaut
+defaults:
+  population:
+    growth_rate: 0.025
+    projection_years: 20
+    method: "arithmetique"
+  
+  demand:
+    dotation_l_hab_j: 150
+    coefficient_pointe: 1.8
+    type_consumption: "branchement_prive"
+  
+  network:
+    material: "PVC"
+    max_velocity_ms: 2.5
+    min_velocity_ms: 0.5
+    max_pressure_loss_m: 2.0
+  
+  reservoir:
+    storage_factor: 1.2
+    emergency_factor: 0.3
+    shape: "cylindrique"
+  
+  pumping:
+    efficiency: 0.75
+    operating_hours: 24
+    energy_cost_fcfa_kwh: 15
+
+# Validation des données
+validation:
+  strict_mode: false
+  auto_correct: true
+  warning_level: "medium"
+  custom_validators: []
+
+# Intégrations externes
+integrations:
+  gis:
+    enabled: false
+    supported_formats: ["geojson", "shapefile"]
+    coordinate_system: "WGS84"
+  
+  cad:
+    enabled: false
+    supported_formats: ["dwg", "dxf"]
+    version: "2018+"
+  
+  bim:
+    enabled: false
+    supported_formats: ["ifc", "rvt"]
+    version: "2020+"
+
+# Configuration de sécurité
+security:
+  data_encryption: false
+  access_control: false
+  audit_logging: true
+  backup_encryption: false
+
+# Configuration des performances
+performance:
+  cache_enabled: true
+  cache_size_mb: 100
+  parallel_processing: true
+  memory_limit_mb: 512
+  timeout_seconds: 60

@@ -1,0 +1,87 @@
+# Configuration d'exemple pour l'optimisation d'un réseau AEP
+# Utilisation: lcpi aep network-optimize examples/optimisation_reseau_exemple.yml
+
+reseau_complet:
+  nom: "Réseau Principal"
+  type: "maillé"
+  noeuds:
+    N1:
+      role: "reservoir"
+      cote_m: 150.0
+    N2:
+      role: "consommation"
+      cote_m: 145.0
+      demande_m3_s: 0.02
+    N3:
+      role: "consommation"
+      cote_m: 140.0
+      demande_m3_s: 0.015
+  conduites:
+    C1:
+      noeud_amont: "N1"
+      noeud_aval: "N2"
+      longueur_m: 500
+      debit_m3_s: 0.05
+      rugosite: 100
+      materiau: "acier"
+    C2:
+      noeud_amont: "N2"
+      noeud_aval: "N3"
+      longueur_m: 300
+      debit_m3_s: 0.03
+      rugosite: 120
+      materiau: "pvc"
+
+optimisation:
+  criteres:
+    principal: "cout"
+    secondaires: ["energie", "performance"]
+    poids: [0.6, 0.25, 0.15]
+  
+  contraintes_budget:
+    cout_max_fcfa: 100000
+    cout_par_metre_max: 150
+  
+  contraintes_techniques:
+    pression_min_mce: 20.0
+    pression_max_mce: 80.0
+    vitesse_min_m_s: 0.5
+    vitesse_max_m_s: 2.5
+  
+  algorithme:
+    type: "genetique"
+    population_size: 100
+    generations: 50
+    mutation_rate: 0.1
+    crossover_rate: 0.8
+    tolerance: 1e-6
+  
+  diametres_candidats:
+    - diametre_mm: 90
+      cout_fcfa_m: 35
+      materiau: "pvc"
+      pression_nominale: 6
+    - diametre_mm: 110
+      cout_fcfa_m: 45
+      materiau: "pvc"
+      pression_nominale: 6
+    - diametre_mm: 125
+      cout_fcfa_m: 60
+      materiau: "pvc"
+      pression_nominale: 6
+    - diametre_mm: 140
+      cout_fcfa_m: 80
+      materiau: "pvc"
+      pression_nominale: 6
+    - diametre_mm: 160
+      cout_fcfa_m: 100
+      materiau: "pvc"
+      pression_nominale: 6
+    - diametre_mm: 200
+      cout_fcfa_m: 150
+      materiau: "pvc"
+      pression_nominale: 6
+    - diametre_mm: 250
+      cout_fcfa_m: 250
+      materiau: "pvc"
+      pression_nominale: 6

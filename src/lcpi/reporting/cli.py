@@ -55,7 +55,16 @@ def generate_report(
     # --- Gestion des logs ---
     if interactive or log_ids:
         # Mode interactif ou sélection par IDs
-        available_logs = list_available_logs()
+        # Utiliser le contexte de projet actuel
+        from ..core.context import get_project_context
+        context = get_project_context()
+        
+        if context['type'] == 'none':
+            typer.secho("❌ Aucun projet actif et pas de sandbox. Créez d'abord un projet.", fg=typer.colors.RED)
+            raise typer.Exit(1)
+        
+        project_path = context['path']
+        available_logs = list_available_logs(project_path)
         
         if not available_logs:
             typer.secho("❌ Aucun log trouvé dans le répertoire logs/", fg=typer.colors.RED)
@@ -65,7 +74,9 @@ def generate_report(
             # Mode interactif : afficher les logs disponibles et demander sélection
             typer.echo("📋 Logs disponibles :")
             for i, log in enumerate(available_logs, 1):
-                typer.echo(f"  {i}. [{log['id']}] {log['titre_calcul']} - {log['timestamp'][:19]}")
+                # Formater la date pour une meilleure lisibilité
+                timestamp = log['timestamp'][:19].replace('T', ' ')
+                typer.echo(f"  {i}. [{log['id']}] {log['titre_calcul']} - {timestamp}")
             
             selected_indices = typer.prompt(
                 "Sélectionnez les numéros des logs à inclure (séparés par des virgules)",
@@ -90,7 +101,7 @@ def generate_report(
         # Charger les données des logs sélectionnés
         log_files = []
         for log_info in selected_logs:
-            log_data = load_log_by_id(log_info['id'])
+            log_data = load_log_by_id(log_info['id'], project_path)
             if log_data:
                 # Créer un fichier temporaire avec les données du log
                 temp_file = Path(f"temp_log_{log_info['id']}.json")

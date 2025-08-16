@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rapport Technique LCPI</title>
+</head>
+<body>
+    <div class="report-container">
+        <header>
+            <h1>RAPPORT TECHNIQUE</h1>
+            <h2>{{ projet_metadata.nom_projet if projet_metadata else "Projet LCPI" }}</h2>
+        </header>
+
+        <main>
+            <h2>Logs de Calcul</h2>
+            
+            {% if logs_selectionnes %}
+                <p>Nombre de logs : {{ logs_selectionnes|length }}</p>
+                
+                {% for log in logs_selectionnes %}
+                    <section class="calculation-section">
+                        <h3>{{ log.titre_calcul }}</h3>
+                        <p><strong>ID :</strong> {{ log.id }}</p>
+                        <p><strong>Date :</strong> {{ log.timestamp[:19].replace('T', ' ') }}</p>
+                        <p><strong>Commande :</strong> <code>{{ log.commande_executee }}</code></p>
+                        
+                        <h4>Résultats :</h4>
+                        <pre>{{ log.donnees_resultat | tojson(indent=2) }}</pre>
+                        
+                        {% if log.transparence_mathematique %}
+                            <h4>Transparence Mathématique :</h4>
+                            <ul>
+                                {% for line in log.transparence_mathematique %}
+                                    <li>{{ line }}</li>
+                                {% endfor %}
+                            </ul>
+                        {% endif %}
+                    </section>
+                {% endfor %}
+            {% else %}
+                <p>Aucun log sélectionné.</p>
+            {% endif %}
+        </main>
+        
+        <footer>
+            Rapport généré le {{ generation_date }} avec LCPI v{{ version_lcpi }}.
+        </footer>
+    </div>
+</body>
+</html>

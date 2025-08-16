@@ -1,0 +1,47 @@
+# Données démographiques pour le village
+# Template: aep-village
+
+# Population de base
+population_base: 1000
+
+# Taux de croissance annuel (2.5% = 0.025)
+taux_croissance: 0.025
+
+# Nombre d'années de projection
+annees_projection: 20
+
+# Méthode de projection
+# Options: malthus, arithmetique, geometrique, logistique
+methode: "arithmetique"
+
+# Données historiques (optionnel)
+# Si disponible, peut être utilisé pour calibrage
+historique:
+  - annee: 2020
+    population: 950
+  - annee: 2021
+    population: 974
+  - annee: 2022
+    population: 998
+  - annee: 2023
+    population: 1023
+  - annee: 2024
+    population: 1049
+
+# Paramètres spécifiques selon la méthode
+parametres_methode:
+  # Pour méthode logistique
+  capacite_maximale: 5000
+  
+  # Pour méthode géométrique
+  facteur_croissance: 1.025
+  
+  # Pour méthode arithmétique
+  accroissement_annuel: 25
+
+# Métadonnées
+metadata:
+  source: "Recensement national 2024"
+  fiabilite: "élevée"
+  date_mise_a_jour: "2025-01-15"
+  commentaires: "Données basées sur le dernier recensement officiel"
