@@ -81,9 +81,14 @@ def main_callback(json_output: bool = typer.Option(False, "--json", help="Active
         print_plugin_status()
         _plugins_initialized = True
     
-    # Afficher le message de bienvenue si le module UX est disponible
-    if UX_AVAILABLE:
-        show_welcome()
+            # Afficher le message de bienvenue si le module UX est disponible
+        if UX_AVAILABLE:
+            show_welcome()
+        
+        # Supprimer les messages de debug de matplotlib et autres
+        import logging
+        logging.getLogger('matplotlib').setLevel(logging.WARNING)
+        logging.getLogger('lcpi').setLevel(logging.WARNING)
 
 # -----------------------------------------------------------------------------
 # Configuration des chemins pour le développement
@@ -1355,7 +1360,8 @@ def print_plugin_status():
     # Vérifier si une session valide existe
     if session_manager.is_session_valid():
         session_data = session_manager.get_session_data()
-        console.print(f"🚀 [green]Session restaurée[/green] - {session_data.get('plugins_count', 0)} plugins chargés")
+        plugins_count = len(session_data.get('plugins', {}))
+        console.print(f"🚀 [green]Session restaurée[/green] - {plugins_count} plugins chargés")
         console.print("[bold]----------------------------------[/bold]")
         
         # Marquer les plugins comme initialisés (ils sont déjà chargés dans l'app)

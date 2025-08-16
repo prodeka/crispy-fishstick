@@ -437,3 +437,53 @@ def project_status():
             title="Contexte Actuel",
             border_style="white"
         ))
+
+
+@app.command("export-repro")
+def export_reproducible(
+    output: str = typer.Option("repro.tar.gz", "--output", "-o", help="Chemin du fichier d'export"),
+    include_logs: bool = typer.Option(True, "--logs/--no-logs", help="Inclure les logs de calcul"),
+    include_results: bool = typer.Option(True, "--results/--no-results", help="Inclure les résultats"),
+    include_env: bool = typer.Option(True, "--env/--no-env", help="Inclure l'environnement Python"),
+    verbose: bool = typer.Option(False, "--verbose", "-v", help="Afficher les détails de l'export")
+):
+    """Exporte un environnement reproductible complet du projet."""
+    try:
+        from .core.reproducible import export_reproducible
+        
+        console.print("🚀 Export de l'environnement reproductible...")
+        
+        # Vérifier qu'un projet est actif
+        if not project_context.is_project_active():
+            console.print("❌ Aucun projet actif. Utilisez 'lcpi project switch <nom>' ou 'lcpi project init'")
+            raise typer.Exit(1)
+        
+        # Effectuer l'export
+        export_info = export_reproducible(
+            output_path=output,
+            include_logs=include_logs,
+            include_results=include_results,
+            include_env=include_env
+        )
+        
+        # Afficher le résumé
+        console.print(Panel("✅ Export réussi !", style="green"))
+        console.print(f"📁 Fichier créé: {output}")
+        console.print(f"📅 Date d'export: {export_info['export_date']}")
+        console.print(f"🏗️  Projet: {export_info['project_name']}")
+        
+        if verbose:
+            console.print("\n📋 Détails de l'export:")
+            console.print(f"   • Logs inclus: {'✅' if include_logs else '❌'}")
+            console.print(f"   • Résultats inclus: {'✅' if include_results else '❌'}")
+            console.print(f"   • Environnement inclus: {'✅' if include_env else '❌'}")
+        
+        console.print(f"\n💡 Pour reproduire l'environnement:")
+        console.print(f"   tar -xzf {output}")
+        console.print(f"   cd lcpi_reproducible/environment")
+        console.print(f"   pip install -r requirements.txt")
+        console.print(f"   docker build -t lcpi-repro .")
+        
+    except Exception as e:
+        console.print(f"❌ Erreur lors de l'export: {e}")
+        raise typer.Exit(1)

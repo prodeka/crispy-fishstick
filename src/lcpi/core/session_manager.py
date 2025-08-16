@@ -205,14 +205,11 @@ class SessionManager:
     # -------------------------
     def _verify_plugins_availability(self, session_data: SessionData) -> bool:
         try:
-            logger.debug("Vérification de %d plugins", len(session_data.plugins))
             # Pour l'instant, on considère que tous les plugins sont disponibles
             # car les chemins dans la session sont des chemins de modules Python
             # et non des fichiers physiques
-            logger.debug("Tous les plugins sont considérés comme disponibles")
             return True
         except Exception as e:
-            logger.debug("Erreur vérif plugins: %s", e)
             return False
 
     def is_session_valid(self) -> bool:
@@ -286,7 +283,7 @@ class SessionManager:
             if self._session_file.exists():
                 self._session_file.unlink()
         except Exception:
-            logger.debug("Erreur suppression fichier session.")
+            pass
         self._session_data = None
         self._is_initialized = False
 
@@ -317,7 +314,6 @@ class SessionManager:
                 continue
             reg = self._plugin_registry.get(plugin_name)
             if not reg:
-                logger.debug("Pas de registre pour plugin %s", plugin_name)
                 continue
             module_path, attr_name, alias = reg
             try:
@@ -335,7 +331,6 @@ class SessionManager:
                 app.add_typer(instance, name=alias or plugin_name)
                 restored += 1
             except Exception as e:
-                logger.debug("Impossible restaurer plugin %s: %s", plugin_name, e)
                 continue
 
         return restored > 0
@@ -350,7 +345,7 @@ class SessionManager:
                 if time.time() - f.stat().st_mtime > self.ttl_seconds:
                     f.unlink()
             except Exception:
-                logger.debug("Echec suppression session stale: %s", f)
+                pass
 
 # instance globale recommandée
 session_manager = SessionManager()
