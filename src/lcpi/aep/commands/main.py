@@ -1,240 +1,153 @@
 """
-Commande principale CLI pour LCPI-AEP.
+Commandes CLI principales pour le module AEP.
+
+Ce module regroupe toutes les commandes disponibles pour :
+- Calculs hydrauliques
+- Gestion des données et projets
+- Optimisation et analyse
+- Performance et cache (Phase 4)
 """
 
 import typer
+from pathlib import Path
+from typing import Optional
 from rich.console import Console
 from rich.panel import Panel
-from rich.table import Table
 
-# Import des commandes
-from . import network_optimize
+# Import des commandes existantes
+from .solvers import app as solvers_app
+from .data_management import app as data_app
+from .project_management import app as project_app
+from .network_optimize import app as network_optimize_app
 
-# Import conditionnel des nouvelles commandes
-try:
-    from . import solvers
-    from . import data_management
-    from . import project_management
-    SOLVERS_AVAILABLE = True
-    DATA_MANAGEMENT_AVAILABLE = True
-    PROJECT_MANAGEMENT_AVAILABLE = True
-except ImportError:
-    SOLVERS_AVAILABLE = False
-    DATA_MANAGEMENT_AVAILABLE = False
-    PROJECT_MANAGEMENT_AVAILABLE = False
+# Import des nouvelles commandes de la Phase 4
+from .performance import app as performance_app
+from .sensitivity import app as sensitivity_app
 
-app = typer.Typer(
-    name="lcpi",
-    help="LCPI-AEP: Outils d'analyse et d'optimisation des réseaux d'eau potable",
-    add_completion=False
-)
-
+app = typer.Typer(help="🌊 Commandes AEP (Adduction Eau Potable)")
 console = Console()
 
-@app.callback()
-def main():
-    """LCPI-AEP - Outils d'analyse et d'optimisation des réseaux d'eau potable"""
-    pass
+# Ajout des sous-commandes existantes
+app.add_typer(solvers_app, name="solveurs", help="🔧 Gestion des solveurs hydrauliques")
+app.add_typer(data_app, name="data", help="📊 Gestion des données (import/export/validation)")
+app.add_typer(project_app, name="project", help="📁 Gestion des projets AEP")
+app.add_typer(network_optimize_app, name="network", help="🌐 Optimisation des réseaux")
 
-# Ajout des commandes existantes
-app.add_typer(network_optimize.app, name="network", help="Commandes d'analyse et d'optimisation de réseaux")
+# Ajout des nouvelles commandes de la Phase 4
+app.add_typer(performance_app, name="performance", help="🚀 Gestion des performances et du cache")
+app.add_typer(sensitivity_app, name="sensitivity", help="📊 Analyse de sensibilité parallélisée")
 
-# Ajout des nouvelles commandes si disponibles
-if SOLVERS_AVAILABLE:
-    app.add_typer(solvers.app, name="solveurs", help="Gestion des solveurs hydrauliques")
-
-if DATA_MANAGEMENT_AVAILABLE:
-    app.add_typer(data_management.app, name="data", help="Gestion des données (import/export/validation)")
-
-if PROJECT_MANAGEMENT_AVAILABLE:
-    app.add_typer(project_management.app, name="project", help="Gestion des projets AEP")
 
 @app.command("version")
 def show_version():
-    """Afficher la version de LCPI-AEP."""
-    console.print(Panel.fit("📊 [bold blue]LCPI-AEP - Version[/bold blue]"))
-    
-    version_table = Table(title="Informations de Version")
-    version_table.add_column("Composant", style="cyan")
-    version_table.add_column("Version", style="white")
-    version_table.add_column("Statut", style="bold")
-    
-    version_table.add_row("LCPI-AEP Core", "1.5.0", "✅ Disponible")
-    version_table.add_row("Module Optimisation", "1.0.0", "✅ Disponible")
-    version_table.add_row("Module Sensibilité", "1.0.0", "✅ Disponible")
-    version_table.add_row("Module Comparaison", "1.0.0", "✅ Disponible")
-    
-    if SOLVERS_AVAILABLE:
-        version_table.add_row("Gestion Solveurs", "1.0.0", "✅ Disponible")
-    else:
-        version_table.add_row("Gestion Solveurs", "N/A", "❌ Indisponible")
-    
-    if DATA_MANAGEMENT_AVAILABLE:
-        version_table.add_row("Gestion Données", "1.0.0", "✅ Disponible")
-    else:
-        version_table.add_row("Gestion Données", "N/A", "❌ Indisponible")
-    
-    if PROJECT_MANAGEMENT_AVAILABLE:
-        version_table.add_row("Gestion Projets", "1.0.0", "✅ Disponible")
-    else:
-        version_table.add_row("Gestion Projets", "N/A", "❌ Indisponible")
-    
-    console.print(version_table)
+    """📋 Affiche la version du module AEP."""
+    console.print(Panel.fit("🌊 [bold blue]Module AEP - Version 2.1.0[/bold blue]"))
+    console.print("📅 Phase 4 : Améliorations de Performance et Parallélisation")
+    console.print("🔧 Cache intelligent, Monte Carlo parallélisé, monitoring des performances")
+
 
 @app.command("status")
 def show_status():
-    """Afficher le statut de tous les modules LCPI-AEP."""
-    console.print(Panel.fit("📊 [bold blue]Statut des Modules LCPI-AEP[/bold blue]"))
+    """📊 Affiche le statut des modules AEP."""
+    console.print(Panel.fit("📊 [bold blue]Statut des Modules AEP[/bold blue]"))
     
-    status_table = Table(title="Statut des Modules")
-    status_table.add_column("Module", style="cyan")
-    status_table.add_column("Statut", style="bold")
-    status_table.add_column("Version", style="white")
-    status_table.add_column("Description", style="white")
+    # Statut des modules principaux
+    status_table = [
+        ("🌊 Commandes principales", "✅ Actif"),
+        ("🔧 Solveurs hydrauliques", "✅ Actif"),
+        ("📊 Gestion des données", "✅ Actif"),
+        ("📁 Gestion des projets", "✅ Actif"),
+        ("🌐 Optimisation des réseaux", "✅ Actif"),
+        ("🚀 Performance et cache", "✅ Actif (Phase 4)"),
+        ("📊 Analyse de sensibilité", "✅ Actif (Phase 4)")
+    ]
     
-    # Modules de base
-    status_table.add_row(
-        "LCPI-AEP Core",
-        "✅ Actif",
-        "1.5.0",
-        "Fonctionnalités de base et calculs hydrauliques"
-    )
-    
-    status_table.add_row(
-        "Optimisation",
-        "✅ Actif",
-        "1.0.0",
-        "Algorithme génétique et gestion des contraintes"
-    )
-    
-    status_table.add_row(
-        "Sensibilité",
-        "✅ Actif",
-        "1.0.0",
-        "Analyse Monte Carlo et indices de Sobol"
-    )
-    
-    status_table.add_row(
-        "Comparaison",
-        "✅ Actif",
-        "1.0.0",
-        "Métriques et visualisation des variantes"
-    )
-    
-    # Nouvelles commandes
-    if SOLVERS_AVAILABLE:
-        status_table.add_row(
-            "Gestion Solveurs",
-            "✅ Actif",
-            "1.0.0",
-            "Gestion des solveurs hydrauliques (LCPI, EPANET)"
-        )
-    else:
-        status_table.add_row(
-            "Gestion Solveurs",
-            "❌ Inactif",
-            "N/A",
-            "Module non disponible"
-        )
-    
-    if DATA_MANAGEMENT_AVAILABLE:
-        status_table.add_row(
-            "Gestion Données",
-            "✅ Actif",
-            "1.0.0",
-            "Import/export, validation et recalcul automatique"
-        )
-    else:
-        status_table.add_row(
-            "Gestion Données",
-            "❌ Inactif",
-            "N/A",
-            "Module non disponible"
-        )
-    
-    if PROJECT_MANAGEMENT_AVAILABLE:
-        status_table.add_row(
-            "Gestion Projets",
-            "✅ Actif",
-            "1.0.0",
-            "Gestion des projets, base de données et constantes"
-        )
-    else:
-        status_table.add_row(
-            "Gestion Projets",
-            "❌ Inactif",
-            "N/A",
-            "Module non disponible"
-        )
-    
-    console.print(status_table)
+    for module, status in status_table:
+        console.print(f"  {module}: {status}")
+
 
 @app.command("help")
 def show_help():
-    """Afficher l'aide complète de LCPI-AEP."""
-    console.print(Panel.fit("📚 [bold blue]Aide LCPI-AEP[/bold blue]"))
+    """❓ Affiche l'aide complète des commandes AEP."""
+    console.print(Panel.fit("❓ [bold blue]Aide des Commandes AEP[/bold blue]"))
     
-    help_text = """
-[bold]LCPI-AEP[/bold] est un outil complet d'analyse et d'optimisation des réseaux d'eau potable.
-
-[bold cyan]Commandes Principales:[/bold cyan]
-
-[bold]lcpi network[/bold] - Analyse et optimisation de réseaux
-  • optimize    - Optimiser un réseau avec algorithme génétique
-  • sensitivity - Analyser la sensibilité avec Monte Carlo
-  • compare    - Comparer différentes variantes de réseaux
-
-[bold]lcpi solveurs[/bold] - Gestion des solveurs hydrauliques
-  • list       - Lister les solveurs disponibles
-  • test       - Tester un solveur spécifique
-  • compare    - Comparer les performances des solveurs
-  • status     - Vérifier le statut des solveurs
-  • install    - Installer/configurer un solveur
-
-[bold]lcpi data[/bold] - Gestion des données
-  • import     - Importer des données depuis différents formats
-  • export     - Exporter des données vers différents formats
-  • validate   - Valider des données selon des règles
-  • convert    - Convertir entre formats
-  • recalculate - Recalculer automatiquement les données
-  • batch      - Traiter un lot de fichiers
-
-[bold]lcpi project[/bold] - Gestion des projets
-  • init       - Initialiser un nouveau projet
-  • validate   - Valider un projet complet
-  • info       - Afficher les informations d'un projet
-  • query      - Exécuter des requêtes SQL
-  • constants  - Gérer les constantes dynamiques
-
-[bold]lcpi version[/bold] - Afficher la version
-[bold]lcpi status[/bold] - Afficher le statut des modules
-[bold]lcpi help[/bold] - Afficher cette aide
-
-[bold]Exemples d'utilisation:[/bold]
-
-# Optimiser un réseau
-lcpi network optimize --config config.yml --output results.json
-
-# Analyser la sensibilité
-lcpi network sensitivity --config config.yml --simulations 1000
-
-# Lister les solveurs disponibles
-lcpi solveurs list
-
-# Initialiser un nouveau projet
-lcpi project init "MonProjet" --dir ./mon_projet
-
-# Valider un projet
-lcpi project validate ./mon_projet
-
-# Importer des données
-lcpi data import source.yml --format yaml --validate
-
-[bold]Pour plus d'aide sur une commande spécifique:[/bold]
-lcpi [commande] --help
-"""
+    console.print("\n🌊 **Commandes Principales:**")
+    console.print("  lcpi aep version          - Affiche la version")
+    console.print("  lcpi aep status           - Statut des modules")
+    console.print("  lcpi aep help             - Cette aide")
     
-    console.print(help_text)
+    console.print("\n🔧 **Solveurs Hydrauliques:**")
+    console.print("  lcpi aep solveurs list    - Liste des solveurs disponibles")
+    console.print("  lcpi aep solveurs test    - Test d'un solveur")
+    console.print("  lcpi aep solveurs compare - Comparaison des solveurs")
+    
+    console.print("\n📊 **Gestion des Données:**")
+    console.print("  lcpi aep data import      - Import de données")
+    console.print("  lcpi aep data export      - Export de données")
+    console.print("  lcpi aep data validate    - Validation de données")
+    console.print("  lcpi aep data convert     - Conversion de formats")
+    
+    console.print("\n📁 **Gestion des Projets:**")
+    console.print("  lcpi aep project init     - Initialiser un projet")
+    console.print("  lcpi aep project validate - Valider un projet")
+    console.print("  lcpi aep project info     - Informations du projet")
+    
+    console.print("\n🌐 **Optimisation des Réseaux:**")
+    console.print("  lcpi aep network optimize - Optimisation de réseau")
+    console.print("  lcpi aep network compare  - Comparaison de variantes")
+    
+    console.print("\n🚀 **Performance et Cache (Phase 4):**")
+    console.print("  lcpi aep performance profile    - Profiler un algorithme")
+    console.print("  lcpi aep performance monitor    - Monitoring des performances")
+    console.print("  lcpi aep performance cache      - Gestion du cache")
+    console.print("  lcpi aep performance benchmark  - Benchmark des solveurs")
+    console.print("  lcpi aep performance report     - Rapport de performance")
+    console.print("  lcpi aep performance optimize   - Optimisation des performances")
+    
+    console.print("\n📊 **Analyse de Sensibilité (Phase 4):**")
+    console.print("  lcpi aep sensitivity parallel      - Monte Carlo parallélisé")
+    console.print("  lcpi aep sensitivity distributions - Configuration des distributions")
+    console.print("  lcpi aep sensitivity validate      - Validation des distributions")
+    
+    console.print("\n💡 **Exemples d'utilisation:**")
+    console.print("  # Profiler un algorithme Hardy-Cross")
+    console.print("  lcpi aep performance profile hardy_cross --config network.yml --iterations 5")
+    console.print("")
+    console.print("  # Analyse Monte Carlo parallélisée")
+    console.print("  lcpi aep sensitivity parallel network.yml --workers 8 --simulations 5000")
+    console.print("")
+    console.print("  # Benchmark des solveurs")
+    console.print("  lcpi aep performance benchmark --config network.yml --iterations 10")
+    console.print("")
+    console.print("  # Monitoring en temps réel")
+    console.print("  lcpi aep performance monitor --watch")
+
+
+@app.command("demo")
+def run_demo():
+    """🎮 Démonstration des fonctionnalités AEP."""
+    console.print(Panel.fit("🎮 [bold blue]Démonstration des Fonctionnalités AEP[/bold blue]"))
+    
+    console.print("🚀 **Phase 4 - Améliorations de Performance:**")
+    console.print("  ✅ Cache intelligent avec persistance")
+    console.print("  ✅ Parallélisation Monte Carlo")
+    console.print("  ✅ Monitoring des performances en temps réel")
+    console.print("  ✅ Profiling des algorithmes")
+    console.print("  ✅ Benchmark des solveurs")
+    
+    console.print("\n📊 **Fonctionnalités Disponibles:**")
+    console.print("  🌊 Calculs hydrauliques (Hardy-Cross, EPANET)")
+    console.print("  🔧 Solveurs multiples avec Strategy Pattern")
+    console.print("  📊 Gestion des données et projets")
+    console.print("  🌐 Optimisation des réseaux")
+    console.print("  🚀 Performance et cache intelligent")
+    console.print("  📊 Analyse de sensibilité parallélisée")
+    
+    console.print("\n💡 **Pour commencer:**")
+    console.print("  lcpi aep help              - Aide complète")
+    console.print("  lcpi aep performance cache - Gestion du cache")
+    console.print("  lcpi aep sensitivity distributions - Configuration des distributions")
+
 
 if __name__ == "__main__":
     app()

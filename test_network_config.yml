@@ -1,0 +1,131 @@
+# Configuration de test pour la Phase 4 - Améliorations de Performance
+reseau_complet:
+  nom: "Réseau de Test Phase 4"
+  type: "maillé"
+  noeuds:
+    N1:
+      role: "reservoir"
+      cote_m: 150.0
+      demande_m3_s: 0.0
+      pression_min_mce: 20
+      pression_max_mce: 80
+    N2:
+      role: "consommation"
+      cote_m: 145.0
+      demande_m3_s: 0.02
+      profil_consommation: "residential"
+      pression_min_mce: 20
+      pression_max_mce: 80
+    N3:
+      role: "consommation"
+      cote_m: 140.0
+      demande_m3_s: 0.015
+      profil_consommation: "commercial"
+      pression_min_mce: 20
+      pression_max_mce: 80
+    N4:
+      role: "consommation"
+      cote_m: 138.0
+      demande_m3_s: 0.01
+      profil_consommation: "residential"
+      pression_min_mce: 20
+      pression_max_mce: 80
+  
+  conduites:
+    C1:
+      noeud_amont: "N1"
+      noeud_aval: "N2"
+      longueur_m: 500
+      diametre_m: 0.2
+      rugosite: 100
+      materiau: "acier"
+      statut: "existant"
+      coefficient_frottement: "hazen_williams"
+    C2:
+      noeud_amont: "N2"
+      noeud_aval: "N3"
+      longueur_m: 300
+      diametre_m: 0.15
+      rugosite: 120
+      materiau: "pvc"
+      statut: "nouveau"
+      coefficient_frottement: "hazen_williams"
+    C3:
+      noeud_amont: "N3"
+      noeud_aval: "N4"
+      longueur_m: 250
+      diametre_m: 0.125
+      rugosite: 110
+      materiau: "pvc"
+      statut: "nouveau"
+      coefficient_frottement: "hazen_williams"
+    C4:
+      noeud_amont: "N2"
+      noeud_aval: "N4"
+      longueur_m: 400
+      diametre_m: 0.18
+      rugosite: 115
+      materiau: "acier"
+      statut: "existant"
+      coefficient_frottement: "hazen_williams"
+
+hardy_cross:
+  tolerance: 1e-6
+  max_iterations: 200
+  methode: "hazen_williams"
+  convergence_criteria: "debit"
+
+epanet:
+  run_options:
+    duration_h: 24
+    timestep_min: 60
+    start_time: "00:00"
+    quality_type: "none"
+  output_options:
+    save_hydraulics: true
+    save_quality: false
+    save_energy: true
+
+post_traitement:
+  verifications:
+    vitesse_min_m_s: 0.5
+    vitesse_max_m_s: 2.5
+    pression_min_mce: 20
+    pression_max_mce: 80
+    diametre_min_mm: 50
+    diametre_max_mm: 1000
+  
+  coup_belier:
+    analyse: true
+    celerite_m_s: 1200
+    temps_fermeture_s: 2.0
+    methode: "approximative"
+  
+  optimisation:
+    diametres_commerciaux_mm: [50, 63, 75, 90, 110, 125, 140, 160, 200, 250, 300, 350, 400]
+    critere_optimisation: "cout"
+    contraintes:
+      cout_max_euros: 100000
+      energie_max_kwh: 5000
+
+scenarios:
+  base:
+    description: "Scénario de référence"
+    facteurs:
+      population: 1.0
+      consommation: 1.0
+      fuites: 0.10
+  
+  urbain_2030:
+    description: "Scénario urbain 2030"
+    facteurs:
+      population: 1.2
+      consommation: 1.1
+      fuites: 0.08
+  
+  rural_2050:
+    description: "Scénario rural 2050"
+    facteurs:
+      population: 1.5
+      consommation: 0.9
+      fuites: 0.15
