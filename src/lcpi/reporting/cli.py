@@ -3,19 +3,20 @@
 import typer
 from pathlib import Path
 import json
-from typing import List
+from typing import List, Optional
 
 from .report_generator import ReportGenerator
 from .utils.pdf_generator import export_to_pdf
 from .utils.docx_generator import export_to_docx
+from ..logging import list_available_logs, load_log_by_id
 
 app = typer.Typer(name="reporting", help="Génération de rapports professionnels à partir des logs de calcul.")
 
 @app.command("generate", help="Génère un rapport à partir d'un ou plusieurs fichiers de log JSON.")
 def generate_report(
     ctx: typer.Context,
-    log_files: List[Path] = typer.Argument(
-        ..., 
+    log_files: Optional[List[Path]] = typer.Option(
+        None, 
         help="Le ou les chemins vers les fichiers de log JSON à inclure.",
         exists=True,
         file_okay=True,
@@ -37,9 +38,69 @@ def generate_report(
         "--project", "-p",
         help="Chemin vers le fichier de métadonnées du projet (lcpi.yml ou .json).",
         exists=True
+    ),
+    interactive: bool = typer.Option(
+        False, 
+        "--interactive", "-i",
+        help="Mode interactif pour sélectionner les logs disponibles"
+    ),
+    log_ids: Optional[List[str]] = typer.Option(
+        None, 
+        "--logs",
+        help="IDs des logs à inclure dans le rapport (ex: 20250127_143022)"
     )
 ):
     """Génère un rapport complet en HTML, PDF ou DOCX."""
+    
+    # --- Gestion des logs ---
+    if interactive or log_ids:
+        # Mode interactif ou sélection par IDs
+        available_logs = list_available_logs()
+        
+        if not available_logs:
+            typer.secho("❌ Aucun log trouvé dans le répertoire logs/", fg=typer.colors.RED)
+            raise typer.Exit(1)
+        
+        if interactive:
+            # Mode interactif : afficher les logs disponibles et demander sélection
+            typer.echo("📋 Logs disponibles :")
+            for i, log in enumerate(available_logs, 1):
+                typer.echo(f"  {i}. [{log['id']}] {log['titre_calcul']} - {log['timestamp'][:19]}")
+            
+            selected_indices = typer.prompt(
+                "Sélectionnez les numéros des logs à inclure (séparés par des virgules)",
+                type=str
+            )
+            
+            try:
+                indices = [int(x.strip()) - 1 for x in selected_indices.split(",")]
+                selected_logs = [available_logs[i] for i in indices if 0 <= i < len(available_logs)]
+            except (ValueError, IndexError):
+                typer.secho("❌ Sélection invalide", fg=typer.colors.RED)
+                raise typer.Exit(1)
+        
+        elif log_ids:
+            # Mode sélection par IDs
+            selected_logs = [log for log in available_logs if log['id'] in log_ids]
+            if len(selected_logs) != len(log_ids):
+                found_ids = [log['id'] for log in selected_logs]
+                missing_ids = [log_id for log_id in log_ids if log_id not in found_ids]
+                typer.secho(f"⚠️ Logs non trouvés : {missing_ids}", fg=typer.colors.YELLOW)
+        
+        # Charger les données des logs sélectionnés
+        log_files = []
+        for log_info in selected_logs:
+            log_data = load_log_by_id(log_info['id'])
+            if log_data:
+                # Créer un fichier temporaire avec les données du log
+                temp_file = Path(f"temp_log_{log_info['id']}.json")
+                with open(temp_file, 'w', encoding='utf-8') as f:
+                    json.dump(log_data, f, indent=2, ensure_ascii=False)
+                log_files.append(temp_file)
+    
+    elif not log_files:
+        typer.secho("❌ Veuillez spécifier des fichiers de log ou utiliser --interactive", fg=typer.colors.RED)
+        raise typer.Exit(1)
     
     # --- Chargement des métadonnées du projet ---
     project_metadata = {}

@@ -1,0 +1,31 @@
+configurations:
+  epanet:
+    dll_path: vendor/dlls/epanet2_64.dll
+    version: 2.3.1
+  reporting:
+    formats_supportes:
+    - html
+    - pdf
+    - docx
+    template_default: default
+dossiers:
+  data: data/
+  logs: logs/
+  outputs: outputs/
+  reports: reports/
+  temp: temp/
+plugins_actifs:
+- aep
+- cm
+- bois
+- beton
+- hydro
+projet_metadata:
+  auteur: LCPI-CLI
+  client: Non spécifié
+  date_creation: '2025-08-16T07:35:23.756217'
+  description: Projet LCPI généré automatiquement
+  indice_revision: A
+  nom_projet: test_project
+  tags: []
+  version: 1.0.0

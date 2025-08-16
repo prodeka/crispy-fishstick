@@ -12,6 +12,16 @@ from rich.console import Console
 from rich.table import Table
 from rich.panel import Panel
 
+# Phase 5: Imports pour UX et traçabilité
+try:
+    from .core.project_manager import ProjectManager, create_project
+    from .core.interactive_config import configure_project_interactive
+    from .core.git_integration import setup_git_for_project
+    PHASE5_AVAILABLE = True
+except ImportError as e:
+    PHASE5_AVAILABLE = False
+    console.print(f"⚠️  Phase 5 non disponible: {e}")
+
 # --- VÉRIFICATION DE LA LICENCE AU DÉMARRAGE ---
 # Temporairement désactivé pour les tests
 # try:
@@ -74,9 +84,11 @@ def init(
     template: str = typer.Option(None, "--template", "-t", help="Template spécifique (cm, bois, beton, hydro, complet)"),
     plugins: str = typer.Option(None, "--plugins", "-p", help="Plugins à inclure (séparés par des virgules)"),
     force: bool = typer.Option(False, "--force", "-f", help="Forcer la création même si le dossier existe"),
-    interactive: bool = typer.Option(True, "--no-interactive", help="Désactiver le mode interactif")
+    interactive: bool = typer.Option(True, "--no-interactive", help="Désactiver le mode interactif"),
+    git_init: bool = typer.Option(False, "--git", "-g", help="Initialiser un dépôt Git"),
+    remote_url: str = typer.Option(None, "--remote", "-r", help="URL du remote Git (ex: https://github.com/user/repo.git)")
 ):
-    """Initialise un nouveau projet LCPI avec une arborescence complète."""
+    """Initialise un nouveau projet LCPI avec une arborescence complète et gestion avancée."""
     
     # Mode interactif pour collecter les informations
     if interactive:

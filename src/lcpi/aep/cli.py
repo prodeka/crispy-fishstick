@@ -10,6 +10,9 @@ import json
 # Import du module Rich UI centralisé
 from .utils.rich_ui import RichUI, console, show_calculation_results, show_network_diagnostics
 
+# Import du module de journalisation
+from ..logging import log_calculation_result
+
 app = typer.Typer(name="aep", help="Module Alimentation en Eau Potable")
 
 # =============================================================================
@@ -628,23 +631,33 @@ def population_unified(
     methode: str = typer.Option("malthus", "--methode", "-m", help="Méthode de projection"),
     verbose: bool = typer.Option(False, "--verbose", "-v", help="Afficher les détails"),
     input_file: Optional[Path] = typer.Option(None, "--input", "-i", help="Fichier d'entrée YAML/JSON (active le mode enhanced par défaut)"),
-    mode: str = typer.Option("auto", "--mode", "-M", help="Mode de calcul: auto|simple|enhanced"),
+    mode: str = typer.Option("auto", "--mode", help="Mode de calcul: auto|simple|enhanced"),
     export: Optional[str] = typer.Option(None, "--export", "-e", help="Export: json|yaml|markdown|csv|html"),
     output: Optional[Path] = typer.Option(None, "--output", "-o", help="Fichier de sortie pour l'export")
 ):
     """📈 Projection démographique unifiée avec transparence mathématique
     
-    Méthodes disponibles:
-    - malthus: Croissance exponentielle P(t) = P₀ × e^(rt)
-    - arithmetique: Croissance linéaire P(t) = P₀ + rt
-    - geometrique: Croissance géométrique P(t) = P₀ × (1+r)^t
-    - logistique: Croissance logistique avec saturation
+    Projette la population d'une zone donnée sur plusieurs années en utilisant différentes méthodes de croissance.
     
-    Exemple:
-    - lcpi aep population-unified 1000 --taux 0.037 --annees 20
-    - lcpi aep population-unified --input data/population.yml --export json
+    **Méthodes disponibles :**
+    • malthus     : Croissance exponentielle (P = P₀ × e^(rt))
+    • arithmetique: Croissance arithmétique (P = P₀ + rt)
+    • geometrique : Croissance géométrique (P = P₀ × (1+r)^t)
+    • logistic    : Croissance logistique avec capacité limite
     
-    Sortie standardisée: { valeurs, diagnostics, iterations }
+    **Exemples d'utilisation :**
+    ```bash
+    # Mode simple avec paramètres inline
+    lcpi aep population-unified 1500 --taux 0.025 --annees 10 --methode malthus
+    
+    # Mode enhanced avec fichier YAML
+    lcpi aep population-unified --input population.yml --mode enhanced --export json
+    
+    # Export vers fichier spécifique
+    lcpi aep population-unified 2000 --taux 0.03 --annees 15 --output projections.csv
+    ```
+    
+    **Structure de sortie standardisée :** { valeurs, diagnostics, iterations }
     """
     try:
         result: Dict[str, Any]
@@ -713,22 +726,33 @@ def demand_unified(
     type_consommation: str = typer.Option("branchement_prive", "--type", "-t", help="Type de consommation"),
     verbose: bool = typer.Option(False, "--verbose", "-v", help="Afficher les détails"),
     input_file: Optional[Path] = typer.Option(None, "--input", "-i", help="Fichier d'entrée YAML/JSON (active le mode enhanced par défaut)"),
-    mode: str = typer.Option("auto", "--mode", "-M", help="Mode de calcul: auto|simple|enhanced"),
+    mode: str = typer.Option("auto", "--mode", help="Mode de calcul: auto|simple|enhanced"),
     export: Optional[str] = typer.Option(None, "--export", "-e", help="Export: json|yaml|markdown|csv|html"),
     output: Optional[Path] = typer.Option(None, "--output", "-o", help="Fichier de sortie pour l'export")
 ):
     """💧 Calcul de demande en eau unifié avec transparence mathématique
     
-    Types de consommation:
-    - branchement_prive: Branchement privé
-    - borne_fontaine: Borne fontaine
-    - industriel: Consommation industrielle
+    Calcule les besoins en eau pour une population donnée avec différents types de consommation.
     
-    Exemple:
-    - lcpi aep demand-unified 1000 --dotation 150 --coeff-pointe 1.5
-    - lcpi aep demand-unified --input data/demande.yml --export markdown
+    **Types de consommation disponibles :**
+    • branchement_prive : Branchement privé (dotation: 150 L/hab/j)
+    • borne_fontaine    : Borne fontaine (dotation: 60 L/hab/j)
+    • zone_industrielle : Zone industrielle (dotation: 200 L/hab/j)
+    • zone_commerciale  : Zone commerciale (dotation: 100 L/hab/j)
     
-    Sortie standardisée: { valeurs, diagnostics, iterations }
+    **Exemples d'utilisation :**
+    ```bash
+    # Mode simple avec paramètres inline
+    lcpi aep demand-unified 1000 --dotation 150 --coeff-pointe 1.5
+    
+    # Mode enhanced avec fichier YAML
+    lcpi aep demand-unified --input demande.yml --mode enhanced --export json
+    
+    # Export vers fichier spécifique
+    lcpi aep demand-unified 2000 --dotation 120 --coeff-pointe 1.8 --output besoins.csv
+    ```
+    
+    **Structure de sortie standardisée :** { valeurs, diagnostics, iterations }
     """
     try:
         use_enhanced = False
@@ -744,17 +768,21 @@ def demand_unified(
         if use_enhanced:
             data = _load_input_file(input_file) if input_file else {
                 "population": population,
-                "dotation_l_hab_j": dotation_l_hab_j,
+                "dotation_l_j_hab": dotation_l_hab_j,
                 "coefficient_pointe": coefficient_pointe,
                 "type_consommation": type_consommation,
             }
             from .calculations.population_enhanced import calculate_water_demand_enhanced
             result = calculate_water_demand_enhanced(data)
         else:
-            from .calculations.demand_unified import calculate_water_demand
-            result = calculate_water_demand(
-                population, dotation_l_hab_j, coefficient_pointe, type_consommation, verbose
-            )
+            from .calculations.demand_unified import calculate_water_demand_unified
+            result = calculate_water_demand_unified({
+                "population": population,
+                "dotation_l_j_hab": dotation_l_hab_j,
+                "coefficient_pointe": coefficient_pointe,
+                "type_consommation": type_consommation,
+                "verbose": verbose
+            })
 
         if export or output:
             fmt = export or "json"
@@ -774,10 +802,10 @@ def demand_unified(
             typer.echo(f"💧 Demande en eau:")
             typer.echo(f"  Population: {population}")
             typer.echo(f"  Dotation: {dotation_l_hab_j} L/hab/j")
-            typer.echo(f"  Demande moyenne: {result.get('demande_moyenne', 0):.2f} m³/jour")
-            typer.echo(f"  Demande de pointe: {result.get('demande_pointe', 0):.2f} m³/jour")
+            typer.echo(f"  Besoin brut: {result.get('besoin_brut_m3j', 0):.2f} m³/jour")
+            typer.echo(f"  Débit de pointe: {result.get('debit_pointe_m3s', 0):.3f} m³/s")
         else:
-            dp = result.get('demande_pointe', 0)
+            dp = result.get('besoin_brut_m3j', 0)
             typer.echo(f"💧 {dp:.2f} m³/jour")
 
     except Exception as e:
@@ -793,22 +821,37 @@ def network_unified(
     methode: str = typer.Option("darcy", "--methode", "-M", help="Méthode de calcul"),
     verbose: bool = typer.Option(False, "--verbose", "-v", help="Afficher les détails"),
     input_file: Optional[Path] = typer.Option(None, "--input", "-i", help="Fichier d'entrée YAML/JSON (active le mode enhanced par défaut)"),
-    mode: str = typer.Option("auto", "--mode", "-M", help="Mode de calcul: auto|simple|enhanced"),
+    mode: str = typer.Option("auto", "--mode", help="Mode de calcul: auto|simple|enhanced"),
     export: Optional[str] = typer.Option(None, "--export", "-e", help="Export: json|yaml|markdown|csv|html"),
-    output: Optional[Path] = typer.Option(None, "--output", "-o", help="Fichier de sortie pour l'export")
+    output: Optional[Path] = typer.Option(None, "--output", "-o", help="Fichier de sortie pour l'export"),
+    log: Optional[bool] = typer.Option(None, "--log", help="Journaliser le calcul (demande confirmation si non spécifié)"),
+    no_log: bool = typer.Option(False, "--no-log", help="Ne pas journaliser le calcul")
 ):
     """🔧 Dimensionnement réseau unifié avec transparence mathématique
     
-    Méthodes disponibles:
-    - darcy: Formule de Darcy-Weisbach
-    - hazen: Formule de Hazen-Williams
-    - manning: Formule de Manning
+    Dimensionne les conduites d'un réseau de distribution d'eau potable selon différentes méthodes.
     
-    Exemple:
-    - lcpi aep network-unified 0.1 --longueur 1000 --materiau fonte
-    - lcpi aep network-unified --input data/reseau.yml --export yaml
+    **Méthodes disponibles :**
+    • darcy : Formule de Darcy-Weisbach (précise, tous fluides)
+    • hazen : Formule de Hazen-Williams (eaux, rugosité relative)
+    • manning: Formule de Manning (écoulements à surface libre)
     
-    Sortie standardisée: { valeurs, diagnostics, iterations }
+    **Matériaux supportés :**
+    • fonte, acier, pvc, pe, beton, fibro-ciment
+    
+    **Exemples d'utilisation :**
+    ```bash
+    # Mode simple avec paramètres inline
+    lcpi aep network-unified 0.1 --longueur 1000 --materiau fonte --methode darcy
+    
+    # Mode enhanced avec fichier YAML
+    lcpi aep network-unified --input reseau.yml --mode enhanced --export yaml
+    
+    # Export vers fichier spécifique
+    lcpi aep network-unified 0.05 --longueur 500 --materiau pvc --output dimensionnement.csv
+    ```
+    
+    **Structure de sortie standardisée :** { valeurs, diagnostics, iterations }
     """
     try:
         use_enhanced = False
@@ -832,10 +875,15 @@ def network_unified(
             from .calculations.network_enhanced import dimension_network_enhanced
             result = dimension_network_enhanced(data)
         else:
-            from .calculations.network_unified import dimension_network
-            result = dimension_network(
-                debit_m3s, longueur_m, materiau, perte_charge_max_m, methode, verbose
-            )
+            from .calculations.network_unified import dimension_network_unified
+            result = dimension_network_unified({
+                "debit_m3s": debit_m3s,
+                "longueur_m": longueur_m,
+                "materiau": materiau,
+                "perte_charge_max_m": perte_charge_max_m,
+                "methode": methode,
+                "verbose": verbose
+            })
 
         if export or output:
             fmt = export or "json"
@@ -857,14 +905,78 @@ def network_unified(
         if verbose:
             typer.echo(f"🔧 Dimensionnement réseau:")
             typer.echo(f"  Débit: {debit_m3s} m³/s")
-            typer.echo(f"  Diamètre: {result.get('diametre') or result.get('diametre_optimal_m', 0):.3f} m")
-            typer.echo(f"  Vitesse: {result.get('vitesse') or result.get('vitesse_ms', 0):.2f} m/s")
-            pc = result.get('perte_charge') or result.get('perte_charge_m', 0)
-            typer.echo(f"  Perte de charge: {pc:.2f} m")
+            diametre = result.get('reseau', {}).get('diametre_optimal_mm', 0) / 1000.0  # mm → m
+            vitesse = result.get('reseau', {}).get('vitesse_ms', 0)
+            typer.echo(f"  Diamètre: {diametre:.3f} m")
+            typer.echo(f"  Vitesse: {vitesse:.2f} m/s")
+            perte_charge = result.get('reseau', {}).get('perte_charge_m', 0)
+            typer.echo(f"  Perte de charge: {perte_charge:.2f} m")
         else:
-            d = result.get('diametre') or result.get('diametre_optimal_m', 0)
-            v = result.get('vitesse') or result.get('vitesse_ms', 0)
-            typer.echo(f"🔧 D={d:.3f}m, V={v:.2f}m/s")
+            diametre = result.get('reseau', {}).get('diametre_optimal_mm', 0) / 1000.0  # mm → m
+            vitesse = result.get('reseau', {}).get('vitesse_ms', 0)
+            typer.echo(f"🔧 D={diametre:.3f}m, V={vitesse:.2f}m/s")
+
+        # Logique de journalisation
+        should_log = log
+        if log is None and not no_log:
+            # Demander confirmation à l'utilisateur
+            should_log = typer.confirm("📝 Voulez-vous journaliser ce calcul ?")
+        
+        if should_log and not no_log:
+            try:
+                # Préparer les données pour la journalisation
+                parametres_entree = {
+                    "debit_m3s": debit_m3s,
+                    "longueur_m": longueur_m,
+                    "materiau": materiau,
+                    "perte_charge_max_m": perte_charge_max_m,
+                    "methode": methode,
+                    "mode": mode,
+                    "input_file": str(input_file) if input_file else None
+                }
+                
+                # Construire la commande exécutée
+                commande_parts = ["lcpi", "aep", "network-unified", str(debit_m3s)]
+                if longueur_m != 1000:
+                    commande_parts.extend(["--longueur", str(longueur_m)])
+                if materiau != "fonte":
+                    commande_parts.extend(["--materiau", materiau])
+                if perte_charge_max_m != 10.0:
+                    commande_parts.extend(["--perte-max", str(perte_charge_max_m)])
+                if methode != "darcy":
+                    commande_parts.extend(["--methode", methode])
+                if verbose:
+                    commande_parts.append("--verbose")
+                if input_file:
+                    commande_parts.extend(["--input", str(input_file)])
+                if mode != "auto":
+                    commande_parts.extend(["--mode", mode])
+                
+                commande_executee = " ".join(commande_parts)
+                
+                # Journaliser le calcul
+                log_id = log_calculation_result(
+                    titre_calcul="Dimensionnement réseau unifié",
+                    commande_executee=commande_executee,
+                    donnees_resultat=result,
+                    parametres_entree=parametres_entree,
+                    transparence_mathematique=[
+                        f"Débit: {debit_m3s} m³/s",
+                        f"Longueur: {longueur_m} m",
+                        f"Matériau: {materiau}",
+                        f"Méthode: {methode}",
+                        f"Diamètre calculé: {diametre:.3f} m",
+                        f"Vitesse: {vitesse:.2f} m/s"
+                    ],
+                    version_algorithme="2.1.0",
+                    verbose=verbose
+                )
+                
+                if verbose:
+                    typer.echo(f"📊 Calcul journalisé avec l'ID: {log_id}")
+                    
+            except Exception as e:
+                typer.echo(f"⚠️ Erreur lors de la journalisation: {e}")
 
     except Exception as e:
         typer.echo(f"❌ Erreur: {e}", err=True)
@@ -878,25 +990,40 @@ def reservoir_unified(
     type_zone: str = typer.Option("ville_francaise_peu_importante", "--zone", "-z", help="Type de zone"),
     verbose: bool = typer.Option(False, "--verbose", "-v", help="Afficher les détails"),
     input_file: Optional[Path] = typer.Option(None, "--input", "-i", help="Fichier d'entrée YAML/JSON (active le mode enhanced par défaut)"),
-    mode: str = typer.Option("auto", "--mode", "-M", help="Mode de calcul: auto|simple|enhanced"),
+    mode: str = typer.Option("auto", "--mode", help="Mode de calcul: auto|simple|enhanced"),
     export: Optional[str] = typer.Option(None, "--export", "-e", help="Export: json|yaml|markdown|csv|html"),
     output: Optional[Path] = typer.Option(None, "--output", "-o", help="Fichier de sortie pour l'export")
 ):
     """🏗️ Dimensionnement réservoir unifié avec transparence mathématique
     
-    Types d'adduction:
-    - continue: Adduction continue
-    - discontinue: Adduction discontinue
+    Dimensionne les réservoirs de stockage d'eau potable selon différents critères.
     
-    Formes disponibles:
-    - cylindrique: Réservoir cylindrique
-    - parallelepipedique: Réservoir parallélépipédique
+    **Types d'adduction disponibles :**
+    • continue     : Adduction continue 24h/24 (coefficient: 1.0)
+    • discontinue  : Adduction discontinue 10h/jour (coefficient: 2.4)
     
-    Exemple:
-    - lcpi aep reservoir-unified 1000 --adduction continue --forme cylindrique
-    - lcpi aep reservoir-unified --input data/reservoir.yml --export html
+    **Formes de réservoir disponibles :**
+    • cylindrique      : Réservoir cylindrique (hauteur = diamètre)
+    • parallelepipedique : Réservoir parallélépipédique (hauteur = largeur)
     
-    Sortie standardisée: { valeurs, diagnostics, iterations }
+    **Types de zone disponibles :**
+    • ville_francaise_peu_importante : Coefficient de pointe 1.5
+    • ville_francaise_importante     : Coefficient de pointe 1.8
+    • zone_rurale                    : Coefficient de pointe 1.3
+    
+    **Exemples d'utilisation :**
+    ```bash
+    # Mode simple avec paramètres inline
+    lcpi aep reservoir-unified 1000 --adduction continue --forme cylindrique
+    
+    # Mode enhanced avec fichier YAML
+    lcpi aep reservoir-unified --input reservoir.yml --mode enhanced --export html
+    
+    # Export vers fichier spécifique
+    lcpi aep reservoir-unified 500 --adduction discontinue --forme parallelepipedique --output dimensionnement.csv
+    ```
+    
+    **Structure de sortie standardisée :** { valeurs, diagnostics, iterations }
     """
     try:
         use_enhanced = False
@@ -961,22 +1088,36 @@ def pumping_unified(
     rendement_pompe: float = typer.Option(0.75, "--rendement", "-r", help="Rendement de la pompe"),
     verbose: bool = typer.Option(False, "--verbose", "-v", help="Afficher les détails"),
     input_file: Optional[Path] = typer.Option(None, "--input", "-i", help="Fichier d'entrée YAML/JSON (active le mode enhanced par défaut)"),
-    mode: str = typer.Option("auto", "--mode", "-M", help="Mode de calcul: auto|simple|enhanced"),
+    mode: str = typer.Option("auto", "--mode", help="Mode de calcul: auto|simple|enhanced"),
     export: Optional[str] = typer.Option(None, "--export", "-e", help="Export: json|yaml|markdown|csv|html"),
     output: Optional[Path] = typer.Option(None, "--output", "-o", help="Fichier de sortie pour l'export")
 ):
     """⚡ Dimensionnement pompage unifié avec transparence mathématique
     
-    Types de pompes:
-    - centrifuge: Pompe centrifuge
-    - helice: Pompe à hélice
-    - piston: Pompe à piston
+    Dimensionne les équipements de pompage pour l'alimentation en eau potable.
     
-    Exemple:
-    - lcpi aep pumping-unified 100 --hmt 50 --type centrifuge
-    - lcpi aep pumping-unified --input data/pompage.yml --export csv
+    **Types de pompes disponibles :**
+    • centrifuge : Pompe centrifuge (débits moyens à élevés, HMT < 100m)
+    • helice     : Pompe à hélice (gros débits, HMT < 10m)
+    • piston     : Pompe à piston (faibles débits, HMT élevée)
     
-    Sortie standardisée: { valeurs, diagnostics, iterations }
+    **Paramètres de calcul :**
+    • Puissance hydraulique : P = ρgQH/η
+    • Puissance électrique : Pe = P/ηe (ηe = rendement électrique)
+    
+    **Exemples d'utilisation :**
+    ```bash
+    # Mode simple avec paramètres inline
+    lcpi aep pumping-unified 100 --hmt 50 --type centrifuge --rendement 0.75
+    
+    # Mode enhanced avec fichier YAML
+    lcpi aep pumping-unified --input pompage.yml --mode enhanced --export csv
+    
+    # Export vers fichier spécifique
+    lcpi aep pumping-unified 50 --hmt 30 --type helice --output dimensionnement.csv
+    ```
+    
+    **Structure de sortie standardisée :** { valeurs, diagnostics, iterations }
     """
     try:
         use_enhanced = False
@@ -1994,14 +2135,28 @@ def workflow_complete(
 ):
     """🚀 Workflow AEP complet : diagnostic + Hardy-Cross + EPANET + comparaison + rapports
     
-    Étapes du workflow:
-    1. 🔍 Diagnostic de connectivité du réseau
-    2. ⚡ Simulation Hardy-Cross (méthode itérative)
-    3. 🌐 Simulation EPANET (standard industriel)
-    4. 🔄 Comparaison des résultats (si activée)
-    5. 📋 Génération de rapports (si activée)
+    Exécute un workflow complet d'analyse d'un réseau d'eau potable en 5 étapes.
     
-    Exemple: lcpi aep workflow-complete reseau.yml --compare --reports --verbose
+    **Étapes du workflow :**
+    1. 🔍 **Diagnostic de connectivité** du réseau
+    2. ⚡ **Simulation Hardy-Cross** (méthode itérative)
+    3. 🌐 **Simulation EPANET** (standard industriel)
+    4. 🔄 **Comparaison des résultats** (si activée)
+    5. 📋 **Génération de rapports** (si activée)
+    
+    **Exemples d'utilisation :**
+    ```bash
+    # Workflow complet avec comparaison et rapports
+    lcpi aep workflow-complete reseau.yml --compare --reports --verbose
+    
+    # Workflow sans comparaison, rapports dans dossier spécifique
+    lcpi aep workflow-complete reseau.yml --output ./resultats --verbose
+    
+    # Workflow minimal (diagnostic + Hardy-Cross + EPANET uniquement)
+    lcpi aep workflow-complete reseau.yml --no-compare --no-reports
+    ```
+    
+    **Structure de sortie standardisée :** { valeurs, diagnostics, iterations }
     """
     try:
         import yaml
@@ -2580,6 +2735,97 @@ def recalcul(
 # =============================================================================
 # POINT D'ENTRÉE PRINCIPAL
 # =============================================================================
+
+@app.command("help")
+def show_help():
+    """❓ Affiche l'aide complète des commandes AEP."""
+    console.print("❓ [bold blue]Aide des Commandes AEP - LCPI v2.1.0[/bold blue]")
+    
+    console.print("\n🌊 **Commandes Principales:**")
+    console.print("  lcpi aep version          - Affiche la version")
+    console.print("  lcpi aep status           - Statut des modules")
+    console.print("  lcpi aep help             - Cette aide")
+    
+    console.print("\n📊 **Calculs de Base (Commandes Unifiées):**")
+    console.print("  lcpi aep population-unified <pop> [options] - Projection démographique unifiée")
+    console.print("  lcpi aep demand-unified <pop> [options]     - Calcul de demande en eau unifié")
+    console.print("  lcpi aep network-unified <debit> [options]  - Dimensionnement réseau unifié")
+    console.print("  lcpi aep reservoir-unified <volume> [options] - Dimensionnement réservoir unifié")
+    console.print("  lcpi aep pumping-unified <debit> [options]  - Dimensionnement pompage unifié")
+    
+    console.print("\n🔄 **Hardy-Cross et Réseaux:**")
+    console.print("  lcpi aep hardy-cross <fichier> [options]   - Calcul Hardy-Cross classique")
+    console.print("  lcpi aep hardy-cross-csv <fichier.csv>     - Hardy-Cross depuis CSV")
+    console.print("  lcpi aep hardy-cross-yaml <fichier.yml>    - Hardy-Cross depuis YAML")
+    console.print("  lcpi aep hardy-cross-unified <fichier>     - Hardy-Cross unifié")
+    
+    console.print("\n🌐 **Simulation et EPANET:**")
+    console.print("  lcpi aep simulate-inp <fichier.inp>        - Simuler un fichier EPANET")
+    console.print("  lcpi aep convert-inp <fichier.inp>         - Convertir .inp vers YAML")
+    console.print("  lcpi aep diagnose-network <fichier>        - Diagnostic de connectivité")
+    
+    console.print("\n🚀 **Workflow Complet:**")
+    console.print("  lcpi aep workflow-complete <fichier>       - Workflow AEP complet")
+    console.print("  lcpi aep project <action> [options]        - Gestion de projets")
+    
+    console.print("\n🗄️ **Base de Données Centralisée:**")
+    console.print("  lcpi aep database <action> [options]       - Gestion de la base de données")
+    console.print("  lcpi aep import-data <fichier> <type>      - Import automatique de données")
+    console.print("  lcpi aep recalcul <action> [options]       - Moteur de recalcul automatique")
+    
+    console.print("\n🔍 **Recherche et Requêtes:**")
+    console.print("  lcpi aep query <type> [options]            - Interroge la base de données")
+    console.print("  lcpi aep search <terme> [options]          - Recherche textuelle")
+    console.print("  lcpi aep autocomplete <requete> [options]  - Suggestions d'auto-complétion")
+    
+    console.print("\n🧪 **Validation et Tests:**")
+    console.print("  lcpi aep validate-input <fichier>          - Validation générique (Phase 0)")
+    console.print("  lcpi aep validate-population <fichier>     - Validation population")
+    console.print("  lcpi aep validate-network <fichier>        - Validation réseau")
+    console.print("  lcpi aep validate-project <fichier>        - Validation de projet")
+    
+    console.print("\n📋 **Commandes Classiques (Legacy):**")
+    console.print("  lcpi aep population <fichier.csv>          - Projection démographique classique")
+    console.print("  lcpi aep demand <fichier.yml>              - Calcul de demande classique")
+    console.print("  lcpi aep network <fichier.yml>             - Dimensionnement réseau classique")
+    console.print("  lcpi aep reservoir <fichier.yml>           - Dimensionnement réservoir classique")
+    console.print("  lcpi aep pumping <fichier.yml>             - Dimensionnement pompage classique")
+    console.print("  lcpi aep protection <fichier.yml>          - Protection anti-bélier")
+    
+    console.print("\n💡 **Exemples d'utilisation des commandes unifiées:**")
+    console.print("  # Projection démographique")
+    console.print("  lcpi aep population-unified 1000 --taux 0.025 --annees 10")
+    console.print("")
+    console.print("  # Calcul de demande en eau")
+    console.print("  lcpi aep demand-unified 1000 --dotation 150 --coeff-pointe 1.5")
+    console.print("")
+    console.print("  # Dimensionnement réseau")
+    console.print("  lcpi aep network-unified 0.1 --longueur 1000 --materiau fonte")
+    console.print("")
+    console.print("  # Workflow complet")
+    console.print("  lcpi aep workflow-complete reseau.yml --compare --reports --verbose")
+    
+    console.print("\n🔧 **Options communes des commandes unifiées:**")
+    console.print("  --input, -i <fichier>    - Fichier d'entrée YAML/CSV/JSON")
+    console.print("  --mode <mode>            - Mode de calcul: auto|simple|enhanced")
+    console.print("  --export, -e <format>   - Format d'export: json|yaml|csv|markdown|html")
+    console.print("  --output, -o <fichier>  - Fichier de sortie spécifique")
+    console.print("  --verbose, -v           - Affichage détaillé et transparence mathématique")
+    
+    console.print("\n📚 **Pour plus d'aide sur une commande spécifique:**")
+    console.print("  lcpi aep <commande> --help")
+    console.print("  lcpi aep population-unified --help")
+    console.print("  lcpi aep demand-unified --help")
+    console.print("  lcpi aep network-unified --help")
+    
+    console.print("\n🎯 **Fonctionnalités Phase 4 disponibles:**")
+    console.print("  ✅ Commandes unifiées avec support YAML/CSV")
+    console.print("  ✅ Base de données centralisée")
+    console.print("  ✅ Workflow complet AEP")
+    console.print("  ✅ Intégration EPANET")
+    console.print("  ✅ Validation robuste des données")
+    console.print("  ✅ Export multi-formats")
+    console.print("  ✅ Transparence mathématique")
 
 if __name__ == "__main__":
     app()

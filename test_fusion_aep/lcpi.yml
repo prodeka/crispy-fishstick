@@ -1,0 +1,29 @@
+# Configuration du projet test_fusion_aep
+projet_metadata:
+  nom: "Projet AEP Fusion Test"
+  description: "Projet de test pour la fusion AEP avec ProjectManager"
+  version: "1.0.0"
+  auteur: "LCPI-CLI"
+  date_creation: "2025-08-16"
+
+plugins_actifs:
+  - aep
+  - cm
+  - bois
+  - beton
+  - hydro
+
+configurations:
+  base_de_donnees:
+    type: "sqlite"
+    chemin: "database.db"
+    auto_initialisation: true
+  
+  modules:
+    aep:
+      version: "2.1.0"
+      fonctionnalites:
+        - hardy_cross
+        - epanet_integration
+        - base_donnees_centralisee
+        - workflow_complet
