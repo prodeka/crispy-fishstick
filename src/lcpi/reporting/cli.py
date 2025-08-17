@@ -8,7 +8,7 @@ from typing import List, Optional
 from .report_generator import ReportGenerator
 from .utils.pdf_generator import export_to_pdf
 from .utils.docx_generator import export_to_docx
-from ..logging import list_available_logs, load_log_by_id
+from ..lcpi_logging import list_available_logs, load_log_by_id
 
 app = typer.Typer(name="reporting", help="Génération de rapports professionnels à partir des logs de calcul.")
 

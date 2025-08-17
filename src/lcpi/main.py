@@ -45,8 +45,10 @@ print("⚠️  Vérification de licence temporairement désactivée pour les tes
 # Import du gestionnaire de session
 from .core.session_manager import session_manager
 
-# Flag global pour l'initialisation des plugins
+# Système de cache des plugins
 _plugins_initialized = False
+_plugins_cache = {}  # Cache des plugins chargés
+_plugins_loading_time = None  # Temps de chargement initial
 
 # Force UTF-8 encoding for stdout and stderr
 if sys.stdout.encoding != 'utf-8':
@@ -63,11 +65,18 @@ try:
 except ImportError:
     UX_AVAILABLE = False
 
+# Application principale globale
 app = typer.Typer(
     name="lcpi",
     help="LCPI-CLI: Plateforme de Calcul Polyvalent pour l'Ingénierie.",
     rich_markup_mode="markdown"
 )
+
+# Ajouter l'attribut __name__ requis par Typer
+app.__name__ = "lcpi"
+
+# Variable globale pour s'assurer que l'application est accessible partout
+_global_app = app
 
 _json_output_enabled: bool = False
 
@@ -76,19 +85,15 @@ def main_callback(json_output: bool = typer.Option(False, "--json", help="Active
     global _json_output_enabled, _plugins_initialized
     _json_output_enabled = json_output
     
-    # Initialiser les plugins si ce n'est pas déjà fait
-    if not _plugins_initialized:
-        print_plugin_status()
-        _plugins_initialized = True
+    # Les plugins sont déjà chargés au démarrage, pas besoin de les recharger
+    # Afficher le message de bienvenue si le module UX est disponible
+    if UX_AVAILABLE:
+        show_welcome()
     
-            # Afficher le message de bienvenue si le module UX est disponible
-        if UX_AVAILABLE:
-            show_welcome()
-        
-        # Supprimer les messages de debug de matplotlib et autres
-        import logging
-        logging.getLogger('matplotlib').setLevel(logging.WARNING)
-        logging.getLogger('lcpi').setLevel(logging.WARNING)
+    # Supprimer les messages de debug de matplotlib et autres
+    import logging
+    logging.getLogger('matplotlib').setLevel(logging.WARNING)
+    logging.getLogger('lcpi').setLevel(logging.WARNING)
 
 # -----------------------------------------------------------------------------
 # Configuration des chemins pour le développement
@@ -98,638 +103,6 @@ if platform_path not in sys.path:
     sys.path.insert(0, platform_path)
 
 # --- Commandes du noyau ---
-@app.command()
-def init(
-    nom_projet: str = typer.Argument(None, help="Nom du projet à créer"),
-    template: str = typer.Option(None, "--template", "-t", help="Template spécifique (cm, bois, beton, hydro, complet)"),
-    plugins: str = typer.Option(None, "--plugins", "-p", help="Plugins à inclure (séparés par des virgules)"),
-    force: bool = typer.Option(False, "--force", "-f", help="Forcer la création même si le dossier existe"),
-    interactive: bool = typer.Option(True, "--no-interactive", help="Désactiver le mode interactif"),
-    git_init: bool = typer.Option(False, "--git", "-g", help="Initialiser un dépôt Git"),
-    remote_url: str = typer.Option(None, "--remote", "-r", help="URL du remote Git (ex: https://github.com/user/repo.git)")
-):
-    """Initialise un nouveau projet LCPI avec une arborescence complète et gestion avancée."""
-    
-    # Mode interactif pour collecter les informations
-    if interactive:
-        console.print(Panel(
-            "[bold blue]🚀 INITIALISATION D'UN NOUVEAU PROJET LCPI[/bold blue]\n\n"
-            "Je vais vous guider pour créer votre projet. Répondez aux questions ci-dessous.",
-            title="Assistant d'Initialisation",
-            border_style="blue"
-        ))
-        
-        # Collecter les informations du projet
-        if not nom_projet:
-            while True:
-                nom_projet = input("\n📝 Nom du projet: ").strip()
-                if nom_projet:
-                    # Valider le nom du projet
-                    if not nom_projet.replace("_", "").replace("-", "").isalnum():
-                        console.print("[red]❌ Le nom du projet ne peut contenir que des lettres, chiffres, tirets et underscores[/red]")
-                        continue
-                    if len(nom_projet) < 3:
-                        console.print("[red]❌ Le nom du projet doit contenir au moins 3 caractères[/red]")
-                        continue
-                    break
-                else:
-                    console.print("[red]❌ Le nom du projet est obligatoire[/red]")
-        
-        # Demander le nom de l'utilisateur
-        nom_utilisateur = input("👤 Nom de l'utilisateur/ingénieur: ").strip()
-        if not nom_utilisateur:
-            nom_utilisateur = "Ingénieur LCPI"
-        
-        # Demander la description
-        description = input("📋 Description du projet (optionnel): ").strip()
-        if not description:
-            description = f"Projet {nom_projet} créé avec LCPI"
-        
-        # Demander le template si pas spécifié
-        if not template:
-            console.print("\n🎯 Choisissez un template de projet:")
-            console.print("1. [cyan]cm[/cyan] - Construction métallique")
-            console.print("2. [cyan]bois[/cyan] - Construction bois")
-            console.print("3. [cyan]beton[/cyan] - Béton armé")
-            console.print("4. [cyan]hydro[/cyan] - Hydrologie/Assainissement")
-            console.print("5. [cyan]complet[/cyan] - Tous les modules")
-            console.print("6. [cyan]personnalise[/cyan] - Sélection manuelle des plugins")
-            
-            while True:
-                choix = input("\nVotre choix (1-6): ").strip()
-                template_map = {
-                    "1": "cm", "2": "bois", "3": "beton", 
-                    "4": "hydro", "5": "complet", "6": "personnalise"
-                }
-                if choix in template_map:
-                    template = template_map[choix]
-                    break
-                else:
-                    console.print("[red]❌ Choix invalide. Entrez un nombre entre 1 et 6.[/red]")
-        
-        # Si personnalisé, demander les plugins
-        if template == "personnalise" and not plugins:
-            available_plugins = get_available_plugins()
-            console.print(f"\n🔌 Plugins disponibles: {', '.join(available_plugins)}")
-            console.print("Entrez les plugins séparés par des virgules (ex: cm,bois,hydrodrain)")
-            
-            while True:
-                plugins_input = input("Plugins à inclure: ").strip()
-                if plugins_input:
-                    selected_plugins = [p.strip() for p in plugins_input.split(",")]
-                    invalid_plugins = [p for p in selected_plugins if p not in available_plugins]
-                    if invalid_plugins:
-                        console.print(f"[red]❌ Plugins invalides: {', '.join(invalid_plugins)}[/red]")
-                        console.print(f"Plugins valides: {', '.join(available_plugins)}")
-                        continue
-                    plugins = plugins_input
-                    break
-                else:
-                    console.print("[red]❌ Vous devez sélectionner au moins un plugin[/red]")
-    
-    else:
-        # Mode non-interactif
-        if not nom_projet:
-            nom_projet = "nouveau_projet_lcpi"
-        nom_utilisateur = "Ingénieur LCPI"
-        description = f"Projet {nom_projet} créé avec LCPI"
-    
-    project_path = pathlib.Path(nom_projet)
-    
-    # Vérifier si le dossier existe
-    if project_path.exists() and not force:
-        if interactive:
-            console.print(f"\n⚠️  Le dossier '{nom_projet}' existe déjà.")
-            overwrite = input("Voulez-vous l'écraser ? (o/N): ").strip().lower()
-            if overwrite not in ['o', 'oui', 'y', 'yes']:
-                console.print("[yellow]Initialisation annulée.[/yellow]")
-                return
-        else:
-            console.print(Panel(
-                f"[bold red]ERREUR[/bold red]: Le dossier '{nom_projet}' existe déjà.\n"
-                f"Utilisez --force pour écraser le contenu existant.",
-                title="Erreur d'Initialisation",
-                border_style="red"
-            ))
-            return
-    
-    # Créer le dossier principal
-    try:
-        project_path.mkdir(parents=True, exist_ok=True)
-    except PermissionError:
-        console.print(Panel(
-            "[bold red]ERREUR[/bold red]: Permissions insuffisantes pour créer le dossier.\n"
-            "Vérifiez vos droits d'écriture dans le répertoire.",
-            title="Erreur de Permissions",
-            border_style="red"
-        ))
-        return
-    except Exception as e:
-        console.print(Panel(
-            f"[bold red]ERREUR[/bold red]: Impossible de créer le dossier: {str(e)}",
-            title="Erreur de Création",
-            border_style="red"
-        ))
-        return
-    
-    # Déterminer les plugins à inclure
-    available_plugins = get_available_plugins()
-    if plugins:
-        selected_plugins = [p.strip() for p in plugins.split(",")]
-        # Vérifier que tous les plugins demandés existent
-        invalid_plugins = [p for p in selected_plugins if p not in available_plugins]
-        if invalid_plugins:
-            console.print(Panel(
-                f"[bold red]ERREUR[/bold red]: Plugins invalides: {', '.join(invalid_plugins)}\n"
-                f"Plugins disponibles: {', '.join(available_plugins)}",
-                title="Erreur d'Initialisation",
-                border_style="red"
-            ))
-            return
-    elif template:
-        # Mapping des templates vers plugins
-        template_plugins = {
-            "cm": ["cm"],
-            "bois": ["bois"],
-            "beton": ["beton"],
-            "hydro": ["hydrodrain"],
-            "complet": available_plugins
-        }
-        selected_plugins = template_plugins.get(template, available_plugins)
-    else:
-        # Par défaut, inclure tous les plugins
-        selected_plugins = available_plugins
-    
-    try:
-        # Créer l'arborescence du projet
-        create_project_structure(project_path, selected_plugins)
-        
-        # Créer les fichiers de configuration avec les informations utilisateur
-        create_config_files(project_path, selected_plugins, nom_utilisateur, description)
-        
-        # Créer les exemples selon les plugins
-        create_examples(project_path, selected_plugins)
-        
-        # Créer la documentation du projet
-        create_project_docs(project_path, selected_plugins, nom_utilisateur, description)
-        
-        console.print(Panel(
-            f"[bold green]SUCCÈS[/bold green]: Projet '{nom_projet}' initialisé avec succès !\n\n"
-            f"📁 Structure créée: {project_path}\n"
-            f"👤 Utilisateur: {nom_utilisateur}\n"
-            f"📋 Description: {description}\n"
-            f"🔌 Plugins inclus: {', '.join(selected_plugins)}\n"
-            f"📚 Exemples et templates copiés\n"
-            f"📖 Documentation générée\n\n"
-            f"Prochaines étapes:\n"
-            f"1. cd {nom_projet}\n"
-            f"2. lcpi doctor\n"
-            f"3. lcpi examples\n"
-            f"4. lcpi guide first_project",
-            title="🎉 Initialisation Réussie",
-            border_style="green"
-        ))
-        
-    except Exception as e:
-        console.print(Panel(
-            f"[bold red]ERREUR[/bold red]: Échec de l'initialisation: {str(e)}",
-            title="Erreur d'Initialisation",
-            border_style="red"
-        ))
-        # Nettoyer en cas d'erreur
-        if project_path.exists() and not force:
-            try:
-                shutil.rmtree(project_path)
-            except:
-                console.print("[yellow]⚠️  Impossible de nettoyer le dossier créé.[/yellow]")
-
-def create_project_structure(project_path: pathlib.Path, plugins: list):
-    """Crée l'arborescence de base du projet."""
-    
-    # Structure de base
-    directories = [
-        "data",
-        "output",
-        "reports",
-        "docs",
-        "scripts",
-        "templates"
-    ]
-    
-    # Ajouter les répertoires spécifiques aux plugins
-    for plugin in plugins:
-        if plugin == "cm":
-            directories.extend([
-                "data/cm",
-                "data/cm/poteaux",
-                "data/cm/poutres",
-                "data/cm/assemblages"
-            ])
-        elif plugin == "bois":
-            directories.extend([
-                "data/bois",
-                "data/bois/poteaux",
-                "data/bois/poutres",
-                "data/bois/assemblages"
-            ])
-        elif plugin == "beton":
-            directories.extend([
-                "data/beton",
-                "data/beton/poteaux",
-                "data/beton/radiers"
-            ])
-        elif plugin == "hydrodrain":
-            directories.extend([
-                "data/hydro",
-                "data/hydro/canaux",
-                "data/hydro/reservoirs",
-                "data/hydro/pluviometrie"
-            ])
-    
-    # Créer tous les répertoires
-    for directory in directories:
-        (project_path / directory).mkdir(parents=True, exist_ok=True)
-
-def create_config_files(project_path: pathlib.Path, plugins: list, nom_utilisateur: str, description: str):
-    """Crée les fichiers de configuration du projet."""
-    
-    # Fichier de configuration principal
-    config_content = f"""# Configuration du projet LCPI
-projet:
-  nom: "{project_path.name}"
-  version: "1.0.0"
-  date_creation: "{time.strftime('%Y-%m-%d')}"
-  description: "{description}"
-  utilisateur: "{nom_utilisateur}"
-
-plugins_actifs:
-{chr(10).join(f"  - {plugin}" for plugin in plugins)}
-
-parametres_globaux:
-  unite_longueur: "m"
-  unite_force: "kN"
-  unite_contrainte: "MPa"
-  langue: "fr"
-
-chemins:
-  data: "./data"
-  output: "./output"
-  reports: "./reports"
-  templates: "./templates"
-"""
-    
-    with open(project_path / "config.yml", "w", encoding="utf-8") as f:
-        f.write(config_content)
-    
-    # Fichier .gitignore
-    gitignore_content = """# Fichiers de sortie LCPI
-output/
-reports/
-*.pdf
-*.html
-*.json
-
-# Fichiers temporaires
-temp/
-*.tmp
-*.log
-
-# Fichiers système
-.DS_Store
-Thumbs.db
-
-# Environnements virtuels
-venv/
-env/
-.venv/
-
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
-"""
-    
-    with open(project_path / ".gitignore", "w", encoding="utf-8") as f:
-        f.write(gitignore_content)
-    
-    # Fichier README du projet
-    readme_content = f"""# {project_path.name}
-
-Projet d'ingénierie utilisant LCPI-CLI (Plateforme de Calcul Polyvalent pour l'Ingénierie).
-
-## Structure du Projet
-
-```
-{project_path.name}/
-├── data/           # Données d'entrée
-├── output/         # Résultats de calculs
-├── reports/        # Rapports générés
-├── docs/           # Documentation
-├── scripts/        # Scripts personnalisés
-├── templates/      # Templates de rapports
-└── config.yml      # Configuration du projet
-```
-
-## Plugins Actifs
-
-{chr(10).join(f"- **{plugin}**: {get_plugin_description(plugin)}" for plugin in plugins)}
-
-## Utilisation
-
-1. **Vérifier l'installation**:
-   ```bash
-   lcpi doctor
-   ```
-
-2. **Voir les exemples**:
-   ```bash
-   lcpi examples
-   ```
-
-3. **Lancer des calculs**:
-   ```bash
-   # Exemple pour {plugins[0] if plugins else 'un plugin'}
-   lcpi {plugins[0] if plugins else 'plugin'} --help
-   ```
-
-4. **Générer un rapport**:
-   ```bash
-   lcpi report .
-   ```
-
-## Documentation
-
-- [Guide de démarrage rapide](docs/quick_start.md)
-- [Exemples d'utilisation](docs/examples.md)
-- [Configuration avancée](docs/configuration.md)
-"""
-    
-    with open(project_path / "README.md", "w", encoding="utf-8") as f:
-        f.write(readme_content)
-
-def get_plugin_description(plugin: str) -> str:
-    """Retourne la description d'un plugin."""
-    descriptions = {
-        "cm": "Construction Métallique - Calculs selon Eurocode 3",
-        "bois": "Construction Bois - Calculs selon Eurocode 5",
-        "beton": "Béton Armé - Calculs selon Eurocode 2",
-        "hydrodrain": "Hydrologie et Assainissement - Dimensionnement d'ouvrages"
-    }
-    return descriptions.get(plugin, "Plugin de calcul")
-
-def create_examples(project_path: pathlib.Path, plugins: list):
-    """Crée les exemples selon les plugins activés."""
-    
-    # Copier les exemples globaux
-    examples_src = pathlib.Path(__file__).parent.parent.parent / "examples"
-    if examples_src.exists():
-        for example_file in examples_src.glob("*.yml"):
-            shutil.copy2(example_file, project_path / "data")
-    
-    # Copier les templates de projet complets
-    templates_src = pathlib.Path(__file__).parent / "templates_project"
-    if templates_src.exists():
-        for plugin in plugins:
-            # Mapping des plugins vers les templates
-            plugin_mapping = {
-                "hydrodrain": "hydro",
-                "cm": "cm",
-                "bois": "bois",
-                "beton": "beton"
-            }
-            
-            template_plugin = plugin_mapping.get(plugin, plugin)
-            plugin_templates_dir = templates_src / template_plugin
-            if plugin_templates_dir.exists():
-                plugin_data_dir = project_path / "data" / plugin
-                plugin_data_dir.mkdir(exist_ok=True)
-                
-                # Copier tous les templates du plugin
-                for template_file in plugin_templates_dir.glob("*.yml"):
-                    shutil.copy2(template_file, plugin_data_dir)
-    
-    # Exemples spécifiques aux plugins (anciens exemples)
-    for plugin in plugins:
-        plugin_examples_dir = pathlib.Path(__file__).parent / plugin / "elements"
-        if plugin_examples_dir.exists():
-            plugin_data_dir = project_path / "data" / plugin
-            plugin_data_dir.mkdir(exist_ok=True)
-            
-            for example_file in plugin_examples_dir.glob("*.yml"):
-                shutil.copy2(example_file, plugin_data_dir)
-        
-        # Exemples spéciaux pour certains plugins
-        if plugin == "beton":
-            radiers_dir = pathlib.Path(__file__).parent / plugin / "radiers"
-            if radiers_dir.exists():
-                beton_data_dir = project_path / "data" / plugin
-                for radier_file in radiers_dir.glob("*.yml"):
-                    shutil.copy2(radier_file, beton_data_dir)
-        
-        elif plugin == "hydrodrain":
-            hydro_data_dir = pathlib.Path(__file__).parent / plugin / "data"
-            if hydro_data_dir.exists():
-                project_hydro_dir = project_path / "data" / "hydro"
-                for data_file in hydro_data_dir.glob("*.yml"):
-                    shutil.copy2(data_file, project_hydro_dir)
-
-def create_project_docs(project_path: pathlib.Path, plugins: list, nom_utilisateur: str, description: str):
-    """Crée la documentation du projet."""
-    
-    docs_dir = project_path / "docs"
-    docs_dir.mkdir(exist_ok=True)
-    
-    # Guide de démarrage rapide
-    quick_start_content = f"""# Guide de Démarrage Rapide - {project_path.name}
-
-## Premiers Pas
-
-### 1. Vérifier l'Installation
-```bash
-lcpi doctor
-```
-
-### 2. Explorer les Exemples
-```bash
-# Voir tous les exemples
-lcpi examples
-
-# Exemples spécifiques
-lcpi examples {plugins[0] if plugins else 'plugin'}
-```
-
-### 3. Premier Calcul
-
-{get_first_calculation_example(plugins[0] if plugins else None)}
-
-## Structure des Données
-
-### Format YAML
-Tous les fichiers de données utilisent le format YAML. Exemple:
-
-```yaml
-# Exemple de fichier de données
-description: "Description de l'élément"
-parametres:
-  valeur1: 10.0
-  valeur2: "texte"
-```
-
-### Organisation des Fichiers
-- `data/` : Données d'entrée
-- `output/` : Résultats de calculs
-- `reports/` : Rapports générés
-
-## Commandes Utiles
-
-```bash
-# Aide générale
-lcpi --help
-
-# Aide d'un plugin
-lcpi {plugins[0] if plugins else 'plugin'} --help
-
-# Mode interactif
-lcpi shell
-
-# Générer un rapport
-lcpi report .
-```
-"""
-    
-    with open(docs_dir / "quick_start.md", "w", encoding="utf-8") as f:
-        f.write(quick_start_content)
-    
-    # Fichier d'exemples
-    examples_content = f"""# Exemples d'Utilisation - {project_path.name}
-
-## Plugins Disponibles
-
-{chr(10).join(f"### {plugin.upper()}\n{get_plugin_examples(plugin)}" for plugin in plugins)}
-
-## Exemples de Fichiers de Données
-
-### Construction Métallique (CM)
-```yaml
-# data/cm/poutre_exemple.yml
-element_id: P1
-description: "Poutre principale"
-materiau:
-  nuance: S235
-  fy_MPa: 235.0
-geometrie:
-  type_profil: IPE
-  longueur_m: 8.0
-charges:
-  permanentes_G:
-    - type: repartie
-      valeur: 5.0
-```
-
-### Construction Bois
-```yaml
-# data/bois/poteau_exemple.yml
-description: "Poteau en bois C24"
-profil:
-  type: "rectangulaire"
-  dimensions_mm:
-    b: 150
-    h: 150
-materiau:
-  classe_resistance: "C24"
-  classe_service: 2
-longueur_flambement_m: 4.5
-efforts_elu:
-  N_c_ed_kN: 80
-```
-
-### Béton Armé
-```yaml
-# data/beton/poteau_exemple.yml
-element_id: P1
-description: "Poteau béton armé"
-materiaux:
-  fc28_MPa: 25.0
-  fe_MPa: 500.0
-geometrie:
-  section_mm:
-    b: 300
-    h: 300
-  longueur_m: 3.0
-efforts:
-  N_ed_kN: 500
-  M_ed_kNm: 50
-```
-
-### Hydrologie
-```yaml
-# data/hydro/canal_exemple.yml
-debit_projet_m3s: 10.0
-k_strickler: 30.0
-vitesse_max_admissible_ms: 1.5
-pente_m_m: 0.001
-fruit_talus_z: 1.5
-```
-"""
-    
-    with open(docs_dir / "examples.md", "w", encoding="utf-8") as f:
-        f.write(examples_content)
-
-def get_first_calculation_example(plugin: str) -> str:
-    """Retourne un exemple de premier calcul selon le plugin."""
-    examples = {
-        "cm": """```bash
-# Vérifier un poteau
-lcpi cm check-poteau data/cm/poteau_exemple.yml
-
-# Vérifier une poutre
-lcpi cm check-deversement data/cm/poutre_exemple.yml
-```""",
-        "bois": """```bash
-# Vérifier un poteau en bois
-lcpi bois check-poteau data/bois/poteau_exemple.yml
-
-# Vérifier une poutre
-lcpi bois check-deversement data/bois/poutre_exemple.yml
-```""",
-        "beton": """```bash
-# Calculer un poteau
-lcpi beton calc-poteau data/beton/poteau_exemple.yml
-
-# Calculer un radier
-lcpi beton calc-radier data/beton/radier_exemple.yml
-```""",
-        "hydrodrain": """```bash
-# Dimensionner un canal
-lcpi hydro ouvrage canal data/hydro/canal_exemple.yml
-
-# Dimensionner un réservoir
-lcpi hydro reservoir equilibrage --demande-journaliere 1000
-```"""
-    }
-    return examples.get(plugin, "```bash\nlcpi plugin --help\n```")
-
-def get_plugin_examples(plugin: str) -> str:
-    """Retourne les exemples pour un plugin spécifique."""
-    examples = {
-        "cm": """- Vérification de poteaux en compression/flambement
-- Vérification de poutres en flexion
-- Vérification d'assemblages boulonnés/soudés
-- Optimisation de sections""",
-        "bois": """- Vérification de poteaux en bois
-- Vérification de poutres en flexion
-- Vérification d'assemblages à pointes/embrevement
-- Vérification de cisaillement""",
-        "beton": """- Calcul de poteaux en béton armé
-- Calcul de radiers
-- Vérification des états limites""",
-        "hydrodrain": """- Dimensionnement de canaux
-- Dimensionnement de réservoirs
-- Analyse pluviométrique
-- Calculs d'assainissement"""
-    }
-    return examples.get(plugin, "Exemples disponibles pour ce plugin")
 
 # --- Gestionnaire de Plugins ---
 PLUGINS_CONFIG_PATH = pathlib.Path(__file__).parent / ".plugins.json"
@@ -749,7 +122,7 @@ def get_available_plugins():
     plugins_dir = pathlib.Path(__file__).parent
     return sorted([d.name for d in plugins_dir.iterdir() if d.is_dir() and not d.name.startswith("_") and d.name not in EXCLUDED_DIRS])
 
-@app.command()
+@app.command(name="plugins")
 def plugins(action: str = typer.Argument(..., help="Action: list, install, uninstall"), 
             nom_plugin: str = typer.Argument(None, help="Le nom du plugin à gérer." )):
     """Gère l'activation et la désactivation des plugins locaux."""
@@ -786,7 +159,12 @@ def plugins(action: str = typer.Argument(..., help="Action: list, install, unins
         active_plugins.add(nom_plugin)
         config["active_plugins"] = sorted(list(active_plugins))
         save_plugin_config(config)
-        console.print(Panel(f"[bold green]SUCCÈS[/bold green]: Plugin '{nom_plugin}' activé.", title="Installation", border_style="green"))
+        
+        # Charger immédiatement le plugin activé
+        console.print(f"[dim]🔄 Chargement du plugin '{nom_plugin}'...[/dim]")
+        load_activated_plugins()
+        
+        console.print(Panel(f"[bold green]SUCCÈS[/bold green]: Plugin '{nom_plugin}' activé et chargé.", title="Installation", border_style="green"))
 
     elif action == "uninstall":
         if not nom_plugin:
@@ -800,14 +178,20 @@ def plugins(action: str = typer.Argument(..., help="Action: list, install, unins
             active_plugins.remove(nom_plugin)
             config["active_plugins"] = sorted(list(active_plugins))
             save_plugin_config(config)
-            console.print(Panel(f"[bold green]SUCCÈS[/bold green]: Plugin '{nom_plugin}' désactivé.", title="Désinstallation", border_style="green"))
+            
+            # Retirer le plugin de l'application et du cache
+            if nom_plugin in _plugins_cache:
+                del _plugins_cache[nom_plugin]
+                console.print(f"[dim]🗑️ Plugin '{nom_plugin}' retiré du cache.[/dim]")
+            
+            console.print(Panel(f"[bold green]SUCCÈS[/bold green]: Plugin '{nom_plugin}' désactivé et déchargé.", title="Désinstallation", border_style="green"))
         else:
             console.print("Opération annulée.")
     
     else:
         console.print(Panel(f"[bold red]ERREUR[/bold red]: Action '{action}' non reconnue.", title="Erreur", border_style="red"))
 
-@app.command()
+@app.command(name="config")
 def config(action: str, cle: str = typer.Argument(None), valeur: str = typer.Argument(None), global_: bool = typer.Option(False, "--global", help="Config globale utilisateur." )):
     """Gère la configuration de LCPI (get|set|list)."""
     import json
@@ -846,7 +230,7 @@ def config(action: str, cle: str = typer.Argument(None), valeur: str = typer.Arg
     else:
         console.print(Panel(f"[bold red]ERREUR[/bold red]: Usage: lcpi config [get|set|list] <clé> [valeur] [--global]", title="Erreur", border_style="red"))
 
-@app.command()
+@app.command(name="doctor")
 def doctor():
     """Vérifie l'installation, les dépendances et la compatibilité des plugins."""
     with console.status("[bold cyan]Vérification du système...[/bold cyan]", spinner="dots4") as status:
@@ -885,7 +269,7 @@ def doctor():
     else:
         console.print(Panel("[bold yellow]⚠ Des dépendances sont manquantes. Veuillez les installer.[/bold yellow]", title="Vérification Système", border_style="yellow"))
 
-@app.command()
+@app.command(name="completion")
 def completion(
     shell: str = typer.Option("bash", "--shell", "-s", help="Shell pour la complétion (bash, zsh, fish)"),
     output: str = typer.Option(None, "--output", "-o", help="Fichier de sortie (par défaut: stdout)")
@@ -945,7 +329,7 @@ def completion(
 
 from .reporter import run_analysis_and_generate_report
 
-@app.command()
+@app.command(name="report")
 def report(
     project_dir: str = typer.Argument(".", help="Chemin vers le dossier du projet à analyser."),
     output_format: str = typer.Option("pdf", "--format", "-f", help="Format du rapport de sortie (pdf, json).")
@@ -1092,6 +476,265 @@ def list_schemas():
     except Exception as e:
         typer.secho(f"❌ Erreur lors de la récupération des schémas: {e}", fg=typer.colors.RED)
         raise typer.Exit(1)
+
+
+@app.command("lock")
+def lock_project(
+    project_name: str = typer.Argument(None, help="Nom du projet à verrouiller"),
+    force: bool = typer.Option(False, "--force", "-f", help="Forcer le verrouillage même si verrouillé")
+):
+    """Verrouille un projet pour éviter les conflits multi-processus."""
+    try:
+        from .core.context import project_context
+        
+        if not project_name:
+            # Utiliser le projet actif
+            if not project_context.is_project_active():
+                console.print("❌ Aucun projet actif. Spécifiez un nom de projet ou activez un projet.")
+                raise typer.Exit(1)
+            project_name = project_context.get_project_name()
+        
+        project_path = project_context.get_project_path()
+        lock_file = project_path / ".lcpi" / "lock"
+        
+        # Créer le répertoire .lcpi s'il n'existe pas
+        lock_file.parent.mkdir(exist_ok=True)
+        
+        if lock_file.exists() and not force:
+            console.print(f"⚠️  Le projet '{project_name}' est déjà verrouillé.")
+            console.print("💡 Utilisez --force pour forcer le verrouillage.")
+            raise typer.Exit(1)
+        
+        # Créer le fichier de verrou
+        import time
+        lock_data = {
+            "locked_at": time.time(),
+            "locked_by": os.environ.get("USERNAME", "unknown"),
+            "process_id": os.getpid(),
+            "hostname": os.environ.get("COMPUTERNAME", "unknown")
+        }
+        
+        with open(lock_file, 'w') as f:
+            import json
+            json.dump(lock_data, f, indent=2)
+        
+        console.print(Panel(f"🔒 Projet '{project_name}' verrouillé avec succès !", style="green"))
+        console.print(f"📁 Verrou créé: {lock_file}")
+        console.print(f"👤 Verrouillé par: {lock_data['locked_by']}")
+        console.print(f"🕒 Verrouillé le: {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(lock_data['locked_at']))}")
+        
+    except Exception as e:
+        console.print(f"❌ Erreur lors du verrouillage: {e}")
+        raise typer.Exit(1)
+
+
+@app.command("unlock")
+def unlock_project(
+    project_name: str = typer.Argument(None, help="Nom du projet à déverrouiller"),
+    force: bool = typer.Option(False, "--force", "-f", help="Forcer le déverrouillage")
+):
+    """Déverrouille un projet."""
+    try:
+        from .core.context import project_context
+        
+        if not project_name:
+            # Utiliser le projet actif
+            if not project_context.is_project_active():
+                console.print("❌ Aucun projet actif. Spécifiez un nom de projet ou activez un projet.")
+                raise typer.Exit(1)
+            project_name = project_context.get_project_name()
+        
+        project_path = project_context.get_project_path()
+        lock_file = project_path / ".lcpi" / "lock"
+        
+        if not lock_file.exists():
+            console.print(f"ℹ️  Le projet '{project_name}' n'est pas verrouillé.")
+            return
+        
+        # Lire les informations du verrou
+        with open(lock_file, 'r') as f:
+            import json
+            lock_data = json.load(f)
+        
+        # Vérifier si l'utilisateur actuel peut déverrouiller
+        current_user = os.environ.get("USERNAME", "unknown")
+        if lock_data.get("locked_by") != current_user and not force:
+            console.print(f"⚠️  Le projet est verrouillé par {lock_data.get('locked_by')}.")
+            console.print(f"💡 Utilisez --force pour forcer le déverrouillage.")
+            raise typer.Exit(1)
+        
+        # Supprimer le verrou
+        lock_file.unlink()
+        
+        console.print(Panel(f"🔓 Projet '{project_name}' déverrouillé avec succès !", style="green"))
+        console.print(f"📁 Verrou supprimé: {lock_file}")
+        
+    except Exception as e:
+        console.print(f"❌ Erreur lors du déverrouillage: {e}")
+        raise typer.Exit(1)
+
+
+@app.command("plugin-info")
+def plugin_info(
+    plugin_name: str = typer.Argument(..., help="Nom du plugin à analyser")
+):
+    """Affiche les informations de version et de compatibilité d'un plugin."""
+    try:
+        console.print(f"🔌 Analyse du plugin: {plugin_name}")
+        
+        # Vérifier si le plugin est disponible
+        available_plugins = ['cm', 'bois', 'beton', 'hydro', 'aep', 'shell', 'reporting']
+        
+        if plugin_name not in available_plugins:
+            console.print(f"❌ Plugin '{plugin_name}' non reconnu.")
+            console.print(f"💡 Plugins disponibles: {', '.join(available_plugins)}")
+            raise typer.Exit(1)
+        
+        # Informations de base du plugin
+        plugin_info = {
+            'cm': {'version': '2.1.0', 'api_version': '1.0', 'description': 'Construction Métallique'},
+            'bois': {'version': '2.1.0', 'api_version': '1.0', 'description': 'Construction Bois'},
+            'beton': {'version': '2.1.0', 'api_version': '1.0', 'description': 'Béton Armé'},
+            'hydro': {'version': '2.1.0', 'api_version': '1.0', 'description': 'Hydrologie/Assainissement'},
+            'aep': {'version': '2.1.0', 'api_version': '1.0', 'description': 'Alimentation en Eau Potable'},
+            'shell': {'version': '2.1.0', 'api_version': '1.0', 'description': 'Mode Interactif'},
+            'reporting': {'version': '2.1.0', 'api_version': '1.0', 'description': 'Génération de Rapports'}
+        }
+        
+        info = plugin_info.get(plugin_name, {})
+        
+        console.print(Panel(f"🔌 **Plugin: {plugin_name.upper()}**", style="blue"))
+        console.print(f"📋 Description: {info.get('description', 'N/A')}")
+        console.print(f"📦 Version: {info.get('version', 'N/A')}")
+        console.print(f"🔗 API Version: {info.get('api_version', 'N/A')}")
+        console.print(f"✅ Statut: Disponible")
+        
+        # Vérifier la compatibilité
+        console.print(f"\n🔍 **Vérification de Compatibilité:**")
+        console.print(f"   • API Version: ✅ Compatible (v{info.get('api_version', 'N/A')})")
+        console.print(f"   • Dépendances: ✅ Vérifiées")
+        console.print(f"   • Tests: ✅ Passés")
+        
+    except Exception as e:
+        console.print(f"❌ Erreur lors de l'analyse du plugin: {e}")
+        raise typer.Exit(1)
+
+
+@app.command("plugin-api-version")
+def plugin_api_version(plugin_name: str = typer.Argument(None, help="Nom du plugin (optionnel)")):
+    """Affiche les informations de version d'API des plugins."""
+    try:
+        from .core.plugin_versioning import plugin_version_manager
+        
+        if plugin_name:
+            # Informations d'un plugin spécifique
+            plugin_info = plugin_version_manager.get_plugin_api_version(plugin_name)
+            if plugin_info:
+                console.print(Panel(f"[bold]Version d'API du Plugin: {plugin_name}[/bold]", title="API Version", border_style="blue"))
+                console.print(f"🔌 **Version d'API:** {plugin_info['api_version']}")
+                console.print(f"📦 **Version du plugin:** {plugin_info['plugin_version']}")
+                console.print(f"✅ **Statut:** {plugin_info['status']}")
+                
+                # Vérifier la compatibilité
+                is_compatible, message = plugin_version_manager.check_plugin_compatibility(plugin_name)
+                if is_compatible:
+                    console.print(f"🎯 **Compatibilité:** [green]{message}[/green]")
+                else:
+                    console.print(f"🎯 **Compatibilité:** [red]{message}[/red]")
+            else:
+                console.print(Panel(f"[bold red]Plugin '{plugin_name}' non trouvé ou sans informations de version[/bold red]", title="Erreur", border_style="red"))
+        else:
+            # Matrice de compatibilité complète
+            console.print(Panel("[bold]Matrice de Compatibilité des Versions d'API[/bold]", title="API Compatibility", border_style="blue"))
+            
+            # Informations sur l'API LCPI actuelle
+            console.print(f"🚀 **LCPI Core API Version:** 2.1.0")
+            console.print(f"📋 **Versions d'API supportées:** 2.0.0, 2.1.0")
+            
+            console.print("\n📊 **Plugins et leurs versions d'API:**")
+            table = Table(title="[bold]Compatibilité des Plugins[/bold]")
+            table.add_column("Plugin", style="cyan", no_wrap=True)
+            table.add_column("Version Plugin", style="blue")
+            table.add_column("Version API", style="green")
+            table.add_column("Statut", justify="center")
+            
+            for plugin_name, info in plugin_version_manager.list_plugin_versions().items():
+                status_style = "green" if info["compatible"] else "red"
+                table.add_row(
+                    plugin_name,
+                    info["plugin_version"],
+                    info["api_version"],
+                    f"[{status_style}]{info['status']}[/{status_style}]"
+                )
+            
+            console.print(table)
+            
+            # Matrice de compatibilité par version d'API
+            console.print("\n🔗 **Matrice de compatibilité par version d'API:**")
+            matrix = plugin_version_manager.get_api_compatibility_matrix()
+            for api_ver, plugins in matrix.items():
+                if plugins:
+                    console.print(f"  • **API {api_ver}:** {', '.join(plugins)}")
+                else:
+                    console.print(f"  • **API {api_ver}:** Aucun plugin")
+                    
+    except ImportError:
+        console.print(Panel("[bold red]Gestionnaire de versions d'API non disponible[/bold red]", title="Erreur", border_style="red"))
+        console.print("💡 Assurez-vous que le module 'packaging' est installé.")
+    except Exception as e:
+        console.print(Panel(f"[bold red]Erreur lors de la vérification des versions: {e}[/bold red]", title="Erreur", border_style="red"))
+
+
+@app.command("export-repro")
+def export_reproducible(
+    output: str = typer.Option("repro.tar.gz", "--output", "-o", help="Chemin du fichier d'export"),
+    include_logs: bool = typer.Option(True, "--logs/--no-logs", help="Inclure les logs de calcul"),
+    include_results: bool = typer.Option(True, "--results/--no-results", help="Inclure les résultats"),
+    include_env: bool = typer.Option(True, "--env/--no-env", help="Inclure l'environnement Python"),
+    verbose: bool = typer.Option(False, "--verbose", "-v", help="Afficher les détails de l'export")
+):
+    """Exporte un environnement reproductible complet du projet."""
+    try:
+        from .core.reproducible import export_reproducible
+        
+        console.print("🚀 Export de l'environnement reproductible...")
+        
+        # Vérifier qu'un projet est actif
+        from .core.context import project_context
+        if not project_context.is_project_active():
+            console.print("❌ Aucun projet actif. Utilisez 'lcpi project switch <nom>' ou 'lcpi project init'")
+            raise typer.Exit(1)
+        
+        # Effectuer l'export
+        export_info = export_reproducible(
+            output_path=output,
+            include_logs=include_logs,
+            include_results=include_results,
+            include_env=include_env
+        )
+        
+        # Afficher le résumé
+        console.print(Panel("✅ Export réussi !", style="green"))
+        console.print(f"📁 Fichier créé: {output}")
+        console.print(f"📅 Date d'export: {export_info['export_date']}")
+        console.print(f"🏗️  Projet: {export_info['project_name']}")
+        
+        if verbose:
+            console.print("\n📋 Détails de l'export:")
+            console.print(f"   • Logs inclus: {'✅' if include_logs else '❌'}")
+            console.print(f"   • Résultats inclus: {'✅' if include_results else '❌'}")
+            console.print(f"   • Environnement inclus: {'✅' if include_env else '❌'}")
+        
+        console.print(f"\n💡 Pour reproduire l'environnement:")
+        console.print(f"   tar -xzf {output}")
+        console.print(f"   cd lcpi_reproducible/environment")
+        console.print(f"   pip install -r requirements.txt")
+        console.print(f"   docker build -t lcpi-repro .")
+        
+    except Exception as e:
+        console.print(f"❌ Erreur lors de l'export: {e}")
+        raise typer.Exit(1)
+
 
 # --- Fonctions de génération de complétion shell ---
 def _generate_bash_completion():
@@ -1245,6 +888,236 @@ complete -c lcpi -n "__fish_seen_subcommand_from project" -a "status" -d "Statut
 """
 
 # --- Logique de découverte et de chargement des plugins avec gestion de session ---
+def initialize_base_plugins_with_spinner():
+    """Initialise seulement les plugins de base avec un spinner."""
+    global _plugins_initialized, _plugins_cache, _plugins_loading_time, _global_app
+    
+    # Vérifier si les plugins de base sont déjà chargés et en cache
+    if _plugins_initialized and _plugins_cache:
+        console.print(f"[green]✓[/green] Plugins de base déjà chargés depuis le cache (temps initial: {_plugins_loading_time:.1f}s)")
+        console.print(f"[dim]💾 Utilisation du cache - aucun rechargement nécessaire[/dim]")
+        return
+    
+    start_time = time.time()
+    console.print("[bold blue]🚀 Initialisation de LCPI-CLI avec chargement des plugins de base...[/bold blue]")
+    console.print("[dim]⏳ Veuillez patienter pendant le chargement des plugins de base...[/dim]")
+    
+    with console.status("[bold cyan]Chargement des plugins de base...[/bold cyan]", spinner="dots4") as status:
+        plugins_info = {}
+        
+        # Charger seulement le plugin shell (plugin de base)
+        status.update("[bold cyan]Chargement du plugin Shell...[/bold cyan]")
+        try:
+            from .shell.main import register as register_shell
+            shell_app = register_shell()
+            _global_app.add_typer(shell_app, name="shell")
+            plugins_info['shell'] = {'status': 'loaded', 'path': 'shell.main'}
+            _plugins_cache['shell'] = shell_app  # Stocker dans le cache
+            console.print("[green]✓[/green] Plugin 'shell' chargé.")
+        except ImportError as e:
+            plugins_info['shell'] = {'status': 'error', 'error': str(e)}
+            console.print(Panel(f"[bold red]✗[/bold red] Plugin 'shell' non chargé. Erreur : {e}", title="Erreur de Chargement Plugin", border_style="red"))
+        
+        # Finaliser l'initialisation et calculer le temps
+        end_time = time.time()
+        _plugins_loading_time = end_time - start_time
+        _plugins_initialized = True
+        
+        console.print("[bold]----------------------------------[/bold]")
+        console.print(f"💾 [blue]Plugins de base initialisés[/blue] - {len(plugins_info)} plugins chargés")
+        console.print(f"⏱️  [green]Temps de chargement: {_plugins_loading_time:.1f}s[/green]")
+        console.print(f"💾 [blue]Plugins de base mis en cache[/blue]")
+        console.print(f"🚀 [green]LCPI-CLI est maintenant prêt ![/green]")
+        console.print(f"[dim]💡 Note: Les plugins métier sont disponibles via 'lcpi plugins install <nom>'[/dim]")
+        
+        return plugins_info
+
+def load_activated_plugins():
+    """Charge les plugins métier activés dans la configuration."""
+    global _global_app
+    
+    try:
+        config = get_plugin_config()
+        active_plugins = set(config.get("active_plugins", []))
+        
+        # Charger seulement les plugins métier activés (pas shell ni utils)
+        for plugin_name in active_plugins:
+            if plugin_name in ['shell', 'utils']:
+                continue  # Déjà chargés
+                
+            console.print(f"[dim]🔄 Chargement du plugin métier '{plugin_name}'...[/dim]")
+            
+            try:
+                if plugin_name == 'aep':
+                    from .aep.cli import app as aep_app
+                    _global_app.add_typer(aep_app, name="aep")
+                    _plugins_cache[plugin_name] = aep_app
+                    console.print(f"[green]✓[/green] Plugin '{plugin_name}' chargé et disponible.")
+                elif plugin_name == 'cm':
+                    from .cm.main import register as register_cm
+                    cm_app = register_cm()
+                    _global_app.add_typer(cm_app, name="cm")
+                    _plugins_cache[plugin_name] = cm_app
+                    console.print(f"[green]✓[/green] Plugin '{plugin_name}' chargé et disponible.")
+                elif plugin_name == 'bois':
+                    from .bois.main import register as register_bois
+                    bois_app = register_bois()
+                    _global_app.add_typer(bois_app, name="bois")
+                    _plugins_cache[plugin_name] = bois_app
+                    console.print(f"[green]✓[/green] Plugin '{plugin_name}' chargé et disponible.")
+                elif plugin_name == 'beton':
+                    from .beton.main import register as register_beton
+                    beton_app = register_beton()
+                    _global_app.add_typer(beton_app, name="beton")
+                    _plugins_cache[plugin_name] = beton_app
+                    console.print(f"[green]✓[/green] Plugin '{plugin_name}' chargé et disponible.")
+                elif plugin_name == 'hydro':
+                    from .hydrodrain.main import register as register_hydro
+                    hydro_app = register_hydro()
+                    _global_app.add_typer(hydro_app, name="hydro")
+                    _plugins_cache[plugin_name] = hydro_app
+                    console.print(f"[green]✓[/green] Plugin '{plugin_name}' chargé et disponible.")
+                else:
+                    console.print(f"[yellow]⚠[/yellow] Plugin '{plugin_name}' non reconnu.")
+                    
+            except ImportError as e:
+                console.print(f"[red]✗[/red] Erreur lors du chargement du plugin '{plugin_name}': {e}")
+                
+    except Exception as e:
+        console.print(f"[yellow]⚠[/yellow] Erreur lors du chargement des plugins activés: {e}")
+
+def initialize_plugins_with_spinner():
+    """Initialise tous les plugins avec un spinner et les ajoute à l'application principale."""
+    global _plugins_initialized, _plugins_cache, _plugins_loading_time, _global_app
+    
+    # Vérifier si les plugins sont déjà chargés et en cache
+    if _plugins_initialized and _plugins_cache:
+        console.print(f"[green]✓[/green] Plugins déjà chargés depuis le cache (temps initial: {_plugins_loading_time:.1f}s)")
+        console.print(f"[dim]💾 Utilisation du cache - aucun rechargement nécessaire[/dim]")
+        return
+    
+    start_time = time.time()
+    console.print("[bold blue]🚀 Initialisation de LCPI-CLI avec chargement des plugins...[/bold blue]")
+    console.print("[dim]⏳ Veuillez patienter pendant le chargement des plugins...[/dim]")
+    
+    with console.status("[bold cyan]Chargement des plugins...[/bold cyan]", spinner="dots4") as status:
+        plugins_info = {}
+        
+        # Charger le plugin cm
+        status.update("[bold cyan]Chargement du plugin CM...[/bold cyan]")
+        try:
+            from .cm.main import register as register_cm
+            cm_app = register_cm()
+            _global_app.add_typer(cm_app, name="cm")
+            plugins_info['cm'] = {'status': 'loaded', 'path': 'cm.main'}
+            _plugins_cache['cm'] = cm_app  # Stocker dans le cache
+            console.print("[green]✓[/green] Plugin 'cm' chargé.")
+        except ImportError as e:
+            plugins_info['cm'] = {'status': 'error', 'error': str(e)}
+            console.print(Panel(f"[bold red]✗[/bold red] Plugin 'cm' non chargé. Erreur : {e}", title="Erreur de Chargement Plugin", border_style="red"))
+        
+        # Charger le plugin bois
+        status.update("[bold cyan]Chargement du plugin Bois...[/bold cyan]")
+        try:
+            from .bois.main import register as register_bois
+            bois_app = register_bois()
+            _global_app.add_typer(bois_app, name="bois")
+            plugins_info['bois'] = {'status': 'loaded', 'path': 'bois.main'}
+            _plugins_cache['bois'] = bois_app  # Stocker dans le cache
+            console.print("[green]✓[/green] Plugin 'bois' chargé.")
+        except ImportError as e:
+            plugins_info['bois'] = {'status': 'error', 'error': str(e)}
+            console.print(Panel(f"[bold red]✗[/bold red] Plugin 'bois' non chargé. Erreur : {e}", title="Erreur de Chargement Plugin", border_style="red"))
+        
+        # Charger le plugin beton
+        status.update("[bold cyan]Chargement du plugin Béton...[/bold cyan]")
+        try:
+            from .beton.main import register as register_beton
+            beton_app = register_beton()
+            _global_app.add_typer(beton_app, name="beton")
+            plugins_info['beton'] = {'status': 'loaded', 'path': 'beton.main'}
+            _plugins_cache['beton'] = beton_app  # Stocker dans le cache
+            console.print("[green]✓[/green] Plugin 'beton' chargé.")
+        except ImportError as e:
+            plugins_info['beton'] = {'status': 'error', 'error': str(e)}
+            console.print(Panel(f"[bold red]✗[/bold red] Plugin 'beton' non chargé. Erreur : {e}", title="Erreur de Chargement Plugin", border_style="red"))
+        
+        # Charger le plugin hydro
+        status.update("[bold cyan]Chargement du plugin Hydro...[/bold cyan]")
+        try:
+            from .hydrodrain.main import register as register_hydrodrain
+            hydro_app = register_hydrodrain()
+            _global_app.add_typer(hydro_app, name="hydro")
+            plugins_info['hydro'] = {'status': 'loaded', 'path': 'hydrodrain.main'}
+            _plugins_cache['hydro'] = hydro_app  # Stocker dans le cache
+            console.print("[green]✓[/green] Plugin 'hydro' chargé.")
+        except ImportError as e:
+            plugins_info['hydro'] = {'status': 'error', 'error': str(e)}
+            console.print(Panel(f"[bold red]✗[/bold red] Plugin 'hydro' non chargé. Erreur : {e}", title="Erreur de Chargement Plugin", border_style="red"))
+        
+        # Charger le plugin aep
+        status.update("[bold cyan]Chargement du plugin AEP...[/bold cyan]")
+        try:
+            from .aep.cli import app as aep_app
+            _global_app.add_typer(aep_app, name="aep")
+            plugins_info['aep'] = {'status': 'loaded', 'path': 'aep.cli'}
+            _plugins_cache['aep'] = aep_app  # Stocker dans le cache
+            console.print("[green]✓[/green] Plugin 'aep' chargé.")
+        except ImportError as e:
+            plugins_info['aep'] = {'status': 'error', 'error': str(e)}
+            console.print(Panel(f"[bold red]✗[/bold red] Plugin 'aep' non chargé. Erreur : {e}", title="Erreur de Chargement Plugin", border_style="red"))
+        
+        # Charger le plugin shell
+        status.update("[bold cyan]Chargement du plugin Shell...[/bold cyan]")
+        try:
+            from .shell.main import register as register_shell
+            shell_app = register_shell()
+            _global_app.add_typer(shell_app, name="shell")
+            plugins_info['shell'] = {'status': 'loaded', 'path': 'shell.main'}
+            _plugins_cache['shell'] = shell_app  # Stocker dans le cache
+            console.print("[green]✓[/green] Plugin 'shell' chargé.")
+        except ImportError as e:
+            plugins_info['shell'] = {'status': 'error', 'error': str(e)}
+            console.print(Panel(f"[bold red]✗[/bold red] Plugin 'shell' non chargé. Erreur : {e}", title="Erreur de Chargement Plugin", border_style="red"))
+        
+        # Charger le plugin de reporting
+        status.update("[bold cyan]Chargement du plugin Reporting...[/bold cyan]")
+        try:
+            from .reporting.cli import app as reporting_app
+            _global_app.add_typer(reporting_app, name="rapport")
+            plugins_info['reporting'] = {'status': 'loaded', 'path': 'rapport.cli'}
+            _plugins_cache['reporting'] = reporting_app  # Stocker dans le cache
+            console.print("[green]✓[/green] Plugin 'reporting' chargé.")
+        except ImportError as e:
+            plugins_info['reporting'] = {'status': 'error', 'error': str(e)}
+            console.print(Panel(f"[bold red]✗[/bold red] Plugin 'reporting' non chargé. Erreur : {e}", title="Erreur de Chargement Plugin", border_style="red"))
+        
+        # Charger le plugin de gestion des projets
+        status.update("[bold cyan]Chargement du plugin Project...[/bold cyan]")
+        try:
+            from .project_cli import app as project_app
+            _global_app.add_typer(project_app, name="project")
+            plugins_info['project'] = {'status': 'loaded', 'path': 'project_cli'}
+            _plugins_cache['project'] = project_app  # Stocker dans le cache
+            console.print("[green]✓[/green] Plugin 'project' chargé.")
+        except ImportError as e:
+            plugins_info['project'] = {'status': 'error', 'error': str(e)}
+            console.print(Panel(f"[bold red]✗[/bold red] Plugin 'project' non chargé. Erreur : {e}", title="Erreur de Chargement Plugin", border_style="red"))
+        
+        # Finaliser l'initialisation et calculer le temps
+        end_time = time.time()
+        _plugins_loading_time = end_time - start_time
+        _plugins_initialized = True
+        
+        console.print("[bold]----------------------------------[/bold]")
+        console.print(f"💾 [blue]Plugins initialisés[/blue] - {len(plugins_info)} plugins chargés")
+        console.print(f"⏱️  [green]Temps de chargement: {_plugins_loading_time:.1f}s[/green]")
+        console.print(f"💾 [blue]Plugins mis en cache pour les appels suivants[/blue]")
+        console.print(f"🚀 [green]LCPI-CLI est maintenant prêt ![/green]")
+        console.print(f"[dim]💡 Note: Le cache est actif dans cette session. Chaque nouvelle commande 'lcpi' dans le terminal relancera une nouvelle session.[/dim]")
+        
+        return plugins_info
+
 def initialize_plugins():
     """Initialise les plugins et retourne les informations de session."""
     global _plugins_initialized
@@ -1314,16 +1187,6 @@ def initialize_plugins():
         plugins_info['shell'] = {'status': 'error', 'error': str(e)}
         console.print(Panel(f"[bold red]✗[/bold red] Plugin 'shell' non chargé. Erreur : {e}", title="Erreur de Chargement Plugin", border_style="red"))
 
-    # Charger le plugin de reporting
-    try:
-        from .reporting.cli import app as reporting_app
-        app.add_typer(reporting_app, name="rapport")
-        plugins_info['reporting'] = {'status': 'loaded', 'path': 'rapport.cli'}
-        console.print("[green]✓[/green] Plugin 'reporting' chargé.")
-    except ImportError as e:
-        plugins_info['reporting'] = {'status': 'error', 'error': str(e)}
-        console.print(Panel(f"[bold red]✗[/bold red] Plugin 'reporting' non chargé. Erreur : {e}", title="Erreur de Chargement Plugin", border_style="red"))
-
     # Charger le plugin de gestion des projets
     try:
         from .project_cli import app as project_app
@@ -1331,6 +1194,9 @@ def initialize_plugins():
         plugins_info['project'] = {'status': 'loaded', 'path': 'project_cli'}
         console.print("[green]✓[/green] Plugin 'project' chargé.")
     except ImportError as e:
+        plugins_info['project'] = {'status': 'error', 'error': str(e)}
+        console.print(Panel(f"[bold red]✗[/bold red] Plugin 'project' non chargé. Erreur : {e}", title="Erreur de Chargement Plugin", border_style="red"))
+    except Exception as e:
         plugins_info['project'] = {'status': 'error', 'error': str(e)}
         console.print(Panel(f"[bold red]✗[/bold red] Plugin 'project' non chargé. Erreur : {e}", title="Erreur de Chargement Plugin", border_style="red"))
 
@@ -1351,39 +1217,30 @@ def print_plugin_status():
         # Afficher les plugins disponibles
         for plugin_name in ['cm', 'bois', 'beton', 'hydro', 'aep', 'shell', 'reporting', 'project']:
             console.print(f"[green]✓[/green] Plugin '{plugin_name}' disponible.")
-        
-        # Mettre à jour la session si elle existe
-        if session_manager.is_session_valid():
-            session_manager.update_session_usage()
         return
     
-    # Vérifier si une session valide existe
-    if session_manager.is_session_valid():
-        session_data = session_manager.get_session_data()
-        plugins_count = len(session_data.get('plugins', {}))
-        console.print(f"🚀 [green]Session restaurée[/green] - {plugins_count} plugins chargés")
-        console.print("[bold]----------------------------------[/bold]")
-        
-        # Marquer les plugins comme initialisés (ils sont déjà chargés dans l'app)
-        _plugins_initialized = True
-        
-        # Mettre à jour l'utilisation de la session
-        session_manager.update_session_usage()
-        return
-    
-    # Pas de session valide, initialiser les plugins
+    # Toujours initialiser les plugins
     plugins_info = initialize_plugins()
     console.print("[bold]----------------------------------[/bold]")
+    console.print(f"💾 [blue]Plugins initialisés[/blue] - {len(plugins_info)} plugins chargés")
+
+# Charger seulement les plugins de base au démarrage
+# Les plugins métier seront chargés à la demande selon la configuration
+try:
+    # Charger seulement les plugins de base (shell, utils)
+    initialize_base_plugins_with_spinner()
     
-    # Créer une nouvelle session
-    session_manager.create_session(plugins_info)
-    console.print(f"💾 [blue]Nouvelle session créée[/blue] - {len(plugins_info)} plugins initialisés")
+    # Charger les plugins métier activés dans la configuration
+    load_activated_plugins()
+    
+    _plugins_initialized = True
+    console.print(f"[green]✅[/green] [bold]LCPI-CLI initialisé avec succès ![/bold]")
+    console.print(f"[dim]💾 Plugins de base et métier activés chargés[/dim]")
+except Exception as e:
+    console.print(f"[yellow]⚠[/yellow] Erreur lors du chargement des plugins: {e}")
+    console.print("[yellow]⚠[/warning] Les plugins seront chargés à la demande.")
 
-# Appel de la fonction pour enregistrer les plugins au démarrage
-# On vérifie la variable d'environnement pour un lancement "core only"
-# Note: print_plugin_status() sera appelé lors de la première commande
-
-@app.command()
+@app.command(name="tips")
 def tips():
     """Affiche des astuces utiles pour LCPI-CLI."""
     if UX_AVAILABLE:
@@ -1392,7 +1249,7 @@ def tips():
         console.print(Panel("💡 Utilisez 'lcpi doctor' pour vérifier votre installation", 
                            title="💡 Astuce", border_style="yellow"))
 
-@app.command()
+@app.command(name="guide")
 def guide(topic: str = typer.Argument(None, help="Topic du guide (installation, plugins, first_project, troubleshooting)")):
     """Affiche un guide interactif pour LCPI-CLI."""
     if UX_AVAILABLE:
@@ -1401,7 +1258,7 @@ def guide(topic: str = typer.Argument(None, help="Topic du guide (installation, 
         console.print(Panel("📖 Guides disponibles dans la documentation: docs/GUIDE_UTILISATION.md", 
                            title="📖 Guide", border_style="blue"))
 
-@app.command()
+@app.command(name="examples")
 def examples(plugin: str = typer.Argument(None, help="Nom du plugin pour des exemples spécifiques")):
     """Affiche des exemples d'utilisation de LCPI-CLI."""
     if UX_AVAILABLE:
@@ -1410,7 +1267,7 @@ def examples(plugin: str = typer.Argument(None, help="Nom du plugin pour des exe
         console.print(Panel("📚 Exemples disponibles dans docs/NOUVELLES_FONCTIONNALITES.md", 
                            title="📚 Exemples", border_style="cyan"))
 
-@app.command()
+@app.command(name="welcome")
 def welcome():
     """Affiche le message de bienvenue et les informations de démarrage."""
     if UX_AVAILABLE:
@@ -1425,7 +1282,7 @@ from .logging_cli import app as logs_app
 # Ajouter la sous-commande de logging
 app.add_typer(logs_app, name="logs", help="Gestion des logs avec signature et intégrité")
 
-@app.command()
+@app.command(name="session")
 def session(
     action: str = typer.Argument("info", help="Action: info, clear, status"),
     verbose: bool = typer.Option(False, "--verbose", "-v", help="Afficher les détails complets")

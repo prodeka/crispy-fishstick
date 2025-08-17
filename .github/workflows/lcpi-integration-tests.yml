@@ -1,0 +1,170 @@
+name: LCPI Integration Tests
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  schedule:
+    # Tests automatiques tous les jours à 2h du matin
+    - cron: '0 2 * * *'
+
+jobs:
+  test-integration:
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        python-version: [3.11, 3.12]
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+        
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y pandoc texlive-latex-base texlive-fonts-recommended texlive-extra-utils texlive-latex-extra
+        
+    - name: Cache pip dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ matrix.python-version }}-${{ hashFiles('**/requirements*.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-${{ matrix.python-version }}-
+          
+    - name: Install Python dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install -e .
+        
+    - name: Run LCPI doctor
+      run: |
+        python -m lcpi doctor
+        
+    - name: Test project creation
+      run: |
+        # Créer un projet de test
+        python -m lcpi project init test-integration --template cm --no-interactive
+        
+    - name: Test project locking
+      run: |
+        cd test-integration
+        python -m lcpi lock
+        python -m lcpi unlock
+        
+    - name: Test plugin info
+      run: |
+        python -m lcpi plugin-info cm
+        python -m lcpi plugin-info bois
+        
+    - name: Test export reproducible
+      run: |
+        cd test-integration
+        python -m lcpi export-repro --output test-export.tar.gz --verbose
+        
+    - name: Verify export contents
+      run: |
+        cd test-integration
+        tar -tzf test-export.tar.gz
+        ls -la test-export.tar.gz
+        
+    - name: Test AEP calculations
+      run: |
+        cd test-integration
+        # Test des calculs AEP de base
+        python -m lcpi aep --help
+        
+    - name: Test CM calculations
+      run: |
+        cd test-integration
+        # Test des calculs CM de base
+        python -m lcpi cm --help
+        
+    - name: Test reporting
+      run: |
+        cd test-integration
+        # Test de la génération de rapports
+        python -m lcpi report --help
+        
+    - name: Cleanup test project
+      if: always()
+      run: |
+        rm -rf test-integration
+        
+    - name: Upload test artifacts
+      if: always()
+      uses: actions/upload-artifact@v3
+      with:
+        name: test-results-${{ matrix.python-version }}
+        path: |
+          test-export.tar.gz
+          logs/
+          
+  test-windows:
+    runs-on: windows-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+        
+    - name: Install Python dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install -e .
+        
+    - name: Run LCPI doctor on Windows
+      run: |
+        python -m lcpi doctor
+        
+    - name: Test basic commands on Windows
+      run: |
+        python -m lcpi --help
+        python -m lcpi doctor
+        python -m lcpi tips
+        
+  test-macos:
+    runs-on: macos-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+        
+    - name: Install system dependencies
+      run: |
+        brew install pandoc
+        brew install --cask mactex
+        
+    - name: Install Python dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install -e .
+        
+    - name: Run LCPI doctor on macOS
+      run: |
+        python -m lcpi doctor
+        
+    - name: Test basic commands on macOS
+      run: |
+        python -m lcpi --help
+        python -m lcpi doctor
+        python -m lcpi tips

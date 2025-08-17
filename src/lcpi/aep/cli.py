@@ -12,7 +12,7 @@ import yaml
 from .utils.rich_ui import RichUI, console, show_calculation_results, show_network_diagnostics
 
 # Import du module de journalisation
-from ..logging import log_calculation_result
+from ..lcpi_logging import log_calculation_result
 
 # Import du décorateur de contexte
 from ..core.context import require_project_context, ensure_project_structure
@@ -3073,7 +3073,7 @@ def network_analyze_scenarios(
             log = typer.confirm("📝 Voulez-vous journaliser cette analyse de scénarios ?")
         
         if log:
-            from ..logging import log_calculation_result
+            from ..lcpi_logging import log_calculation_result
             
             # Préparer les données pour la journalisation
             commande_executee = f"lcpi aep network-analyze-scenarios {input_file} --solver {solver} --format {output_format}"

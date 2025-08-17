@@ -12,8 +12,9 @@ if __name__ == "__main__":
     else:
         # Lancer la CLI classique
         try:
-            from src.lcpi.cli import main as cli_main
-            cli_main()
+            from src.lcpi.main import app
+            import typer
+            typer.run(app)
         except ImportError as e:
             print("[ERREUR] Impossible de lancer la CLI classique :", e)
             sys.exit(1)

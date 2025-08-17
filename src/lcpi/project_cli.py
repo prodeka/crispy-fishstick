@@ -487,3 +487,8 @@ def export_reproducible(
     except Exception as e:
         console.print(f"❌ Erreur lors de l'export: {e}")
         raise typer.Exit(1)
+
+
+# --- Enregistrement pour Typer ---
+def register():
+    return app
