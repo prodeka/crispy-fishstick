@@ -19,6 +19,22 @@ from ..optimizer.scoring import CostScorer
 
 
 app = typer.Typer(help="🏗️ Optimisation des réservoirs surélevés (MVP Binary)")
+pareto_app = typer.Typer(help="Export du front de Pareto")
+
+
+@pareto_app.command("export")
+def cmd_pareto_export(input_points: Path = typer.Argument(..., help="JSON avec points [{'CAPEX':...,'OPEX':...}]") , out: Path = typer.Option(Path("results/pareto.json"), help="Fichier de sortie")):
+	data = json.loads(input_points.read_text(encoding="utf-8"))
+	# Filtrer non-dominés (min CAPEX, min OPEX)
+	pareto = []
+	for i, p in enumerate(data):
+		if not any((q["CAPEX"] <= p["CAPEX"] and q["OPEX"] <= p["OPEX"] and (q["CAPEX"] < p["CAPEX"] or q["OPEX"] < p["OPEX"])) for q in data if q is not p):
+			pareto.append(p)
+	out.parent.mkdir(parents=True, exist_ok=True)
+	out.write_text(json.dumps({"pareto": pareto}, indent=2, ensure_ascii=False), encoding="utf-8")
+	typer.secho(f"Pareto exporté: {out}", fg=typer.colors.GREEN)
+
+app.add_typer(pareto_app, name="pareto")
 
 
 @app.command("verify")

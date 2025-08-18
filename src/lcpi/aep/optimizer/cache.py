@@ -21,16 +21,17 @@ class OptimizationCache:
         self.persist_dir = Path(persist_dir) if persist_dir else Path(".cache/opt_v11")
         self.persist_dir.mkdir(parents=True, exist_ok=True)
 
-    def _key(self, network_model: Dict[str, Any], H_tank: float, diameters: Dict[str, int]) -> str:
+    def _key(self, network_model: Dict[str, Any], H_tank: float, diameters: Dict[str, int], context: Optional[Dict[str, Any]] = None) -> str:
         payload = {
             "network": network_model,
             "H": float(H_tank),
             "diameters": diameters or {},
+            "context": context or {},
         }
         return _sha256_of_text(_stable_json(payload))
 
-    def get(self, network_model: Dict[str, Any], H_tank: float, diameters: Dict[str, int]) -> Optional[Dict[str, Any]]:
-        k = self._key(network_model, H_tank, diameters)
+    def get(self, network_model: Dict[str, Any], H_tank: float, diameters: Dict[str, int], context: Optional[Dict[str, Any]] = None) -> Optional[Dict[str, Any]]:
+        k = self._key(network_model, H_tank, diameters, context)
         f = self.persist_dir / f"{k}.json"
         if not f.exists():
             return None
@@ -39,8 +40,8 @@ class OptimizationCache:
         except Exception:
             return None
 
-    def set(self, network_model: Dict[str, Any], H_tank: float, diameters: Dict[str, int], result: Dict[str, Any]) -> None:
-        k = self._key(network_model, H_tank, diameters)
+    def set(self, network_model: Dict[str, Any], H_tank: float, diameters: Dict[str, int], result: Dict[str, Any], context: Optional[Dict[str, Any]] = None) -> None:
+        k = self._key(network_model, H_tank, diameters, context)
         f = self.persist_dir / f"{k}.json"
         try:
             f.write_text(json.dumps(result, ensure_ascii=False), encoding="utf-8")
