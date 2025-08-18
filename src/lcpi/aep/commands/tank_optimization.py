@@ -23,15 +23,15 @@ pareto_app = typer.Typer(help="Export du front de Pareto")
 
 
 @pareto_app.command("export")
-def cmd_pareto_export(input_points: Path = typer.Argument(..., help="JSON avec points [{'CAPEX':...,'OPEX':...}]") , out: Path = typer.Option(Path("results/pareto.json"), help="Fichier de sortie")):
+def cmd_pareto_export(input_points: Path = typer.Argument(..., help="JSON avec points [{'CAPEX':...,'OPEX':...}]"), out: Path = typer.Option(Path("results/pareto.json"), help="Fichier de sortie"), knee: bool = typer.Option(True, "--knee/--no-knee", help="Inclure knee point")):
+	from ..optimizer.pareto import compute_pareto, knee_point
 	data = json.loads(input_points.read_text(encoding="utf-8"))
-	# Filtrer non-dominés (min CAPEX, min OPEX)
-	pareto = []
-	for i, p in enumerate(data):
-		if not any((q["CAPEX"] <= p["CAPEX"] and q["OPEX"] <= p["OPEX"] and (q["CAPEX"] < p["CAPEX"] or q["OPEX"] < p["OPEX"])) for q in data if q is not p):
-			pareto.append(p)
+	pareto = compute_pareto(data)
+	payload = {"pareto": pareto}
+	if knee:
+		payload["knee"] = knee_point(pareto)
 	out.parent.mkdir(parents=True, exist_ok=True)
-	out.write_text(json.dumps({"pareto": pareto}, indent=2, ensure_ascii=False), encoding="utf-8")
+	out.write_text(json.dumps(payload, indent=2, ensure_ascii=False), encoding="utf-8")
 	typer.secho(f"Pareto exporté: {out}", fg=typer.colors.GREEN)
 
 app.add_typer(pareto_app, name="pareto")
