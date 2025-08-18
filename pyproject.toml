@@ -7,17 +7,58 @@ name = "lcpi-cli"
 version = "2.1.0"
 requires-python = ">=3.8"
 dependencies = [
-    "typer[all]", "PyYAML", "pandas", "matplotlib", "reportlab", "scipy", "packaging"
+    "typer>=0.9.0",
+    "rich>=13.0.0",
+    "pyyaml>=6.0",
+    "pandas>=1.5.0",
+    "numpy>=1.21.0",
+    "matplotlib>=3.5.0",
+    "seaborn>=0.11.0",
+    "scipy>=1.9.0",
+    "jinja2>=3.1.0",
+    "click>=8.0.0",
+    "colorama>=0.4.5",
+    "tqdm>=4.64.0",
+    "requests>=2.28.0",
+    "psutil>=5.9.0",
+    "pyreadline3>=3.5.0; sys_platform == 'win32'",
+    "readline>=6.2.4.1; sys_platform != 'win32'"
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-cov>=4.0.0",
+    "black>=22.0.0",
+    "flake8>=5.0.0",
+    "mypy>=1.0.0"
 ]
 
 [project.scripts]
-lcpi = "lcpi.main:app"
+lcpi = "lcpi_launcher:main"
 
-[tool.typer]
-name = "lcpi"
-help = "LCPI-CLI - Plateforme de Calcul Polyvalent pour l'Ingénierie"
-add_completion = true
+[project.urls]
+Homepage = "https://github.com/lcpi-engineering/lcpi-cli"
+Documentation = "https://lcpi-engineering.github.io/lcpi-cli"
+Repository = "https://github.com/lcpi-engineering/lcpi-cli"
+Issues = "https://github.com/lcpi-engineering/lcpi-cli/issues"
 
-[tool.setuptools]
-package-dir = {"" = "src"}
-packages = ["lcpi", "lcpi.utils"]
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.black]
+line-length = 88
+target-version = ['py38']
+
+[tool.mypy]
+python_version = "3.8"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = "-v --tb=short"

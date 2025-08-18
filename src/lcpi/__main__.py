@@ -14,6 +14,7 @@ if parent_dir not in sys.path:
 
 if __name__ == "__main__":
     try:
+        # Utiliser des imports absolus pour PyInstaller
         from lcpi.main import app
         import typer
         

@@ -11,7 +11,7 @@ from rich.table import Table
 from rich.panel import Panel
 from rich.text import Text
 
-from .lcpi_logging.logger import logger
+from .lcpi_logging.logger import lcpi_logger as logger
 
 app = typer.Typer(name="logs", help="Gestion des logs LCPI avec signature et intégrité")
 console = Console()

@@ -1,13 +1,30 @@
 import sys
 import os
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
-from src.lcpi.main import app
+# Ajouter le répertoire parent au path pour les imports relatifs
+current_dir = os.path.dirname(os.path.abspath(__file__))
+parent_dir = os.path.dirname(current_dir)
+if parent_dir not in sys.path:
+    sys.path.insert(0, parent_dir)
+
+try:
+    from lcpi.main import app
+except ImportError:
+    # Fallback pour l'installation pip
+    sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
+    from lcpi.main import app
 import typer
 from typing import Optional, List
 
 def main():
-    app()
+    """Point d'entrée principal pour l'application CLI"""
+    try:
+        app()
+    except Exception as e:
+        print(f"❌ Erreur lors du lancement de LCPI-CLI: {e}")
+        import traceback
+        traceback.print_exc()
+        sys.exit(1)
 
 @app.command()
 def db_global_search(

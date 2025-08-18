@@ -60,3 +60,6 @@ rapport_lcpi.pdf
 climat_test.yml
 !vendor/*.whl
 
+## Timestamped build outputs
+build_*/
+dist_*/

@@ -1,337 +1,377 @@
 """
-Module pour l'export d'environnements reproductibles LCPI.
-
-Ce module permet de créer des exports complets et reproductibles
-des projets LCPI, incluant :
-- Configuration du projet
-- Dépendances exactes
-- Logs et résultats
-- Environnement de calcul
+Module d'export reproductible pour LCPI - Jalon 2.
+Permet d'exporter un projet complet avec son environnement pour la reproductibilité.
 """
 
-import os
 import json
-import hashlib
 import tarfile
-import tempfile
+import hashlib
+import os
+import sys
+import platform
+import subprocess
+from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Optional, Any
-from datetime import datetime
+import yaml
 
-from .global_config import global_config
-from .context import project_context
-
+try:
+    import pkg_resources
+    PKG_RESOURCES_AVAILABLE = True
+except ImportError:
+    PKG_RESOURCES_AVAILABLE = False
 
 class ReproducibleExporter:
-    """Exportateur d'environnements reproductibles pour LCPI."""
+    """Exporte un projet LCPI de manière reproductible."""
     
-    def __init__(self, project_path: Optional[Path] = None):
-        self.project_path = project_path or project_context.get_project_path()
-        self.export_dir = Path(tempfile.mkdtemp(prefix="lcpi_export_"))
+    def __init__(self, project_path: Path):
+        self.project_path = Path(project_path)
+        self.export_info = {}
         
-    def export_reproducible(self, output_path: str, include_logs: bool = True, 
-                           include_results: bool = True, include_env: bool = True) -> Dict[str, Any]:
+    def export_reproducible(
+        self,
+        output_path: str,
+        include_logs: bool = True,
+        include_results: bool = True,
+        include_env: bool = True,
+        include_data: bool = True
+    ) -> Dict[str, Any]:
         """
-        Exporte un environnement reproductible complet.
+        Exporte le projet de manière reproductible.
         
         Args:
-            output_path: Chemin du fichier d'export (.tar.gz)
+            output_path: Chemin de sortie pour l'archive
             include_logs: Inclure les logs de calcul
-            include_results: Inclure les résultats
+            include_results: Inclure les résultats exportés
             include_env: Inclure l'environnement Python
+            include_data: Inclure les données du projet
             
         Returns:
-            Dict avec les métadonnées de l'export
+            Informations sur l'export
         """
-        try:
-            # Créer la structure d'export
-            export_info = self._create_export_structure()
-            
-            # Ajouter les fichiers du projet
-            self._add_project_files()
+        output_path = Path(output_path)
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        
+        # Initialiser les informations d'export
+        self.export_info = {
+            "export_date": datetime.now().isoformat(),
+            "project_name": self.project_path.name,
+            "project_path": str(self.project_path.absolute()),
+            "lcpi_version": self._get_lcpi_version(),
+            "python_version": sys.version,
+            "platform": platform.platform(),
+            "export_options": {
+                "include_logs": include_logs,
+                "include_results": include_results,
+                "include_env": include_env,
+                "include_data": include_data
+            },
+            "checksums": {},
+            "files_included": []
+        }
+        
+        # Créer l'archive tar.gz
+        with tarfile.open(output_path, "w:gz") as tar:
+            # Ajouter le projet principal
+            self._add_project_to_tar(tar, include_data)
             
             # Ajouter les logs si demandé
             if include_logs:
-                self._add_logs()
-                
+                self._add_logs_to_tar(tar)
+            
             # Ajouter les résultats si demandé
             if include_results:
-                self._add_results()
-                
-            # Ajouter l'environnement Python si demandé
+                self._add_results_to_tar(tar)
+            
+            # Ajouter l'environnement si demandé
             if include_env:
-                self._add_environment()
-                
-            # Créer l'archive tar.gz
-            self._create_archive(output_path)
+                self._add_environment_to_tar(tar)
             
-            # Nettoyer
-            self._cleanup()
-            
-            return export_info
-            
-        except Exception as e:
-            self._cleanup()
-            raise RuntimeError(f"Échec de l'export reproductible: {e}")
+            # Ajouter les métadonnées d'export
+            self._add_export_metadata_to_tar(tar)
+        
+        # Calculer le checksum de l'archive finale
+        self.export_info["checksums"]["archive"] = self._calculate_file_checksum(output_path)
+        self.export_info["files_included"] = list(set(self.export_info["files_included"]))
+        
+        # Sauvegarder les informations d'export
+        metadata_path = output_path.with_suffix('.json')
+        with open(metadata_path, 'w', encoding='utf-8') as f:
+            json.dump(self.export_info, f, indent=2, ensure_ascii=False)
+        
+        return self.export_info
     
-    def _create_export_structure(self) -> Dict[str, Any]:
-        """Crée la structure de base de l'export."""
-        export_info = {
-            'export_date': datetime.now().isoformat(),
-            'project_name': self.project_path.name,
-            'project_path': str(self.project_path),
-            'lcpi_version': '2.1.0',  # TODO: Récupérer depuis le code
-            'checksums': {},
-            'contents': []
-        }
+    def _add_project_to_tar(self, tar: tarfile.TarFile, include_data: bool):
+        """Ajoute le projet principal à l'archive."""
+        project_files = []
         
-        # Créer la structure des dossiers
-        (self.export_dir / 'project').mkdir(exist_ok=True)
-        (self.export_dir / 'logs').mkdir(exist_ok=True)
-        (self.export_dir / 'results').mkdir(exist_ok=True)
-        (self.export_dir / 'environment').mkdir(exist_ok=True)
+        # Fichiers de configuration
+        config_files = [
+            "lcpi.yml", "config.yml", "pyproject.toml", "requirements.txt"
+        ]
         
-        return export_info
-    
-    def _add_project_files(self):
-        """Ajoute les fichiers du projet à l'export."""
-        project_export_dir = self.export_dir / 'project'
-        
-        # Copier les fichiers de configuration
-        config_files = ['lcpi.yml', 'config.yml', 'pyproject.toml', 'requirements.txt']
         for config_file in config_files:
             config_path = self.project_path / config_file
             if config_path.exists():
-                self._copy_file(config_path, project_export_dir / config_file)
+                project_files.append(config_path)
         
-        # Copier la structure des données
-        data_dir = self.project_path / 'data'
-        if data_dir.exists():
-            self._copy_directory(data_dir, project_export_dir / 'data')
+        # Répertoires du projet
+        project_dirs = ["src", "templates", "docs"]
+        if include_data:
+            project_dirs.append("data")
         
-        # Copier les scripts
-        scripts_dir = self.project_path / 'scripts'
-        if scripts_dir.exists():
-            self._copy_directory(scripts_dir, project_export_dir / 'scripts')
+        for project_dir in project_dirs:
+            dir_path = self.project_path / project_dir
+            if dir_path.exists():
+                project_files.extend(dir_path.rglob("*"))
+        
+        # Ajouter les fichiers au tar
+        for file_path in project_files:
+            if file_path.is_file():
+                arcname = f"project/{file_path.relative_to(self.project_path)}"
+                tar.add(file_path, arcname=arcname)
+                self.export_info["files_included"].append(str(file_path))
     
-    def _add_logs(self):
-        """Ajoute les logs de calcul à l'export."""
-        logs_dir = self.project_path / 'logs'
+    def _add_logs_to_tar(self, tar: tarfile.TarFile):
+        """Ajoute les logs de calcul à l'archive."""
+        logs_dir = self.project_path / "logs"
         if not logs_dir.exists():
             return
+        
+        for log_file in logs_dir.rglob("*.json"):
+            arcname = f"logs/{log_file.relative_to(logs_dir)}"
+            tar.add(log_file, arcname=arcname)
+            self.export_info["files_included"].append(str(log_file))
             
-        logs_export_dir = self.export_dir / 'logs'
-        
-        # Copier tous les fichiers de logs
-        for log_file in logs_dir.glob('*'):
-            if log_file.is_file():
-                self._copy_file(log_file, logs_export_dir / log_file.name)
-        
-        # Créer un index des logs avec checksums
-        logs_index = self._create_logs_index(logs_dir)
-        with open(logs_export_dir / 'logs_index.json', 'w') as f:
-            json.dump(logs_index, f, indent=2)
+            # Calculer le checksum du log
+            checksum = self._calculate_file_checksum(log_file)
+            self.export_info["checksums"][f"log_{log_file.name}"] = checksum
     
-    def _add_results(self):
-        """Ajoute les résultats de calcul à l'export."""
-        output_dir = self.project_path / 'output'
-        if not output_dir.exists():
+    def _add_results_to_tar(self, tar: tarfile.TarFile):
+        """Ajoute les résultats exportés à l'archive."""
+        results_dir = self.project_path / "results"
+        if not results_dir.exists():
             return
-            
-        results_export_dir = self.export_dir / 'results'
         
-        # Copier les résultats
-        self._copy_directory(output_dir, results_export_dir)
-        
-        # Créer un index des résultats
-        results_index = self._create_results_index(output_dir)
-        with open(results_export_dir / 'results_index.json', 'w') as f:
-            json.dump(results_index, f, indent=2)
+        for result_file in results_dir.rglob("*"):
+            if result_file.is_file():
+                arcname = f"results/{result_file.relative_to(results_dir)}"
+                tar.add(result_file, arcname=arcname)
+                self.export_info["files_included"].append(str(result_file))
     
-    def _add_environment(self):
-        """Ajoute l'environnement Python à l'export."""
-        env_export_dir = self.export_dir / 'environment'
-        
+    def _add_environment_to_tar(self, tar: tarfile.TarFile):
+        """Ajoute l'environnement Python à l'archive."""
         # Générer requirements.txt
-        self._generate_requirements_txt(env_export_dir)
+        requirements_content = self._generate_requirements_txt()
+        requirements_path = Path("requirements.txt")
+        requirements_path.write_text(requirements_content, encoding='utf-8')
         
-        # Générer Dockerfile minimal
-        self._generate_dockerfile(env_export_dir)
+        # Ajouter requirements.txt
+        tar.add(requirements_path, arcname="environment/requirements.txt")
+        self.export_info["files_included"].append(str(requirements_path))
+        
+        # Générer Dockerfile
+        dockerfile_content = self._generate_dockerfile()
+        dockerfile_path = Path("Dockerfile")
+        dockerfile_path.write_text(dockerfile_content, encoding='utf-8')
+        
+        # Ajouter Dockerfile
+        tar.add(dockerfile_path, arcname="environment/Dockerfile")
+        self.export_info["files_included"].append(str(dockerfile_path))
         
         # Générer pyproject.toml
-        self._generate_pyproject_toml(env_export_dir)
+        pyproject_content = self._generate_pyproject_toml()
+        pyproject_path = Path("pyproject.toml")
+        pyproject_path.write_text(pyproject_content, encoding='utf-8')
         
-        # Informations sur l'environnement
-        env_info = {
-            'python_version': f"{os.sys.version_info.major}.{os.sys.version_info.minor}.{os.sys.version_info.micro}",
-            'platform': os.sys.platform,
-            'export_date': datetime.now().isoformat()
-        }
+        # Ajouter pyproject.toml
+        tar.add(pyproject_path, arcname="environment/pyproject.toml")
+        self.export_info["files_included"].append(str(pyproject_path))
         
-        with open(env_export_dir / 'environment_info.json', 'w') as f:
-            json.dump(env_info, f, indent=2)
+        # Nettoyer les fichiers temporaires
+        requirements_path.unlink()
+        dockerfile_path.unlink()
+        pyproject_path.unlink()
     
-    def _create_logs_index(self, logs_dir: Path) -> Dict[str, Any]:
-        """Crée un index des logs avec checksums."""
-        logs_index = {
-            'total_files': 0,
-            'total_size': 0,
-            'files': []
-        }
+    def _add_export_metadata_to_tar(self, tar: tarfile.TarFile):
+        """Ajoute les métadonnées d'export à l'archive."""
+        # Créer un fichier temporaire avec les métadonnées
+        metadata_content = json.dumps(self.export_info, indent=2, ensure_ascii=False)
+        metadata_path = Path("export_metadata.json")
+        metadata_path.write_text(metadata_content, encoding='utf-8')
         
-        for log_file in logs_dir.glob('*'):
-            if log_file.is_file():
-                file_info = self._get_file_info(log_file)
-                logs_index['files'].append(file_info)
-                logs_index['total_files'] += 1
-                logs_index['total_size'] += file_info['size']
+        # Ajouter au tar
+        tar.add(metadata_path, arcname="export_metadata.json")
         
-        return logs_index
+        # Nettoyer
+        metadata_path.unlink()
     
-    def _create_results_index(self, output_dir: Path) -> Dict[str, Any]:
-        """Crée un index des résultats avec checksums."""
-        results_index = {
-            'total_files': 0,
-            'total_size': 0,
-            'files': []
-        }
+    def _generate_requirements_txt(self) -> str:
+        """Génère un requirements.txt basé sur l'environnement actuel."""
+        if not PKG_RESOURCES_AVAILABLE:
+            return "# Requirements.txt généré automatiquement\n# Module pkg_resources non disponible"
         
-        for result_file in output_dir.rglob('*'):
-            if result_file.is_file():
-                file_info = self._get_file_info(result_file)
-                results_index['files'].append(file_info)
-                results_index['total_files'] += 1
-                results_index['total_size'] += file_info['size']
+        requirements = []
+        requirements.append("# Requirements.txt généré automatiquement pour LCPI")
+        requirements.append(f"# Généré le: {datetime.now().isoformat()}")
+        requirements.append(f"# Python: {sys.version}")
+        requirements.append("")
         
-        return results_index
-    
-    def _get_file_info(self, file_path: Path) -> Dict[str, Any]:
-        """Récupère les informations d'un fichier avec checksum."""
-        stat = file_path.stat()
-        
-        # Calculer le checksum SHA256
-        sha256_hash = hashlib.sha256()
-        with open(file_path, "rb") as f:
-            for chunk in iter(lambda: f.read(4096), b""):
-                sha256_hash.update(chunk)
-        
-        return {
-            'name': str(file_path.relative_to(self.project_path)),
-            'size': stat.st_size,
-            'modified': datetime.fromtimestamp(stat.st_mtime).isoformat(),
-            'checksum_sha256': sha256_hash.hexdigest()
-        }
-    
-    def _generate_requirements_txt(self, env_dir: Path):
-        """Génère un requirements.txt avec les dépendances exactes."""
+        # Obtenir les packages installés
         try:
-            import pkg_resources
-            requirements = []
-            
-            for dist in pkg_resources.working_set:
-                requirements.append(f"{dist.project_name}=={dist.version}")
-            
-            with open(env_dir / 'requirements.txt', 'w') as f:
-                f.write('\n'.join(sorted(requirements)))
-                
-        except ImportError:
-            # Fallback si pkg_resources n'est pas disponible
-            with open(env_dir / 'requirements.txt', 'w') as f:
-                f.write("# Impossible de générer les dépendances exactes\n")
-                f.write("# Utilisez 'pip freeze' manuellement\n")
+            installed_packages = [d for d in pkg_resources.working_set]
+            for package in sorted(installed_packages, key=lambda x: x.project_name.lower()):
+                requirements.append(f"{package.project_name}=={package.version}")
+        except Exception as e:
+            requirements.append(f"# Erreur lors de la génération: {e}")
+        
+        return "\n".join(requirements)
     
-    def _generate_dockerfile(self, env_dir: Path):
-        """Génère un Dockerfile minimal pour reproduire l'environnement."""
-        dockerfile_content = f"""# Dockerfile généré automatiquement par LCPI
-# Date: {datetime.now().isoformat()}
-# Projet: {self.project_path.name}
+    def _generate_dockerfile(self) -> str:
+        """Génère un Dockerfile pour reproduire l'environnement."""
+        return f"""# Dockerfile généré automatiquement pour LCPI
+# Généré le: {datetime.now().isoformat()}
 
 FROM python:3.11-slim
 
+# Variables d'environnement
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONDONTWRITEBYTECODE=1
+
+# Installation des dépendances système
+RUN apt-get update && apt-get install -y \\
+    build-essential \\
+    && rm -rf /var/lib/apt/lists/*
+
+# Répertoire de travail
 WORKDIR /app
 
-# Copier les dépendances
+# Copier les fichiers d'environnement
 COPY environment/requirements.txt .
+COPY environment/pyproject.toml .
 
-# Installer les dépendances
+# Installer les dépendances Python
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copier le projet
 COPY project/ .
 
-# Point d'entrée
+# Commande par défaut
 CMD ["python", "-m", "lcpi", "--help"]
 """
-        
-        with open(env_dir / 'Dockerfile', 'w') as f:
-            f.write(dockerfile_content)
     
-    def _generate_pyproject_toml(self, env_dir: Path):
-        """Génère un pyproject.toml pour le projet."""
-        pyproject_content = f"""[tool.poetry]
-name = "{self.project_path.name}-reproducible"
+    def _generate_pyproject_toml(self) -> str:
+        """Génère un pyproject.toml basique."""
+        return f"""[build-system]
+requires = ["setuptools>=45", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "lcpi-reproducible"
 version = "0.1.0"
-description = "Export reproductible du projet {self.project_path.name}"
-authors = ["LCPI Export <export@lcpi.local>"]
+description = "Projet LCPI reproductible exporté le {datetime.now().isoformat()}"
+requires-python = ">=3.9"
+dependencies = [
+    "typer>=0.9.0",
+    "rich>=13.0.0",
+    "pyyaml>=6.0",
+    "packaging>=23.0"
+]
 
-[tool.poetry.dependencies]
-python = "^3.11"
-
-[build-system]
-requires = ["poetry-core>=1.0.0"]
-build-backend = "poetry.core.masonry.api"
-
-# Généré automatiquement par LCPI le {datetime.now().isoformat()}
+[tool.setuptools]
+packages = ["lcpi"]
 """
-        
-        with open(env_dir / 'pyproject.toml', 'w') as f:
-            f.write(pyproject_content)
     
-    def _copy_file(self, src: Path, dst: Path):
-        """Copie un fichier avec gestion des erreurs."""
+    def _get_lcpi_version(self) -> str:
+        """Récupère la version de LCPI."""
         try:
-            import shutil
-            shutil.copy2(src, dst)
-        except Exception as e:
-            print(f"Warning: Impossible de copier {src}: {e}")
-    
-    def _copy_directory(self, src: Path, dst: Path):
-        """Copie un répertoire avec gestion des erreurs."""
-        try:
-            import shutil
-            shutil.copytree(src, dst, dirs_exist_ok=True)
-        except Exception as e:
-            print(f"Warning: Impossible de copier {src}: {e}")
-    
-    def _create_archive(self, output_path: str):
-        """Crée l'archive tar.gz finale."""
-        with tarfile.open(output_path, "w:gz") as tar:
-            tar.add(self.export_dir, arcname="lcpi_reproducible")
-    
-    def _cleanup(self):
-        """Nettoie les fichiers temporaires."""
-        try:
-            import shutil
-            shutil.rmtree(self.export_dir)
-        except Exception:
+            if PKG_RESOURCES_AVAILABLE:
+                lcpi_dist = pkg_resources.get_distribution("lcpi-cli")
+                return lcpi_dist.version
+        except pkg_resources.DistributionNotFound:
             pass
+        
+        # Fallback: chercher dans le code
+        try:
+            from .. import __version__
+            return __version__
+        except ImportError:
+            pass
+        
+        return "2.1.0"  # Version par défaut
+    
+    def _calculate_file_checksum(self, file_path: Path) -> str:
+        """Calcule le checksum SHA-256 d'un fichier."""
+        sha256_hash = hashlib.sha256()
+        with open(file_path, "rb") as f:
+            for chunk in iter(lambda: f.read(4096), b""):
+                sha256_hash.update(chunk)
+        return sha256_hash.hexdigest()
 
 
-def export_reproducible(project_path: Optional[Path] = None, output_path: str = "repro.tar.gz",
-                        include_logs: bool = True, include_results: bool = True, 
-                        include_env: bool = True) -> Dict[str, Any]:
+def export_reproducible(
+    project_path: str,
+    output_path: str,
+    include_logs: bool = True,
+    include_results: bool = True,
+    include_env: bool = True,
+    include_data: bool = True
+) -> Dict[str, Any]:
     """
-    Fonction utilitaire pour exporter un environnement reproductible.
+    Fonction de convenance pour exporter un projet de manière reproductible.
     
     Args:
-        project_path: Chemin du projet (optionnel)
-        output_path: Chemin du fichier d'export
-        include_logs: Inclure les logs
-        include_results: Inclure les résultats
-        include_env: Inclure l'environnement
+        project_path: Chemin vers le projet LCPI
+        output_path: Chemin de sortie pour l'archive
+        include_logs: Inclure les logs de calcul
+        include_results: Inclure les résultats exportés
+        include_env: Inclure l'environnement Python
+        include_data: Inclure les données du projet
         
     Returns:
-        Dict avec les métadonnées de l'export
+        Informations sur l'export
     """
     exporter = ReproducibleExporter(project_path)
-    return exporter.export_reproducible(output_path, include_logs, include_results, include_env)
+    return exporter.export_reproducible(
+        output_path=output_path,
+        include_logs=include_logs,
+        include_results=include_results,
+        include_env=include_env,
+        include_data=include_data
+    )
+
+
+if __name__ == "__main__":
+    # Test de la fonction
+    import tempfile
+    import shutil
+    
+    # Créer un projet de test
+    with tempfile.TemporaryDirectory() as temp_dir:
+        test_project = Path(temp_dir) / "test_project"
+        test_project.mkdir()
+        
+        # Créer quelques fichiers de test
+        (test_project / "data").mkdir()
+        (test_project / "logs").mkdir()
+        (test_project / "results").mkdir()
+        
+        (test_project / "data" / "test.csv").write_text("test,data")
+        (test_project / "logs" / "test.json").write_text('{"test": "log"}')
+        (test_project / "results" / "test.txt").write_text("test result")
+        
+        # Exporter
+        output_file = test_project / "export.tar.gz"
+        export_info = export_reproducible(
+            project_path=str(test_project),
+            output_path=str(output_file),
+            include_logs=True,
+            include_results=True,
+            include_env=True,
+            include_data=True
+        )
+        
+        print("Export réussi!")
+        print(f"Fichier: {output_file}")
+        print(f"Taille: {output_file.stat().st_size} bytes")
+        print(f"Fichiers inclus: {len(export_info['files_included'])}")

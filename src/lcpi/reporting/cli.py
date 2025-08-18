@@ -8,7 +8,7 @@ from typing import List, Optional
 from .report_generator import ReportGenerator
 from .utils.pdf_generator import export_to_pdf
 from .utils.docx_generator import export_to_docx
-from ..lcpi_logging import list_available_logs, load_log_by_id
+from ..lcpi_logging.logger import lcpi_logger
 
 app = typer.Typer(name="reporting", help="Génération de rapports professionnels à partir des logs de calcul.")
 
@@ -64,7 +64,7 @@ def generate_report(
             raise typer.Exit(1)
         
         project_path = context['path']
-        available_logs = list_available_logs(project_path)
+        available_logs = lcpi_logger.list_logs()
         
         if not available_logs:
             typer.secho("❌ Aucun log trouvé dans le répertoire logs/", fg=typer.colors.RED)
@@ -101,7 +101,7 @@ def generate_report(
         # Charger les données des logs sélectionnés
         log_files = []
         for log_info in selected_logs:
-            log_data = load_log_by_id(log_info['id'], project_path)
+            log_data = lcpi_logger.get_log_by_id(log_info['id'])
             if log_data:
                 # Créer un fichier temporaire avec les données du log
                 temp_file = Path(f"temp_log_{log_info['id']}.json")

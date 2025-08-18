@@ -16,6 +16,9 @@ from rich.spinner import Spinner
 from rich.live import Live
 from rich.text import Text
 
+# Import des décorateurs de spinner
+from .core.spinner import with_spinner, with_plugin_spinner, with_calculation_spinner, get_spinner_message
+
 # Phase 5: Imports pour UX et traçabilité
 try:
     from .core.project_manager import ProjectManager, create_project
@@ -40,8 +43,6 @@ except ImportError as e:
 #     # En cas d'erreur de licence, arrêter le programme
 #     print(f"Erreur de licence : {e}")
 #     sys.exit(1)
-print("⚠️  Vérification de licence temporairement désactivée pour les tests")
-
 # Import du gestionnaire de session
 from .core.session_manager import session_manager
 
@@ -49,12 +50,6 @@ from .core.session_manager import session_manager
 _plugins_initialized = False
 _plugins_cache = {}  # Cache des plugins chargés
 _plugins_loading_time = None  # Temps de chargement initial
-
-# Force UTF-8 encoding for stdout and stderr
-if sys.stdout.encoding != 'utf-8':
-    sys.stdout.reconfigure(encoding='utf-8')
-if sys.stderr.encoding != 'utf-8':
-    sys.stderr.reconfigure(encoding='utf-8')
 
 console = Console()
 
@@ -123,8 +118,10 @@ def get_available_plugins():
     return sorted([d.name for d in plugins_dir.iterdir() if d.is_dir() and not d.name.startswith("_") and d.name not in EXCLUDED_DIRS])
 
 @app.command(name="plugins")
+@with_spinner(get_spinner_message("plugin_management", "Gestion des plugins..."))
 def plugins(action: str = typer.Argument(..., help="Action: list, install, uninstall"), 
-            nom_plugin: str = typer.Argument(None, help="Le nom du plugin à gérer." )):
+            nom_plugin: str = typer.Argument(None, help="Le nom du plugin à gérer." ),
+            verbose: bool = typer.Option(False, "--verbose", "-v", help="Mode verbeux")):
     """Gère l'activation et la désactivation des plugins locaux."""
     config = get_plugin_config()
     active_plugins = set(config.get("active_plugins", []))
@@ -192,7 +189,7 @@ def plugins(action: str = typer.Argument(..., help="Action: list, install, unins
         console.print(Panel(f"[bold red]ERREUR[/bold red]: Action '{action}' non reconnue.", title="Erreur", border_style="red"))
 
 @app.command(name="config")
-def config(action: str, cle: str = typer.Argument(None), valeur: str = typer.Argument(None), global_: bool = typer.Option(False, "--global", help="Config globale utilisateur." )):
+def config(action: str, cle: str = typer.Argument(None), valeur: str = typer.Argument(None), global_: bool = typer.Option(False, "--global", help="Config globale utilisateur")):
     """Gère la configuration de LCPI (get|set|list)."""
     import json
     config_path = pathlib.Path.home() / ".lcpi_config.json" if global_ else pathlib.Path(".lcpi_config.json")
@@ -479,9 +476,11 @@ def list_schemas():
 
 
 @app.command("lock")
+@with_spinner(get_spinner_message("project_lock", "Verrouillage du projet..."))
 def lock_project(
     project_name: str = typer.Argument(None, help="Nom du projet à verrouiller"),
-    force: bool = typer.Option(False, "--force", "-f", help="Forcer le verrouillage même si verrouillé")
+    force: bool = typer.Option(False, "--force", "-f", help="Forcer le verrouillage même si verrouillé"),
+    verbose: bool = typer.Option(False, "--verbose", "-v", help="Mode verbeux")
 ):
     """Verrouille un projet pour éviter les conflits multi-processus."""
     try:
@@ -529,9 +528,11 @@ def lock_project(
 
 
 @app.command("unlock")
+@with_spinner(get_spinner_message("project_unlock", "Déverrouillage du projet..."))
 def unlock_project(
     project_name: str = typer.Argument(None, help="Nom du projet à déverrouiller"),
-    force: bool = typer.Option(False, "--force", "-f", help="Forcer le déverrouillage")
+    force: bool = typer.Option(False, "--force", "-f", help="Forcer le déverrouillage"),
+    verbose: bool = typer.Option(False, "--verbose", "-v", help="Mode verbeux")
 ):
     """Déverrouille un projet."""
     try:
@@ -686,6 +687,7 @@ def plugin_api_version(plugin_name: str = typer.Argument(None, help="Nom du plug
 
 
 @app.command("export-repro")
+@with_spinner(get_spinner_message("export_reproducible", "Export reproductible..."))
 def export_reproducible(
     output: str = typer.Option("repro.tar.gz", "--output", "-o", help="Chemin du fichier d'export"),
     include_logs: bool = typer.Option(True, "--logs/--no-logs", help="Inclure les logs de calcul"),
@@ -899,8 +901,6 @@ def initialize_base_plugins_with_spinner():
         return
     
     start_time = time.time()
-    console.print("[bold blue]🚀 Initialisation de LCPI-CLI avec chargement des plugins de base...[/bold blue]")
-    console.print("[dim]⏳ Veuillez patienter pendant le chargement des plugins de base...[/dim]")
     
     with console.status("[bold cyan]Chargement des plugins de base...[/bold cyan]", spinner="dots4") as status:
         plugins_info = {}
@@ -913,22 +913,13 @@ def initialize_base_plugins_with_spinner():
             _global_app.add_typer(shell_app, name="shell")
             plugins_info['shell'] = {'status': 'loaded', 'path': 'shell.main'}
             _plugins_cache['shell'] = shell_app  # Stocker dans le cache
-            console.print("[green]✓[/green] Plugin 'shell' chargé.")
         except ImportError as e:
             plugins_info['shell'] = {'status': 'error', 'error': str(e)}
-            console.print(Panel(f"[bold red]✗[/bold red] Plugin 'shell' non chargé. Erreur : {e}", title="Erreur de Chargement Plugin", border_style="red"))
         
         # Finaliser l'initialisation et calculer le temps
         end_time = time.time()
         _plugins_loading_time = end_time - start_time
         _plugins_initialized = True
-        
-        console.print("[bold]----------------------------------[/bold]")
-        console.print(f"💾 [blue]Plugins de base initialisés[/blue] - {len(plugins_info)} plugins chargés")
-        console.print(f"⏱️  [green]Temps de chargement: {_plugins_loading_time:.1f}s[/green]")
-        console.print(f"💾 [blue]Plugins de base mis en cache[/blue]")
-        console.print(f"🚀 [green]LCPI-CLI est maintenant prêt ![/green]")
-        console.print(f"[dim]💡 Note: Les plugins métier sont disponibles via 'lcpi plugins install <nom>'[/dim]")
         
         return plugins_info
 
@@ -1234,11 +1225,8 @@ try:
     load_activated_plugins()
     
     _plugins_initialized = True
-    console.print(f"[green]✅[/green] [bold]LCPI-CLI initialisé avec succès ![/bold]")
-    console.print(f"[dim]💾 Plugins de base et métier activés chargés[/dim]")
 except Exception as e:
-    console.print(f"[yellow]⚠[/yellow] Erreur lors du chargement des plugins: {e}")
-    console.print("[yellow]⚠[/warning] Les plugins seront chargés à la demande.")
+    pass  # Erreur silencieuse
 
 @app.command(name="tips")
 def tips():

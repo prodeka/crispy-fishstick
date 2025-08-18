@@ -1,20 +1,15 @@
 """
-Module de logging pour LCPI.
-Gère la journalisation, la signature et l'intégrité des logs.
+Module de logging LCPI avec intégrité - Jalon 2.
 """
 
-from .logger import LCPILogger, log_calculation_result, list_available_logs, load_log_by_id
-from .signature import LogSigner, LogVerifier
-from .integrity import IntegrityChecker
-from .indexer import LogIndexer
+from .logger import LCPILogger, lcpi_logger
+from .integrity import LogIntegrityManager, integrity_manager
 
 __all__ = [
-    "LCPILogger", 
-    "LogSigner", 
-    "LogVerifier", 
-    "IntegrityChecker", 
-    "LogIndexer",
-    "log_calculation_result",
-    "list_available_logs", 
-    "load_log_by_id"
+    "LCPILogger",
+    "lcpi_logger", 
+    "LogIntegrityManager",
+    "integrity_manager"
 ]
+
+__version__ = "2.1.0"

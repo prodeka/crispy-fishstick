@@ -12,7 +12,7 @@ import yaml
 from .utils.rich_ui import RichUI, console, show_calculation_results, show_network_diagnostics
 
 # Import du module de journalisation
-from ..lcpi_logging import log_calculation_result
+from ..lcpi_logging.logger import lcpi_logger
 
 # Import du décorateur de contexte
 from ..core.context import require_project_context, ensure_project_structure
@@ -978,22 +978,12 @@ def network_unified(
                 commande_executee = " ".join(commande_parts)
                 
                 # Journaliser le calcul
-                log_id = log_calculation_result(
-                    titre_calcul="Dimensionnement réseau unifié",
-                    commande_executee=commande_executee,
-                    donnees_resultat=result,
-                    projet_dir=project_path,  # Utiliser le chemin du projet
-                    parametres_entree=parametres_entree,
-                    transparence_mathematique=[
-                        f"Débit: {debit_m3s} m³/s",
-                        f"Longueur: {longueur_m} m",
-                        f"Matériau: {materiau}",
-                        f"Méthode: {methode}",
-                        f"Diamètre calculé: {diametre:.3f} m",
-                        f"Vitesse: {vitesse:.2f} m/s"
-                    ],
-                    version_algorithme="2.1.0",
-                    verbose=verbose
+                log_id = lcpi_logger.log_calculation_result(
+                    plugin="aep",
+                    command="reseau_unified",
+                    parameters=parametres_entree,
+                    results=result,
+                    execution_time=0.0  # À remplacer par un vrai timing
                 )
                 
                 if verbose:
@@ -2942,23 +2932,12 @@ def network_optimize_unified(
                 commande_executee = " ".join(commande_parts)
                 
                 # Journaliser l'optimisation
-                log_id = log_calculation_result(
-                    titre_calcul="Optimisation de réseau unifiée",
-                    commande_executee=commande_executee,
-                    donnees_resultat=resultats,
-                    projet_dir=project_path,
-                    parametres_entree=parametres_entree,
-                    transparence_mathematique=[
-                        f"Solveur: {solver}",
-                        f"Critère: {critere}",
-                        f"Générations: {generations}",
-                        f"Population: {population}",
-                        f"Conduites: {nb_conduites}",
-                        f"Meilleur coût: {meilleure_solution.get('performance', {}).get('cout_total_fcfa', 0):.0f} FCFA",
-                        f"Performance: {meilleure_solution.get('performance', {}).get('performance_hydraulique', 0):.3f}"
-                    ],
-                    version_algorithme="2.1.0",
-                    verbose=verbose
+                log_id = lcpi_logger.log_calculation_result(
+                    plugin="aep",
+                    command="network_optimize_unified",
+                    parameters=parametres_entree,
+                    results=resultats,
+                    execution_time=0.0  # À remplacer par un vrai timing
                 )
                 
                 typer.echo(f"📊 Optimisation journalisée avec l'ID: {log_id}")
@@ -3073,7 +3052,7 @@ def network_analyze_scenarios(
             log = typer.confirm("📝 Voulez-vous journaliser cette analyse de scénarios ?")
         
         if log:
-            from ..lcpi_logging import log_calculation_result
+            from ..lcpi_logging.logger import lcpi_logger
             
             # Préparer les données pour la journalisation
             commande_executee = f"lcpi aep network-analyze-scenarios {input_file} --solver {solver} --format {output_format}"
@@ -3094,20 +3073,12 @@ def network_analyze_scenarios(
                 "performance_moyenne": sum([s.metriques.get('performance_hydraulique', 0) for s in results.scenarios_analyses if s.statut == "succes"]) / max(len([s for s in results.scenarios_analyses if s.statut == "succes"]), 1)
             }
             
-            log_id = log_calculation_result(
-                titre_calcul="Analyse de scénarios multiples",
-                commande_executee=commande_executee,
-                donnees_resultat=donnees_resultat,
-                projet_dir=project_path,
-                parametres_entree=parametres_entree,
-                transparence_mathematique=[
-                    "Analyse comparative de scénarios multiples",
-                    f"Solveur utilisé: {solver}",
-                    f"Format de sortie: {output_format}",
-                    "Méthode: Exécution séquentielle des scénarios avec comparaison des métriques"
-                ],
-                version_algorithme="3.0.0",
-                verbose=verbose
+            log_id = lcpi_logger.log_calculation_result(
+                plugin="aep",
+                command="network_analyze_scenarios",
+                parameters=parametres_entree,
+                results=donnees_resultat,
+                execution_time=0.0  # À remplacer par un vrai timing
             )
             
             typer.echo(f"📝 Analyse journalisée avec l'ID: {log_id}")

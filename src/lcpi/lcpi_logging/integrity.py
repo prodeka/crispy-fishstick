@@ -1,76 +1,105 @@
 """
-Module de vérification d'intégrité des logs pour LCPI.
-Gère la détection de corruption et la validation des logs.
+Module d'intégrité des logs LCPI - Jalon 2.
+Gère la signature et la vérification d'intégrité des logs de calcul.
 """
 
-import hashlib
 import json
+import hashlib
+import hmac
 import os
+import time
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, Any, List, Optional, Tuple
-import sqlite3
+from typing import Dict, Any, Optional, Tuple
+import base64
 
-class IntegrityChecker:
-    """Classe pour vérifier l'intégrité des logs LCPI."""
+class LogIntegrityManager:
+    """Gère l'intégrité et la signature des logs LCPI."""
     
-    def __init__(self, logs_directory: Optional[Path] = None):
+    def __init__(self, signing_key: Optional[str] = None):
         """
-        Initialise le vérificateur d'intégrité.
+        Initialise le gestionnaire d'intégrité.
         
         Args:
-            logs_directory: Répertoire des logs à vérifier
+            signing_key: Clé de signature (générée automatiquement si None)
         """
-        self.logs_directory = logs_directory or Path("logs")
-        self.db_path = self.logs_directory / "integrity.db"
-        self._init_database()
-    
-    def _init_database(self):
-        """Initialise la base de données d'intégrité."""
-        self.logs_directory.mkdir(exist_ok=True)
+        self._signing_algorithm = "HMAC-SHA256"
+        self._signing_key = signing_key or self._generate_signing_key()
+        self._key_file = Path.home() / ".lcpi" / "signing_key"
+        self._key_file.parent.mkdir(parents=True, exist_ok=True)
         
-        with sqlite3.connect(self.db_path) as conn:
-            conn.execute("""
-                CREATE TABLE IF NOT EXISTS log_integrity (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    log_file TEXT UNIQUE NOT NULL,
-                    file_hash TEXT NOT NULL,
-                    file_size INTEGER NOT NULL,
-                    last_modified TIMESTAMP NOT NULL,
-                    checksum_valid BOOLEAN NOT NULL,
-                    signature_valid BOOLEAN,
-                    verification_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    notes TEXT
-                )
-            """)
-            
-            conn.execute("""
-                CREATE INDEX IF NOT EXISTS idx_log_file ON log_integrity(log_file)
-            """)
-            
-            conn.commit()
+        # Sauvegarder la clé si elle n'existe pas
+        if not self._key_file.exists():
+            self._save_signing_key()
     
-    def calculate_file_hash(self, file_path: Path) -> str:
+    def _generate_signing_key(self) -> str:
+        """Génère une nouvelle clé de signature sécurisée."""
+        return base64.b64encode(os.urandom(32)).decode('utf-8')
+    
+    def _save_signing_key(self):
+        """Sauvegarde la clé de signature de manière sécurisée."""
+        try:
+            # Sauvegarder avec permissions restrictives
+            self._key_file.write_text(self._signing_key, encoding='utf-8')
+            self._key_file.chmod(0o600)  # Lecture/écriture pour le propriétaire uniquement
+        except Exception as e:
+            # En cas d'erreur, utiliser la clé en mémoire
+            pass
+    
+    def _load_signing_key(self) -> str:
+        """Charge la clé de signature depuis le fichier."""
+        try:
+            if self._key_file.exists():
+                return self._key_file.read_text(encoding='utf-8').strip()
+        except Exception:
+            pass
+        return self._signing_key
+    
+    def sign_log(self, log_data: Dict[str, Any]) -> Dict[str, Any]:
         """
-        Calcule le hash SHA-256 d'un fichier.
+        Signe un log de calcul avec HMAC.
         
         Args:
-            file_path: Chemin vers le fichier
+            log_data: Données du log à signer
             
         Returns:
-            Hash SHA-256 en hexadécimal
+            Log avec métadonnées d'intégrité
         """
-        hash_sha256 = hashlib.sha256()
+        # Créer une copie des données pour la signature
+        data_to_sign = log_data.copy()
         
-        with open(file_path, "rb") as f:
-            for chunk in iter(lambda: f.read(4096), b""):
-                hash_sha256.update(chunk)
+        # Ajouter un timestamp de signature
+        signature_timestamp = time.time()
+        data_to_sign["_signature_timestamp"] = signature_timestamp
         
-        return hash_sha256.hexdigest()
+        # Convertir en JSON pour la signature
+        json_data = json.dumps(data_to_sign, sort_keys=True, ensure_ascii=False)
+        
+        # Calculer le checksum SHA-256
+        checksum = hashlib.sha256(json_data.encode('utf-8')).hexdigest()
+        
+        # Calculer la signature HMAC
+        signature = hmac.new(
+            self._signing_key.encode('utf-8'),
+            json_data.encode('utf-8'),
+            hashlib.sha256
+        ).hexdigest()
+        
+        # Ajouter les métadonnées d'intégrité
+        log_data["integrity"] = {
+            "checksum": checksum,
+            "signature": signature,
+            "signature_valid": True,
+            "algorithm": self._signing_algorithm,
+            "timestamp": signature_timestamp,
+            "signed_at": datetime.fromtimestamp(signature_timestamp).isoformat()
+        }
+        
+        return log_data
     
     def verify_log_integrity(self, log_file_path: Path) -> Dict[str, Any]:
         """
-        Vérifie l'intégrité d'un fichier de log.
+        Vérifie l'intégrité d'un log de calcul.
         
         Args:
             log_file_path: Chemin vers le fichier de log
@@ -78,206 +107,279 @@ class IntegrityChecker:
         Returns:
             Résultat de la vérification
         """
-        if not log_file_path.exists():
-            return {
-                "valid": False,
-                "error": "Fichier non trouvé",
-                "file_path": str(log_file_path)
-            }
-        
         try:
-            # Informations de base du fichier
-            stat = log_file_path.stat()
-            file_size = stat.st_size
-            last_modified = datetime.fromtimestamp(stat.st_mtime)
-            
-            # Calculer le hash du fichier
-            file_hash = self.calculate_file_hash(log_file_path)
-            
-            # Lire et valider le contenu JSON
+            # Lire le fichier de log
             with open(log_file_path, 'r', encoding='utf-8') as f:
-                content = f.read()
+                log_content = json.load(f)
             
-            try:
-                log_data = json.loads(content)
-                content_valid = True
-                json_error = None
-            except json.JSONDecodeError as e:
-                content_valid = False
-                json_error = str(e)
-                log_data = None
+            # Extraire les métadonnées d'intégrité
+            integrity_data = log_content.get("integrity", {})
+            if not integrity_data:
+                return {
+                    "checksum_valid": False,
+                    "signature_valid": False,
+                    "overall_valid": False,
+                    "error": "Aucune métadonnée d'intégrité trouvée"
+                }
             
-            # Vérifier la structure du log
-            structure_valid = False
-            if log_data:
-                structure_valid = self._validate_log_structure(log_data)
+            # Vérifier le checksum
+            checksum_valid = self._verify_checksum(log_content, integrity_data)
+            
+            # Vérifier la signature
+            signature_valid = self._verify_signature(log_content, integrity_data)
             
             # Résultat global
-            overall_valid = content_valid and structure_valid
-            
-            # Sauvegarder dans la base de données
-            self._save_integrity_check(
-                str(log_file_path), file_hash, file_size, last_modified,
-                overall_valid, None
-            )
+            overall_valid = checksum_valid and signature_valid
             
             return {
-                "valid": overall_valid,
-                "file_path": str(log_file_path),
-                "file_hash": file_hash,
-                "file_size": file_size,
-                "last_modified": last_modified.isoformat(),
-                "content_valid": content_valid,
-                "json_error": json_error,
-                "structure_valid": structure_valid,
-                "checksum_valid": True,
-                "verification_date": datetime.now().isoformat()
+                "checksum_valid": checksum_valid,
+                "signature_valid": signature_valid,
+                "overall_valid": overall_valid,
+                "algorithm": integrity_data.get("algorithm", "Inconnu"),
+                "signed_at": integrity_data.get("signed_at", "Inconnu"),
+                "file_path": str(log_file_path)
+            }
+            
+        except Exception as e:
+            return {
+                "checksum_valid": False,
+                "signature_valid": False,
+                "overall_valid": False,
+                "error": f"Erreur lors de la vérification: {str(e)}"
+            }
+    
+    def _verify_checksum(self, log_content: Dict[str, Any], integrity_data: Dict[str, Any]) -> bool:
+        """Vérifie le checksum du log."""
+        try:
+            # Créer une copie sans les métadonnées d'intégrité
+            data_for_checksum = log_content.copy()
+            if "integrity" in data_for_checksum:
+                del data_for_checksum["integrity"]
+            
+            # Ajouter le timestamp de signature
+            signature_timestamp = integrity_data.get("_signature_timestamp")
+            if signature_timestamp:
+                data_for_checksum["_signature_timestamp"] = signature_timestamp
+            
+            # Calculer le checksum
+            json_data = json.dumps(data_for_checksum, sort_keys=True, ensure_ascii=False)
+            calculated_checksum = hashlib.sha256(json_data.encode('utf-8')).hexdigest()
+            
+            # Comparer avec le checksum stocké
+            stored_checksum = integrity_data.get("checksum", "")
+            return calculated_checksum == stored_checksum
+            
+        except Exception:
+            return False
+    
+    def _verify_signature(self, log_content: Dict[str, Any], integrity_data: Dict[str, Any]) -> bool:
+        """Vérifie la signature HMAC du log."""
+        try:
+            # Créer une copie sans les métadonnées d'intégrité
+            data_for_signature = log_content.copy()
+            if "integrity" in data_for_signature:
+                del data_for_signature["integrity"]
+            
+            # Ajouter le timestamp de signature
+            signature_timestamp = integrity_data.get("_signature_timestamp")
+            if signature_timestamp:
+                data_for_signature["_signature_timestamp"] = signature_timestamp
+            
+            # Convertir en JSON
+            json_data = json.dumps(data_for_signature, sort_keys=True, ensure_ascii=False)
+            
+            # Calculer la signature
+            calculated_signature = hmac.new(
+                self._signing_key.encode('utf-8'),
+                json_data.encode('utf-8'),
+                hashlib.sha256
+            ).hexdigest()
+            
+            # Comparer avec la signature stockée
+            stored_signature = integrity_data.get("signature", "")
+            return calculated_signature == stored_signature
+            
+        except Exception:
+            return False
+    
+    def verify_log_signature(self, log_file_path: Path) -> Dict[str, Any]:
+        """
+        Vérifie spécifiquement la signature d'un log.
+        
+        Args:
+            log_file_path: Chemin vers le fichier de log
+            
+        Returns:
+            Résultat de la vérification de signature
+        """
+        try:
+            with open(log_file_path, 'r', encoding='utf-8') as f:
+                log_content = json.load(f)
+            
+            integrity_data = log_content.get("integrity", {})
+            if not integrity_data:
+                return {
+                    "valid": False,
+                    "error": "Aucune métadonnée d'intégrité trouvée"
+                }
+            
+            # Vérifier la signature
+            signature_valid = self._verify_signature(log_content, integrity_data)
+            
+            return {
+                "valid": signature_valid,
+                "signature_info": {
+                    "algorithm": integrity_data.get("algorithm", "Inconnu"),
+                    "timestamp": integrity_data.get("signed_at", "Inconnu"),
+                    "signature": integrity_data.get("signature", "")[:16] + "..."  # Afficher seulement le début
+                }
             }
             
         except Exception as e:
             return {
                 "valid": False,
-                "error": str(e),
-                "file_path": str(log_file_path)
+                "error": f"Erreur lors de la vérification de signature: {str(e)}"
             }
     
-    def _validate_log_structure(self, log_data: Dict[str, Any]) -> bool:
-        """Valide la structure de base d'un log LCPI."""
-        required_fields = ["timestamp", "calculation_type", "input_data"]
+    def verify_all_logs(self, logs_directory: Path) -> Dict[str, Any]:
+        """
+        Vérifie l'intégrité de tous les logs dans un répertoire.
         
-        for field in required_fields:
-            if field not in log_data:
-                return False
-        
-        return True
-    
-    def _save_integrity_check(self, log_file: str, file_hash: str, file_size: int,
-                             last_modified: datetime, checksum_valid: bool,
-                             signature_valid: Optional[bool]):
-        """Sauvegarde le résultat d'une vérification d'intégrité."""
-        with sqlite3.connect(self.db_path) as conn:
-            conn.execute("""
-                INSERT OR REPLACE INTO log_integrity 
-                (log_file, file_hash, file_size, last_modified, checksum_valid, 
-                 signature_valid, verification_date)
-                VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
-            """, (log_file, file_hash, file_size, last_modified.isoformat(),
-                  checksum_valid, signature_valid))
-            conn.commit()
-    
-    def verify_all_logs(self) -> Dict[str, Any]:
-        """Vérifie l'intégrité de tous les logs du répertoire."""
-        if not self.logs_directory.exists():
+        Args:
+            logs_directory: Répertoire contenant les logs
+            
+        Returns:
+            Résumé de la vérification
+        """
+        if not logs_directory.exists():
             return {
-                "valid": False,
-                "error": "Répertoire des logs non trouvé",
-                "logs_directory": str(self.logs_directory)
+                "total_logs": 0,
+                "valid_logs": 0,
+                "invalid_logs": 0,
+                "errors": ["Répertoire de logs non trouvé"]
             }
         
-        log_files = list(self.logs_directory.glob("*.json"))
-        results = []
-        valid_count = 0
-        total_count = len(log_files)
+        log_files = list(logs_directory.glob("*.json"))
+        results = {
+            "total_logs": len(log_files),
+            "valid_logs": 0,
+            "invalid_logs": 0,
+            "details": {}
+        }
         
         for log_file in log_files:
-            result = self.verify_log_integrity(log_file)
-            results.append(result)
+            verification_result = self.verify_log_integrity(log_file)
+            results["details"][log_file.name] = verification_result
             
-            if result.get("valid", False):
-                valid_count += 1
-        
-        return {
-            "valid": valid_count == total_count,
-            "total_logs": total_count,
-            "valid_logs": valid_count,
-            "corrupted_logs": total_count - valid_count,
-            "logs_directory": str(self.logs_directory),
-            "verification_date": datetime.now().isoformat(),
-            "results": results
-        }
-    
-    def get_integrity_history(self, log_file: Optional[str] = None) -> List[Dict[str, Any]]:
-        """Récupère l'historique des vérifications d'intégrité."""
-        with sqlite3.connect(self.db_path) as conn:
-            conn.row_factory = sqlite3.Row
-            
-            if log_file:
-                cursor = conn.execute("""
-                    SELECT * FROM log_integrity 
-                    WHERE log_file = ? 
-                    ORDER BY verification_date DESC
-                """, (log_file,))
+            if verification_result.get("overall_valid", False):
+                results["valid_logs"] += 1
             else:
-                cursor = conn.execute("""
-                    SELECT * FROM log_integrity 
-                    ORDER BY verification_date DESC
-                """)
-            
-            rows = cursor.fetchall()
-            return [dict(row) for row in rows]
-    
-    def detect_corruption(self) -> List[Dict[str, Any]]:
-        """Détecte les logs potentiellement corrompus."""
-        with sqlite3.connect(self.db_path) as conn:
-            conn.row_factory = sqlite3.Row
-            
-            cursor = conn.execute("""
-                SELECT * FROM log_integrity 
-                WHERE checksum_valid = 0 OR signature_valid = 0
-                ORDER BY verification_date DESC
-            """)
-            
-            rows = cursor.fetchall()
-            return [dict(row) for row in rows]
-    
-    def export_integrity_report(self, output_path: Optional[Path] = None) -> str:
-        """Exporte un rapport d'intégrité complet."""
-        if output_path is None:
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            output_path = self.logs_directory / f"integrity_report_{timestamp}.json"
+                results["invalid_logs"] += 1
         
-        verification_summary = self.verify_all_logs()
-        history = self.get_integrity_history()
-        corrupted = self.detect_corruption()
+        return results
+    
+    def export_signing_key(self, output_path: Path) -> bool:
+        """
+        Exporte la clé de signature pour sauvegarde.
         
-        report = {
-            "report_info": {
-                "generated_at": datetime.now().isoformat(),
-                "logs_directory": str(self.logs_directory),
-                "total_logs": verification_summary["total_logs"]
-            },
-            "verification_summary": verification_summary,
-            "integrity_history": history,
-            "corrupted_logs": corrupted,
-            "recommendations": self._generate_recommendations(verification_summary, corrupted)
+        Args:
+            output_path: Chemin de sortie pour la clé
+            
+        Returns:
+            True si l'export a réussi
+        """
+        try:
+            output_path.parent.mkdir(parents=True, exist_ok=True)
+            
+            # Créer un fichier de sauvegarde sécurisé
+            backup_data = {
+                "signing_key": self._signing_key,
+                "algorithm": self._signing_algorithm,
+            }
+            
+            with open(output_path, 'w', encoding='utf-8') as f:
+                json.dump(backup_data, f, indent=2, ensure_ascii=False)
+            
+            # Définir des permissions restrictives
+            output_path.chmod(0o600)
+            
+            return True
+            
+        except Exception:
+            return False
+    
+    def import_signing_key(self, key_file_path: Path) -> bool:
+        """
+        Importe une clé de signature depuis un fichier.
+        
+        Args:
+            key_file_path: Chemin vers le fichier de clé
+            
+        Returns:
+            True si l'import a réussi
+        """
+        try:
+            with open(key_file_path, 'r', encoding='utf-8') as f:
+                key_data = json.load(f)
+            
+            new_key = key_data.get("signing_key")
+            if new_key and len(new_key) >= 32:  # Vérification basique
+                self._signing_key = new_key
+                self._save_signing_key()
+                return True
+                
+        except Exception:
+            pass
+        
+        return False
+
+
+# Instance globale pour utilisation dans d'autres modules
+integrity_manager = LogIntegrityManager()
+
+
+if __name__ == "__main__":
+    # Test du module
+    import tempfile
+    import shutil
+    
+    with tempfile.TemporaryDirectory() as temp_dir:
+        temp_path = Path(temp_dir)
+        
+        # Créer un log de test
+        test_log = {
+            "timestamp": "2025-08-17T14:00:00",
+            "plugin": "aep",
+            "command": "population",
+            "parameters": {"debut": 2020, "fin": 2030},
+            "results": {"population_2020": 15000}
         }
         
-        with open(output_path, 'w', encoding='utf-8') as f:
-            json.dump(report, f, indent=2, ensure_ascii=False)
+        # Signer le log
+        manager = LogIntegrityManager()
+        signed_log = manager.sign_log(test_log)
         
-        return str(output_path)
-    
-    def _generate_recommendations(self, verification_summary: Dict[str, Any], 
-                                 corrupted: List[Dict[str, Any]]) -> List[str]:
-        """Génère des recommandations basées sur l'état des logs."""
-        recommendations = []
+        # Sauvegarder le log signé
+        log_file = temp_path / "test_log.json"
+        with open(log_file, 'w', encoding='utf-8') as f:
+            json.dump(signed_log, f, indent=2, ensure_ascii=False)
         
-        if verification_summary["corrupted_logs"] > 0:
-            recommendations.append(
-                f"⚠️  {verification_summary['corrupted_logs']} logs corrompus détectés. "
-                "Vérifiez l'intégrité du système de fichiers."
-            )
+        # Vérifier l'intégrité
+        verification_result = manager.verify_log_integrity(log_file)
         
-        if verification_summary["total_logs"] == 0:
-            recommendations.append("ℹ️  Aucun log trouvé. Vérifiez la configuration des logs.")
+        print("Test d'intégrité des logs:")
+        print(f"Log signé: {log_file}")
+        print(f"Vérification: {verification_result}")
         
-        if corrupted:
-            recommendations.append(
-                "🔧 Certains logs nécessitent une attention. "
-                "Vérifiez leur intégrité."
-            )
+        # Test de corruption
+        with open(log_file, 'r', encoding='utf-8') as f:
+            corrupted_log = json.load(f)
         
-        if not recommendations:
-            recommendations.append("✅ Tous les logs sont en bon état.")
+        corrupted_log["results"]["population_2020"] = 99999
         
-        return recommendations
+        with open(log_file, 'w', encoding='utf-8') as f:
+            json.dump(corrupted_log, f, indent=2, ensure_ascii=False)
+        
+        # Vérifier que la corruption est détectée
+        corruption_result = manager.verify_log_integrity(log_file)
+        print(f"Détection de corruption: {corruption_result}")
