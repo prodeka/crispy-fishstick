@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <title>Rapport Optimisation Réservoir</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 24px; }
+    h1 { color: #2c3e50; }
+    table { border-collapse: collapse; width: 100%; margin: 12px 0; }
+    th, td { border: 1px solid #ddd; padding: 8px; }
+    th { background: #f0f0f0; text-align: left; }
+    .section { margin-top: 24px; }
+    .ok { color: #2e7d32; }
+    .warn { color: #ef6c00; }
+  </style>
+  </head>
+<body>
+  <h1>Rapport d'Optimisation — Réservoir surélevé</h1>
+  <div class="section">
+    <h2>Métadonnées</h2>
+    <ul>
+      <li>Méthode: {{ meta.method if meta }} </li>
+      <li>Solveur: {{ meta.solver if meta }}</li>
+      <li>Timestamp: {{ meta.timestamp if meta }}</li>
+    </ul>
+  </div>
+
+  <div class="section">
+    <h2>Paramètres Optimaux</h2>
+    <ul>
+      <li>H_tank (m): {{ H_tank_m if H_tank_m is not none }} {{ H_selected if H_selected is not none }}</li>
+    </ul>
+    <h3>Diamètres retenus</h3>
+    <table>
+      <thead><tr><th>Lien</th><th>DN (mm)</th></tr></thead>
+      <tbody>
+      {% if diameters_mm %}
+        {% for lid, dn in diameters_mm.items() %}
+          <tr><td>{{ lid }}</td><td>{{ dn }}</td></tr>
+        {% endfor %}
+      {% else %}
+          <tr><td colspan="2">Non spécifié</td></tr>
+      {% endif %}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="section">
+    <h2>Coûts</h2>
+    <table>
+      <tr><th>CAPEX</th><td>{{ costs.CAPEX if costs }}</td></tr>
+      <tr><th>OPEX annuel</th><td>{{ costs.OPEX_annual if costs }}</td></tr>
+      <tr><th>Coût total</th><td>{{ costs.total_cost if costs }}</td></tr>
+    </table>
+  </div>
+
+  <div class="section">
+    <h2>Hydraulique</h2>
+    <h3>Pressions (m)</h3>
+    <table>
+      <thead><tr><th>Nœud</th><th>Pression</th></tr></thead>
+      <tbody>
+      {% if pressures_m %}
+        {% for nid, p in pressures_m.items() %}
+          <tr><td>{{ nid }}</td><td>{{ p }}</td></tr>
+        {% endfor %}
+      {% else %}
+          <tr><td colspan="2">Non disponible</td></tr>
+      {% endif %}
+      </tbody>
+    </table>
+    <h3>Vitesses (m/s)</h3>
+    <table>
+      <thead><tr><th>Lien</th><th>Vitesse</th></tr></thead>
+      <tbody>
+      {% if velocities_m_s %}
+        {% for lid, v in velocities_m_s.items() %}
+          <tr><td>{{ lid }}</td><td>{{ v }}</td></tr>
+        {% endfor %}
+      {% else %}
+          <tr><td colspan="2">Non disponible</td></tr>
+      {% endif %}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="section">
+    <h2>Résumé</h2>
+    <p>Méthode utilisée: {{ report_payload.placeholders.methode_utilisee if report_payload and report_payload.placeholders }}</p>
+    <p>Contrainte pression min: {{ report_payload.placeholders.contrainte_pression_min if report_payload and report_payload.placeholders }}</p>
+    <p>Coût total (formaté): {{ report_payload.placeholders.cout_total if report_payload and report_payload.placeholders }}</p>
+  </div>
+
+</body>
+</html>
+

@@ -171,6 +171,16 @@ def cmd_optimize(
 	out.write_text(json.dumps(final, indent=2, ensure_ascii=False), encoding="utf-8")
 	typer.secho(f"Optimisation terminée. Résultat: {out}", fg=typer.colors.GREEN)
 
+	# Sprint 4: génération de rapport HTML (best-effort)
+	try:
+		from ..reporting.report_generator import ReportGenerator
+		rg = ReportGenerator()
+		report_path = Path(str(out).replace(".json", ".html"))
+		rg.generate_from_template(final, template_name="optimisation_tank.jinja2", output_path=report_path)
+		typer.secho(f"Rapport généré: {report_path}", fg=typer.colors.GREEN)
+	except Exception as e:
+		typer.secho(f"Rapport non généré: {e}", fg=typer.colors.YELLOW)
+
 
 @app.command("auto-optimize")
 def cmd_auto_optimize(
