@@ -1,0 +1,17 @@
+nodes:
+  node_001:
+    elevation_m: 10
+  node_002:
+    elevation_m: 8
+links:
+  pipe_1:
+    from: node_001
+    to: node_002
+    length_m: 150
+    diameter_mm: 110
+tanks:
+  tank_A:
+    radier_elevation_m: 70.0
+    init_level_m: 2.0
+
+

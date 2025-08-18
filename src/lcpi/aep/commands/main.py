@@ -19,6 +19,7 @@ from .solvers import app as solvers_app
 from .data_management import app as data_app
 from .project_management import app as project_app
 from .network_optimize import app as network_optimize_app
+from .tank_optimization import app as tank_optimization_app
 
 # Import des nouvelles commandes de la Phase 4
 from .performance import app as performance_app
@@ -32,6 +33,7 @@ app.add_typer(solvers_app, name="solveurs", help="🔧 Gestion des solveurs hydr
 app.add_typer(data_app, name="data", help="📊 Gestion des données (import/export/validation)")
 app.add_typer(project_app, name="project", help="📁 Gestion des projets AEP")
 app.add_typer(network_optimize_app, name="network", help="🌐 Optimisation des réseaux")
+app.add_typer(tank_optimization_app, name="tank", help="🏗️ Optimisation des réservoirs surélevés")
 
 # Ajout des nouvelles commandes de la Phase 4
 app.add_typer(performance_app, name="performance", help="🚀 Gestion des performances et du cache")

@@ -1,0 +1,14 @@
+- d_mm: 50
+  cost_per_m: 3500
+  roughness: 130
+- d_mm: 75
+  cost_per_m: 5200
+  roughness: 130
+- d_mm: 110
+  cost_per_m: 9800
+  roughness: 130
+- d_mm: 160
+  cost_per_m: 15000
+  roughness: 130
+
+

@@ -1,0 +1,25 @@
+{
+  "feasible": true,
+  "H_tank_m": 50.059,
+  "diameters_mm": {
+    "pipe_1": 110
+  },
+  "costs": {
+    "CAPEX": 0.0,
+    "OPEX_annual": 0.0,
+    "total_cost": 0.0
+  },
+  "meta": {
+    "method": "nested",
+    "binary_iterations": 9,
+    "solver": "lcpi"
+  },
+  "report_payload": {
+    "template": "optimisation_tank.jinja2",
+    "placeholders": {
+      "methode_utilisee": "nested",
+      "contrainte_pression_min": "12.0 m",
+      "cout_total": "0.0 FCFA"
+    }
+  }
+}

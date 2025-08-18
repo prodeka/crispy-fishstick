@@ -1,0 +1,15 @@
+optimization:
+  method: "binary"
+  H_bounds_m: [50.0, 80.0]
+  H_fixed_m: null
+  tolerance_m: 0.1
+  max_iterations: 60
+  diameter_db: "project/data/diameters.yml"
+
+pressure_constraints:
+  min_pressure_m: 12.0
+
+solver:
+  type: "mock"
+
+
