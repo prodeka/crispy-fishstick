@@ -305,20 +305,20 @@ lcpi aep tank report results/multitank.json --template optimisation_tank.jinja2 
 
 ## 🧭 Roadmap V11 (Sprints)
 
-### Sprint 1 — Stabilisation V10 → V11 (Semaine 1)
-- Durcir `binary`, finaliser `nested` et scoring CAPEX/OPEX.
-- EPANETOptimizer complet (INP dyn., extraction fiable); cache LRU mémoire.
-- Tests unitaires élargis; E2E simple.
+### Sprint 1 — Stabilisation V10 → V11 (Semaine 1) — LIVRÉ
+- `binary` stabilisé, `nested` implémenté (greedy DN), scoring CAPEX (stub OK).
+- EPANETOptimizer opérationnel (génération INP + tweak [TANKS]/[PIPES] minimal), cache LRU à venir.
+- Tests unitaires ciblés ajoutés (nested/global wrapper), CLI `tank` opérationnelle.
 
-### Sprint 2 — Global + Multi‑réservoirs (Semaines 2–3)
-- GA wrapper (H + DN), checkpoints et parallélisation.
-- `multi_tank.py` (coordinate descent + GA court); validations croisées.
-- DB diamètres (DAO SQLite), gestion CLI diameters‑manage.
+### Sprint 2 — Global + Multi‑réservoirs (Semaines 2–3) — LIVRÉ (partiel)
+- Wrapper Global initial (config minimale + fallback si `GeneticOptimizer` indisponible).
+- Wrappers solveurs LCPI/EPANET intégrés; conversion `NetworkModel → solveur` en place.
+- CLI enrichie (`--method binary|nested|global`, `--solver lcpi|epanet|mock`).
 
-### Sprint 3 — Surrogate + Active Learning (Semaines 4–5)
-- LHS, entraînement XGBoost/RandomForest, optimisation surrogate.
-- Validation top‑K sur EPANET, boucle active learning; cache persistant disque.
-- Benchmarks et critères qualité (écart ≤ 5%).
+### Sprint 3 — Surrogate + Active Learning (Semaines 4–5) — EN COURS
+- SurrogateOptimizer (RandomForest si dispo, sinon fallback) + LHS initial.
+- Cache persistant (SHA256 params) pour réutiliser simulations (Mock/LCPI/EPANET).
+- Routage CLI `--method surrogate`; tests unitaires ciblés.
 
 ### Sprint 4 — Reporting/QA/Docs (Semaine 6)
 - Template `optimisation_tank.jinja2`, commande `report`.
