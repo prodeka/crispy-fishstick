@@ -131,7 +131,6 @@ def cmd_optimize(
 			diameter_db_path=optimization.get("diameter_db"),
 		)
 	elif method == "global":
-		from ..optimization.models import ConfigurationOptimisation
 		cfg_obj = optimization if isinstance(optimization, dict) else {}
 		from ..optimizer.algorithms.global_opt import GlobalOptimizer
 		res = GlobalOptimizer(cfg_obj).optimize_global(nm.dict())
