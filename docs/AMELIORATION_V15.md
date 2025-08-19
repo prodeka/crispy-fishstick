@@ -1,6 +1,3 @@
-Excellent plan — clair, pragmatique et bien cadré. Voici mon retour structuré : **corrections, améliorations pratiques, risques, API concrètes, tests d’acceptation et plan d’implémentation détaillé** pour rendre ta V14 robuste et opérationnelle rapidement.
-
-Je conserve ton objectif (commande unique INP/YML, choix de solveur, contraintes exposées, méthodes, hybridation) et j’ajoute les éléments manquants/à renforcer pour que l’implémentation soit sûre, auditable et prête à mettre en CI.
 
 # 1 — Verdict global
 

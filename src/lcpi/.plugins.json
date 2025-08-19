@@ -1,8 +1,8 @@
 {
     "active_plugins": [
+        "aep",
         "shell",
-        "utils",
-        "aep"
+        "utils"
     ],
     "available_plugins": [
         "aep",

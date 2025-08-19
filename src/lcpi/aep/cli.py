@@ -2810,10 +2810,63 @@ def network_optimize_unified(
         # S'assurer que la structure du projet existe
         ensure_project_structure(project_path)
         
-        # 1. Charger et valider la configuration
+        # 1. Charger et valider la configuration / ou déléguer (INP)
         if not input_file.exists():
             typer.secho(f"❌ Fichier d'entrée introuvable: {input_file}", fg=typer.colors.RED)
             raise typer.Exit(1)
+
+        # Nouveau chemin V15 pour les fichiers .inp (Sprint 1: nested minimal)
+        if input_file.suffix.lower() == ".inp":
+            try:
+                from .optimizer.controllers import OptimizationController  # type: ignore
+                controller = OptimizationController()
+                constraints = {
+                    "pressure_min_m": 10.0,
+                    "velocity_min_m_s": 0.3,
+                    "velocity_max_m_s": 2.0,
+                }
+                resultats = controller.run_optimization(
+                    input_path=input_file,
+                    method="nested",
+                    solver=("epanet" if solver == "epanet" else "lcpi"),
+                    constraints=constraints,
+                    hybrid_refiner=None,
+                    hybrid_params=None,
+                    algo_params=None,
+                    price_db=None,
+                    verbose=verbose,
+                )
+
+                # Sauvegarde éventuelle
+                if output:
+                    with open(output, 'w', encoding='utf-8') as f:
+                        json.dump(resultats, f, indent=2, ensure_ascii=False)
+                    typer.echo(f"✅ Résultats sauvegardés: {output}")
+
+                # Journalisation simple
+                if log is None and not no_log:
+                    do_log = typer.confirm("📝 Voulez-vous journaliser cette optimisation ?")
+                else:
+                    do_log = bool(log) and not no_log
+                if do_log:
+                    try:
+                        cmd = f"lcpi aep network-optimize-unified {input_file} --solver {solver}"
+                        log_id = lcpi_logger.log_calculation_result(
+                            plugin="aep",
+                            command="network_optimize_unified",
+                            parameters={"input_file": str(input_file), "solver": solver},
+                            results=resultats,
+                            execution_time=0.0,
+                        )
+                        typer.echo(f"📊 Optimisation journalisée avec l'ID: {log_id}")
+                    except Exception:
+                        pass
+
+                return resultats
+            except Exception as e:
+                if verbose:
+                    typer.echo(f"⚠️ Délégation V15 (INP) échouée: {e}")
+                # Continuer avec l'ancien flux YAML si possible (mais .inp ne sera pas supporté)
         
         with open(input_file, 'r', encoding='utf-8') as f:
             config_data = yaml.safe_load(f)
