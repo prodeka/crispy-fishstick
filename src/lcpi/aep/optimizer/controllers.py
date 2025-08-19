@@ -177,10 +177,111 @@ class OptimizationController:
 
             return NestedAdapter
 
-        # Sprint 2: route d'autres méthodes vers des adaptateurs simples (fallback nested si indisponible)
-        if name in ("genetic", "surrogate", "global", "multi-tank", "multitank"):
-            # Pour l'instant, utiliser la même implémentation nested comme fallback sûr
-            return self._import_optimizer_class("nested")
+        # Surrogate adapter
+        if name == "surrogate":
+            from .algorithms.surrogate import SurrogateOptimizer as _Surrogate
+            from .io import load_yaml_or_inp as _load
+
+            class SurrogateAdapter(BaseOptimizer):
+                def __init__(self, network_model: Any, solver: str = "epanet", price_db: Optional[Any] = None, config: Optional[Dict[str, Any]] = None) -> None:
+                    super().__init__(network_model, solver, price_db, config)
+                    # Always ensure NetworkModel instance
+                    if isinstance(network_model, (str, Path)):
+                        nm, _ = _load(Path(network_model))
+                    else:
+                        nm = network_model
+                    cfg = dict(config or {})
+                    cfg.setdefault("solver", solver)
+                    self.impl = _Surrogate(nm, cfg)
+
+                def optimize(self, constraints: Dict[str, Any], objective: str = "price", seed: Optional[int] = None) -> Dict[str, Any]:
+                    # Dry run path for CI
+                    if (self.config or {}).get("dry_run"):
+                        return {"meta": {"method": "surrogate", "dry_run": True}, "proposals": []}
+                    res = self.impl.build_and_optimize()
+                    try:
+                        return res.dict()
+                    except Exception:
+                        return {"meta": {"method": "surrogate"}, "proposals": []}
+
+            return SurrogateAdapter
+
+        # Global adapter (NSGA-II)
+        if name == "global":
+            from .algorithms.global_opt import GlobalOptimizer as _Global
+            from .models import OptimizationConfig as _OptCfg
+
+            class GlobalAdapter(BaseOptimizer):
+                def __init__(self, network_model: Any, solver: str = "epanet", price_db: Optional[Any] = None, config: Optional[Dict[str, Any]] = None) -> None:
+                    super().__init__(network_model, solver, price_db, config)
+                    # Build minimal OptimizationConfig
+                    cfg = self.config or {}
+                    h_bounds = cfg.get("H_bounds", {"TANK1": (5.0, 50.0)})
+                    self.optcfg = _OptCfg(method="global", h_bounds_m=h_bounds, pressure_min_m=float(cfg.get("pressure_min_m", 10.0)))
+                    self.net_path = Path(network_model) if isinstance(network_model, (str, Path)) else Path(cfg.get("network_path", "network.inp"))
+                    self.impl = None
+
+                def optimize(self, constraints: Dict[str, Any], objective: str = "price", seed: Optional[int] = None) -> Dict[str, Any]:
+                    if (self.config or {}).get("dry_run"):
+                        return {"meta": {"method": "global", "dry_run": True}, "proposals": []}
+                    try:
+                        self.impl = _Global(self.optcfg, self.net_path)
+                        res = self.impl.optimize()
+                        return res.dict()
+                    except Exception as e:
+                        return {"meta": {"method": "global", "error": str(e)}, "proposals": []}
+
+            return GlobalAdapter
+
+        # Multi-tank adapter
+        if name in ("multi-tank", "multitank"):
+            from .algorithms.multi_tank import MultiTankOptimizer as _MT
+
+            class MultiTankAdapter(BaseOptimizer):
+                def __init__(self, network_model: Any, solver: str = "epanet", price_db: Optional[Any] = None, config: Optional[Dict[str, Any]] = None) -> None:
+                    super().__init__(network_model, solver, price_db, config)
+                    self.net_path = str(network_model) if isinstance(network_model, (str, Path)) else str((config or {}).get("network_path", "network.inp"))
+                    self.cfg = config or {}
+                    self.impl = None
+
+                def optimize(self, constraints: Dict[str, Any], objective: str = "price", seed: Optional[int] = None) -> Dict[str, Any]:
+                    if (self.config or {}).get("dry_run"):
+                        return {"meta": {"method": "multi_tank", "dry_run": True}, "proposals": []}
+                    try:
+                        if self.impl is None:
+                            self.impl = _MT(self.net_path, self.cfg)
+                        res = self.impl.optimize_heights()
+                        return res.dict()
+                    except Exception as e:
+                        return {"meta": {"method": "multi_tank", "error": str(e)}, "proposals": []}
+
+            return MultiTankAdapter
+
+        # Genetic: legacy optimizer not directly compatible -> placeholder/dry-run
+        if name == "genetic":
+            class GeneticAdapter(BaseOptimizer):
+                def optimize(self, constraints: Dict[str, Any], objective: str = "price", seed: Optional[int] = None) -> Dict[str, Any]:
+                    # No direct integration yet; return placeholder or fallback
+                    if (self.config or {}).get("dry_run"):
+                        return {"meta": {"method": "genetic", "dry_run": True}, "proposals": []}
+                    # Fallback to nested
+                    nested = self.__class__.__mro__[1]  # BaseOptimizer, ignore
+                    # Simpler: call nested adapter returned above
+                    NestedC = self.__class__.__qualname__  # unused; keep interface
+                    from .algorithms.nested import NestedGreedyOptimizer as _Nested
+                    impl = _Nested(self.network_model, solver=self.solver)
+                    res = impl.optimize_nested(
+                        H_bounds=tuple((self.config or {}).get("H_bounds", (5.0, 50.0))),
+                        pressure_min_m=float(constraints.get("pressure_min_m", 10.0)),
+                        velocity_constraints={"min_m_s": constraints.get("velocity_min_m_s", 0.3), "max_m_s": constraints.get("velocity_max_m_s", 2.0)},
+                        diameter_db_path=None,
+                    )
+                    try:
+                        return res.dict()
+                    except Exception:
+                        return {"meta": {"method": "genetic"}, "proposals": []}
+
+            return GeneticAdapter
         raise ImportError(f"Optimiseur inconnu: {name}")
 
     def get_optimizer_instance(self, method: str, network_model: Dict[str, Any] | str | Path, solver: str, price_db: Optional[Any], config: Optional[Dict[str, Any]] = None) -> BaseOptimizer:
