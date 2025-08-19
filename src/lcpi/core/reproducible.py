@@ -15,11 +15,13 @@ from pathlib import Path
 from typing import Dict, List, Optional, Any
 import yaml
 
+# Utiliser importlib.metadata (standard) au lieu de pkg_resources (déprécié)
 try:
-    import pkg_resources
-    PKG_RESOURCES_AVAILABLE = True
-except ImportError:
-    PKG_RESOURCES_AVAILABLE = False
+    from importlib import metadata as importlib_metadata
+    IMPORTLIB_METADATA_AVAILABLE = True
+except Exception:
+    importlib_metadata = None  # type: ignore
+    IMPORTLIB_METADATA_AVAILABLE = False
 
 class ReproducibleExporter:
     """Exporte un projet LCPI de manière reproductible."""
@@ -208,23 +210,37 @@ class ReproducibleExporter:
     
     def _generate_requirements_txt(self) -> str:
         """Génère un requirements.txt basé sur l'environnement actuel."""
-        if not PKG_RESOURCES_AVAILABLE:
-            return "# Requirements.txt généré automatiquement\n# Module pkg_resources non disponible"
-        
-        requirements = []
+        requirements: List[str] = []
         requirements.append("# Requirements.txt généré automatiquement pour LCPI")
         requirements.append(f"# Généré le: {datetime.now().isoformat()}")
         requirements.append(f"# Python: {sys.version}")
         requirements.append("")
-        
-        # Obtenir les packages installés
+
+        if not IMPORTLIB_METADATA_AVAILABLE:
+            requirements.append("# importlib.metadata non disponible: liste non générée")
+            return "\n".join(requirements)
+
         try:
-            installed_packages = [d for d in pkg_resources.working_set]
-            for package in sorted(installed_packages, key=lambda x: x.project_name.lower()):
-                requirements.append(f"{package.project_name}=={package.version}")
+            # Parcourir les distributions installées
+            dists = list(importlib_metadata.distributions())  # type: ignore[attr-defined]
+            entries: List[tuple] = []
+            for dist in dists:
+                try:
+                    name = dist.metadata.get('Name')  # type: ignore[attr-defined]
+                except Exception:
+                    name = None
+                if not name:
+                    # Fallback possible selon implémentation
+                    name = getattr(dist, 'name', None)
+                version = getattr(dist, 'version', None)
+                if name and version:
+                    entries.append((name, version))
+            # Tri par nom insensible à la casse
+            for name, version in sorted(entries, key=lambda t: t[0].lower()):
+                requirements.append(f"{name}=={version}")
         except Exception as e:
-            requirements.append(f"# Erreur lors de la génération: {e}")
-        
+            requirements.append(f"# Erreur lors de la génération via importlib.metadata: {e}")
+
         return "\n".join(requirements)
     
     def _generate_dockerfile(self) -> str:
@@ -284,12 +300,11 @@ packages = ["lcpi"]
     
     def _get_lcpi_version(self) -> str:
         """Récupère la version de LCPI."""
-        try:
-            if PKG_RESOURCES_AVAILABLE:
-                lcpi_dist = pkg_resources.get_distribution("lcpi-cli")
-                return lcpi_dist.version
-        except pkg_resources.DistributionNotFound:
-            pass
+        if IMPORTLIB_METADATA_AVAILABLE:
+            try:
+                return importlib_metadata.version("lcpi-cli")  # type: ignore[attr-defined]
+            except Exception:
+                pass
         
         # Fallback: chercher dans le code
         try:

@@ -1,11 +1,9 @@
-"""Wrappers d'optimisation autour des solveurs existants (Jalon 2)."""
+"""Solvers pour l'optimisation des réseaux d'eau."""
 
-from .epanet_optimizer import EPANETOptimizer  # noqa: F401
-from .lcpi_optimizer import LCPIOptimizer      # noqa: F401
+from ...core.epanet_wrapper import EPANETOptimizer  # noqa: F401
 
 __all__ = [
-	"EPANETOptimizer",
-	"LCPIOptimizer",
+    "EPANETOptimizer",
 ]
 
 

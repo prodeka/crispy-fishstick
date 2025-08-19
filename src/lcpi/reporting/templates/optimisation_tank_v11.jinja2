@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8"/>
+  <title>Rapport d'Optimisation AEP V11 - LCPI</title>
+  <style>
+    /* Styles de base LCPI */
+    body { 
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
+      margin: 0; 
+      padding: 20px; 
+      color: #333; 
+      background-color: #f8f9fa;
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      overflow: hidden;
+    }
+    
+    .header {
+      background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+      color: white;
+      padding: 30px;
+      text-align: center;
+    }
+    
+    .header h1 {
+      margin: 0;
+      font-size: 2.5em;
+      font-weight: 300;
+    }
+    
+    .header .subtitle {
+      font-size: 1.2em;
+      opacity: 0.9;
+      margin-top: 10px;
+    }
+    
+    .content {
+      padding: 30px;
+    }
+    
+    h1, h2, h3 { 
+      color: #2c3e50; 
+      margin-top: 30px;
+      margin-bottom: 15px;
+    }
+    
+    h2 {
+      border-bottom: 2px solid #3498db;
+      padding-bottom: 10px;
+    }
+    
+    .meta-info { 
+      font-size: 0.9em; 
+      color: #777; 
+      background: #f8f9fa;
+      padding: 15px;
+      border-radius: 5px;
+      margin: 20px 0;
+    }
+    
+    .summary-card {
+      background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
+      color: white;
+      padding: 20px;
+      border-radius: 8px;
+      margin: 20px 0;
+      text-align: center;
+    }
+    
+    .summary-card h3 {
+      color: white;
+      margin: 0 0 15px 0;
+    }
+    
+    .summary-stats {
+      display: flex;
+      justify-content: space-around;
+      flex-wrap: wrap;
+    }
+    
+    .stat-item {
+      text-align: center;
+      margin: 10px;
+    }
+    
+    .stat-value {
+      font-size: 2em;
+      font-weight: bold;
+      display: block;
+    }
+    
+    .stat-label {
+      font-size: 0.9em;
+      opacity: 0.9;
+    }
+    
+    /* Tableaux améliorés */
+    table { 
+      border-collapse: collapse; 
+      width: 100%; 
+      margin: 20px 0; 
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    
+    th, td { 
+      border: none; 
+      padding: 15px; 
+      text-align: left; 
+    }
+    
+    th { 
+      background: linear-gradient(135deg, #34495e 0%, #2c3e50 100%);
+      color: white;
+      font-weight: 600;
+      text-transform: uppercase;
+      font-size: 0.9em;
+      letter-spacing: 0.5px;
+    }
+    
+    tr:nth-child(even) { 
+      background-color: #f8f9fa; 
+    }
+    
+    tr:hover {
+      background-color: #e3f2fd;
+      transition: background-color 0.2s ease;
+    }
+    
+    .section { 
+      margin-top: 40px; 
+      padding-top: 20px; 
+    }
+    
+    .card { 
+      background-color: #fff; 
+      border-radius: 8px; 
+      padding: 25px; 
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      margin: 20px 0;
+      border-left: 4px solid #3498db;
+    }
+    
+    .proposal-card {
+      border-left-color: #e74c3c;
+      margin: 20px 0;
+    }
+    
+    .proposal-card h4 {
+      color: #e74c3c;
+      margin-top: 0;
+    }
+    
+    .feasible {
+      color: #27ae60;
+      font-weight: bold;
+    }
+    
+    .infeasible {
+      color: #e74c3c;
+      font-weight: bold;
+    }
+    
+    .cost-highlight {
+      background: #fff3cd;
+      padding: 10px;
+      border-radius: 5px;
+      border-left: 4px solid #ffc107;
+      margin: 10px 0;
+    }
+    
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+      margin: 20px 0;
+    }
+    
+    .metric-item {
+      background: #f8f9fa;
+      padding: 15px;
+      border-radius: 5px;
+      text-align: center;
+    }
+    
+    .metric-value {
+      font-size: 1.5em;
+      font-weight: bold;
+      color: #2c3e50;
+      display: block;
+    }
+    
+    .metric-label {
+      font-size: 0.9em;
+      color: #666;
+      margin-top: 5px;
+    }
+    
+    .pareto-section {
+      background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%);
+      color: white;
+      padding: 25px;
+      border-radius: 8px;
+      margin: 30px 0;
+    }
+    
+    .pareto-section h2 {
+      color: white;
+      border-bottom-color: rgba(255,255,255,0.3);
+    }
+    
+    .footer {
+      background: #2c3e50;
+      color: white;
+      text-align: center;
+      padding: 20px;
+      margin-top: 40px;
+      font-size: 0.9em;
+    }
+    
+    .footer a {
+      color: #3498db;
+      text-decoration: none;
+    }
+    
+    .footer a:hover {
+      text-decoration: underline;
+    }
+    
+    /* Responsive design */
+    @media (max-width: 768px) {
+      .container {
+        margin: 10px;
+        border-radius: 0;
+      }
+      
+      .header {
+        padding: 20px;
+      }
+      
+      .header h1 {
+        font-size: 2em;
+      }
+      
+      .content {
+        padding: 20px;
+      }
+      
+      .summary-stats {
+        flex-direction: column;
+      }
+      
+      .metrics-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- En-tête LCPI -->
+    <div class="header">
+      <h1>🏗️ Optimisation AEP V11</h1>
+      <div class="subtitle">Rapport d'optimisation multi-objectifs - LCPI</div>
+    </div>
+    
+    <div class="content">
+      <!-- Métadonnées du projet -->
+      <div class="meta-info">
+        <strong>📁 Réseau:</strong> {{ metadata.network_file | default("Non spécifié") }}<br>
+        <strong>⚙️ Méthode:</strong> {{ metadata.method | default("Non spécifié") }}<br>
+        <strong>📅 Généré le:</strong> {{ "now" | strftime("%d/%m/%Y à %H:%M") }}<br>
+        <strong>🔧 Version:</strong> {{ metadata.version | default("V11") }}
+      </div>
+      
+      <!-- Résumé des résultats -->
+      {% if proposals %}
+      <div class="summary-card">
+        <h3>📊 Résumé de l'optimisation</h3>
+        <div class="summary-stats">
+          <div class="stat-item">
+            <span class="stat-value">{{ proposals | length }}</span>
+            <span class="stat-label">Propositions</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-value">{{ proposals | selectattr('is_feasible', 'equalto', true) | list | length }}</span>
+            <span class="stat-label">Faisables</span>
+          </div>
+          {% if pareto_front %}
+          <div class="stat-item">
+            <span class="stat-value">{{ pareto_front | length }}</span>
+            <span class="stat-label">Points Pareto</span>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+      {% endif %}
+      
+      <!-- Tableau comparatif des solutions -->
+      {% if proposals %}
+      <div class="section">
+        <h2>📋 Comparaison des Solutions</h2>
+        <div class="card">
+          <table>
+            <thead>
+              <tr>
+                <th>Solution</th>
+                <th>Statut</th>
+                <th>CAPEX (FCFA)</th>
+                <th>OPEX Annuel (FCFA)</th>
+                <th>OPEX NPV (FCFA)</th>
+                <th>Pression Min (m)</th>
+                <th>Vitesse Max (m/s)</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for proposal in proposals %}
+              <tr>
+                <td><strong>{{ proposal.name }}</strong></td>
+                <td>
+                  {% if proposal.is_feasible %}
+                    <span class="feasible">✅ Faisable</span>
+                  {% else %}
+                    <span class="infeasible">❌ Non faisable</span>
+                  {% endif %}
+                </td>
+                <td>{{ "{:,.0f}".format(proposal.costs.CAPEX) if proposal.costs.CAPEX is not none else 'N/A' }}</td>
+                <td>{{ "{:,.0f}".format(proposal.costs.OPEX_annual) if proposal.costs.OPEX_annual is not none else 'N/A' }}</td>
+                <td>{{ "{:,.0f}".format(proposal.costs.OPEX_npv) if proposal.costs.OPEX_npv is not none else 'N/A' }}</td>
+                <td>{{ "%.2f" | format(proposal.metrics.min_pressure_m) if proposal.metrics.min_pressure_m is not none else 'N/A' }}</td>
+                <td>{{ "%.2f" | format(proposal.metrics.max_velocity_m_s) if proposal.metrics.max_velocity_m_s is not none else 'N/A' }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      {% endif %}
+      
+      <!-- Détails de chaque proposition -->
+      {% for proposal in proposals %}
+      <div class="section">
+        <div class="card proposal-card">
+          <h3>🔍 Détails de la Proposition: {{ proposal.name }}</h3>
+          
+          <!-- Réservoirs -->
+          {% if proposal.tanks %}
+          <h4>🏗️ Réservoirs</h4>
+          <table>
+            <thead>
+              <tr><th>ID Réservoir</th><th>Hauteur (m)</th></tr>
+            </thead>
+            <tbody>
+              {% for tank in proposal.tanks %}
+              <tr>
+                <td>{{ tank.id }}</td>
+                <td>{{ "%.2f" | format(tank.H_m) }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+          {% endif %}
+          
+          <!-- Diamètres des conduites -->
+          {% if proposal.diameters_mm %}
+          <h4>🔌 Diamètres des Conduites</h4>
+          <table>
+            <thead>
+              <tr><th>Conduite</th><th>Diamètre (mm)</th></tr>
+            </thead>
+            <tbody>
+              {% for link_id, dn in proposal.diameters_mm.items() %}
+              <tr>
+                <td>{{ link_id }}</td>
+                <td>{{ dn }}</td>
+              </tr>
+              {% else %}
+              <tr><td colspan="2">Aucun diamètre spécifié.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+          {% endif %}
+          
+          <!-- Coûts détaillés -->
+          <h4>💰 Analyse des Coûts</h4>
+          <div class="cost-highlight">
+            <div class="metrics-grid">
+              <div class="metric-item">
+                <span class="metric-value">{{ "{:,.0f}".format(proposal.costs.CAPEX) if proposal.costs.CAPEX is not none else 'N/A' }}</span>
+                <span class="metric-label">CAPEX (FCFA)</span>
+              </div>
+              <div class="metric-item">
+                <span class="metric-value">{{ "{:,.0f}".format(proposal.costs.OPEX_annual) if proposal.costs.OPEX_annual is not none else 'N/A' }}</span>
+                <span class="metric-label">OPEX Annuel (FCFA)</span>
+              </div>
+              <div class="metric-item">
+                <span class="metric-value">{{ "{:,.0f}".format(proposal.costs.OPEX_npv) if proposal.costs.OPEX_npv is not none else 'N/A' }}</span>
+                <span class="metric-label">OPEX NPV (FCFA)</span>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Métriques techniques -->
+          <h4>📊 Métriques Techniques</h4>
+          <div class="metrics-grid">
+            <div class="metric-item">
+              <span class="metric-value">{{ "%.2f" | format(proposal.metrics.min_pressure_m) if proposal.metrics.min_pressure_m is not none else 'N/A' }}</span>
+              <span class="metric-label">Pression Min (m)</span>
+            </div>
+            <div class="metric-item">
+              <span class="metric-value">{{ "%.2f" | format(proposal.metrics.max_velocity_m_s) if proposal.metrics.max_velocity_m_s is not none else 'N/A' }}</span>
+              <span class="metric-label">Vitesse Max (m/s)</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+      
+      <!-- Front de Pareto -->
+      {% if pareto_front %}
+      <div class="section">
+        <div class="pareto-section">
+          <h2>📈 Front de Pareto</h2>
+          <p>Ensemble des solutions non-dominées trouvées par l'algorithme d'optimisation.</p>
+          <table>
+            <thead>
+              <tr>
+                <th>Solution</th>
+                <th>CAPEX (FCFA)</th>
+                <th>OPEX NPV (FCFA)</th>
+                <th>Score Pondéré</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for point in pareto_front %}
+              <tr>
+                <td><strong>{{ point.name }}</strong></td>
+                <td>{{ "{:,.0f}".format(point.costs.CAPEX) if point.costs.CAPEX is not none else 'N/A' }}</td>
+                <td>{{ "{:,.0f}".format(point.costs.OPEX_npv) if point.costs.OPEX_npv is not none else 'N/A' }}</td>
+                <td>
+                  {% if point.costs.CAPEX is not none and point.costs.OPEX_npv is not none %}
+                    {{ "{:,.0f}".format(point.costs.CAPEX + (10.0 * point.costs.OPEX_npv)) }}
+                  {% else %}
+                    N/A
+                  {% endif %}
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      {% endif %}
+      
+      <!-- Recommandations -->
+      {% if proposals %}
+      <div class="section">
+        <div class="card">
+          <h2>💡 Recommandations</h2>
+          {% set feasible_proposals = proposals | selectattr('is_feasible', 'equalto', true) | list %}
+          {% if feasible_proposals %}
+            <p><strong>✅ Solutions recommandées :</strong></p>
+            <ul>
+              {% for proposal in feasible_proposals %}
+              <li><strong>{{ proposal.name }}</strong> : 
+                CAPEX de {{ "{:,.0f}".format(proposal.costs.CAPEX) if proposal.costs.CAPEX is not none else 'N/A' }} FCFA
+                avec OPEX NPV de {{ "{:,.0f}".format(proposal.costs.OPEX_npv) if proposal.costs.OPEX_npv is not none else 'N/A' }} FCFA
+              </li>
+              {% endfor %}
+            </ul>
+          {% else %}
+            <p><strong>⚠️ Aucune solution faisable trouvée.</strong></p>
+            <p>Il est recommandé de :</p>
+            <ul>
+              <li>Vérifier les contraintes de pression minimale</li>
+              <li>Revoir les bornes de hauteur des réservoirs</li>
+              <li>Analyser la topologie du réseau</li>
+            </ul>
+          {% endif %}
+        </div>
+      </div>
+      {% endif %}
+    </div>
+    
+    <!-- Pied de page LCPI -->
+    <div class="footer">
+      <p>📊 Rapport généré par <strong>LCPI AEP V11</strong></p>
+      <p>🔧 Module d'optimisation multi-objectifs pour l'Alimentation en Eau Potable</p>
+      <p>📧 Support : <a href="mailto:support@lcpi.com">support@lcpi.com</a></p>
+    </div>
+  </div>
+</body>
+</html>

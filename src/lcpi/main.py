@@ -19,6 +19,9 @@ from rich.text import Text
 # Import des décorateurs de spinner
 from .core.spinner import with_spinner, with_plugin_spinner, with_calculation_spinner, get_spinner_message
 
+# Initialiser la console le plus tôt possible (utilisée dans des blocs try/except qui suivent)
+console = Console()
+
 # Phase 5: Imports pour UX et traçabilité
 try:
     from .core.project_manager import ProjectManager, create_project
@@ -51,7 +54,7 @@ _plugins_initialized = False
 _plugins_cache = {}  # Cache des plugins chargés
 _plugins_loading_time = None  # Temps de chargement initial
 
-console = Console()
+# console est déjà initialisée plus haut
 
 # Import du module UX
 try:

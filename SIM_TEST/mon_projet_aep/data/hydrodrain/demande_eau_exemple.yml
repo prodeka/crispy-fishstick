@@ -1,0 +1,55 @@
+# Template pour estimation de la demande en eau
+element_id: DEMANDE_EAU_1
+description: "Estimation de la demande en eau pour une population"
+
+# Données de base
+population:
+  nombre_habitants: 5000
+  type_zone: "urbain"  # urbain, rural, industriel, touristique
+  densite_hab_km2: 200
+
+# Paramètres de consommation
+consommation:
+  dotation_base_l_jour_hab: 150  # Dotation de base (L/jour/hab)
+  
+  # Coefficients de pointe
+  coefficient_pointe_jour: 1.5    # Coefficient de pointe journalier
+  coefficient_pointe_horaire: 2.0 # Coefficient de pointe horaire
+  coefficient_pointe_saison: 1.2  # Coefficient de pointe saisonnier
+  
+  # Répartition par usage
+  repartition_usage:
+    domestique: 0.60      # 60% usage domestique
+    commercial: 0.20      # 20% usage commercial
+    public: 0.15          # 15% usage public
+    industriel: 0.05      # 5% usage industriel
+
+# Facteurs d'influence
+facteurs:
+  climatiques:
+    temperature_moyenne_c: 15     # Température moyenne annuelle
+    precipitation_mm_an: 800      # Précipitations annuelles
+    humidite_relative: 0.70       # Humidité relative moyenne
+  
+  economiques:
+    revenu_median: 25000          # Revenu médian (€)
+    prix_eau_eur_m3: 3.50         # Prix de l'eau (€/m³)
+    taux_equipement: 0.95         # Taux d'équipement en eau
+  
+  techniques:
+    taux_fuite: 0.15              # Taux de fuites (15%)
+    pression_reseau_bar: 3.0      # Pression moyenne du réseau
+    qualite_eau: "bonne"          # Qualité de l'eau
+
+# Paramètres de calcul
+parametres_calcul:
+  verification_coherence: true
+  analyse_sensibilite: true
+  intervalle_confiance: 0.95
+  
+  # Méthodes de validation
+  validation_historique: true
+  comparaison_normes: true
+  
+  # Coefficients de sécurité
+  coefficient_securite: 1.1 

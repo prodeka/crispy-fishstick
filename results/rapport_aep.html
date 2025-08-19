@@ -1,0 +1,1550 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rapport d'Optimisation AEP V11 - nested_greedy</title>
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --accent-color: #e74c3c;
+            --success-color: #27ae60;
+            --warning-color: #f39c12;
+            --text-color: #2c3e50;
+            --light-gray: #ecf0f1;
+            --border-color: #bdc3c7;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            background-color: #f8f9fa;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: white;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            border-radius: 8px;
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            padding: 30px 0;
+            border-bottom: 3px solid var(--primary-color);
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            color: var(--primary-color);
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .header h2 {
+            color: var(--secondary-color);
+            font-size: 1.5em;
+            font-weight: 300;
+        }
+        
+        .metadata-section {
+            background-color: var(--light-gray);
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+        }
+        
+        .metadata-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+        }
+        
+        .metadata-item {
+            background-color: white;
+            padding: 15px;
+            border-radius: 6px;
+            border-left: 4px solid var(--secondary-color);
+        }
+        
+        .metadata-item strong {
+            color: var(--primary-color);
+            display: block;
+            margin-bottom: 5px;
+        }
+        
+        .optimization-summary {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 25px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        
+        .summary-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .stat-item {
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 2em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .stat-label {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+        
+        .proposals-section {
+            margin-bottom: 40px;
+        }
+        
+        .section-title {
+            color: var(--primary-color);
+            font-size: 1.8em;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--secondary-color);
+        }
+        
+        .proposal-card {
+            background-color: white;
+            border: 2px solid var(--light-gray);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+        }
+        
+        .proposal-card:hover {
+            border-color: var(--secondary-color);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .proposal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--light-gray);
+        }
+        
+        .proposal-name {
+            font-size: 1.4em;
+            color: var(--primary-color);
+            font-weight: bold;
+        }
+        
+        .feasibility-badge {
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: bold;
+        }
+        
+        .feasible {
+            background-color: var(--success-color);
+            color: white;
+        }
+        
+        .infeasible {
+            background-color: var(--accent-color);
+            color: white;
+        }
+        
+        .proposal-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        
+        .detail-group {
+            background-color: var(--light-gray);
+            padding: 15px;
+            border-radius: 6px;
+        }
+        
+        .detail-group h4 {
+            color: var(--primary-color);
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+        
+        .detail-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            padding: 5px 0;
+            border-bottom: 1px solid rgba(0,0,0,0.1);
+        }
+        
+        .detail-item:last-child {
+            border-bottom: none;
+        }
+        
+        .detail-label {
+            font-weight: 500;
+            color: var(--text-color);
+        }
+        
+        .detail-value {
+            font-weight: bold;
+            color: var(--secondary-color);
+        }
+        
+        .costs-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        
+        .costs-table th,
+        .costs-table td {
+            padding: 8px 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .costs-table th {
+            background-color: var(--primary-color);
+            color: white;
+            font-weight: 500;
+        }
+        
+        .costs-table tr:nth-child(even) {
+            background-color: var(--light-gray);
+        }
+        
+        .pareto-section {
+            margin-bottom: 40px;
+        }
+        
+        .pareto-chart {
+            background-color: var(--light-gray);
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            min-height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .pareto-placeholder {
+            color: var(--text-color);
+            font-style: italic;
+        }
+        
+        .recommendations {
+            background-color: #e8f4fd;
+            border: 2px solid var(--secondary-color);
+            border-radius: 8px;
+            padding: 25px;
+            margin-bottom: 30px;
+        }
+        
+        .recommendations h3 {
+            color: var(--primary-color);
+            margin-bottom: 15px;
+            font-size: 1.5em;
+        }
+        
+        .recommendation-item {
+            background-color: white;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            border-left: 4px solid var(--secondary-color);
+        }
+        
+        .recommendation-item:last-child {
+            margin-bottom: 0;
+        }
+        
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: var(--text-color);
+            border-top: 1px solid var(--light-gray);
+            margin-top: 30px;
+        }
+        
+        .footer p {
+            margin-bottom: 5px;
+        }
+        
+        .lcpi-brand {
+            color: var(--secondary-color);
+            font-weight: bold;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+                padding: 15px;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .metadata-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .proposal-details {
+                grid-template-columns: 1fr;
+            }
+            
+            .summary-stats {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- En-tête du rapport -->
+        <div class="header">
+            <h1>📊 Rapport d'Optimisation AEP</h1>
+            <h2>Version V11 - nested_greedy</h2>
+        </div>
+        
+        <!-- Métadonnées du projet -->
+        <div class="metadata-section">
+            <h3 class="section-title">📋 Informations du Projet</h3>
+            <div class="metadata-grid">
+                <div class="metadata-item">
+                    <strong>Méthode d'optimisation</strong>
+                    <span>nested_greedy</span>
+                </div>
+                <div class="metadata-item">
+                    <strong>Fichier réseau</strong>
+                    <span>unknown</span>
+                </div>
+                <div class="metadata-item">
+                    <strong>Date de génération</strong>
+                    <span>19/08/2025 à 08:44</span>
+                </div>
+                <div class="metadata-item">
+                    <strong>Version LCPI</strong>
+                    <span>V11</span>
+                </div>
+                
+                
+            </div>
+        </div>
+        
+        <!-- Résumé de l'optimisation -->
+        <div class="optimization-summary">
+            <h3>🎯 Résumé de l'Optimisation</h3>
+            <div class="summary-stats">
+                <div class="stat-item">
+                    <div class="stat-value">1</div>
+                    <div class="stat-label">Propositions</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">1</div>
+                    <div class="stat-label">Solutions Faisables</div>
+                </div>
+                
+                
+            </div>
+        </div>
+        
+        <!-- Propositions d'optimisation -->
+        <div class="proposals-section">
+            <h3 class="section-title">🏗️ Propositions d'Optimisation</h3>
+            
+            
+            <div class="proposal-card">
+                <div class="proposal-header">
+                    <div class="proposal-name">nested_greedy_solution</div>
+                    <div class="feasibility-badge feasible">
+                        ✅ Faisable
+                    </div>
+                </div>
+                
+                <div class="proposal-details">
+                    <!-- Réservoirs -->
+                    
+                    <div class="detail-group">
+                        <h4>🏺 Réservoirs</h4>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">TANK1</span>
+                            <span class="detail-value">50.10 m</span>
+                        </div>
+                        
+                    </div>
+                    
+                    
+                    <!-- Diamètres -->
+                    
+                    <div class="detail-group">
+                        <h4>🔧 Diamètres des Conduites</h4>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N15_N14</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N71_N70</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N13_N12</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N16_N15</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N142_N143</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N17_N16</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N48_N47</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N49_N48</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N125_N126</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N136_N137</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N192_N193</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N14_N13</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N44_N43</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N7_N106</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N137_N138</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N129_N128</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N99_N100</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N47_N46</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N138_N139</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N188_N189</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N109_N110</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N189_N190</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N31_N30</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N87_N88</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N95_N96</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N115_N114</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N126_N127</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N112_N111</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N43_N17</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N166_N167</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N12_N11</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N52_N42</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N127_N136</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N106_N107</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N64_N63</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N123_N124</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N146_N147</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N119_N118</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N31_N17</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N192_N71</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N140_N141</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N45_N44</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N69_N68</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N90_N91</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N124_N125</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N10_N9</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N46_N45</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N22_N21</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N122_N123</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N54_N53</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N69_N51</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N128_N127</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N51_N50</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N194_N99</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N3_N4</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N139_N140</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N9_N8</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N184_N185</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N11_N10</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N190_N191</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N120_N119</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N193_N194</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N186_N187</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N185_N186</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N145_N146</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N2_N3</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N70_N69</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N78_N79</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N33_N32</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N117_N195</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N100_N101</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N83_N82</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N50_N49</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N161_N162</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N133_N132</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N108_N109</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N167_N168</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N98_N99</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N187_N188</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N8_N7</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N4_N5</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N121_N120</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N118_N117</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N168_N169</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N32_N31</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N91_N92</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N155_N156</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N97_N98</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N1_N2</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N96_N97</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N144_N145</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N92_N93</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N132_N131</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N180_N181</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N169_N170</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N148_N166</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N107_N108</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N38_N37</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N68_N67</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N141_N142</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N165_N84</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N84_N85</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N53_N52</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N6_N7</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N41_N40</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N135_N134</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N18_N3</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N24_N23</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N42_N72</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N148_N149</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N39_N38</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N181_N182</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N171_N172</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N74_N75</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N172_N173</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N152_N153</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N164_N165</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N75_N76</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N93_N94</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N81_N135</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N73_N74</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N40_N39</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N143_N144</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N156_N157</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N159_N160</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N179_N180</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N183_N184</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N158_N159</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N34_N33</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N130_N129</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N37_N36</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N110_N121</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N81_N80</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N28_N27</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N72_N73</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N77_N78</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N114_N113</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N170_N171</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N60_N59</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N182_N183</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N160_N161</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N55_N54</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N56_N55</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N86_N87</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N153_N154</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N76_N77</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N30_N29</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N26_N25</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N27_N26</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N57_N56</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N195_N116</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N5_N6</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N131_N130</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N157_N158</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N25_N24</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N196_N28</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N84_N83</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N23_N22</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N94_N95</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N113_N112</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N36_N35</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N85_N86</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N62_N61</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N65_N64</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N101_N102</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N121_N122</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N80_N79</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N147_N148</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N41_N42</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N35_N34</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N29_N196</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N82_N81</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N21_N20</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N175_N176</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N66_N65</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N88_N89</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N116_N115</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N20_N19</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N111_N42</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N178_N179</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N63_N62</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N102_N103</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N19_N18</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N162_N163</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N134_N133</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N104_N105</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N61_N60</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N151_N152</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N176_N177</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N191_N192</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">R3_N1</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N173_N174</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N67_N66</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N174_N175</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N89_N90</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N154_N155</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N58_N57</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N150_N151</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N163_N164</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N59_N58</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N149_N150</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N105_R1</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N103_N104</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">N177_N178</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">R2_N41</span>
+                            <span class="detail-value">900 mm</span>
+                        </div>
+                        
+                    </div>
+                    
+                    
+                    <!-- Coûts -->
+                    
+                    <div class="detail-group">
+                        <h4>💰 Analyse des Coûts</h4>
+                        <table class="costs-table">
+                            <thead>
+                                <tr>
+                                    <th>Type de coût</th>
+                                    <th>Montant (FCFA)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                
+                                <tr>
+                                    <td>CAPEX (Investissement)</td>
+                                    <td>96,861</td>
+                                </tr>
+                                
+                                
+                                
+                                
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    
+                    <!-- Métriques -->
+                    
+                    <div class="detail-group">
+                        <h4>📊 Métriques de Performance</h4>
+                        
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">
+                                Pression minimale
+                                
+                            </span>
+                            <span class="detail-value">
+                                10.00 m
+                                
+                            </span>
+                        </div>
+                        
+                        
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">
+                                Vitesse maximale
+                                
+                            </span>
+                            <span class="detail-value">
+                                0.00 m/s
+                                
+                            </span>
+                        </div>
+                        
+                        
+                    </div>
+                    
+                </div>
+            </div>
+            
+        </div>
+        
+        <!-- Front de Pareto -->
+        
+        
+        <!-- Recommandations -->
+        <div class="recommendations">
+            <h3>💡 Recommandations</h3>
+            
+            
+            <div class="recommendation-item">
+                <strong>✅ Solutions recommandées :</strong> 
+                1 solution(s) faisable(s) identifiée(s).
+                
+                Cette solution unique est recommandée pour l'implémentation.
+                
+            </div>
+            
+            
+            
+            <div class="recommendation-item">
+                <strong>💰 Solution la moins chère :</strong> 
+                nested_greedy_solution avec un CAPEX de 96,861 FCFA.
+            </div>
+            
+            
+            
+            
+            <div class="recommendation-item">
+                <strong>🔧 Solution la plus robuste :</strong> 
+                nested_greedy_solution avec une pression minimale de 10.00 m.
+            </div>
+            
+            
+            
+            
+            <div class="recommendation-item">
+                <strong>📋 Prochaines étapes :</strong> 
+                Validez les solutions recommandées par une simulation détaillée, 
+                puis procédez à la conception détaillée et à la planification de l'exécution.
+            </div>
+        </div>
+        
+        <!-- Pied de page -->
+        <div class="footer">
+            <p><span class="lcpi-brand">LCPI</span> - Logiciel de Calcul et Planification d'Infrastructure</p>
+            <p>Rapport généré le 19/08/2025 à 08:44:11</p>
+            <p>Version V11 - Format d'optimisation AEP</p>
+        </div>
+    </div>
+</body>
+</html>

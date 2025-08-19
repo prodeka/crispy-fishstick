@@ -1,0 +1,51 @@
+# Template pour prévision de population
+element_id: POPULATION_1
+description: "Prévision d'évolution de la population"
+
+# Données de base
+population_base:
+  annee_reference: 2020
+  population_reference: 5000
+  superficie_km2: 25.0
+  densite_hab_km2: 200
+
+# Paramètres de prévision
+prevision:
+  methode: "croissance_geometrique"  # croissance_geometrique, lineaire, logistique, econometrique
+  horizon_ans: 30
+  pas_ans: 5
+  
+  # Paramètres de croissance
+  taux_croissance_annuel: 0.02  # 2% par an
+  taux_migration: 0.005         # 0.5% par an (migration nette)
+  taux_natalite: 0.012          # 12 pour 1000
+  taux_mortalite: 0.008         # 8 pour 1000
+
+# Facteurs d'influence
+facteurs:
+  economiques:
+    croissance_pib: 0.025       # Croissance du PIB
+    taux_emploi: 0.65           # Taux d'emploi
+    revenu_median: 25000        # Revenu médian (€)
+  
+  demographiques:
+    age_median: 42              # Âge médian
+    esperance_vie: 82           # Espérance de vie
+    taux_urbanisation: 0.75     # Taux d'urbanisation
+  
+  environnementaux:
+    qualite_vie: "bonne"        # Qualité de vie (mauvaise, moyenne, bonne, excellente)
+    accessibilite: "moyenne"    # Accessibilité (mauvaise, moyenne, bonne, excellente)
+
+# Paramètres de calcul
+parametres_calcul:
+  verification_coherence: true
+  analyse_sensibilite: true
+  intervalle_confiance: 0.95
+  
+  # Méthodes de validation
+  validation_historique: true
+  comparaison_methodes: true
+  
+  # Coefficients de sécurité
+  coefficient_securite: 1.1 

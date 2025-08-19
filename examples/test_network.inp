@@ -1,0 +1,29 @@
+[TITLE]
+Test Network for EPANET Wrapper
+Simple network with 2 nodes and 1 pipe
+
+[JUNCTIONS]
+;ID	Elev	Demand
+N1	50	0.001
+N2	45	0.002
+
+[RESERVOIRS]
+;ID	Head
+TANK1	100
+
+[PIPES]
+;ID	Node1	Node2	Length	Diameter	Roughness	MinorLoss	Status
+PIPE1	N1	N2	100	150	100	0	Open
+PIPE2	TANK1	N1	50	200	100	0	Open
+
+[OPTIONS]
+UNITS	LPS
+HEADLOSS	H-W
+
+[TIMES]
+DURATION	24
+
+[REPORT]
+STATUS	NO
+
+[END]

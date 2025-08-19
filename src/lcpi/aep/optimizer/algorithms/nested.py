@@ -1,15 +1,18 @@
 from __future__ import annotations
 
 from typing import Any, Dict, Optional, Tuple, List
+from pathlib import Path
 from dataclasses import dataclass
 
 import yaml
 
 from .binary import BinarySearchOptimizer, MockSolver
 from ..io import NetworkModel, convert_to_solver_network_data
+from ..solvers import EPANETOptimizer
 from ..solvers.lcpi_optimizer import LCPIOptimizer
-from ..solvers.epanet_optimizer import EPANETOptimizer
 from ..scoring import CostScorer
+from ..db_dao import get_candidate_diameters
+from ..models import OptimizationResult, Proposal, TankDecision
 
 
 @dataclass
@@ -23,7 +26,7 @@ class NestedResult:
 class NestedGreedyOptimizer:
 	"""Optimisation en deux étapes (Jalon 2 - version améliorée)."""
 
-	def __init__(self, network_model: NetworkModel, solver: str = "auto"):
+	def __init__(self, network_model: NetworkModel | str | Path, solver: str = "auto"):
 		self.network = network_model
 		self.solver_choice = solver
 
@@ -33,39 +36,50 @@ class NestedGreedyOptimizer:
 		pressure_min_m: float,
 		velocity_constraints: Optional[Dict[str, float]] = None,
 		diameter_db_path: Optional[str] = None,
-	) -> Dict[str, Any]:
+	) -> OptimizationResult:
 		# Étape 1: H_tank (binaire)
-		binary = BinarySearchOptimizer(self.network, pressure_min_m)
+		binary = BinarySearchOptimizer(self._get_network_model(), pressure_min_m)
 		bres = binary.optimize_tank_height(H_bounds[0], H_bounds[1])
 		if not bres.get("feasible"):
-			return {"feasible": False, "reason": "binary infeasible", "binary": bres}
+			return OptimizationResult(
+				proposals=[],
+				pareto_front=None,
+				metadata={
+					"method": "nested_greedy",
+					"error": "binary infeasible",
+					"binary_result": bres,
+					"feasible": False
+				}
+			)
 
 		H_opt = float(bres["H_tank_m"])
 
 		vmin = (velocity_constraints or {}).get("min_m_s", 0.0)
 		vmax = (velocity_constraints or {}).get("max_m_s", float("inf"))
 
-		# Charger DB diamètres
-		candidates: List[int] = []
-		db = []
-		if diameter_db_path:
-			try:
-				db = yaml.safe_load(open(diameter_db_path, "r", encoding="utf-8").read()) or []
-				candidates = sorted({int(row["d_mm"]) for row in db})
-			except Exception:
-				candidates = []
-		if not candidates:
+		# Charger diamètres depuis la base (fallback si indisponible)
+		try:
+			db_rows = get_candidate_diameters()
+			candidates: List[int] = sorted(int(row["d_mm"]) for row in (db_rows or []))
+		except Exception:
 			candidates = [50, 63, 75, 90, 110, 125, 140, 160, 200]
 
-		current = {lid: int(link.get("diameter_mm")) for lid, link in (self.network.links or {}).items() if link.get("diameter_mm") is not None}
+		nm = self._get_network_model()
+		current = {lid: int(link.get("diameter_mm")) for lid, link in (nm.links or {}).items() if link.get("diameter_mm") is not None}
 
 		# Sélection du solveur
 		simulate_with = self._build_simulator(self.solver_choice)
 
-		# Tri par longueur décroissante
+		# Tri par criticité (longueur / diametre^2) pour prioriser les conduites influentes
+		def get_criticality(link_tuple):
+			link_data = link_tuple[1]
+			length = float(link_data.get("length_m", 0.0))
+			diameter = float(link_data.get("diameter_mm", 1.0)) # Evite division par zéro
+			return length / (diameter**2)
+
 		links_sorted = sorted(
-			(list(self.network.links.items()) if isinstance(self.network.links, dict) else []),
-			key=lambda kv: float(kv[1].get("length_m", 0.0)),
+			(list(nm.links.items()) if isinstance(nm.links, dict) else []),
+			key=get_criticality,
 			reverse=True,
 		)
 
@@ -84,21 +98,50 @@ class NestedGreedyOptimizer:
 					break
 			current[lid] = feasible_choice
 
-		# Scoring CAPEX
-		try:
-			d_costs = {int(row["d_mm"]): float(row.get("cost_per_m", 0.0)) for row in (db or [])}
-		except Exception:
-			d_costs = {}
-		scorer = CostScorer(d_costs)
-		costs = scorer.compute_total_cost(self.network, current, H_opt)
-
-		return {
-			"feasible": True,
-			"H_tank_m": H_opt,
-			"diameters_mm": current,
-			"costs": costs,
-			"meta": {"method": "nested", "binary_iterations": bres.get("iterations")},
+		# Scoring CAPEX relié à la DB de prix
+		scorer = CostScorer(diameter_cost_db=None)
+		total_cost = scorer.compute_total_cost(nm, current, None)
+		
+		# Calcul des coûts détaillés
+		capex = scorer.compute_capex(nm, current)
+		costs = {
+			"CAPEX": capex,
+			"OPEX": 0.0,  # Pas de simulation pour l'OPEX
+			"total": total_cost
 		}
+
+		# Créer la proposition au format V11
+		tank_decision = TankDecision(
+			id="TANK1",  # À adapter selon le réseau
+			H_m=H_opt
+		)
+
+		proposal = Proposal(
+			name="nested_greedy_solution",
+			is_feasible=True,
+			tanks=[tank_decision],
+			diameters_mm=current,
+			costs=costs,
+			metrics={
+				"min_pressure_m": float(pressure_min_m),
+				"max_velocity_m_s": float(vmax) if vmax != float("inf") else 0.0,
+				"binary_iterations": bres.get("iterations")
+			}
+		)
+
+		# Retourner le résultat au format V11
+		return OptimizationResult(
+			proposals=[proposal],
+			pareto_front=None,  # Pas de front Pareto pour cet optimiseur
+			metadata={
+				"method": "nested_greedy",
+				"network_file": self._get_network_file_path(),
+				"binary_iterations": bres.get("iterations"),
+				"pressure_min_m": pressure_min_m,
+				"velocity_constraints": velocity_constraints,
+				"diameter_db_path": diameter_db_path
+			}
+		)
 
 	def _build_simulator(self, solver: str):
 		# Prefer EPANET if requested, else LCPI, else Mock
@@ -106,7 +149,7 @@ class NestedGreedyOptimizer:
 			try:
 				epo = EPANETOptimizer()
 				def simulate_with(H: float, diams: Dict[str, int]):
-					data = epo.simulate_with_tank_height(self.network, H, diams)
+					data = epo.simulate_with_tank_height(self._get_network_input_for_epanet(), H, diams)
 					pressures = data.get("pressures") or data.get("pressions") or {}
 					velocities = data.get("velocities", {})
 					p_min = min(pressures.values()) if pressures else 0.0
@@ -118,7 +161,7 @@ class NestedGreedyOptimizer:
 		try:
 			lcpi = LCPIOptimizer()
 			def simulate_with(H: float, diams: Dict[str, int]):
-				data = convert_to_solver_network_data(self.network, H, diams)
+				data = convert_to_solver_network_data(self._get_network_model(), H, diams)
 				r = lcpi.solver.run_simulation(data)
 				pressures = r.get("pressures", {}) or r.get("pressions", {}) or {}
 				velocities = r.get("velocities", {})
@@ -129,9 +172,31 @@ class NestedGreedyOptimizer:
 		except Exception:
 			mock = MockSolver()
 			def simulate_with(H: float, diams: Dict[str, int]):
-				sim = mock.simulate(self.network, H, diams)
+				sim = mock.simulate(self._get_network_model(), H, diams)
 				return sim.min_pressure_m, sim.max_velocity_m_s, sim.pressures_m, sim.velocities_m_s
 			return simulate_with
+
+	def _get_network_model(self) -> NetworkModel:
+		# Si self.network est un chemin, charger via load_yaml_or_inp
+		from ..io import load_yaml_or_inp
+		if isinstance(self.network, (str, Path)):
+			nm, _ = load_yaml_or_inp(Path(self.network))
+			return nm
+		return self.network
+
+	def _get_network_file_path(self) -> str:
+		if isinstance(self.network, (str, Path)):
+			return str(self.network)
+		try:
+			return str(getattr(self.network, 'file_path'))
+		except Exception:
+			return "unknown"
+
+	def _get_network_input_for_epanet(self):
+		# EPANETOptimizer accepte un chemin vers un .inp pour une simulation réelle
+		if isinstance(self.network, (str, Path)):
+			return str(self.network)
+		return self._get_network_model()
 
 
 def _vmin_ok(vmin: float, velocities: Dict[str, float]) -> bool:

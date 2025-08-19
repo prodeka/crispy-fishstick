@@ -1,0 +1,146 @@
+{
+  "id": "opt_20250819_060217",
+  "titre_calcul": "Optimisation AEP V11 - nested_greedy",
+  "timestamp": "2025-08-19T06:02:17.249073",
+  "commande_executee": "lcpi aep optimizer price-optimize example_network.inp --method nested_greedy --pressure-min 10.0",
+  "donnees_resultat": {
+    "proposals": [
+      {
+        "name": "Solution_économique",
+        "is_feasible": true,
+        "tanks": [
+          {
+            "id": "TANK1",
+            "H_m": 65.0
+          }
+        ],
+        "diameters_mm": {
+          "PIPE1": 200,
+          "PIPE2": 160
+        },
+        "costs": {
+          "CAPEX": 150000.0,
+          "OPEX_annual": 0.0,
+          "OPEX_npv": 25000.0
+        },
+        "metrics": {
+          "min_pressure_m": 12.5,
+          "max_velocity_m_s": 0.0
+        }
+      },
+      {
+        "name": "Solution_optimale",
+        "is_feasible": true,
+        "tanks": [
+          {
+            "id": "TANK1",
+            "H_m": 65.0
+          },
+          {
+            "id": "TANK2",
+            "H_m": 70.0
+          }
+        ],
+        "diameters_mm": {
+          "PIPE1": 250,
+          "PIPE2": 200
+        },
+        "costs": {
+          "CAPEX": 220000.0,
+          "OPEX_annual": 0.0,
+          "OPEX_npv": 18000.0
+        },
+        "metrics": {
+          "min_pressure_m": 15.8,
+          "max_velocity_m_s": 0.0
+        }
+      }
+    ],
+    "pareto_front": [
+      {
+        "name": "Solution_économique",
+        "is_feasible": true,
+        "tanks": [
+          {
+            "id": "TANK1",
+            "H_m": 65.0
+          }
+        ],
+        "diameters_mm": {
+          "PIPE1": 200,
+          "PIPE2": 160
+        },
+        "costs": {
+          "CAPEX": 150000.0,
+          "OPEX_annual": 0.0,
+          "OPEX_npv": 25000.0
+        },
+        "metrics": {
+          "min_pressure_m": 12.5,
+          "max_velocity_m_s": 0.0
+        }
+      },
+      {
+        "name": "Solution_optimale",
+        "is_feasible": true,
+        "tanks": [
+          {
+            "id": "TANK1",
+            "H_m": 65.0
+          },
+          {
+            "id": "TANK2",
+            "H_m": 70.0
+          }
+        ],
+        "diameters_mm": {
+          "PIPE1": 250,
+          "PIPE2": 200
+        },
+        "costs": {
+          "CAPEX": 220000.0,
+          "OPEX_annual": 0.0,
+          "OPEX_npv": 18000.0
+        },
+        "metrics": {
+          "min_pressure_m": 15.8,
+          "max_velocity_m_s": 0.0
+        }
+      }
+    ],
+    "metadata": {
+      "version": "V11",
+      "generation_date": "2025-08-19T06:02:17.249041",
+      "format": "lcpi_aep_optimization",
+      "method": "nested_greedy",
+      "network_file": "example_network.inp",
+      "algorithm": "Binary Search",
+      "iterations": 15,
+      "pressure_min_m": 10.0
+    }
+  },
+  "transparence_mathematique": [
+    "Méthode d'optimisation: nested_greedy",
+    "Fichier réseau: example_network.inp",
+    "Nombre total de propositions: 2",
+    "Solutions faisables: 2",
+    "Itérations binaires: N/A",
+    "Pression minimale: 10.0 m",
+    "CAPEX optimal: 150,000 FCFA",
+    "OPEX NPV optimal: 25,000 FCFA"
+  ],
+  "hash_donnees_entree": "32cbf1aa7325e3cf",
+  "parametres_entree": {
+    "network_file": "example_network.inp",
+    "method": "nested_greedy",
+    "algorithm": "Binary Search",
+    "iterations": 15,
+    "pressure_min_m": 10.0,
+    "lambda_opex": null
+  },
+  "version_algorithme": "V11",
+  "plugin": "aep",
+  "command": "optimizer",
+  "execution_time": null,
+  "status": "success"
+}

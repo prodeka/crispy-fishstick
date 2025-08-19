@@ -1,0 +1,21 @@
+# Fichier de définition pour la poutre P1
+element_id: P1
+description: "Poutre principale de la travée 1"
+
+materiau:
+  nuance: S235
+  fy_MPa: 235.0
+  E_MPa: 210000.0
+
+geometrie:
+  type_profil: IPE # Famille de profilé à optimiser
+  famille_profil: HEA # Ajout pour spécifier la famille
+  longueur_m: 8.0
+
+charges: # En kN ou kN/m
+  permanentes_G:
+    - type: repartie
+      valeur: 5.0
+  exploitation_Q:
+    - type: repartie
+      valeur: 10.0

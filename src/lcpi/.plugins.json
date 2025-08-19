@@ -1,17 +1,18 @@
 {
     "active_plugins": [
-        "aep",
-        "shell",
-        "utils"
-    ],
-    "available_plugins": [
         "shell",
         "utils",
+        "aep"
+    ],
+    "available_plugins": [
+        "aep",
         "beton",
         "bois",
         "cm",
-        "hydro"
+        "hydro",
+        "shell",
+        "utils"
     ],
-    "installation_date": "2025-08-17T16:00:24.900998",
+    "installation_date": "2025-08-19T09:36:50.416391",
     "version": "2.0.0"
 }

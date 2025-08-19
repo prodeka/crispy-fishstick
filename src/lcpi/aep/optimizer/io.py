@@ -34,8 +34,42 @@ def load_yaml_or_inp(path: Path) -> Tuple[NetworkModel, Dict[str, Any]]:
         return nm, {"format": "yaml"}
     if path.suffix.lower() == ".inp":
         checksum = sha256_of_file(path)
-        nm = NetworkModel(nodes={}, links={}, tanks={})
-        return nm, {"format": "inp", "checksum": checksum}
+        # Parse minimal [PIPES] section: ID Node1 Node2 Length Diameter Roughness MinorLoss Status
+        text = path.read_text(errors="ignore")
+        links: Dict[str, Dict[str, Any]] = {}
+        in_pipes = False
+        for line in text.splitlines():
+            s = line.strip()
+            if not s or s.startswith(";"):
+                continue
+            if s.startswith("["):
+                in_pipes = s.upper().startswith("[PIPES]")
+                continue
+            if in_pipes:
+                parts = s.split()
+                if len(parts) >= 4:
+                    lid = parts[0]
+                    n1 = parts[1]
+                    n2 = parts[2]
+                    try:
+                        length = float(parts[3])
+                    except Exception:
+                        length = 0.0
+                    # Diamètre s'il est présent
+                    diameter_mm = None
+                    if len(parts) >= 5:
+                        try:
+                            diameter_mm = int(float(parts[4]))
+                        except Exception:
+                            diameter_mm = None
+                    links[lid] = {
+                        "from": n1,
+                        "to": n2,
+                        "length_m": length,
+                        "diameter_mm": diameter_mm,
+                    }
+        nm = NetworkModel(nodes={}, links=links, tanks={})
+        return nm, {"format": "inp", "checksum": checksum, "links_parsed": len(links), "file_path": str(path)}
     raise ValueError("Format réseau non supporté. Utiliser .yml/.yaml ou .inp")
 
 

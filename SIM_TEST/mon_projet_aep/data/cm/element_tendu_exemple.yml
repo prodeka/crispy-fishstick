@@ -1,0 +1,38 @@
+# Template pour élément tendu
+element_id: TIRANT_1
+description: "Tirant en construction métallique"
+
+# Caractéristiques du matériau
+materiau:
+  nuance: S235
+  fy_MPa: 235.0
+  E_MPa: 210000.0
+  gamma_M0: 1.0
+
+# Géométrie
+geometrie:
+  type_profil: "rond"  # rond, plat, corniere, tube
+  diametre_mm: 20.0  # Pour profil rond
+  section_mm2: 314.16  # Section calculée automatiquement
+  longueur_m: 5.0
+
+# Efforts appliqués (en kN)
+efforts_elu:
+  N_t_ed_kN: 150  # Effort de traction axial
+  coefficient_amplification: 1.1  # Coefficient d'amplification dynamique
+
+# Conditions aux limites
+conditions_limites:
+  type_attache: "boulon"  # boulon, soudure, vis
+  nombre_attaches: 2
+  diametre_trou_mm: 22.0  # Diamètre du trou pour boulon
+
+# Paramètres de calcul
+parametres_calcul:
+  verification_traction: true
+  verification_section_nette: true
+  verification_rupture: true
+  verification_limitation_deformation: true
+  
+  # Limites de déformation
+  elongation_max_pourcent: 5.0  # Élongation maximale admissible (%) 

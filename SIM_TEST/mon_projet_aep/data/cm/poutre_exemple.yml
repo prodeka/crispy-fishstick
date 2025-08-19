@@ -1,0 +1,55 @@
+# Template pour poutre en construction métallique
+element_id: P1
+description: "Poutre principale - Travée 1"
+
+# Caractéristiques du matériau
+materiau:
+  nuance: S235
+  fy_MPa: 235.0
+  E_MPa: 210000.0
+  gamma_M0: 1.0
+  gamma_M1: 1.0
+
+# Géométrie
+geometrie:
+  type_profil: IPE
+  famille_profil: IPE
+  longueur_m: 8.0
+  portee_effective_m: 7.8  # Portée effective pour calcul des moments
+
+# Charges appliquées (en kN/m et kN)
+charges:
+  permanentes_G:
+    - type: repartie
+      valeur: 5.0
+      description: "Poids propre + charges permanentes"
+    - type: ponctuelle
+      valeur: 20.0
+      position_m: 4.0
+      description: "Charge ponctuelle"
+  
+  exploitation_Q:
+    - type: repartie
+      valeur: 10.0
+      description: "Charge d'exploitation"
+    - type: ponctuelle
+      valeur: 30.0
+      position_m: 2.0
+      description: "Charge ponctuelle d'exploitation"
+
+# Conditions aux limites
+conditions_limites:
+  type_appui_gauche: "articulation"  # encastrement, articulation, libre
+  type_appui_droit: "articulation"   # encastrement, articulation, libre
+
+# Paramètres de calcul
+parametres_calcul:
+  classe_section: 1  # 1, 2, 3, 4
+  verification_deversement: true
+  verification_flambement: true
+  verification_cisaillement: true
+  verification_fleche: true
+  
+  # Limites de flèche
+  fleche_max_limite: 1/400  # L/400 par défaut
+  fleche_charge_permanente: 1/500  # L/500 pour charges permanentes 

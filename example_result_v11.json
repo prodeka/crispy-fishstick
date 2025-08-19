@@ -1,0 +1,116 @@
+{
+  "proposals": [
+    {
+      "name": "Solution_économique",
+      "is_feasible": true,
+      "tanks": [
+        {
+          "id": "TANK1",
+          "H_m": 65.0
+        }
+      ],
+      "diameters_mm": {
+        "PIPE1": 200,
+        "PIPE2": 160
+      },
+      "costs": {
+        "CAPEX": 150000.0,
+        "OPEX_annual": 0.0,
+        "OPEX_npv": 25000.0
+      },
+      "metrics": {
+        "min_pressure_m": 12.5,
+        "max_velocity_m_s": 0.0
+      }
+    },
+    {
+      "name": "Solution_optimale",
+      "is_feasible": true,
+      "tanks": [
+        {
+          "id": "TANK1",
+          "H_m": 65.0
+        },
+        {
+          "id": "TANK2",
+          "H_m": 70.0
+        }
+      ],
+      "diameters_mm": {
+        "PIPE1": 250,
+        "PIPE2": 200
+      },
+      "costs": {
+        "CAPEX": 220000.0,
+        "OPEX_annual": 0.0,
+        "OPEX_npv": 18000.0
+      },
+      "metrics": {
+        "min_pressure_m": 15.8,
+        "max_velocity_m_s": 0.0
+      }
+    }
+  ],
+  "pareto_front": [
+    {
+      "name": "Solution_économique",
+      "is_feasible": true,
+      "tanks": [
+        {
+          "id": "TANK1",
+          "H_m": 65.0
+        }
+      ],
+      "diameters_mm": {
+        "PIPE1": 200,
+        "PIPE2": 160
+      },
+      "costs": {
+        "CAPEX": 150000.0,
+        "OPEX_annual": 0.0,
+        "OPEX_npv": 25000.0
+      },
+      "metrics": {
+        "min_pressure_m": 12.5,
+        "max_velocity_m_s": 0.0
+      }
+    },
+    {
+      "name": "Solution_optimale",
+      "is_feasible": true,
+      "tanks": [
+        {
+          "id": "TANK1",
+          "H_m": 65.0
+        },
+        {
+          "id": "TANK2",
+          "H_m": 70.0
+        }
+      ],
+      "diameters_mm": {
+        "PIPE1": 250,
+        "PIPE2": 200
+      },
+      "costs": {
+        "CAPEX": 220000.0,
+        "OPEX_annual": 0.0,
+        "OPEX_npv": 18000.0
+      },
+      "metrics": {
+        "min_pressure_m": 15.8,
+        "max_velocity_m_s": 0.0
+      }
+    }
+  ],
+  "metadata": {
+    "version": "V11",
+    "generation_date": "2025-08-19T06:02:17.247543",
+    "format": "lcpi_aep_optimization",
+    "method": "nested_greedy",
+    "network_file": "example_network.inp",
+    "algorithm": "Binary Search",
+    "iterations": 15,
+    "pressure_min_m": 10.0
+  }
+}

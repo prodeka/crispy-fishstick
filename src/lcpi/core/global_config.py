@@ -267,3 +267,8 @@ class GlobalConfig:
 
 # Instance globale
 global_config = GlobalConfig()
+
+# Compatibilité avec anciens imports
+# Certains tests attendent `GlobalConfigManager` dans ce module.
+# On crée un alias vers la classe actuelle.
+GlobalConfigManager = GlobalConfig

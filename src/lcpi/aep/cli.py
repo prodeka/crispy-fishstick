@@ -22,11 +22,15 @@ from .optimization import GeneticOptimizer, ConstraintManager
 from .optimization.models import ConfigurationOptimisation
 from .core.solvers import SolverFactory
 from .commands.tank_optimization import app as tank_app
+from .optimizer.cli_commands import app as optimizer_cli
 
 app = typer.Typer(name="aep", help="Module Alimentation en Eau Potable")
 
 # Sous-commande Tank (MVP Binary)
 app.add_typer(tank_app, name="tank")
+
+# Sous-commande Optimizer (V11)
+app.add_typer(optimizer_cli, name="optimizer")
 
 # =============================================================================
 # OUTILS COMMUNS POUR LES COMMANDES UNIFIÉES

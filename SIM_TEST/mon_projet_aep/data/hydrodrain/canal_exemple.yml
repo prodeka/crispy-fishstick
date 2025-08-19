@@ -1,0 +1,26 @@
+# Template pour canal hydraulique
+element_id: CANAL_1
+description: "Canal trapézoïdal - Collecteur principal"
+
+# Paramètres hydrauliques
+debit_projet_m3s: 10.0  # Débit à transiter dans le canal (m³/s)
+k_strickler: 30.0       # Coefficient de rugosité de Strickler
+vitesse_max_admissible_ms: 1.5  # Vitesse maximale pour éviter l'érosion (m/s)
+vitesse_min_admissible_ms: 0.3  # Vitesse minimale pour éviter le dépôt (m/s)
+
+# Paramètres géométriques
+pente_m_m: 0.001        # Pente longitudinale du fond du canal (m/m)
+fruit_talus_z: 1.5      # Fruit des talus (z tel que la pente est 1V:zH)
+largeur_fond_m: 2.0     # Largeur au fond du canal
+hauteur_projet_m: 2.5   # Hauteur de projet (hauteur d'eau + revanche)
+
+# Paramètres de calcul
+parametres_calcul:
+  verification_capacite: true      # Vérification de la capacité hydraulique
+  verification_vitesse: true       # Vérification des vitesses min/max
+  verification_stabilite: true     # Vérification de la stabilité des talus
+  verification_revanche: true      # Vérification de la revanche
+  
+  # Coefficients de sécurité
+  coefficient_revanche: 0.5        # Revanche minimale (m)
+  coefficient_securite_talus: 1.5  # Coefficient de sécurité pour les talus 

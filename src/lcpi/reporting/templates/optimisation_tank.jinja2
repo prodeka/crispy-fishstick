@@ -1,95 +1,94 @@
 <!DOCTYPE html>
-<html>
+<html lang="fr">
 <head>
   <meta charset="utf-8"/>
-  <title>Rapport Optimisation Réservoir</title>
+  <title>Rapport d'Optimisation V11</title>
   <style>
-    body { font-family: Arial, sans-serif; margin: 24px; }
-    h1 { color: #2c3e50; }
-    table { border-collapse: collapse; width: 100%; margin: 12px 0; }
-    th, td { border: 1px solid #ddd; padding: 8px; }
-    th { background: #f0f0f0; text-align: left; }
-    .section { margin-top: 24px; }
-    .ok { color: #2e7d32; }
-    .warn { color: #ef6c00; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; margin: 24px; color: #333; }
+    h1, h2, h3 { color: #2c3e50; }
+    table { border-collapse: collapse; width: 100%; margin: 20px 0; box-shadow: 0 2px 3px rgba(0,0,0,0.1); }
+    th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+    th { background-color: #f2f2f2; font-weight: bold; }
+    tr:nth-child(even) { background-color: #f9f9f9; }
+    .section { margin-top: 30px; padding-top: 20px; border-top: 2px solid #eee; }
+    .card { background-color: #fff; border-radius: 8px; padding: 20px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+    .meta-info { font-size: 0.9em; color: #777; }
   </style>
-  </head>
+</head>
 <body>
-  <h1>Rapport d'Optimisation — Réservoir surélevé</h1>
-  <div class="section">
-    <h2>Métadonnées</h2>
-    <ul>
-      <li>Méthode: {{ meta.method if meta }} </li>
-      <li>Solveur: {{ meta.solver if meta }}</li>
-      <li>Timestamp: {{ meta.timestamp if meta }}</li>
-    </ul>
+
+  <div class="card">
+    <h1>Rapport d'Optimisation de Réseau AEP (V11)</h1>
+    <p class="meta-info">Généré le: {{ "now" | strftime("%d/%m/%Y %H:%M") }}</p>
+    <p>Ce rapport présente les résultats de l'optimisation multi-objectifs pour le réseau <strong>{{ metadata.network_file }}</strong> en utilisant la méthode <strong>{{ metadata.method }}</strong>.</p>
   </div>
 
   <div class="section">
-    <h2>Paramètres Optimaux</h2>
-    <ul>
-      <li>H_tank (m): {{ H_tank_m if H_tank_m is not none }} {{ H_selected if H_selected is not none }}</li>
-    </ul>
-    <h3>Diamètres retenus</h3>
+    <h2>Synthèse des Propositions</h2>
+    <p>Le tableau suivant compare les solutions optimales identifiées.</p>
     <table>
-      <thead><tr><th>Lien</th><th>DN (mm)</th></tr></thead>
+      <thead>
+        <tr>
+          <th>Proposition</th>
+          <th>Faisable</th>
+          <th>CAPEX (FCFA)</th>
+          <th>OPEX (NPV, FCFA)</th>
+          <th>Hauteurs Réservoirs (m)</th>
+        </tr>
+      </thead>
       <tbody>
-      {% if diameters_mm %}
-        {% for lid, dn in diameters_mm.items() %}
-          <tr><td>{{ lid }}</td><td>{{ dn }}</td></tr>
+        {% for prop in proposals %}
+        <tr>
+          <td><strong>{{ prop.name }}</strong></td>
+          <td>{{ 'Oui' if prop.is_feasible else 'Non' }}</td>
+          <td>{{ "{:,.0f}".format(prop.costs.capex) if prop.costs.capex is not none else 'N/A' }}</td>
+          <td>{{ "{:,.0f}".format(prop.costs.opex_npv) if prop.costs.opex_npv is not none else 'N/A' }}</td>
+          <td>{{ prop.tanks | map(attribute='H_m') | join(', ') }}</td>
+        </tr>
         {% endfor %}
-      {% else %}
-          <tr><td colspan="2">Non spécifié</td></tr>
-      {% endif %}
       </tbody>
     </table>
   </div>
 
+  {% for prop in proposals %}
   <div class="section">
-    <h2>Coûts</h2>
+    <h3>Détails de la Proposition: {{ prop.name }}</h3>
+    <h4>Diamètres Optimaux (mm)</h4>
     <table>
-      <tr><th>CAPEX</th><td>{{ costs.CAPEX if costs }}</td></tr>
-      <tr><th>OPEX annuel</th><td>{{ costs.OPEX_annual if costs }}</td></tr>
-      <tr><th>Coût total</th><td>{{ costs.total_cost if costs }}</td></tr>
-    </table>
-  </div>
-
-  <div class="section">
-    <h2>Hydraulique</h2>
-    <h3>Pressions (m)</h3>
-    <table>
-      <thead><tr><th>Nœud</th><th>Pression</th></tr></thead>
+      <thead><tr><th>Conduite</th><th>Diamètre (mm)</th></tr></thead>
       <tbody>
-      {% if pressures_m %}
-        {% for nid, p in pressures_m.items() %}
-          <tr><td>{{ nid }}</td><td>{{ p }}</td></tr>
+        {% for link_id, dn in prop.diameters_mm.items() %}
+          <tr><td>{{ link_id }}</td><td>{{ dn }}</td></tr>
+        {% else %}
+          <tr><td colspan="2">Aucun diamètre spécifié.</td></tr>
         {% endfor %}
-      {% else %}
-          <tr><td colspan="2">Non disponible</td></tr>
-      {% endif %}
-      </tbody>
-    </table>
-    <h3>Vitesses (m/s)</h3>
-    <table>
-      <thead><tr><th>Lien</th><th>Vitesse</th></tr></thead>
-      <tbody>
-      {% if velocities_m_s %}
-        {% for lid, v in velocities_m_s.items() %}
-          <tr><td>{{ lid }}</td><td>{{ v }}</td></tr>
-        {% endfor %}
-      {% else %}
-          <tr><td colspan="2">Non disponible</td></tr>
-      {% endif %}
       </tbody>
     </table>
   </div>
+  {% endfor %}
 
+  {% if pareto_front %}
   <div class="section">
-    <h2>Résumé</h2>
-    <p>Méthode utilisée: {{ report_payload.placeholders.methode_utilisee if report_payload and report_payload.placeholders }}</p>
-    <p>Contrainte pression min: {{ report_payload.placeholders.contrainte_pression_min if report_payload and report_payload.placeholders }}</p>
-    <p>Coût total (formaté): {{ report_payload.placeholders.cout_total if report_payload and report_payload.placeholders }}</p>
+    <h2>Front de Pareto</h2>
+    <p>Ensemble des solutions non-dominées trouvées par l'algorithme.</p>
+    <table>
+      <thead>
+        <tr>
+          <th>CAPEX (FCFA)</th>
+          <th>OPEX (NPV, FCFA)</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for point in pareto_front %}
+        <tr>
+          <td>{{ "{:,.0f}".format(point.costs.capex) }}</td>
+          <td>{{ "{:,.0f}".format(point.costs.opex_npv) }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
   </div>
+  {% endif %}
 
 </body>
 </html>

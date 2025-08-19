@@ -1,0 +1,1261 @@
+accessory_code,accessory_label,DN_mm,material,unit_fcfa,unit,compatibility_note
+elbow_90,Coudes 90°,20,PVC-U,1095,unit,Compatible with DN
+elbow_90,Coudes 90°,20,PEHD,1040,unit,Compatible with DN
+elbow_90,Coudes 90°,20,Fonte_dutile,1588,unit,Compatible with DN
+elbow_90,Coudes 90°,20,Acier_galv,1369,unit,Compatible with DN
+elbow_90,Coudes 90°,20,PRFV,1752,unit,Compatible with DN
+elbow_90,Coudes 90°,25,PVC-U,1400,unit,Compatible with DN
+elbow_90,Coudes 90°,25,PEHD,1330,unit,Compatible with DN
+elbow_90,Coudes 90°,25,Fonte_dutile,2029,unit,Compatible with DN
+elbow_90,Coudes 90°,25,Acier_galv,1749,unit,Compatible with DN
+elbow_90,Coudes 90°,25,PRFV,2239,unit,Compatible with DN
+elbow_90,Coudes 90°,32,PVC-U,1836,unit,Compatible with DN
+elbow_90,Coudes 90°,32,PEHD,1744,unit,Compatible with DN
+elbow_90,Coudes 90°,32,Fonte_dutile,2662,unit,Compatible with DN
+elbow_90,Coudes 90°,32,Acier_galv,2295,unit,Compatible with DN
+elbow_90,Coudes 90°,32,PRFV,2938,unit,Compatible with DN
+elbow_90,Coudes 90°,40,PVC-U,2347,unit,Compatible with DN
+elbow_90,Coudes 90°,40,PEHD,2230,unit,Compatible with DN
+elbow_90,Coudes 90°,40,Fonte_dutile,3403,unit,Compatible with DN
+elbow_90,Coudes 90°,40,Acier_galv,2934,unit,Compatible with DN
+elbow_90,Coudes 90°,40,PRFV,3755,unit,Compatible with DN
+elbow_90,Coudes 90°,50,PVC-U,3000,unit,Compatible with DN
+elbow_90,Coudes 90°,50,PEHD,2850,unit,Compatible with DN
+elbow_90,Coudes 90°,50,Fonte_dutile,4350,unit,Compatible with DN
+elbow_90,Coudes 90°,50,Acier_galv,3750,unit,Compatible with DN
+elbow_90,Coudes 90°,50,PRFV,4800,unit,Compatible with DN
+elbow_90,Coudes 90°,65,PVC-U,4004,unit,Compatible with DN
+elbow_90,Coudes 90°,65,PEHD,3803,unit,Compatible with DN
+elbow_90,Coudes 90°,65,Fonte_dutile,5805,unit,Compatible with DN
+elbow_90,Coudes 90°,65,Acier_galv,5005,unit,Compatible with DN
+elbow_90,Coudes 90°,65,PRFV,6406,unit,Compatible with DN
+elbow_90,Coudes 90°,75,PVC-U,4686,unit,Compatible with DN
+elbow_90,Coudes 90°,75,PEHD,4452,unit,Compatible with DN
+elbow_90,Coudes 90°,75,Fonte_dutile,6795,unit,Compatible with DN
+elbow_90,Coudes 90°,75,Acier_galv,5858,unit,Compatible with DN
+elbow_90,Coudes 90°,75,PRFV,7498,unit,Compatible with DN
+elbow_90,Coudes 90°,80,PVC-U,5031,unit,Compatible with DN
+elbow_90,Coudes 90°,80,PEHD,4779,unit,Compatible with DN
+elbow_90,Coudes 90°,80,Fonte_dutile,7295,unit,Compatible with DN
+elbow_90,Coudes 90°,80,Acier_galv,6289,unit,Compatible with DN
+elbow_90,Coudes 90°,80,PRFV,8050,unit,Compatible with DN
+elbow_90,Coudes 90°,90,PVC-U,5727,unit,Compatible with DN
+elbow_90,Coudes 90°,90,PEHD,5441,unit,Compatible with DN
+elbow_90,Coudes 90°,90,Fonte_dutile,8304,unit,Compatible with DN
+elbow_90,Coudes 90°,90,Acier_galv,7159,unit,Compatible with DN
+elbow_90,Coudes 90°,90,PRFV,9163,unit,Compatible with DN
+elbow_90,Coudes 90°,110,PVC-U,7141,unit,Compatible with DN
+elbow_90,Coudes 90°,110,PEHD,6784,unit,Compatible with DN
+elbow_90,Coudes 90°,110,Fonte_dutile,10355,unit,Compatible with DN
+elbow_90,Coudes 90°,110,Acier_galv,8927,unit,Compatible with DN
+elbow_90,Coudes 90°,110,PRFV,11426,unit,Compatible with DN
+elbow_90,Coudes 90°,125,PVC-U,8220,unit,Compatible with DN
+elbow_90,Coudes 90°,125,PEHD,7809,unit,Compatible with DN
+elbow_90,Coudes 90°,125,Fonte_dutile,11919,unit,Compatible with DN
+elbow_90,Coudes 90°,125,Acier_galv,10275,unit,Compatible with DN
+elbow_90,Coudes 90°,125,PRFV,13151,unit,Compatible with DN
+elbow_90,Coudes 90°,140,PVC-U,9311,unit,Compatible with DN
+elbow_90,Coudes 90°,140,PEHD,8845,unit,Compatible with DN
+elbow_90,Coudes 90°,140,Fonte_dutile,13501,unit,Compatible with DN
+elbow_90,Coudes 90°,140,Acier_galv,11639,unit,Compatible with DN
+elbow_90,Coudes 90°,140,PRFV,14898,unit,Compatible with DN
+elbow_90,Coudes 90°,160,PVC-U,10784,unit,Compatible with DN
+elbow_90,Coudes 90°,160,PEHD,10245,unit,Compatible with DN
+elbow_90,Coudes 90°,160,Fonte_dutile,15637,unit,Compatible with DN
+elbow_90,Coudes 90°,160,Acier_galv,13480,unit,Compatible with DN
+elbow_90,Coudes 90°,160,PRFV,17255,unit,Compatible with DN
+elbow_90,Coudes 90°,180,PVC-U,12276,unit,Compatible with DN
+elbow_90,Coudes 90°,180,PEHD,11662,unit,Compatible with DN
+elbow_90,Coudes 90°,180,Fonte_dutile,17800,unit,Compatible with DN
+elbow_90,Coudes 90°,180,Acier_galv,15345,unit,Compatible with DN
+elbow_90,Coudes 90°,180,PRFV,19641,unit,Compatible with DN
+elbow_90,Coudes 90°,200,PVC-U,13784,unit,Compatible with DN
+elbow_90,Coudes 90°,200,PEHD,13095,unit,Compatible with DN
+elbow_90,Coudes 90°,200,Fonte_dutile,19987,unit,Compatible with DN
+elbow_90,Coudes 90°,200,Acier_galv,17230,unit,Compatible with DN
+elbow_90,Coudes 90°,200,PRFV,22055,unit,Compatible with DN
+elbow_90,Coudes 90°,225,PVC-U,15691,unit,Compatible with DN
+elbow_90,Coudes 90°,225,PEHD,14907,unit,Compatible with DN
+elbow_90,Coudes 90°,225,Fonte_dutile,22752,unit,Compatible with DN
+elbow_90,Coudes 90°,225,Acier_galv,19614,unit,Compatible with DN
+elbow_90,Coudes 90°,225,PRFV,25106,unit,Compatible with DN
+elbow_90,Coudes 90°,250,PVC-U,17619,unit,Compatible with DN
+elbow_90,Coudes 90°,250,PEHD,16738,unit,Compatible with DN
+elbow_90,Coudes 90°,250,Fonte_dutile,25548,unit,Compatible with DN
+elbow_90,Coudes 90°,250,Acier_galv,22024,unit,Compatible with DN
+elbow_90,Coudes 90°,250,PRFV,28191,unit,Compatible with DN
+elbow_90,Coudes 90°,280,PVC-U,19959,unit,Compatible with DN
+elbow_90,Coudes 90°,280,PEHD,18961,unit,Compatible with DN
+elbow_90,Coudes 90°,280,Fonte_dutile,28940,unit,Compatible with DN
+elbow_90,Coudes 90°,280,Acier_galv,24948,unit,Compatible with DN
+elbow_90,Coudes 90°,280,PRFV,31934,unit,Compatible with DN
+elbow_90,Coudes 90°,315,PVC-U,22719,unit,Compatible with DN
+elbow_90,Coudes 90°,315,PEHD,21583,unit,Compatible with DN
+elbow_90,Coudes 90°,315,Fonte_dutile,32943,unit,Compatible with DN
+elbow_90,Coudes 90°,315,Acier_galv,28399,unit,Compatible with DN
+elbow_90,Coudes 90°,315,PRFV,36351,unit,Compatible with DN
+elbow_90,Coudes 90°,350,PVC-U,25511,unit,Compatible with DN
+elbow_90,Coudes 90°,350,PEHD,24236,unit,Compatible with DN
+elbow_90,Coudes 90°,350,Fonte_dutile,36991,unit,Compatible with DN
+elbow_90,Coudes 90°,350,Acier_galv,31889,unit,Compatible with DN
+elbow_90,Coudes 90°,350,PRFV,40818,unit,Compatible with DN
+elbow_90,Coudes 90°,400,PVC-U,29547,unit,Compatible with DN
+elbow_90,Coudes 90°,400,PEHD,28070,unit,Compatible with DN
+elbow_90,Coudes 90°,400,Fonte_dutile,42844,unit,Compatible with DN
+elbow_90,Coudes 90°,400,Acier_galv,36934,unit,Compatible with DN
+elbow_90,Coudes 90°,400,PRFV,47276,unit,Compatible with DN
+elbow_90,Coudes 90°,450,PVC-U,33635,unit,Compatible with DN
+elbow_90,Coudes 90°,450,PEHD,31953,unit,Compatible with DN
+elbow_90,Coudes 90°,450,Fonte_dutile,48770,unit,Compatible with DN
+elbow_90,Coudes 90°,450,Acier_galv,42043,unit,Compatible with DN
+elbow_90,Coudes 90°,450,PRFV,53816,unit,Compatible with DN
+elbow_90,Coudes 90°,500,PVC-U,37768,unit,Compatible with DN
+elbow_90,Coudes 90°,500,PEHD,35879,unit,Compatible with DN
+elbow_90,Coudes 90°,500,Fonte_dutile,54763,unit,Compatible with DN
+elbow_90,Coudes 90°,500,Acier_galv,47210,unit,Compatible with DN
+elbow_90,Coudes 90°,500,PRFV,60428,unit,Compatible with DN
+elbow_90,Coudes 90°,560,PVC-U,42782,unit,Compatible with DN
+elbow_90,Coudes 90°,560,PEHD,40643,unit,Compatible with DN
+elbow_90,Coudes 90°,560,Fonte_dutile,62034,unit,Compatible with DN
+elbow_90,Coudes 90°,560,Acier_galv,53477,unit,Compatible with DN
+elbow_90,Coudes 90°,560,PRFV,68451,unit,Compatible with DN
+elbow_90,Coudes 90°,630,PVC-U,48700,unit,Compatible with DN
+elbow_90,Coudes 90°,630,PEHD,46265,unit,Compatible with DN
+elbow_90,Coudes 90°,630,Fonte_dutile,70615,unit,Compatible with DN
+elbow_90,Coudes 90°,630,Acier_galv,60875,unit,Compatible with DN
+elbow_90,Coudes 90°,630,PRFV,77920,unit,Compatible with DN
+elbow_90,Coudes 90°,710,PVC-U,55544,unit,Compatible with DN
+elbow_90,Coudes 90°,710,PEHD,52767,unit,Compatible with DN
+elbow_90,Coudes 90°,710,Fonte_dutile,80539,unit,Compatible with DN
+elbow_90,Coudes 90°,710,Acier_galv,69430,unit,Compatible with DN
+elbow_90,Coudes 90°,710,PRFV,88871,unit,Compatible with DN
+elbow_90,Coudes 90°,800,PVC-U,63336,unit,Compatible with DN
+elbow_90,Coudes 90°,800,PEHD,60170,unit,Compatible with DN
+elbow_90,Coudes 90°,800,Fonte_dutile,91838,unit,Compatible with DN
+elbow_90,Coudes 90°,800,Acier_galv,79170,unit,Compatible with DN
+elbow_90,Coudes 90°,800,PRFV,101338,unit,Compatible with DN
+elbow_90,Coudes 90°,900,PVC-U,72098,unit,Compatible with DN
+elbow_90,Coudes 90°,900,PEHD,68493,unit,Compatible with DN
+elbow_90,Coudes 90°,900,Fonte_dutile,104542,unit,Compatible with DN
+elbow_90,Coudes 90°,900,Acier_galv,90122,unit,Compatible with DN
+elbow_90,Coudes 90°,900,PRFV,115356,unit,Compatible with DN
+tee,Té,20,PVC-U,1642,unit,Compatible with DN
+tee,Té,20,PEHD,1560,unit,Compatible with DN
+tee,Té,20,Fonte_dutile,2381,unit,Compatible with DN
+tee,Té,20,Acier_galv,2053,unit,Compatible with DN
+tee,Té,20,PRFV,2628,unit,Compatible with DN
+tee,Té,25,PVC-U,2099,unit,Compatible with DN
+tee,Té,25,PEHD,1994,unit,Compatible with DN
+tee,Té,25,Fonte_dutile,3044,unit,Compatible with DN
+tee,Té,25,Acier_galv,2624,unit,Compatible with DN
+tee,Té,25,PRFV,3359,unit,Compatible with DN
+tee,Té,32,PVC-U,2754,unit,Compatible with DN
+tee,Té,32,PEHD,2617,unit,Compatible with DN
+tee,Té,32,Fonte_dutile,3994,unit,Compatible with DN
+tee,Té,32,Acier_galv,3443,unit,Compatible with DN
+tee,Té,32,PRFV,4407,unit,Compatible with DN
+tee,Té,40,PVC-U,3521,unit,Compatible with DN
+tee,Té,40,PEHD,3345,unit,Compatible with DN
+tee,Té,40,Fonte_dutile,5105,unit,Compatible with DN
+tee,Té,40,Acier_galv,4401,unit,Compatible with DN
+tee,Té,40,PRFV,5633,unit,Compatible with DN
+tee,Té,50,PVC-U,4500,unit,Compatible with DN
+tee,Té,50,PEHD,4275,unit,Compatible with DN
+tee,Té,50,Fonte_dutile,6525,unit,Compatible with DN
+tee,Té,50,Acier_galv,5625,unit,Compatible with DN
+tee,Té,50,PRFV,7200,unit,Compatible with DN
+tee,Té,65,PVC-U,6006,unit,Compatible with DN
+tee,Té,65,PEHD,5705,unit,Compatible with DN
+tee,Té,65,Fonte_dutile,8708,unit,Compatible with DN
+tee,Té,65,Acier_galv,7507,unit,Compatible with DN
+tee,Té,65,PRFV,9609,unit,Compatible with DN
+tee,Té,75,PVC-U,7029,unit,Compatible with DN
+tee,Té,75,PEHD,6678,unit,Compatible with DN
+tee,Té,75,Fonte_dutile,10193,unit,Compatible with DN
+tee,Té,75,Acier_galv,8787,unit,Compatible with DN
+tee,Té,75,PRFV,11247,unit,Compatible with DN
+tee,Té,80,PVC-U,7546,unit,Compatible with DN
+tee,Té,80,PEHD,7169,unit,Compatible with DN
+tee,Té,80,Fonte_dutile,10942,unit,Compatible with DN
+tee,Té,80,Acier_galv,9433,unit,Compatible with DN
+tee,Té,80,PRFV,12074,unit,Compatible with DN
+tee,Té,90,PVC-U,8590,unit,Compatible with DN
+tee,Té,90,PEHD,8161,unit,Compatible with DN
+tee,Té,90,Fonte_dutile,12456,unit,Compatible with DN
+tee,Té,90,Acier_galv,10738,unit,Compatible with DN
+tee,Té,90,PRFV,13745,unit,Compatible with DN
+tee,Té,110,PVC-U,10712,unit,Compatible with DN
+tee,Té,110,PEHD,10177,unit,Compatible with DN
+tee,Té,110,Fonte_dutile,15533,unit,Compatible with DN
+tee,Té,110,Acier_galv,13390,unit,Compatible with DN
+tee,Té,110,PRFV,17139,unit,Compatible with DN
+tee,Té,125,PVC-U,12330,unit,Compatible with DN
+tee,Té,125,PEHD,11713,unit,Compatible with DN
+tee,Té,125,Fonte_dutile,17878,unit,Compatible with DN
+tee,Té,125,Acier_galv,15412,unit,Compatible with DN
+tee,Té,125,PRFV,19727,unit,Compatible with DN
+tee,Té,140,PVC-U,13966,unit,Compatible with DN
+tee,Té,140,PEHD,13268,unit,Compatible with DN
+tee,Té,140,Fonte_dutile,20251,unit,Compatible with DN
+tee,Té,140,Acier_galv,17458,unit,Compatible with DN
+tee,Té,140,PRFV,22346,unit,Compatible with DN
+tee,Té,160,PVC-U,16176,unit,Compatible with DN
+tee,Té,160,PEHD,15367,unit,Compatible with DN
+tee,Té,160,Fonte_dutile,23456,unit,Compatible with DN
+tee,Té,160,Acier_galv,20220,unit,Compatible with DN
+tee,Té,160,PRFV,25882,unit,Compatible with DN
+tee,Té,180,PVC-U,18414,unit,Compatible with DN
+tee,Té,180,PEHD,17493,unit,Compatible with DN
+tee,Té,180,Fonte_dutile,26700,unit,Compatible with DN
+tee,Té,180,Acier_galv,23017,unit,Compatible with DN
+tee,Té,180,PRFV,29462,unit,Compatible with DN
+tee,Té,200,PVC-U,20677,unit,Compatible with DN
+tee,Té,200,PEHD,19643,unit,Compatible with DN
+tee,Té,200,Fonte_dutile,29981,unit,Compatible with DN
+tee,Té,200,Acier_galv,25846,unit,Compatible with DN
+tee,Té,200,PRFV,33083,unit,Compatible with DN
+tee,Té,225,PVC-U,23537,unit,Compatible with DN
+tee,Té,225,PEHD,22360,unit,Compatible with DN
+tee,Té,225,Fonte_dutile,34128,unit,Compatible with DN
+tee,Té,225,Acier_galv,29421,unit,Compatible with DN
+tee,Té,225,PRFV,37659,unit,Compatible with DN
+tee,Té,250,PVC-U,26429,unit,Compatible with DN
+tee,Té,250,PEHD,25107,unit,Compatible with DN
+tee,Té,250,Fonte_dutile,38322,unit,Compatible with DN
+tee,Té,250,Acier_galv,33036,unit,Compatible with DN
+tee,Té,250,PRFV,42286,unit,Compatible with DN
+tee,Té,280,PVC-U,29938,unit,Compatible with DN
+tee,Té,280,PEHD,28441,unit,Compatible with DN
+tee,Té,280,Fonte_dutile,43410,unit,Compatible with DN
+tee,Té,280,Acier_galv,37422,unit,Compatible with DN
+tee,Té,280,PRFV,47900,unit,Compatible with DN
+tee,Té,315,PVC-U,34079,unit,Compatible with DN
+tee,Té,315,PEHD,32375,unit,Compatible with DN
+tee,Té,315,Fonte_dutile,49415,unit,Compatible with DN
+tee,Té,315,Acier_galv,42599,unit,Compatible with DN
+tee,Té,315,PRFV,54526,unit,Compatible with DN
+tee,Té,350,PVC-U,38267,unit,Compatible with DN
+tee,Té,350,PEHD,36353,unit,Compatible with DN
+tee,Té,350,Fonte_dutile,55487,unit,Compatible with DN
+tee,Té,350,Acier_galv,47833,unit,Compatible with DN
+tee,Té,350,PRFV,61227,unit,Compatible with DN
+tee,Té,400,PVC-U,44321,unit,Compatible with DN
+tee,Té,400,PEHD,42105,unit,Compatible with DN
+tee,Té,400,Fonte_dutile,64266,unit,Compatible with DN
+tee,Té,400,Acier_galv,55401,unit,Compatible with DN
+tee,Té,400,PRFV,70914,unit,Compatible with DN
+tee,Té,450,PVC-U,50452,unit,Compatible with DN
+tee,Té,450,PEHD,47929,unit,Compatible with DN
+tee,Té,450,Fonte_dutile,73156,unit,Compatible with DN
+tee,Té,450,Acier_galv,63065,unit,Compatible with DN
+tee,Té,450,PRFV,80723,unit,Compatible with DN
+tee,Té,500,PVC-U,56652,unit,Compatible with DN
+tee,Té,500,PEHD,53819,unit,Compatible with DN
+tee,Té,500,Fonte_dutile,82145,unit,Compatible with DN
+tee,Té,500,Acier_galv,70815,unit,Compatible with DN
+tee,Té,500,PRFV,90643,unit,Compatible with DN
+tee,Té,560,PVC-U,64173,unit,Compatible with DN
+tee,Té,560,PEHD,60964,unit,Compatible with DN
+tee,Té,560,Fonte_dutile,93051,unit,Compatible with DN
+tee,Té,560,Acier_galv,80216,unit,Compatible with DN
+tee,Té,560,PRFV,102677,unit,Compatible with DN
+tee,Té,630,PVC-U,73050,unit,Compatible with DN
+tee,Té,630,PEHD,69397,unit,Compatible with DN
+tee,Té,630,Fonte_dutile,105922,unit,Compatible with DN
+tee,Té,630,Acier_galv,91312,unit,Compatible with DN
+tee,Té,630,PRFV,116880,unit,Compatible with DN
+tee,Té,710,PVC-U,83316,unit,Compatible with DN
+tee,Té,710,PEHD,79150,unit,Compatible with DN
+tee,Té,710,Fonte_dutile,120809,unit,Compatible with DN
+tee,Té,710,Acier_galv,104145,unit,Compatible with DN
+tee,Té,710,PRFV,133306,unit,Compatible with DN
+tee,Té,800,PVC-U,95005,unit,Compatible with DN
+tee,Té,800,PEHD,90254,unit,Compatible with DN
+tee,Té,800,Fonte_dutile,137757,unit,Compatible with DN
+tee,Té,800,Acier_galv,118756,unit,Compatible with DN
+tee,Té,800,PRFV,152007,unit,Compatible with DN
+tee,Té,900,PVC-U,108146,unit,Compatible with DN
+tee,Té,900,PEHD,102739,unit,Compatible with DN
+tee,Té,900,Fonte_dutile,156812,unit,Compatible with DN
+tee,Té,900,Acier_galv,135183,unit,Compatible with DN
+tee,Té,900,PRFV,173034,unit,Compatible with DN
+reducer,Réducteur,20,PVC-U,730,unit,Compatible with DN
+reducer,Réducteur,20,PEHD,693,unit,Compatible with DN
+reducer,Réducteur,20,Fonte_dutile,1058,unit,Compatible with DN
+reducer,Réducteur,20,Acier_galv,912,unit,Compatible with DN
+reducer,Réducteur,20,PRFV,1168,unit,Compatible with DN
+reducer,Réducteur,25,PVC-U,933,unit,Compatible with DN
+reducer,Réducteur,25,PEHD,886,unit,Compatible with DN
+reducer,Réducteur,25,Fonte_dutile,1353,unit,Compatible with DN
+reducer,Réducteur,25,Acier_galv,1166,unit,Compatible with DN
+reducer,Réducteur,25,PRFV,1493,unit,Compatible with DN
+reducer,Réducteur,32,PVC-U,1224,unit,Compatible with DN
+reducer,Réducteur,32,PEHD,1163,unit,Compatible with DN
+reducer,Réducteur,32,Fonte_dutile,1775,unit,Compatible with DN
+reducer,Réducteur,32,Acier_galv,1530,unit,Compatible with DN
+reducer,Réducteur,32,PRFV,1959,unit,Compatible with DN
+reducer,Réducteur,40,PVC-U,1565,unit,Compatible with DN
+reducer,Réducteur,40,PEHD,1486,unit,Compatible with DN
+reducer,Réducteur,40,Fonte_dutile,2269,unit,Compatible with DN
+reducer,Réducteur,40,Acier_galv,1956,unit,Compatible with DN
+reducer,Réducteur,40,PRFV,2504,unit,Compatible with DN
+reducer,Réducteur,50,PVC-U,2000,unit,Compatible with DN
+reducer,Réducteur,50,PEHD,1900,unit,Compatible with DN
+reducer,Réducteur,50,Fonte_dutile,2900,unit,Compatible with DN
+reducer,Réducteur,50,Acier_galv,2500,unit,Compatible with DN
+reducer,Réducteur,50,PRFV,3200,unit,Compatible with DN
+reducer,Réducteur,65,PVC-U,2669,unit,Compatible with DN
+reducer,Réducteur,65,PEHD,2536,unit,Compatible with DN
+reducer,Réducteur,65,Fonte_dutile,3870,unit,Compatible with DN
+reducer,Réducteur,65,Acier_galv,3336,unit,Compatible with DN
+reducer,Réducteur,65,PRFV,4271,unit,Compatible with DN
+reducer,Réducteur,75,PVC-U,3124,unit,Compatible with DN
+reducer,Réducteur,75,PEHD,2968,unit,Compatible with DN
+reducer,Réducteur,75,Fonte_dutile,4530,unit,Compatible with DN
+reducer,Réducteur,75,Acier_galv,3905,unit,Compatible with DN
+reducer,Réducteur,75,PRFV,4999,unit,Compatible with DN
+reducer,Réducteur,80,PVC-U,3354,unit,Compatible with DN
+reducer,Réducteur,80,PEHD,3186,unit,Compatible with DN
+reducer,Réducteur,80,Fonte_dutile,4863,unit,Compatible with DN
+reducer,Réducteur,80,Acier_galv,4192,unit,Compatible with DN
+reducer,Réducteur,80,PRFV,5366,unit,Compatible with DN
+reducer,Réducteur,90,PVC-U,3818,unit,Compatible with DN
+reducer,Réducteur,90,PEHD,3627,unit,Compatible with DN
+reducer,Réducteur,90,Fonte_dutile,5536,unit,Compatible with DN
+reducer,Réducteur,90,Acier_galv,4772,unit,Compatible with DN
+reducer,Réducteur,90,PRFV,6109,unit,Compatible with DN
+reducer,Réducteur,110,PVC-U,4761,unit,Compatible with DN
+reducer,Réducteur,110,PEHD,4523,unit,Compatible with DN
+reducer,Réducteur,110,Fonte_dutile,6903,unit,Compatible with DN
+reducer,Réducteur,110,Acier_galv,5951,unit,Compatible with DN
+reducer,Réducteur,110,PRFV,7618,unit,Compatible with DN
+reducer,Réducteur,125,PVC-U,5480,unit,Compatible with DN
+reducer,Réducteur,125,PEHD,5206,unit,Compatible with DN
+reducer,Réducteur,125,Fonte_dutile,7946,unit,Compatible with DN
+reducer,Réducteur,125,Acier_galv,6850,unit,Compatible with DN
+reducer,Réducteur,125,PRFV,8768,unit,Compatible with DN
+reducer,Réducteur,140,PVC-U,6207,unit,Compatible with DN
+reducer,Réducteur,140,PEHD,5897,unit,Compatible with DN
+reducer,Réducteur,140,Fonte_dutile,9001,unit,Compatible with DN
+reducer,Réducteur,140,Acier_galv,7759,unit,Compatible with DN
+reducer,Réducteur,140,PRFV,9932,unit,Compatible with DN
+reducer,Réducteur,160,PVC-U,7189,unit,Compatible with DN
+reducer,Réducteur,160,PEHD,6830,unit,Compatible with DN
+reducer,Réducteur,160,Fonte_dutile,10425,unit,Compatible with DN
+reducer,Réducteur,160,Acier_galv,8987,unit,Compatible with DN
+reducer,Réducteur,160,PRFV,11503,unit,Compatible with DN
+reducer,Réducteur,180,PVC-U,8184,unit,Compatible with DN
+reducer,Réducteur,180,PEHD,7775,unit,Compatible with DN
+reducer,Réducteur,180,Fonte_dutile,11867,unit,Compatible with DN
+reducer,Réducteur,180,Acier_galv,10230,unit,Compatible with DN
+reducer,Réducteur,180,PRFV,13094,unit,Compatible with DN
+reducer,Réducteur,200,PVC-U,9190,unit,Compatible with DN
+reducer,Réducteur,200,PEHD,8730,unit,Compatible with DN
+reducer,Réducteur,200,Fonte_dutile,13325,unit,Compatible with DN
+reducer,Réducteur,200,Acier_galv,11487,unit,Compatible with DN
+reducer,Réducteur,200,PRFV,14703,unit,Compatible with DN
+reducer,Réducteur,225,PVC-U,10461,unit,Compatible with DN
+reducer,Réducteur,225,PEHD,9938,unit,Compatible with DN
+reducer,Réducteur,225,Fonte_dutile,15168,unit,Compatible with DN
+reducer,Réducteur,225,Acier_galv,13076,unit,Compatible with DN
+reducer,Réducteur,225,PRFV,16737,unit,Compatible with DN
+reducer,Réducteur,250,PVC-U,11746,unit,Compatible with DN
+reducer,Réducteur,250,PEHD,11159,unit,Compatible with DN
+reducer,Réducteur,250,Fonte_dutile,17032,unit,Compatible with DN
+reducer,Réducteur,250,Acier_galv,14683,unit,Compatible with DN
+reducer,Réducteur,250,PRFV,18794,unit,Compatible with DN
+reducer,Réducteur,280,PVC-U,13306,unit,Compatible with DN
+reducer,Réducteur,280,PEHD,12640,unit,Compatible with DN
+reducer,Réducteur,280,Fonte_dutile,19293,unit,Compatible with DN
+reducer,Réducteur,280,Acier_galv,16632,unit,Compatible with DN
+reducer,Réducteur,280,PRFV,21289,unit,Compatible with DN
+reducer,Réducteur,315,PVC-U,15146,unit,Compatible with DN
+reducer,Réducteur,315,PEHD,14389,unit,Compatible with DN
+reducer,Réducteur,315,Fonte_dutile,21962,unit,Compatible with DN
+reducer,Réducteur,315,Acier_galv,18933,unit,Compatible with DN
+reducer,Réducteur,315,PRFV,24234,unit,Compatible with DN
+reducer,Réducteur,350,PVC-U,17007,unit,Compatible with DN
+reducer,Réducteur,350,PEHD,16157,unit,Compatible with DN
+reducer,Réducteur,350,Fonte_dutile,24661,unit,Compatible with DN
+reducer,Réducteur,350,Acier_galv,21259,unit,Compatible with DN
+reducer,Réducteur,350,PRFV,27212,unit,Compatible with DN
+reducer,Réducteur,400,PVC-U,19698,unit,Compatible with DN
+reducer,Réducteur,400,PEHD,18713,unit,Compatible with DN
+reducer,Réducteur,400,Fonte_dutile,28563,unit,Compatible with DN
+reducer,Réducteur,400,Acier_galv,24623,unit,Compatible with DN
+reducer,Réducteur,400,PRFV,31517,unit,Compatible with DN
+reducer,Réducteur,450,PVC-U,22423,unit,Compatible with DN
+reducer,Réducteur,450,PEHD,21302,unit,Compatible with DN
+reducer,Réducteur,450,Fonte_dutile,32514,unit,Compatible with DN
+reducer,Réducteur,450,Acier_galv,28029,unit,Compatible with DN
+reducer,Réducteur,450,PRFV,35877,unit,Compatible with DN
+reducer,Réducteur,500,PVC-U,25179,unit,Compatible with DN
+reducer,Réducteur,500,PEHD,23920,unit,Compatible with DN
+reducer,Réducteur,500,Fonte_dutile,36509,unit,Compatible with DN
+reducer,Réducteur,500,Acier_galv,31473,unit,Compatible with DN
+reducer,Réducteur,500,PRFV,40286,unit,Compatible with DN
+reducer,Réducteur,560,PVC-U,28521,unit,Compatible with DN
+reducer,Réducteur,560,PEHD,27095,unit,Compatible with DN
+reducer,Réducteur,560,Fonte_dutile,41356,unit,Compatible with DN
+reducer,Réducteur,560,Acier_galv,35652,unit,Compatible with DN
+reducer,Réducteur,560,PRFV,45634,unit,Compatible with DN
+reducer,Réducteur,630,PVC-U,32467,unit,Compatible with DN
+reducer,Réducteur,630,PEHD,30843,unit,Compatible with DN
+reducer,Réducteur,630,Fonte_dutile,47077,unit,Compatible with DN
+reducer,Réducteur,630,Acier_galv,40583,unit,Compatible with DN
+reducer,Réducteur,630,PRFV,51947,unit,Compatible with DN
+reducer,Réducteur,710,PVC-U,37029,unit,Compatible with DN
+reducer,Réducteur,710,PEHD,35178,unit,Compatible with DN
+reducer,Réducteur,710,Fonte_dutile,53693,unit,Compatible with DN
+reducer,Réducteur,710,Acier_galv,46287,unit,Compatible with DN
+reducer,Réducteur,710,PRFV,59247,unit,Compatible with DN
+reducer,Réducteur,800,PVC-U,42224,unit,Compatible with DN
+reducer,Réducteur,800,PEHD,40113,unit,Compatible with DN
+reducer,Réducteur,800,Fonte_dutile,61225,unit,Compatible with DN
+reducer,Réducteur,800,Acier_galv,52780,unit,Compatible with DN
+reducer,Réducteur,800,PRFV,67559,unit,Compatible with DN
+reducer,Réducteur,900,PVC-U,48065,unit,Compatible with DN
+reducer,Réducteur,900,PEHD,45662,unit,Compatible with DN
+reducer,Réducteur,900,Fonte_dutile,69694,unit,Compatible with DN
+reducer,Réducteur,900,Acier_galv,60081,unit,Compatible with DN
+reducer,Réducteur,900,PRFV,76904,unit,Compatible with DN
+flange,Bride,20,PVC-U,2920,unit,Compatible with DN
+flange,Bride,20,PEHD,2774,unit,Compatible with DN
+flange,Bride,20,Fonte_dutile,4234,unit,Compatible with DN
+flange,Bride,20,Acier_galv,3650,unit,Compatible with DN
+flange,Bride,20,PRFV,4672,unit,Compatible with DN
+flange,Bride,25,PVC-U,3732,unit,Compatible with DN
+flange,Bride,25,PEHD,3546,unit,Compatible with DN
+flange,Bride,25,Fonte_dutile,5412,unit,Compatible with DN
+flange,Bride,25,Acier_galv,4665,unit,Compatible with DN
+flange,Bride,25,PRFV,5971,unit,Compatible with DN
+flange,Bride,32,PVC-U,4897,unit,Compatible with DN
+flange,Bride,32,PEHD,4652,unit,Compatible with DN
+flange,Bride,32,Fonte_dutile,7100,unit,Compatible with DN
+flange,Bride,32,Acier_galv,6121,unit,Compatible with DN
+flange,Bride,32,PRFV,7834,unit,Compatible with DN
+flange,Bride,40,PVC-U,6259,unit,Compatible with DN
+flange,Bride,40,PEHD,5946,unit,Compatible with DN
+flange,Bride,40,Fonte_dutile,9075,unit,Compatible with DN
+flange,Bride,40,Acier_galv,7823,unit,Compatible with DN
+flange,Bride,40,PRFV,10014,unit,Compatible with DN
+flange,Bride,50,PVC-U,8000,unit,Compatible with DN
+flange,Bride,50,PEHD,7600,unit,Compatible with DN
+flange,Bride,50,Fonte_dutile,11600,unit,Compatible with DN
+flange,Bride,50,Acier_galv,10000,unit,Compatible with DN
+flange,Bride,50,PRFV,12800,unit,Compatible with DN
+flange,Bride,65,PVC-U,10676,unit,Compatible with DN
+flange,Bride,65,PEHD,10143,unit,Compatible with DN
+flange,Bride,65,Fonte_dutile,15481,unit,Compatible with DN
+flange,Bride,65,Acier_galv,13346,unit,Compatible with DN
+flange,Bride,65,PRFV,17082,unit,Compatible with DN
+flange,Bride,75,PVC-U,12497,unit,Compatible with DN
+flange,Bride,75,PEHD,11872,unit,Compatible with DN
+flange,Bride,75,Fonte_dutile,18120,unit,Compatible with DN
+flange,Bride,75,Acier_galv,15621,unit,Compatible with DN
+flange,Bride,75,PRFV,19994,unit,Compatible with DN
+flange,Bride,80,PVC-U,13416,unit,Compatible with DN
+flange,Bride,80,PEHD,12745,unit,Compatible with DN
+flange,Bride,80,Fonte_dutile,19453,unit,Compatible with DN
+flange,Bride,80,Acier_galv,16770,unit,Compatible with DN
+flange,Bride,80,PRFV,21466,unit,Compatible with DN
+flange,Bride,90,PVC-U,15272,unit,Compatible with DN
+flange,Bride,90,PEHD,14508,unit,Compatible with DN
+flange,Bride,90,Fonte_dutile,22144,unit,Compatible with DN
+flange,Bride,90,Acier_galv,19090,unit,Compatible with DN
+flange,Bride,90,PRFV,24435,unit,Compatible with DN
+flange,Bride,110,PVC-U,19044,unit,Compatible with DN
+flange,Bride,110,PEHD,18092,unit,Compatible with DN
+flange,Bride,110,Fonte_dutile,27614,unit,Compatible with DN
+flange,Bride,110,Acier_galv,23805,unit,Compatible with DN
+flange,Bride,110,PRFV,30470,unit,Compatible with DN
+flange,Bride,125,PVC-U,21919,unit,Compatible with DN
+flange,Bride,125,PEHD,20823,unit,Compatible with DN
+flange,Bride,125,Fonte_dutile,31783,unit,Compatible with DN
+flange,Bride,125,Acier_galv,27399,unit,Compatible with DN
+flange,Bride,125,PRFV,35071,unit,Compatible with DN
+flange,Bride,140,PVC-U,24829,unit,Compatible with DN
+flange,Bride,140,PEHD,23588,unit,Compatible with DN
+flange,Bride,140,Fonte_dutile,36002,unit,Compatible with DN
+flange,Bride,140,Acier_galv,31037,unit,Compatible with DN
+flange,Bride,140,PRFV,39727,unit,Compatible with DN
+flange,Bride,160,PVC-U,28758,unit,Compatible with DN
+flange,Bride,160,PEHD,27320,unit,Compatible with DN
+flange,Bride,160,Fonte_dutile,41699,unit,Compatible with DN
+flange,Bride,160,Acier_galv,35947,unit,Compatible with DN
+flange,Bride,160,PRFV,46012,unit,Compatible with DN
+flange,Bride,180,PVC-U,32736,unit,Compatible with DN
+flange,Bride,180,PEHD,31099,unit,Compatible with DN
+flange,Bride,180,Fonte_dutile,47467,unit,Compatible with DN
+flange,Bride,180,Acier_galv,40920,unit,Compatible with DN
+flange,Bride,180,PRFV,52377,unit,Compatible with DN
+flange,Bride,200,PVC-U,36758,unit,Compatible with DN
+flange,Bride,200,PEHD,34920,unit,Compatible with DN
+flange,Bride,200,Fonte_dutile,53300,unit,Compatible with DN
+flange,Bride,200,Acier_galv,45948,unit,Compatible with DN
+flange,Bride,200,PRFV,58813,unit,Compatible with DN
+flange,Bride,225,PVC-U,41843,unit,Compatible with DN
+flange,Bride,225,PEHD,39751,unit,Compatible with DN
+flange,Bride,225,Fonte_dutile,60672,unit,Compatible with DN
+flange,Bride,225,Acier_galv,52304,unit,Compatible with DN
+flange,Bride,225,PRFV,66949,unit,Compatible with DN
+flange,Bride,250,PVC-U,46985,unit,Compatible with DN
+flange,Bride,250,PEHD,44636,unit,Compatible with DN
+flange,Bride,250,Fonte_dutile,68128,unit,Compatible with DN
+flange,Bride,250,Acier_galv,58731,unit,Compatible with DN
+flange,Bride,250,PRFV,75176,unit,Compatible with DN
+flange,Bride,280,PVC-U,53223,unit,Compatible with DN
+flange,Bride,280,PEHD,50562,unit,Compatible with DN
+flange,Bride,280,Fonte_dutile,77173,unit,Compatible with DN
+flange,Bride,280,Acier_galv,66528,unit,Compatible with DN
+flange,Bride,280,PRFV,85156,unit,Compatible with DN
+flange,Bride,315,PVC-U,60585,unit,Compatible with DN
+flange,Bride,315,PEHD,57556,unit,Compatible with DN
+flange,Bride,315,Fonte_dutile,87848,unit,Compatible with DN
+flange,Bride,315,Acier_galv,75731,unit,Compatible with DN
+flange,Bride,315,PRFV,96936,unit,Compatible with DN
+flange,Bride,350,PVC-U,68030,unit,Compatible with DN
+flange,Bride,350,PEHD,64628,unit,Compatible with DN
+flange,Bride,350,Fonte_dutile,98643,unit,Compatible with DN
+flange,Bride,350,Acier_galv,85037,unit,Compatible with DN
+flange,Bride,350,PRFV,108847,unit,Compatible with DN
+flange,Bride,400,PVC-U,78793,unit,Compatible with DN
+flange,Bride,400,PEHD,74854,unit,Compatible with DN
+flange,Bride,400,Fonte_dutile,114250,unit,Compatible with DN
+flange,Bride,400,Acier_galv,98492,unit,Compatible with DN
+flange,Bride,400,PRFV,126069,unit,Compatible with DN
+flange,Bride,450,PVC-U,89693,unit,Compatible with DN
+flange,Bride,450,PEHD,85208,unit,Compatible with DN
+flange,Bride,450,Fonte_dutile,130054,unit,Compatible with DN
+flange,Bride,450,Acier_galv,112116,unit,Compatible with DN
+flange,Bride,450,PRFV,143508,unit,Compatible with DN
+flange,Bride,500,PVC-U,100714,unit,Compatible with DN
+flange,Bride,500,PEHD,95678,unit,Compatible with DN
+flange,Bride,500,Fonte_dutile,146035,unit,Compatible with DN
+flange,Bride,500,Acier_galv,125893,unit,Compatible with DN
+flange,Bride,500,PRFV,161142,unit,Compatible with DN
+flange,Bride,560,PVC-U,114085,unit,Compatible with DN
+flange,Bride,560,PEHD,108381,unit,Compatible with DN
+flange,Bride,560,Fonte_dutile,165424,unit,Compatible with DN
+flange,Bride,560,Acier_galv,142607,unit,Compatible with DN
+flange,Bride,560,PRFV,182537,unit,Compatible with DN
+flange,Bride,630,PVC-U,129867,unit,Compatible with DN
+flange,Bride,630,PEHD,123373,unit,Compatible with DN
+flange,Bride,630,Fonte_dutile,188307,unit,Compatible with DN
+flange,Bride,630,Acier_galv,162333,unit,Compatible with DN
+flange,Bride,630,PRFV,207787,unit,Compatible with DN
+flange,Bride,710,PVC-U,148118,unit,Compatible with DN
+flange,Bride,710,PEHD,140712,unit,Compatible with DN
+flange,Bride,710,Fonte_dutile,214771,unit,Compatible with DN
+flange,Bride,710,Acier_galv,185147,unit,Compatible with DN
+flange,Bride,710,PRFV,236988,unit,Compatible with DN
+flange,Bride,800,PVC-U,168897,unit,Compatible with DN
+flange,Bride,800,PEHD,160452,unit,Compatible with DN
+flange,Bride,800,Fonte_dutile,244901,unit,Compatible with DN
+flange,Bride,800,Acier_galv,211121,unit,Compatible with DN
+flange,Bride,800,PRFV,270235,unit,Compatible with DN
+flange,Bride,900,PVC-U,192260,unit,Compatible with DN
+flange,Bride,900,PEHD,182647,unit,Compatible with DN
+flange,Bride,900,Fonte_dutile,278778,unit,Compatible with DN
+flange,Bride,900,Acier_galv,240325,unit,Compatible with DN
+flange,Bride,900,PRFV,307617,unit,Compatible with DN
+gate_valve,Vanne à guillotine,20,PVC-U,4380,unit,Compatible with DN
+gate_valve,Vanne à guillotine,20,PEHD,4161,unit,Compatible with DN
+gate_valve,Vanne à guillotine,20,Fonte_dutile,6351,unit,Compatible with DN
+gate_valve,Vanne à guillotine,20,Acier_galv,5475,unit,Compatible with DN
+gate_valve,Vanne à guillotine,20,PRFV,7008,unit,Compatible with DN
+gate_valve,Vanne à guillotine,25,PVC-U,5598,unit,Compatible with DN
+gate_valve,Vanne à guillotine,25,PEHD,5318,unit,Compatible with DN
+gate_valve,Vanne à guillotine,25,Fonte_dutile,8117,unit,Compatible with DN
+gate_valve,Vanne à guillotine,25,Acier_galv,6998,unit,Compatible with DN
+gate_valve,Vanne à guillotine,25,PRFV,8957,unit,Compatible with DN
+gate_valve,Vanne à guillotine,32,PVC-U,7345,unit,Compatible with DN
+gate_valve,Vanne à guillotine,32,PEHD,6978,unit,Compatible with DN
+gate_valve,Vanne à guillotine,32,Fonte_dutile,10650,unit,Compatible with DN
+gate_valve,Vanne à guillotine,32,Acier_galv,9181,unit,Compatible with DN
+gate_valve,Vanne à guillotine,32,PRFV,11752,unit,Compatible with DN
+gate_valve,Vanne à guillotine,40,PVC-U,9388,unit,Compatible with DN
+gate_valve,Vanne à guillotine,40,PEHD,8919,unit,Compatible with DN
+gate_valve,Vanne à guillotine,40,Fonte_dutile,13613,unit,Compatible with DN
+gate_valve,Vanne à guillotine,40,Acier_galv,11735,unit,Compatible with DN
+gate_valve,Vanne à guillotine,40,PRFV,15021,unit,Compatible with DN
+gate_valve,Vanne à guillotine,50,PVC-U,12000,unit,Compatible with DN
+gate_valve,Vanne à guillotine,50,PEHD,11400,unit,Compatible with DN
+gate_valve,Vanne à guillotine,50,Fonte_dutile,17400,unit,Compatible with DN
+gate_valve,Vanne à guillotine,50,Acier_galv,15000,unit,Compatible with DN
+gate_valve,Vanne à guillotine,50,PRFV,19200,unit,Compatible with DN
+gate_valve,Vanne à guillotine,65,PVC-U,16015,unit,Compatible with DN
+gate_valve,Vanne à guillotine,65,PEHD,15214,unit,Compatible with DN
+gate_valve,Vanne à guillotine,65,Fonte_dutile,23221,unit,Compatible with DN
+gate_valve,Vanne à guillotine,65,Acier_galv,20018,unit,Compatible with DN
+gate_valve,Vanne à guillotine,65,PRFV,25624,unit,Compatible with DN
+gate_valve,Vanne à guillotine,75,PVC-U,18745,unit,Compatible with DN
+gate_valve,Vanne à guillotine,75,PEHD,17808,unit,Compatible with DN
+gate_valve,Vanne à guillotine,75,Fonte_dutile,27180,unit,Compatible with DN
+gate_valve,Vanne à guillotine,75,Acier_galv,23431,unit,Compatible with DN
+gate_valve,Vanne à guillotine,75,PRFV,29992,unit,Compatible with DN
+gate_valve,Vanne à guillotine,80,PVC-U,20124,unit,Compatible with DN
+gate_valve,Vanne à guillotine,80,PEHD,19118,unit,Compatible with DN
+gate_valve,Vanne à guillotine,80,Fonte_dutile,29180,unit,Compatible with DN
+gate_valve,Vanne à guillotine,80,Acier_galv,25155,unit,Compatible with DN
+gate_valve,Vanne à guillotine,80,PRFV,32198,unit,Compatible with DN
+gate_valve,Vanne à guillotine,90,PVC-U,22908,unit,Compatible with DN
+gate_valve,Vanne à guillotine,90,PEHD,21762,unit,Compatible with DN
+gate_valve,Vanne à guillotine,90,Fonte_dutile,33216,unit,Compatible with DN
+gate_valve,Vanne à guillotine,90,Acier_galv,28635,unit,Compatible with DN
+gate_valve,Vanne à guillotine,90,PRFV,36652,unit,Compatible with DN
+gate_valve,Vanne à guillotine,110,PVC-U,28566,unit,Compatible with DN
+gate_valve,Vanne à guillotine,110,PEHD,27137,unit,Compatible with DN
+gate_valve,Vanne à guillotine,110,Fonte_dutile,41420,unit,Compatible with DN
+gate_valve,Vanne à guillotine,110,Acier_galv,35707,unit,Compatible with DN
+gate_valve,Vanne à guillotine,110,PRFV,45705,unit,Compatible with DN
+gate_valve,Vanne à guillotine,125,PVC-U,32879,unit,Compatible with DN
+gate_valve,Vanne à guillotine,125,PEHD,31235,unit,Compatible with DN
+gate_valve,Vanne à guillotine,125,Fonte_dutile,47674,unit,Compatible with DN
+gate_valve,Vanne à guillotine,125,Acier_galv,41098,unit,Compatible with DN
+gate_valve,Vanne à guillotine,125,PRFV,52606,unit,Compatible with DN
+gate_valve,Vanne à guillotine,140,PVC-U,37244,unit,Compatible with DN
+gate_valve,Vanne à guillotine,140,PEHD,35382,unit,Compatible with DN
+gate_valve,Vanne à guillotine,140,Fonte_dutile,54004,unit,Compatible with DN
+gate_valve,Vanne à guillotine,140,Acier_galv,46555,unit,Compatible with DN
+gate_valve,Vanne à guillotine,140,PRFV,59590,unit,Compatible with DN
+gate_valve,Vanne à guillotine,160,PVC-U,43137,unit,Compatible with DN
+gate_valve,Vanne à guillotine,160,PEHD,40980,unit,Compatible with DN
+gate_valve,Vanne à guillotine,160,Fonte_dutile,62548,unit,Compatible with DN
+gate_valve,Vanne à guillotine,160,Acier_galv,53921,unit,Compatible with DN
+gate_valve,Vanne à guillotine,160,PRFV,69019,unit,Compatible with DN
+gate_valve,Vanne à guillotine,180,PVC-U,49104,unit,Compatible with DN
+gate_valve,Vanne à guillotine,180,PEHD,46648,unit,Compatible with DN
+gate_valve,Vanne à guillotine,180,Fonte_dutile,71200,unit,Compatible with DN
+gate_valve,Vanne à guillotine,180,Acier_galv,61380,unit,Compatible with DN
+gate_valve,Vanne à guillotine,180,PRFV,78566,unit,Compatible with DN
+gate_valve,Vanne à guillotine,200,PVC-U,55138,unit,Compatible with DN
+gate_valve,Vanne à guillotine,200,PEHD,52381,unit,Compatible with DN
+gate_valve,Vanne à guillotine,200,Fonte_dutile,79949,unit,Compatible with DN
+gate_valve,Vanne à guillotine,200,Acier_galv,68922,unit,Compatible with DN
+gate_valve,Vanne à guillotine,200,PRFV,88220,unit,Compatible with DN
+gate_valve,Vanne à guillotine,225,PVC-U,62765,unit,Compatible with DN
+gate_valve,Vanne à guillotine,225,PEHD,59626,unit,Compatible with DN
+gate_valve,Vanne à guillotine,225,Fonte_dutile,91009,unit,Compatible with DN
+gate_valve,Vanne à guillotine,225,Acier_galv,78456,unit,Compatible with DN
+gate_valve,Vanne à guillotine,225,PRFV,100423,unit,Compatible with DN
+gate_valve,Vanne à guillotine,250,PVC-U,70477,unit,Compatible with DN
+gate_valve,Vanne à guillotine,250,PEHD,66953,unit,Compatible with DN
+gate_valve,Vanne à guillotine,250,Fonte_dutile,102192,unit,Compatible with DN
+gate_valve,Vanne à guillotine,250,Acier_galv,88096,unit,Compatible with DN
+gate_valve,Vanne à guillotine,250,PRFV,112763,unit,Compatible with DN
+gate_valve,Vanne à guillotine,280,PVC-U,79834,unit,Compatible with DN
+gate_valve,Vanne à guillotine,280,PEHD,75842,unit,Compatible with DN
+gate_valve,Vanne à guillotine,280,Fonte_dutile,115759,unit,Compatible with DN
+gate_valve,Vanne à guillotine,280,Acier_galv,99793,unit,Compatible with DN
+gate_valve,Vanne à guillotine,280,PRFV,127734,unit,Compatible with DN
+gate_valve,Vanne à guillotine,315,PVC-U,90877,unit,Compatible with DN
+gate_valve,Vanne à guillotine,315,PEHD,86334,unit,Compatible with DN
+gate_valve,Vanne à guillotine,315,Fonte_dutile,131772,unit,Compatible with DN
+gate_valve,Vanne à guillotine,315,Acier_galv,113597,unit,Compatible with DN
+gate_valve,Vanne à guillotine,315,PRFV,145404,unit,Compatible with DN
+gate_valve,Vanne à guillotine,350,PVC-U,102044,unit,Compatible with DN
+gate_valve,Vanne à guillotine,350,PEHD,96942,unit,Compatible with DN
+gate_valve,Vanne à guillotine,350,Fonte_dutile,147964,unit,Compatible with DN
+gate_valve,Vanne à guillotine,350,Acier_galv,127555,unit,Compatible with DN
+gate_valve,Vanne à guillotine,350,PRFV,163271,unit,Compatible with DN
+gate_valve,Vanne à guillotine,400,PVC-U,118190,unit,Compatible with DN
+gate_valve,Vanne à guillotine,400,PEHD,112280,unit,Compatible with DN
+gate_valve,Vanne à guillotine,400,Fonte_dutile,171375,unit,Compatible with DN
+gate_valve,Vanne à guillotine,400,Acier_galv,147737,unit,Compatible with DN
+gate_valve,Vanne à guillotine,400,PRFV,189104,unit,Compatible with DN
+gate_valve,Vanne à guillotine,450,PVC-U,134539,unit,Compatible with DN
+gate_valve,Vanne à guillotine,450,PEHD,127812,unit,Compatible with DN
+gate_valve,Vanne à guillotine,450,Fonte_dutile,195081,unit,Compatible with DN
+gate_valve,Vanne à guillotine,450,Acier_galv,168174,unit,Compatible with DN
+gate_valve,Vanne à guillotine,450,PRFV,215262,unit,Compatible with DN
+gate_valve,Vanne à guillotine,500,PVC-U,151071,unit,Compatible with DN
+gate_valve,Vanne à guillotine,500,PEHD,143517,unit,Compatible with DN
+gate_valve,Vanne à guillotine,500,Fonte_dutile,219053,unit,Compatible with DN
+gate_valve,Vanne à guillotine,500,Acier_galv,188839,unit,Compatible with DN
+gate_valve,Vanne à guillotine,500,PRFV,241714,unit,Compatible with DN
+gate_valve,Vanne à guillotine,560,PVC-U,171128,unit,Compatible with DN
+gate_valve,Vanne à guillotine,560,PEHD,162572,unit,Compatible with DN
+gate_valve,Vanne à guillotine,560,Fonte_dutile,248136,unit,Compatible with DN
+gate_valve,Vanne à guillotine,560,Acier_galv,213910,unit,Compatible with DN
+gate_valve,Vanne à guillotine,560,PRFV,273805,unit,Compatible with DN
+gate_valve,Vanne à guillotine,630,PVC-U,194800,unit,Compatible with DN
+gate_valve,Vanne à guillotine,630,PEHD,185060,unit,Compatible with DN
+gate_valve,Vanne à guillotine,630,Fonte_dutile,282460,unit,Compatible with DN
+gate_valve,Vanne à guillotine,630,Acier_galv,243500,unit,Compatible with DN
+gate_valve,Vanne à guillotine,630,PRFV,311680,unit,Compatible with DN
+gate_valve,Vanne à guillotine,710,PVC-U,222177,unit,Compatible with DN
+gate_valve,Vanne à guillotine,710,PEHD,211068,unit,Compatible with DN
+gate_valve,Vanne à guillotine,710,Fonte_dutile,322156,unit,Compatible with DN
+gate_valve,Vanne à guillotine,710,Acier_galv,277721,unit,Compatible with DN
+gate_valve,Vanne à guillotine,710,PRFV,355483,unit,Compatible with DN
+gate_valve,Vanne à guillotine,800,PVC-U,253346,unit,Compatible with DN
+gate_valve,Vanne à guillotine,800,PEHD,240678,unit,Compatible with DN
+gate_valve,Vanne à guillotine,800,Fonte_dutile,367351,unit,Compatible with DN
+gate_valve,Vanne à guillotine,800,Acier_galv,316682,unit,Compatible with DN
+gate_valve,Vanne à guillotine,800,PRFV,405353,unit,Compatible with DN
+gate_valve,Vanne à guillotine,900,PVC-U,288391,unit,Compatible with DN
+gate_valve,Vanne à guillotine,900,PEHD,273971,unit,Compatible with DN
+gate_valve,Vanne à guillotine,900,Fonte_dutile,418166,unit,Compatible with DN
+gate_valve,Vanne à guillotine,900,Acier_galv,360488,unit,Compatible with DN
+gate_valve,Vanne à guillotine,900,PRFV,461425,unit,Compatible with DN
+check_valve,Clapet anti-retour,20,PVC-U,3285,unit,Compatible with DN
+check_valve,Clapet anti-retour,20,PEHD,3121,unit,Compatible with DN
+check_valve,Clapet anti-retour,20,Fonte_dutile,4763,unit,Compatible with DN
+check_valve,Clapet anti-retour,20,Acier_galv,4106,unit,Compatible with DN
+check_valve,Clapet anti-retour,20,PRFV,5256,unit,Compatible with DN
+check_valve,Clapet anti-retour,25,PVC-U,4199,unit,Compatible with DN
+check_valve,Clapet anti-retour,25,PEHD,3989,unit,Compatible with DN
+check_valve,Clapet anti-retour,25,Fonte_dutile,6088,unit,Compatible with DN
+check_valve,Clapet anti-retour,25,Acier_galv,5248,unit,Compatible with DN
+check_valve,Clapet anti-retour,25,PRFV,6718,unit,Compatible with DN
+check_valve,Clapet anti-retour,32,PVC-U,5509,unit,Compatible with DN
+check_valve,Clapet anti-retour,32,PEHD,5233,unit,Compatible with DN
+check_valve,Clapet anti-retour,32,Fonte_dutile,7987,unit,Compatible with DN
+check_valve,Clapet anti-retour,32,Acier_galv,6886,unit,Compatible with DN
+check_valve,Clapet anti-retour,32,PRFV,8814,unit,Compatible with DN
+check_valve,Clapet anti-retour,40,PVC-U,7041,unit,Compatible with DN
+check_valve,Clapet anti-retour,40,PEHD,6689,unit,Compatible with DN
+check_valve,Clapet anti-retour,40,Fonte_dutile,10210,unit,Compatible with DN
+check_valve,Clapet anti-retour,40,Acier_galv,8801,unit,Compatible with DN
+check_valve,Clapet anti-retour,40,PRFV,11266,unit,Compatible with DN
+check_valve,Clapet anti-retour,50,PVC-U,9000,unit,Compatible with DN
+check_valve,Clapet anti-retour,50,PEHD,8550,unit,Compatible with DN
+check_valve,Clapet anti-retour,50,Fonte_dutile,13050,unit,Compatible with DN
+check_valve,Clapet anti-retour,50,Acier_galv,11250,unit,Compatible with DN
+check_valve,Clapet anti-retour,50,PRFV,14400,unit,Compatible with DN
+check_valve,Clapet anti-retour,65,PVC-U,12011,unit,Compatible with DN
+check_valve,Clapet anti-retour,65,PEHD,11410,unit,Compatible with DN
+check_valve,Clapet anti-retour,65,Fonte_dutile,17416,unit,Compatible with DN
+check_valve,Clapet anti-retour,65,Acier_galv,15014,unit,Compatible with DN
+check_valve,Clapet anti-retour,65,PRFV,19218,unit,Compatible with DN
+check_valve,Clapet anti-retour,75,PVC-U,14059,unit,Compatible with DN
+check_valve,Clapet anti-retour,75,PEHD,13356,unit,Compatible with DN
+check_valve,Clapet anti-retour,75,Fonte_dutile,20385,unit,Compatible with DN
+check_valve,Clapet anti-retour,75,Acier_galv,17573,unit,Compatible with DN
+check_valve,Clapet anti-retour,75,PRFV,22494,unit,Compatible with DN
+check_valve,Clapet anti-retour,80,PVC-U,15093,unit,Compatible with DN
+check_valve,Clapet anti-retour,80,PEHD,14338,unit,Compatible with DN
+check_valve,Clapet anti-retour,80,Fonte_dutile,21885,unit,Compatible with DN
+check_valve,Clapet anti-retour,80,Acier_galv,18866,unit,Compatible with DN
+check_valve,Clapet anti-retour,80,PRFV,24149,unit,Compatible with DN
+check_valve,Clapet anti-retour,90,PVC-U,17181,unit,Compatible with DN
+check_valve,Clapet anti-retour,90,PEHD,16322,unit,Compatible with DN
+check_valve,Clapet anti-retour,90,Fonte_dutile,24912,unit,Compatible with DN
+check_valve,Clapet anti-retour,90,Acier_galv,21476,unit,Compatible with DN
+check_valve,Clapet anti-retour,90,PRFV,27489,unit,Compatible with DN
+check_valve,Clapet anti-retour,110,PVC-U,21424,unit,Compatible with DN
+check_valve,Clapet anti-retour,110,PEHD,20353,unit,Compatible with DN
+check_valve,Clapet anti-retour,110,Fonte_dutile,31065,unit,Compatible with DN
+check_valve,Clapet anti-retour,110,Acier_galv,26780,unit,Compatible with DN
+check_valve,Clapet anti-retour,110,PRFV,34279,unit,Compatible with DN
+check_valve,Clapet anti-retour,125,PVC-U,24659,unit,Compatible with DN
+check_valve,Clapet anti-retour,125,PEHD,23426,unit,Compatible with DN
+check_valve,Clapet anti-retour,125,Fonte_dutile,35756,unit,Compatible with DN
+check_valve,Clapet anti-retour,125,Acier_galv,30824,unit,Compatible with DN
+check_valve,Clapet anti-retour,125,PRFV,39454,unit,Compatible with DN
+check_valve,Clapet anti-retour,140,PVC-U,27933,unit,Compatible with DN
+check_valve,Clapet anti-retour,140,PEHD,26536,unit,Compatible with DN
+check_valve,Clapet anti-retour,140,Fonte_dutile,40503,unit,Compatible with DN
+check_valve,Clapet anti-retour,140,Acier_galv,34916,unit,Compatible with DN
+check_valve,Clapet anti-retour,140,PRFV,44693,unit,Compatible with DN
+check_valve,Clapet anti-retour,160,PVC-U,32352,unit,Compatible with DN
+check_valve,Clapet anti-retour,160,PEHD,30735,unit,Compatible with DN
+check_valve,Clapet anti-retour,160,Fonte_dutile,46911,unit,Compatible with DN
+check_valve,Clapet anti-retour,160,Acier_galv,40441,unit,Compatible with DN
+check_valve,Clapet anti-retour,160,PRFV,51764,unit,Compatible with DN
+check_valve,Clapet anti-retour,180,PVC-U,36828,unit,Compatible with DN
+check_valve,Clapet anti-retour,180,PEHD,34986,unit,Compatible with DN
+check_valve,Clapet anti-retour,180,Fonte_dutile,53400,unit,Compatible with DN
+check_valve,Clapet anti-retour,180,Acier_galv,46035,unit,Compatible with DN
+check_valve,Clapet anti-retour,180,PRFV,58924,unit,Compatible with DN
+check_valve,Clapet anti-retour,200,PVC-U,41353,unit,Compatible with DN
+check_valve,Clapet anti-retour,200,PEHD,39285,unit,Compatible with DN
+check_valve,Clapet anti-retour,200,Fonte_dutile,59962,unit,Compatible with DN
+check_valve,Clapet anti-retour,200,Acier_galv,51691,unit,Compatible with DN
+check_valve,Clapet anti-retour,200,PRFV,66165,unit,Compatible with DN
+check_valve,Clapet anti-retour,225,PVC-U,47073,unit,Compatible with DN
+check_valve,Clapet anti-retour,225,PEHD,44720,unit,Compatible with DN
+check_valve,Clapet anti-retour,225,Fonte_dutile,68257,unit,Compatible with DN
+check_valve,Clapet anti-retour,225,Acier_galv,58842,unit,Compatible with DN
+check_valve,Clapet anti-retour,225,PRFV,75318,unit,Compatible with DN
+check_valve,Clapet anti-retour,250,PVC-U,52858,unit,Compatible with DN
+check_valve,Clapet anti-retour,250,PEHD,50215,unit,Compatible with DN
+check_valve,Clapet anti-retour,250,Fonte_dutile,76644,unit,Compatible with DN
+check_valve,Clapet anti-retour,250,Acier_galv,66072,unit,Compatible with DN
+check_valve,Clapet anti-retour,250,PRFV,84573,unit,Compatible with DN
+check_valve,Clapet anti-retour,280,PVC-U,59876,unit,Compatible with DN
+check_valve,Clapet anti-retour,280,PEHD,56882,unit,Compatible with DN
+check_valve,Clapet anti-retour,280,Fonte_dutile,86820,unit,Compatible with DN
+check_valve,Clapet anti-retour,280,Acier_galv,74844,unit,Compatible with DN
+check_valve,Clapet anti-retour,280,PRFV,95801,unit,Compatible with DN
+check_valve,Clapet anti-retour,315,PVC-U,68158,unit,Compatible with DN
+check_valve,Clapet anti-retour,315,PEHD,64750,unit,Compatible with DN
+check_valve,Clapet anti-retour,315,Fonte_dutile,98829,unit,Compatible with DN
+check_valve,Clapet anti-retour,315,Acier_galv,85198,unit,Compatible with DN
+check_valve,Clapet anti-retour,315,PRFV,109053,unit,Compatible with DN
+check_valve,Clapet anti-retour,350,PVC-U,76533,unit,Compatible with DN
+check_valve,Clapet anti-retour,350,PEHD,72707,unit,Compatible with DN
+check_valve,Clapet anti-retour,350,Fonte_dutile,110973,unit,Compatible with DN
+check_valve,Clapet anti-retour,350,Acier_galv,95667,unit,Compatible with DN
+check_valve,Clapet anti-retour,350,PRFV,122453,unit,Compatible with DN
+check_valve,Clapet anti-retour,400,PVC-U,88642,unit,Compatible with DN
+check_valve,Clapet anti-retour,400,PEHD,84210,unit,Compatible with DN
+check_valve,Clapet anti-retour,400,Fonte_dutile,128531,unit,Compatible with DN
+check_valve,Clapet anti-retour,400,Acier_galv,110803,unit,Compatible with DN
+check_valve,Clapet anti-retour,400,PRFV,141828,unit,Compatible with DN
+check_valve,Clapet anti-retour,450,PVC-U,100904,unit,Compatible with DN
+check_valve,Clapet anti-retour,450,PEHD,95859,unit,Compatible with DN
+check_valve,Clapet anti-retour,450,Fonte_dutile,146311,unit,Compatible with DN
+check_valve,Clapet anti-retour,450,Acier_galv,126130,unit,Compatible with DN
+check_valve,Clapet anti-retour,450,PRFV,161447,unit,Compatible with DN
+check_valve,Clapet anti-retour,500,PVC-U,113303,unit,Compatible with DN
+check_valve,Clapet anti-retour,500,PEHD,107638,unit,Compatible with DN
+check_valve,Clapet anti-retour,500,Fonte_dutile,164290,unit,Compatible with DN
+check_valve,Clapet anti-retour,500,Acier_galv,141629,unit,Compatible with DN
+check_valve,Clapet anti-retour,500,PRFV,181285,unit,Compatible with DN
+check_valve,Clapet anti-retour,560,PVC-U,128346,unit,Compatible with DN
+check_valve,Clapet anti-retour,560,PEHD,121929,unit,Compatible with DN
+check_valve,Clapet anti-retour,560,Fonte_dutile,186102,unit,Compatible with DN
+check_valve,Clapet anti-retour,560,Acier_galv,160432,unit,Compatible with DN
+check_valve,Clapet anti-retour,560,PRFV,205354,unit,Compatible with DN
+check_valve,Clapet anti-retour,630,PVC-U,146100,unit,Compatible with DN
+check_valve,Clapet anti-retour,630,PEHD,138795,unit,Compatible with DN
+check_valve,Clapet anti-retour,630,Fonte_dutile,211845,unit,Compatible with DN
+check_valve,Clapet anti-retour,630,Acier_galv,182625,unit,Compatible with DN
+check_valve,Clapet anti-retour,630,PRFV,233760,unit,Compatible with DN
+check_valve,Clapet anti-retour,710,PVC-U,166632,unit,Compatible with DN
+check_valve,Clapet anti-retour,710,PEHD,158301,unit,Compatible with DN
+check_valve,Clapet anti-retour,710,Fonte_dutile,241617,unit,Compatible with DN
+check_valve,Clapet anti-retour,710,Acier_galv,208291,unit,Compatible with DN
+check_valve,Clapet anti-retour,710,PRFV,266612,unit,Compatible with DN
+check_valve,Clapet anti-retour,800,PVC-U,190009,unit,Compatible with DN
+check_valve,Clapet anti-retour,800,PEHD,180509,unit,Compatible with DN
+check_valve,Clapet anti-retour,800,Fonte_dutile,275513,unit,Compatible with DN
+check_valve,Clapet anti-retour,800,Acier_galv,237511,unit,Compatible with DN
+check_valve,Clapet anti-retour,800,PRFV,304015,unit,Compatible with DN
+check_valve,Clapet anti-retour,900,PVC-U,216293,unit,Compatible with DN
+check_valve,Clapet anti-retour,900,PEHD,205478,unit,Compatible with DN
+check_valve,Clapet anti-retour,900,Fonte_dutile,313625,unit,Compatible with DN
+check_valve,Clapet anti-retour,900,Acier_galv,270366,unit,Compatible with DN
+check_valve,Clapet anti-retour,900,PRFV,346069,unit,Compatible with DN
+air_valve,Vanne d'air (ventouse),20,PVC-U,5475,unit,Compatible with DN
+air_valve,Vanne d'air (ventouse),20,PEHD,5201,unit,Compatible with DN
+air_valve,Vanne d'air (ventouse),20,Fonte_dutile,7938,unit,Compatible with DN
+air_valve,Vanne d'air (ventouse),20,Acier_galv,6843,unit,Compatible with DN
+air_valve,Vanne d'air (ventouse),20,PRFV,8759,unit,Compatible with DN
+air_valve,Vanne d'air (ventouse),25,PVC-U,6998,unit,Compatible with DN
+air_valve,Vanne d'air (ventouse),25,PEHD,6648,unit,Compatible with DN
+air_valve,Vanne d'air (ventouse),25,Fonte_dutile,10147,unit,Compatible with DN
+air_valve,Vanne d'air (ventouse),25,Acier_galv,8747,unit,Compatible with DN
+air_valve,Vanne d'air (ventouse),25,PRFV,11196,unit,Compatible with DN
+air_valve,Vanne d'air (ventouse),32,PVC-U,9181,unit,Compatible with DN
+air_valve,Vanne d'air (ventouse),32,PEHD,8722,unit,Compatible with DN
+air_valve,Vanne d'air (ventouse),32,Fonte_dutile,13312,unit,Compatible with DN
+air_valve,Vanne d'air (ventouse),32,Acier_galv,11476,unit,Compatible with DN
+air_valve,Vanne d'air (ventouse),32,PRFV,14690,unit,Compatible with DN
+air_valve,Vanne d'air (ventouse),40,PVC-U,11735,unit,Compatible with DN
+air_valve,Vanne d'air (ventouse),40,PEHD,11148,unit,Compatible with DN
+air_valve,Vanne d'air (ventouse),40,Fonte_dutile,17016,unit,Compatible with DN
+air_valve,Vanne d'air (ventouse),40,Acier_galv,14669,unit,Compatible with DN
+air_valve,Vanne d'air (ventouse),40,PRFV,18776,unit,Compatible with DN
+air_valve,Vanne d'air (ventouse),50,PVC-U,15000,unit,Compatible with DN
+air_valve,Vanne d'air (ventouse),50,PEHD,14250,unit,Compatible with DN
+air_valve,Vanne d'air (ventouse),50,Fonte_dutile,21750,unit,Compatible with DN
+air_valve,Vanne d'air (ventouse),50,Acier_galv,18750,unit,Compatible with DN
+air_valve,Vanne d'air (ventouse),50,PRFV,24000,unit,Compatible with DN
+air_valve,Vanne d'air (ventouse),65,PVC-U,20018,unit,Compatible with DN
+air_valve,Vanne d'air (ventouse),65,PEHD,19017,unit,Compatible with DN
+air_valve,Vanne d'air (ventouse),65,Fonte_dutile,29027,unit,Compatible with DN
+air_valve,Vanne d'air (ventouse),65,Acier_galv,25023,unit,Compatible with DN
+air_valve,Vanne d'air (ventouse),65,PRFV,32029,unit,Compatible with DN
+air_valve,Vanne d'air (ventouse),75,PVC-U,23431,unit,Compatible with DN
+air_valve,Vanne d'air (ventouse),75,PEHD,22259,unit,Compatible with DN
+air_valve,Vanne d'air (ventouse),75,Fonte_dutile,33975,unit,Compatible with DN
+air_valve,Vanne d'air (ventouse),75,Acier_galv,29289,unit,Compatible with DN
+air_valve,Vanne d'air (ventouse),75,PRFV,37490,unit,Compatible with DN
+air_valve,Vanne d'air (ventouse),80,PVC-U,25155,unit,Compatible with DN
+air_valve,Vanne d'air (ventouse),80,PEHD,23897,unit,Compatible with DN
+air_valve,Vanne d'air (ventouse),80,Fonte_dutile,36475,unit,Compatible with DN
+air_valve,Vanne d'air (ventouse),80,Acier_galv,31444,unit,Compatible with DN
+air_valve,Vanne d'air (ventouse),80,PRFV,40248,unit,Compatible with DN
+air_valve,Vanne d'air (ventouse),90,PVC-U,28635,unit,Compatible with DN
+air_valve,Vanne d'air (ventouse),90,PEHD,27203,unit,Compatible with DN
+air_valve,Vanne d'air (ventouse),90,Fonte_dutile,41520,unit,Compatible with DN
+air_valve,Vanne d'air (ventouse),90,Acier_galv,35793,unit,Compatible with DN
+air_valve,Vanne d'air (ventouse),90,PRFV,45815,unit,Compatible with DN
+air_valve,Vanne d'air (ventouse),110,PVC-U,35707,unit,Compatible with DN
+air_valve,Vanne d'air (ventouse),110,PEHD,33922,unit,Compatible with DN
+air_valve,Vanne d'air (ventouse),110,Fonte_dutile,51775,unit,Compatible with DN
+air_valve,Vanne d'air (ventouse),110,Acier_galv,44634,unit,Compatible with DN
+air_valve,Vanne d'air (ventouse),110,PRFV,57132,unit,Compatible with DN
+air_valve,Vanne d'air (ventouse),125,PVC-U,41098,unit,Compatible with DN
+air_valve,Vanne d'air (ventouse),125,PEHD,39044,unit,Compatible with DN
+air_valve,Vanne d'air (ventouse),125,Fonte_dutile,59593,unit,Compatible with DN
+air_valve,Vanne d'air (ventouse),125,Acier_galv,51373,unit,Compatible with DN
+air_valve,Vanne d'air (ventouse),125,PRFV,65757,unit,Compatible with DN
+air_valve,Vanne d'air (ventouse),140,PVC-U,46555,unit,Compatible with DN
+air_valve,Vanne d'air (ventouse),140,PEHD,44227,unit,Compatible with DN
+air_valve,Vanne d'air (ventouse),140,Fonte_dutile,67505,unit,Compatible with DN
+air_valve,Vanne d'air (ventouse),140,Acier_galv,58194,unit,Compatible with DN
+air_valve,Vanne d'air (ventouse),140,PRFV,74488,unit,Compatible with DN
+air_valve,Vanne d'air (ventouse),160,PVC-U,53921,unit,Compatible with DN
+air_valve,Vanne d'air (ventouse),160,PEHD,51225,unit,Compatible with DN
+air_valve,Vanne d'air (ventouse),160,Fonte_dutile,78185,unit,Compatible with DN
+air_valve,Vanne d'air (ventouse),160,Acier_galv,67401,unit,Compatible with DN
+air_valve,Vanne d'air (ventouse),160,PRFV,86273,unit,Compatible with DN
+air_valve,Vanne d'air (ventouse),180,PVC-U,61380,unit,Compatible with DN
+air_valve,Vanne d'air (ventouse),180,PEHD,58311,unit,Compatible with DN
+air_valve,Vanne d'air (ventouse),180,Fonte_dutile,89000,unit,Compatible with DN
+air_valve,Vanne d'air (ventouse),180,Acier_galv,76724,unit,Compatible with DN
+air_valve,Vanne d'air (ventouse),180,PRFV,98207,unit,Compatible with DN
+air_valve,Vanne d'air (ventouse),200,PVC-U,68922,unit,Compatible with DN
+air_valve,Vanne d'air (ventouse),200,PEHD,65476,unit,Compatible with DN
+air_valve,Vanne d'air (ventouse),200,Fonte_dutile,99937,unit,Compatible with DN
+air_valve,Vanne d'air (ventouse),200,Acier_galv,86152,unit,Compatible with DN
+air_valve,Vanne d'air (ventouse),200,PRFV,110275,unit,Compatible with DN
+air_valve,Vanne d'air (ventouse),225,PVC-U,78456,unit,Compatible with DN
+air_valve,Vanne d'air (ventouse),225,PEHD,74533,unit,Compatible with DN
+air_valve,Vanne d'air (ventouse),225,Fonte_dutile,113761,unit,Compatible with DN
+air_valve,Vanne d'air (ventouse),225,Acier_galv,98070,unit,Compatible with DN
+air_valve,Vanne d'air (ventouse),225,PRFV,125529,unit,Compatible with DN
+air_valve,Vanne d'air (ventouse),250,PVC-U,88096,unit,Compatible with DN
+air_valve,Vanne d'air (ventouse),250,PEHD,83692,unit,Compatible with DN
+air_valve,Vanne d'air (ventouse),250,Fonte_dutile,127740,unit,Compatible with DN
+air_valve,Vanne d'air (ventouse),250,Acier_galv,110121,unit,Compatible with DN
+air_valve,Vanne d'air (ventouse),250,PRFV,140954,unit,Compatible with DN
+air_valve,Vanne d'air (ventouse),280,PVC-U,99793,unit,Compatible with DN
+air_valve,Vanne d'air (ventouse),280,PEHD,94803,unit,Compatible with DN
+air_valve,Vanne d'air (ventouse),280,Fonte_dutile,144699,unit,Compatible with DN
+air_valve,Vanne d'air (ventouse),280,Acier_galv,124741,unit,Compatible with DN
+air_valve,Vanne d'air (ventouse),280,PRFV,159668,unit,Compatible with DN
+air_valve,Vanne d'air (ventouse),315,PVC-U,113597,unit,Compatible with DN
+air_valve,Vanne d'air (ventouse),315,PEHD,107917,unit,Compatible with DN
+air_valve,Vanne d'air (ventouse),315,Fonte_dutile,164715,unit,Compatible with DN
+air_valve,Vanne d'air (ventouse),315,Acier_galv,141996,unit,Compatible with DN
+air_valve,Vanne d'air (ventouse),315,PRFV,181755,unit,Compatible with DN
+air_valve,Vanne d'air (ventouse),350,PVC-U,127555,unit,Compatible with DN
+air_valve,Vanne d'air (ventouse),350,PEHD,121178,unit,Compatible with DN
+air_valve,Vanne d'air (ventouse),350,Fonte_dutile,184955,unit,Compatible with DN
+air_valve,Vanne d'air (ventouse),350,Acier_galv,159444,unit,Compatible with DN
+air_valve,Vanne d'air (ventouse),350,PRFV,204089,unit,Compatible with DN
+air_valve,Vanne d'air (ventouse),400,PVC-U,147737,unit,Compatible with DN
+air_valve,Vanne d'air (ventouse),400,PEHD,140350,unit,Compatible with DN
+air_valve,Vanne d'air (ventouse),400,Fonte_dutile,214219,unit,Compatible with DN
+air_valve,Vanne d'air (ventouse),400,Acier_galv,184672,unit,Compatible with DN
+air_valve,Vanne d'air (ventouse),400,PRFV,236380,unit,Compatible with DN
+air_valve,Vanne d'air (ventouse),450,PVC-U,168174,unit,Compatible with DN
+air_valve,Vanne d'air (ventouse),450,PEHD,159765,unit,Compatible with DN
+air_valve,Vanne d'air (ventouse),450,Fonte_dutile,243852,unit,Compatible with DN
+air_valve,Vanne d'air (ventouse),450,Acier_galv,210217,unit,Compatible with DN
+air_valve,Vanne d'air (ventouse),450,PRFV,269078,unit,Compatible with DN
+air_valve,Vanne d'air (ventouse),500,PVC-U,188839,unit,Compatible with DN
+air_valve,Vanne d'air (ventouse),500,PEHD,179397,unit,Compatible with DN
+air_valve,Vanne d'air (ventouse),500,Fonte_dutile,273816,unit,Compatible with DN
+air_valve,Vanne d'air (ventouse),500,Acier_galv,236049,unit,Compatible with DN
+air_valve,Vanne d'air (ventouse),500,PRFV,302142,unit,Compatible with DN
+air_valve,Vanne d'air (ventouse),560,PVC-U,213910,unit,Compatible with DN
+air_valve,Vanne d'air (ventouse),560,PEHD,203214,unit,Compatible with DN
+air_valve,Vanne d'air (ventouse),560,Fonte_dutile,310169,unit,Compatible with DN
+air_valve,Vanne d'air (ventouse),560,Acier_galv,267387,unit,Compatible with DN
+air_valve,Vanne d'air (ventouse),560,PRFV,342256,unit,Compatible with DN
+air_valve,Vanne d'air (ventouse),630,PVC-U,243500,unit,Compatible with DN
+air_valve,Vanne d'air (ventouse),630,PEHD,231325,unit,Compatible with DN
+air_valve,Vanne d'air (ventouse),630,Fonte_dutile,353075,unit,Compatible with DN
+air_valve,Vanne d'air (ventouse),630,Acier_galv,304375,unit,Compatible with DN
+air_valve,Vanne d'air (ventouse),630,PRFV,389600,unit,Compatible with DN
+air_valve,Vanne d'air (ventouse),710,PVC-U,277721,unit,Compatible with DN
+air_valve,Vanne d'air (ventouse),710,PEHD,263835,unit,Compatible with DN
+air_valve,Vanne d'air (ventouse),710,Fonte_dutile,402695,unit,Compatible with DN
+air_valve,Vanne d'air (ventouse),710,Acier_galv,347151,unit,Compatible with DN
+air_valve,Vanne d'air (ventouse),710,PRFV,444353,unit,Compatible with DN
+air_valve,Vanne d'air (ventouse),800,PVC-U,316682,unit,Compatible with DN
+air_valve,Vanne d'air (ventouse),800,PEHD,300848,unit,Compatible with DN
+air_valve,Vanne d'air (ventouse),800,Fonte_dutile,459189,unit,Compatible with DN
+air_valve,Vanne d'air (ventouse),800,Acier_galv,395852,unit,Compatible with DN
+air_valve,Vanne d'air (ventouse),800,PRFV,506691,unit,Compatible with DN
+air_valve,Vanne d'air (ventouse),900,PVC-U,360488,unit,Compatible with DN
+air_valve,Vanne d'air (ventouse),900,PEHD,342464,unit,Compatible with DN
+air_valve,Vanne d'air (ventouse),900,Fonte_dutile,522708,unit,Compatible with DN
+air_valve,Vanne d'air (ventouse),900,Acier_galv,450610,unit,Compatible with DN
+air_valve,Vanne d'air (ventouse),900,PRFV,576781,unit,Compatible with DN
+hydrant,Borne incendie / bouche,20,PVC-U,12774,unit,Compatible with DN
+hydrant,Borne incendie / bouche,20,PEHD,12135,unit,Compatible with DN
+hydrant,Borne incendie / bouche,20,Fonte_dutile,18523,unit,Compatible with DN
+hydrant,Borne incendie / bouche,20,Acier_galv,15968,unit,Compatible with DN
+hydrant,Borne incendie / bouche,20,PRFV,20439,unit,Compatible with DN
+hydrant,Borne incendie / bouche,25,PVC-U,16328,unit,Compatible with DN
+hydrant,Borne incendie / bouche,25,PEHD,15512,unit,Compatible with DN
+hydrant,Borne incendie / bouche,25,Fonte_dutile,23676,unit,Compatible with DN
+hydrant,Borne incendie / bouche,25,Acier_galv,20410,unit,Compatible with DN
+hydrant,Borne incendie / bouche,25,PRFV,26125,unit,Compatible with DN
+hydrant,Borne incendie / bouche,32,PVC-U,21422,unit,Compatible with DN
+hydrant,Borne incendie / bouche,32,PEHD,20351,unit,Compatible with DN
+hydrant,Borne incendie / bouche,32,Fonte_dutile,31062,unit,Compatible with DN
+hydrant,Borne incendie / bouche,32,Acier_galv,26778,unit,Compatible with DN
+hydrant,Borne incendie / bouche,32,PRFV,34276,unit,Compatible with DN
+hydrant,Borne incendie / bouche,40,PVC-U,27382,unit,Compatible with DN
+hydrant,Borne incendie / bouche,40,PEHD,26013,unit,Compatible with DN
+hydrant,Borne incendie / bouche,40,Fonte_dutile,39704,unit,Compatible with DN
+hydrant,Borne incendie / bouche,40,Acier_galv,34228,unit,Compatible with DN
+hydrant,Borne incendie / bouche,40,PRFV,43811,unit,Compatible with DN
+hydrant,Borne incendie / bouche,50,PVC-U,35000,unit,Compatible with DN
+hydrant,Borne incendie / bouche,50,PEHD,33250,unit,Compatible with DN
+hydrant,Borne incendie / bouche,50,Fonte_dutile,50750,unit,Compatible with DN
+hydrant,Borne incendie / bouche,50,Acier_galv,43750,unit,Compatible with DN
+hydrant,Borne incendie / bouche,50,PRFV,56000,unit,Compatible with DN
+hydrant,Borne incendie / bouche,65,PVC-U,46710,unit,Compatible with DN
+hydrant,Borne incendie / bouche,65,PEHD,44374,unit,Compatible with DN
+hydrant,Borne incendie / bouche,65,Fonte_dutile,67729,unit,Compatible with DN
+hydrant,Borne incendie / bouche,65,Acier_galv,58387,unit,Compatible with DN
+hydrant,Borne incendie / bouche,65,PRFV,74735,unit,Compatible with DN
+hydrant,Borne incendie / bouche,75,PVC-U,54672,unit,Compatible with DN
+hydrant,Borne incendie / bouche,75,PEHD,51939,unit,Compatible with DN
+hydrant,Borne incendie / bouche,75,Fonte_dutile,79275,unit,Compatible with DN
+hydrant,Borne incendie / bouche,75,Acier_galv,68341,unit,Compatible with DN
+hydrant,Borne incendie / bouche,75,PRFV,87476,unit,Compatible with DN
+hydrant,Borne incendie / bouche,80,PVC-U,58695,unit,Compatible with DN
+hydrant,Borne incendie / bouche,80,PEHD,55760,unit,Compatible with DN
+hydrant,Borne incendie / bouche,80,Fonte_dutile,85108,unit,Compatible with DN
+hydrant,Borne incendie / bouche,80,Acier_galv,73369,unit,Compatible with DN
+hydrant,Borne incendie / bouche,80,PRFV,93912,unit,Compatible with DN
+hydrant,Borne incendie / bouche,90,PVC-U,66814,unit,Compatible with DN
+hydrant,Borne incendie / bouche,90,PEHD,63473,unit,Compatible with DN
+hydrant,Borne incendie / bouche,90,Fonte_dutile,96880,unit,Compatible with DN
+hydrant,Borne incendie / bouche,90,Acier_galv,83518,unit,Compatible with DN
+hydrant,Borne incendie / bouche,90,PRFV,106902,unit,Compatible with DN
+hydrant,Borne incendie / bouche,110,PVC-U,83317,unit,Compatible with DN
+hydrant,Borne incendie / bouche,110,PEHD,79151,unit,Compatible with DN
+hydrant,Borne incendie / bouche,110,Fonte_dutile,120809,unit,Compatible with DN
+hydrant,Borne incendie / bouche,110,Acier_galv,104146,unit,Compatible with DN
+hydrant,Borne incendie / bouche,110,PRFV,133307,unit,Compatible with DN
+hydrant,Borne incendie / bouche,125,PVC-U,95896,unit,Compatible with DN
+hydrant,Borne incendie / bouche,125,PEHD,91102,unit,Compatible with DN
+hydrant,Borne incendie / bouche,125,Fonte_dutile,139050,unit,Compatible with DN
+hydrant,Borne incendie / bouche,125,Acier_galv,119870,unit,Compatible with DN
+hydrant,Borne incendie / bouche,125,PRFV,153434,unit,Compatible with DN
+hydrant,Borne incendie / bouche,140,PVC-U,108628,unit,Compatible with DN
+hydrant,Borne incendie / bouche,140,PEHD,103197,unit,Compatible with DN
+hydrant,Borne incendie / bouche,140,Fonte_dutile,157511,unit,Compatible with DN
+hydrant,Borne incendie / bouche,140,Acier_galv,135785,unit,Compatible with DN
+hydrant,Borne incendie / bouche,140,PRFV,173805,unit,Compatible with DN
+hydrant,Borne incendie / bouche,160,PVC-U,125815,unit,Compatible with DN
+hydrant,Borne incendie / bouche,160,PEHD,119524,unit,Compatible with DN
+hydrant,Borne incendie / bouche,160,Fonte_dutile,182432,unit,Compatible with DN
+hydrant,Borne incendie / bouche,160,Acier_galv,157269,unit,Compatible with DN
+hydrant,Borne incendie / bouche,160,PRFV,201304,unit,Compatible with DN
+hydrant,Borne incendie / bouche,180,PVC-U,143219,unit,Compatible with DN
+hydrant,Borne incendie / bouche,180,PEHD,136058,unit,Compatible with DN
+hydrant,Borne incendie / bouche,180,Fonte_dutile,207668,unit,Compatible with DN
+hydrant,Borne incendie / bouche,180,Acier_galv,179024,unit,Compatible with DN
+hydrant,Borne incendie / bouche,180,PRFV,229150,unit,Compatible with DN
+hydrant,Borne incendie / bouche,200,PVC-U,160818,unit,Compatible with DN
+hydrant,Borne incendie / bouche,200,PEHD,152777,unit,Compatible with DN
+hydrant,Borne incendie / bouche,200,Fonte_dutile,233186,unit,Compatible with DN
+hydrant,Borne incendie / bouche,200,Acier_galv,201022,unit,Compatible with DN
+hydrant,Borne incendie / bouche,200,PRFV,257308,unit,Compatible with DN
+hydrant,Borne incendie / bouche,225,PVC-U,183064,unit,Compatible with DN
+hydrant,Borne incendie / bouche,225,PEHD,173910,unit,Compatible with DN
+hydrant,Borne incendie / bouche,225,Fonte_dutile,265442,unit,Compatible with DN
+hydrant,Borne incendie / bouche,225,Acier_galv,228829,unit,Compatible with DN
+hydrant,Borne incendie / bouche,225,PRFV,292902,unit,Compatible with DN
+hydrant,Borne incendie / bouche,250,PVC-U,205558,unit,Compatible with DN
+hydrant,Borne incendie / bouche,250,PEHD,195280,unit,Compatible with DN
+hydrant,Borne incendie / bouche,250,Fonte_dutile,298060,unit,Compatible with DN
+hydrant,Borne incendie / bouche,250,Acier_galv,256948,unit,Compatible with DN
+hydrant,Borne incendie / bouche,250,PRFV,328893,unit,Compatible with DN
+hydrant,Borne incendie / bouche,280,PVC-U,232849,unit,Compatible with DN
+hydrant,Borne incendie / bouche,280,PEHD,221207,unit,Compatible with DN
+hydrant,Borne incendie / bouche,280,Fonte_dutile,337631,unit,Compatible with DN
+hydrant,Borne incendie / bouche,280,Acier_galv,291062,unit,Compatible with DN
+hydrant,Borne incendie / bouche,280,PRFV,372559,unit,Compatible with DN
+hydrant,Borne incendie / bouche,315,PVC-U,265059,unit,Compatible with DN
+hydrant,Borne incendie / bouche,315,PEHD,251806,unit,Compatible with DN
+hydrant,Borne incendie / bouche,315,Fonte_dutile,384336,unit,Compatible with DN
+hydrant,Borne incendie / bouche,315,Acier_galv,331324,unit,Compatible with DN
+hydrant,Borne incendie / bouche,315,PRFV,424094,unit,Compatible with DN
+hydrant,Borne incendie / bouche,350,PVC-U,297629,unit,Compatible with DN
+hydrant,Borne incendie / bouche,350,PEHD,282748,unit,Compatible with DN
+hydrant,Borne incendie / bouche,350,Fonte_dutile,431563,unit,Compatible with DN
+hydrant,Borne incendie / bouche,350,Acier_galv,372037,unit,Compatible with DN
+hydrant,Borne incendie / bouche,350,PRFV,476207,unit,Compatible with DN
+hydrant,Borne incendie / bouche,400,PVC-U,344720,unit,Compatible with DN
+hydrant,Borne incendie / bouche,400,PEHD,327484,unit,Compatible with DN
+hydrant,Borne incendie / bouche,400,Fonte_dutile,499845,unit,Compatible with DN
+hydrant,Borne incendie / bouche,400,Acier_galv,430901,unit,Compatible with DN
+hydrant,Borne incendie / bouche,400,PRFV,551553,unit,Compatible with DN
+hydrant,Borne incendie / bouche,450,PVC-U,392405,unit,Compatible with DN
+hydrant,Borne incendie / bouche,450,PEHD,372785,unit,Compatible with DN
+hydrant,Borne incendie / bouche,450,Fonte_dutile,568988,unit,Compatible with DN
+hydrant,Borne incendie / bouche,450,Acier_galv,490507,unit,Compatible with DN
+hydrant,Borne incendie / bouche,450,PRFV,627848,unit,Compatible with DN
+hydrant,Borne incendie / bouche,500,PVC-U,440624,unit,Compatible with DN
+hydrant,Borne incendie / bouche,500,PEHD,418593,unit,Compatible with DN
+hydrant,Borne incendie / bouche,500,Fonte_dutile,638905,unit,Compatible with DN
+hydrant,Borne incendie / bouche,500,Acier_galv,550780,unit,Compatible with DN
+hydrant,Borne incendie / bouche,500,PRFV,704998,unit,Compatible with DN
+hydrant,Borne incendie / bouche,560,PVC-U,499123,unit,Compatible with DN
+hydrant,Borne incendie / bouche,560,PEHD,474167,unit,Compatible with DN
+hydrant,Borne incendie / bouche,560,Fonte_dutile,723729,unit,Compatible with DN
+hydrant,Borne incendie / bouche,560,Acier_galv,623904,unit,Compatible with DN
+hydrant,Borne incendie / bouche,560,PRFV,798597,unit,Compatible with DN
+hydrant,Borne incendie / bouche,630,PVC-U,568167,unit,Compatible with DN
+hydrant,Borne incendie / bouche,630,PEHD,539758,unit,Compatible with DN
+hydrant,Borne incendie / bouche,630,Fonte_dutile,823841,unit,Compatible with DN
+hydrant,Borne incendie / bouche,630,Acier_galv,710208,unit,Compatible with DN
+hydrant,Borne incendie / bouche,630,PRFV,909066,unit,Compatible with DN
+hydrant,Borne incendie / bouche,710,PVC-U,648015,unit,Compatible with DN
+hydrant,Borne incendie / bouche,710,PEHD,615614,unit,Compatible with DN
+hydrant,Borne incendie / bouche,710,Fonte_dutile,939622,unit,Compatible with DN
+hydrant,Borne incendie / bouche,710,Acier_galv,810019,unit,Compatible with DN
+hydrant,Borne incendie / bouche,710,PRFV,1036824,unit,Compatible with DN
+hydrant,Borne incendie / bouche,800,PVC-U,738924,unit,Compatible with DN
+hydrant,Borne incendie / bouche,800,PEHD,701978,unit,Compatible with DN
+hydrant,Borne incendie / bouche,800,Fonte_dutile,1071440,unit,Compatible with DN
+hydrant,Borne incendie / bouche,800,Acier_galv,923656,unit,Compatible with DN
+hydrant,Borne incendie / bouche,800,PRFV,1182279,unit,Compatible with DN
+hydrant,Borne incendie / bouche,900,PVC-U,841139,unit,Compatible with DN
+hydrant,Borne incendie / bouche,900,PEHD,799082,unit,Compatible with DN
+hydrant,Borne incendie / bouche,900,Fonte_dutile,1219652,unit,Compatible with DN
+hydrant,Borne incendie / bouche,900,Acier_galv,1051424,unit,Compatible with DN
+hydrant,Borne incendie / bouche,900,PRFV,1345822,unit,Compatible with DN
+repair_clamp,Collier de réparation,20,PVC-U,2555,unit,Compatible with DN
+repair_clamp,Collier de réparation,20,PEHD,2427,unit,Compatible with DN
+repair_clamp,Collier de réparation,20,Fonte_dutile,3705,unit,Compatible with DN
+repair_clamp,Collier de réparation,20,Acier_galv,3194,unit,Compatible with DN
+repair_clamp,Collier de réparation,20,PRFV,4088,unit,Compatible with DN
+repair_clamp,Collier de réparation,25,PVC-U,3266,unit,Compatible with DN
+repair_clamp,Collier de réparation,25,PEHD,3102,unit,Compatible with DN
+repair_clamp,Collier de réparation,25,Fonte_dutile,4735,unit,Compatible with DN
+repair_clamp,Collier de réparation,25,Acier_galv,4082,unit,Compatible with DN
+repair_clamp,Collier de réparation,25,PRFV,5225,unit,Compatible with DN
+repair_clamp,Collier de réparation,32,PVC-U,4284,unit,Compatible with DN
+repair_clamp,Collier de réparation,32,PEHD,4070,unit,Compatible with DN
+repair_clamp,Collier de réparation,32,Fonte_dutile,6212,unit,Compatible with DN
+repair_clamp,Collier de réparation,32,Acier_galv,5356,unit,Compatible with DN
+repair_clamp,Collier de réparation,32,PRFV,6855,unit,Compatible with DN
+repair_clamp,Collier de réparation,40,PVC-U,5476,unit,Compatible with DN
+repair_clamp,Collier de réparation,40,PEHD,5203,unit,Compatible with DN
+repair_clamp,Collier de réparation,40,Fonte_dutile,7941,unit,Compatible with DN
+repair_clamp,Collier de réparation,40,Acier_galv,6846,unit,Compatible with DN
+repair_clamp,Collier de réparation,40,PRFV,8762,unit,Compatible with DN
+repair_clamp,Collier de réparation,50,PVC-U,7000,unit,Compatible with DN
+repair_clamp,Collier de réparation,50,PEHD,6650,unit,Compatible with DN
+repair_clamp,Collier de réparation,50,Fonte_dutile,10150,unit,Compatible with DN
+repair_clamp,Collier de réparation,50,Acier_galv,8750,unit,Compatible with DN
+repair_clamp,Collier de réparation,50,PRFV,11200,unit,Compatible with DN
+repair_clamp,Collier de réparation,65,PVC-U,9342,unit,Compatible with DN
+repair_clamp,Collier de réparation,65,PEHD,8875,unit,Compatible with DN
+repair_clamp,Collier de réparation,65,Fonte_dutile,13546,unit,Compatible with DN
+repair_clamp,Collier de réparation,65,Acier_galv,11677,unit,Compatible with DN
+repair_clamp,Collier de réparation,65,PRFV,14947,unit,Compatible with DN
+repair_clamp,Collier de réparation,75,PVC-U,10934,unit,Compatible with DN
+repair_clamp,Collier de réparation,75,PEHD,10388,unit,Compatible with DN
+repair_clamp,Collier de réparation,75,Fonte_dutile,15855,unit,Compatible with DN
+repair_clamp,Collier de réparation,75,Acier_galv,13668,unit,Compatible with DN
+repair_clamp,Collier de réparation,75,PRFV,17495,unit,Compatible with DN
+repair_clamp,Collier de réparation,80,PVC-U,11739,unit,Compatible with DN
+repair_clamp,Collier de réparation,80,PEHD,11152,unit,Compatible with DN
+repair_clamp,Collier de réparation,80,Fonte_dutile,17022,unit,Compatible with DN
+repair_clamp,Collier de réparation,80,Acier_galv,14674,unit,Compatible with DN
+repair_clamp,Collier de réparation,80,PRFV,18782,unit,Compatible with DN
+repair_clamp,Collier de réparation,90,PVC-U,13363,unit,Compatible with DN
+repair_clamp,Collier de réparation,90,PEHD,12695,unit,Compatible with DN
+repair_clamp,Collier de réparation,90,Fonte_dutile,19376,unit,Compatible with DN
+repair_clamp,Collier de réparation,90,Acier_galv,16704,unit,Compatible with DN
+repair_clamp,Collier de réparation,90,PRFV,21380,unit,Compatible with DN
+repair_clamp,Collier de réparation,110,PVC-U,16663,unit,Compatible with DN
+repair_clamp,Collier de réparation,110,PEHD,15830,unit,Compatible with DN
+repair_clamp,Collier de réparation,110,Fonte_dutile,24162,unit,Compatible with DN
+repair_clamp,Collier de réparation,110,Acier_galv,20829,unit,Compatible with DN
+repair_clamp,Collier de réparation,110,PRFV,26661,unit,Compatible with DN
+repair_clamp,Collier de réparation,125,PVC-U,19179,unit,Compatible with DN
+repair_clamp,Collier de réparation,125,PEHD,18220,unit,Compatible with DN
+repair_clamp,Collier de réparation,125,Fonte_dutile,27810,unit,Compatible with DN
+repair_clamp,Collier de réparation,125,Acier_galv,23974,unit,Compatible with DN
+repair_clamp,Collier de réparation,125,PRFV,30687,unit,Compatible with DN
+repair_clamp,Collier de réparation,140,PVC-U,21726,unit,Compatible with DN
+repair_clamp,Collier de réparation,140,PEHD,20639,unit,Compatible with DN
+repair_clamp,Collier de réparation,140,Fonte_dutile,31502,unit,Compatible with DN
+repair_clamp,Collier de réparation,140,Acier_galv,27157,unit,Compatible with DN
+repair_clamp,Collier de réparation,140,PRFV,34761,unit,Compatible with DN
+repair_clamp,Collier de réparation,160,PVC-U,25163,unit,Compatible with DN
+repair_clamp,Collier de réparation,160,PEHD,23905,unit,Compatible with DN
+repair_clamp,Collier de réparation,160,Fonte_dutile,36486,unit,Compatible with DN
+repair_clamp,Collier de réparation,160,Acier_galv,31454,unit,Compatible with DN
+repair_clamp,Collier de réparation,160,PRFV,40261,unit,Compatible with DN
+repair_clamp,Collier de réparation,180,PVC-U,28644,unit,Compatible with DN
+repair_clamp,Collier de réparation,180,PEHD,27212,unit,Compatible with DN
+repair_clamp,Collier de réparation,180,Fonte_dutile,41534,unit,Compatible with DN
+repair_clamp,Collier de réparation,180,Acier_galv,35805,unit,Compatible with DN
+repair_clamp,Collier de réparation,180,PRFV,45830,unit,Compatible with DN
+repair_clamp,Collier de réparation,200,PVC-U,32164,unit,Compatible with DN
+repair_clamp,Collier de réparation,200,PEHD,30555,unit,Compatible with DN
+repair_clamp,Collier de réparation,200,Fonte_dutile,46637,unit,Compatible with DN
+repair_clamp,Collier de réparation,200,Acier_galv,40204,unit,Compatible with DN
+repair_clamp,Collier de réparation,200,PRFV,51462,unit,Compatible with DN
+repair_clamp,Collier de réparation,225,PVC-U,36613,unit,Compatible with DN
+repair_clamp,Collier de réparation,225,PEHD,34782,unit,Compatible with DN
+repair_clamp,Collier de réparation,225,Fonte_dutile,53088,unit,Compatible with DN
+repair_clamp,Collier de réparation,225,Acier_galv,45766,unit,Compatible with DN
+repair_clamp,Collier de réparation,225,PRFV,58580,unit,Compatible with DN
+repair_clamp,Collier de réparation,250,PVC-U,41112,unit,Compatible with DN
+repair_clamp,Collier de réparation,250,PEHD,39056,unit,Compatible with DN
+repair_clamp,Collier de réparation,250,Fonte_dutile,59612,unit,Compatible with DN
+repair_clamp,Collier de réparation,250,Acier_galv,51390,unit,Compatible with DN
+repair_clamp,Collier de réparation,250,PRFV,65779,unit,Compatible with DN
+repair_clamp,Collier de réparation,280,PVC-U,46570,unit,Compatible with DN
+repair_clamp,Collier de réparation,280,PEHD,44241,unit,Compatible with DN
+repair_clamp,Collier de réparation,280,Fonte_dutile,67526,unit,Compatible with DN
+repair_clamp,Collier de réparation,280,Acier_galv,58212,unit,Compatible with DN
+repair_clamp,Collier de réparation,280,PRFV,74512,unit,Compatible with DN
+repair_clamp,Collier de réparation,315,PVC-U,53012,unit,Compatible with DN
+repair_clamp,Collier de réparation,315,PEHD,50361,unit,Compatible with DN
+repair_clamp,Collier de réparation,315,Fonte_dutile,76867,unit,Compatible with DN
+repair_clamp,Collier de réparation,315,Acier_galv,66265,unit,Compatible with DN
+repair_clamp,Collier de réparation,315,PRFV,84819,unit,Compatible with DN
+repair_clamp,Collier de réparation,350,PVC-U,59526,unit,Compatible with DN
+repair_clamp,Collier de réparation,350,PEHD,56550,unit,Compatible with DN
+repair_clamp,Collier de réparation,350,Fonte_dutile,86313,unit,Compatible with DN
+repair_clamp,Collier de réparation,350,Acier_galv,74407,unit,Compatible with DN
+repair_clamp,Collier de réparation,350,PRFV,95241,unit,Compatible with DN
+repair_clamp,Collier de réparation,400,PVC-U,68944,unit,Compatible with DN
+repair_clamp,Collier de réparation,400,PEHD,65497,unit,Compatible with DN
+repair_clamp,Collier de réparation,400,Fonte_dutile,99969,unit,Compatible with DN
+repair_clamp,Collier de réparation,400,Acier_galv,86180,unit,Compatible with DN
+repair_clamp,Collier de réparation,400,PRFV,110311,unit,Compatible with DN
+repair_clamp,Collier de réparation,450,PVC-U,78481,unit,Compatible with DN
+repair_clamp,Collier de réparation,450,PEHD,74557,unit,Compatible with DN
+repair_clamp,Collier de réparation,450,Fonte_dutile,113798,unit,Compatible with DN
+repair_clamp,Collier de réparation,450,Acier_galv,98101,unit,Compatible with DN
+repair_clamp,Collier de réparation,450,PRFV,125570,unit,Compatible with DN
+repair_clamp,Collier de réparation,500,PVC-U,88125,unit,Compatible with DN
+repair_clamp,Collier de réparation,500,PEHD,83719,unit,Compatible with DN
+repair_clamp,Collier de réparation,500,Fonte_dutile,127781,unit,Compatible with DN
+repair_clamp,Collier de réparation,500,Acier_galv,110156,unit,Compatible with DN
+repair_clamp,Collier de réparation,500,PRFV,141000,unit,Compatible with DN
+repair_clamp,Collier de réparation,560,PVC-U,99825,unit,Compatible with DN
+repair_clamp,Collier de réparation,560,PEHD,94833,unit,Compatible with DN
+repair_clamp,Collier de réparation,560,Fonte_dutile,144746,unit,Compatible with DN
+repair_clamp,Collier de réparation,560,Acier_galv,124781,unit,Compatible with DN
+repair_clamp,Collier de réparation,560,PRFV,159719,unit,Compatible with DN
+repair_clamp,Collier de réparation,630,PVC-U,113633,unit,Compatible with DN
+repair_clamp,Collier de réparation,630,PEHD,107952,unit,Compatible with DN
+repair_clamp,Collier de réparation,630,Fonte_dutile,164768,unit,Compatible with DN
+repair_clamp,Collier de réparation,630,Acier_galv,142042,unit,Compatible with DN
+repair_clamp,Collier de réparation,630,PRFV,181813,unit,Compatible with DN
+repair_clamp,Collier de réparation,710,PVC-U,129603,unit,Compatible with DN
+repair_clamp,Collier de réparation,710,PEHD,123123,unit,Compatible with DN
+repair_clamp,Collier de réparation,710,Fonte_dutile,187924,unit,Compatible with DN
+repair_clamp,Collier de réparation,710,Acier_galv,162004,unit,Compatible with DN
+repair_clamp,Collier de réparation,710,PRFV,207365,unit,Compatible with DN
+repair_clamp,Collier de réparation,800,PVC-U,147785,unit,Compatible with DN
+repair_clamp,Collier de réparation,800,PEHD,140396,unit,Compatible with DN
+repair_clamp,Collier de réparation,800,Fonte_dutile,214288,unit,Compatible with DN
+repair_clamp,Collier de réparation,800,Acier_galv,184731,unit,Compatible with DN
+repair_clamp,Collier de réparation,800,PRFV,236456,unit,Compatible with DN
+repair_clamp,Collier de réparation,900,PVC-U,168228,unit,Compatible with DN
+repair_clamp,Collier de réparation,900,PEHD,159816,unit,Compatible with DN
+repair_clamp,Collier de réparation,900,Fonte_dutile,243930,unit,Compatible with DN
+repair_clamp,Collier de réparation,900,Acier_galv,210285,unit,Compatible with DN
+repair_clamp,Collier de réparation,900,PRFV,269164,unit,Compatible with DN

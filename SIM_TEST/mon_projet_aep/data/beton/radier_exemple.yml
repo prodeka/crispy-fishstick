@@ -1,0 +1,69 @@
+# Template pour radier en béton armé
+element_id: RADIER_1
+description: "Radier sous bâtiment principal"
+
+# Caractéristiques du sol et des matériaux
+sol:
+  contrainte_admissible_kPa: 150.0  # Contrainte admissible du sol
+  module_reaction_kN_m3: 30000      # Module de réaction du sol
+
+materiaux:
+  fc28_MPa: 25.0  # Résistance caractéristique du béton
+  fe_MPa: 500.0   # Limite d'élasticité de l'acier
+  gamma_c: 1.5    # Coefficient partiel béton
+  gamma_s: 1.15   # Coefficient partiel acier
+
+# Géométrie du radier
+geometrie:
+  dimension_A_m: 12.0  # Longueur
+  dimension_B_m: 18.0  # Largeur
+  epaisseur_h_m: 0.60  # Épaisseur
+  poids_propre_kN_m2: 15.0  # Poids propre du radier
+
+# Liste des poteaux et de leurs charges
+poteaux:
+  - id: P1
+    position_x_m: 2.0
+    position_y_m: 3.0
+    charge_G_kN: 500  # Charge permanente
+    charge_Q_kN: 200  # Charge d'exploitation
+  
+  - id: P2
+    position_x_m: 10.0
+    position_y_m: 3.0
+    charge_G_kN: 550
+    charge_Q_kN: 220
+  
+  - id: P3
+    position_x_m: 2.0
+    position_y_m: 15.0
+    charge_G_kN: 500
+    charge_Q_kN: 200
+  
+  - id: P4
+    position_x_m: 10.0
+    position_y_m: 15.0
+    charge_G_kN: 550
+    charge_Q_kN: 220
+
+# Armatures
+armatures:
+  direction_x:
+    diametre_mm: 12
+    espacement_mm: 200
+    section_m2_m: 0.000565  # Section par mètre linéaire
+  
+  direction_y:
+    diametre_mm: 12
+    espacement_mm: 200
+    section_m2_m: 0.000565
+
+# Paramètres de calcul
+parametres_calcul:
+  verification_pression_sol: true
+  verification_flexion: true
+  verification_cisaillement: true
+  verification_punching: true
+  
+  # Coefficients de sécurité
+  alpha_cc: 1.0 

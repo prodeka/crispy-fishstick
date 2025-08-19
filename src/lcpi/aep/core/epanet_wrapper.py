@@ -1,8 +1,9 @@
 """
-Wrapper EPANET pour l'intégration avec le système LCPI.
+Wrapper EPANET unifié pour l'intégration avec le système LCPI.
 
 Ce module fournit une interface unifiée pour interagir avec EPANET,
-gérant les cas où EPANET n'est pas disponible.
+gérant les cas où EPANET n'est pas disponible et intégrant
+les fonctionnalités d'optimisation modernes basées sur wntr.
 """
 
 import logging
@@ -10,15 +11,39 @@ import os
 import sys
 import ctypes
 import tempfile
+import warnings
 from pathlib import Path
-from typing import Dict, Any, Optional, List, Tuple
+from typing import Dict, Any, Optional, List, Tuple, Union
 import json
 import yaml
+from concurrent.futures import ThreadPoolExecutor, TimeoutError
+from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_exception_type
 
 logger = logging.getLogger(__name__)
 
+# Supprimer les warnings spécifiques
+def _suppress_warnings():
+    """Supprime les warnings spécifiques liés à wntr et pkg_resources."""
+    # Supprimer le warning pkg_resources déprécié
+    warnings.filterwarnings("ignore", category=UserWarning, 
+                           message="pkg_resources is deprecated as an API")
+    
+    # Supprimer le warning des chemins de ressources wntr
+    warnings.filterwarnings("ignore", category=DeprecationWarning,
+                           message="Use of .. or absolute path in a resource path")
+    
+    # Supprimer les warnings spécifiques wntr
+    warnings.filterwarnings("ignore", category=UserWarning,
+                           module="wntr.epanet.toolkit")
+    warnings.filterwarnings("ignore", category=DeprecationWarning,
+                           module="wntr.epanet.msx.toolkit")
+
+# Appliquer la suppression des warnings
+_suppress_warnings()
+
 # Flag pour indiquer si EPANET est disponible
 EPANET_AVAILABLE = False
+WNTR_AVAILABLE = False
 
 try:
     # Tentative d'import d'EPANET
@@ -34,6 +59,25 @@ except ImportError:
     except ImportError:
         logger.debug("EPANET non disponible. Utilisation du mode simulation uniquement.")
         EPANET_AVAILABLE = False
+
+try:
+    # Tentative d'import de wntr (plus moderne)
+    import wntr
+    WNTR_AVAILABLE = True
+    logger.info("WNTR chargé avec succès")
+except ImportError:
+    logger.debug("WNTR non disponible. Utilisation du wrapper ctypes uniquement.")
+    WNTR_AVAILABLE = False
+
+# Constantes EPANET pour compatibilité
+EN_NODECOUNT = 0
+EN_LINKCOUNT = 1
+EN_DEMAND = 9
+EN_HEAD = 10
+EN_PRESSURE = 11
+EN_FLOW = 8
+EN_VELOCITY = 12
+EN_HEADLOSS = 13
 
 
 class EpanetWrapper:
@@ -269,12 +313,12 @@ class EpanetWrapper:
         
         try:
             # Informations sur les nœuds
-            num_nodes = en.ENgetcount(epanet.EN_NODECOUNT)
+            num_nodes = en.ENgetcount(EN_NODECOUNT)
             for i in range(1, num_nodes + 1):
                 node_id = en.ENgetnodeid(i)
-                pressure = en.ENgetnodevalue(i, epanet.EN_PRESSURE)
-                head = en.ENgetnodevalue(i, epanet.EN_HEAD)
-                demand = en.ENgetnodevalue(i, epanet.EN_DEMAND)
+                pressure = en.ENgetnodevalue(i, EN_PRESSURE)
+                head = en.ENgetnodevalue(i, EN_HEAD)
+                demand = en.ENgetnodevalue(i, EN_DEMAND)
                 
                 results["nodes"][node_id] = {
                     "pressure": pressure,
@@ -283,15 +327,15 @@ class EpanetWrapper:
                 }
             
             # Informations sur les conduites
-            num_pipes = en.ENgetcount(epanet.EN_LINKCOUNT)
+            num_pipes = en.ENgetcount(EN_LINKCOUNT)
             for i in range(1, num_pipes + 1):
                 link_id = en.ENgetlinkid(i)
                 link_type = en.ENgetlinktype(i)
                 
-                if link_type == epanet.EN_PIPE:
-                    flow = en.ENgetlinkvalue(i, epanet.EN_FLOW)
-                    velocity = en.ENgetlinkvalue(i, epanet.EN_VELOCITY)
-                    headloss = en.ENgetlinkvalue(i, epanet.EN_HEADLOSS)
+                if link_type == 0:  # EN_PIPE = 0
+                    flow = en.ENgetlinkvalue(i, EN_FLOW)
+                    velocity = en.ENgetlinkvalue(i, EN_VELOCITY)
+                    headloss = en.ENgetlinkvalue(i, EN_HEADLOSS)
                     
                     results["pipes"][link_id] = {
                         "flow": flow,
@@ -696,6 +740,317 @@ class EpanetSimulator:
             print(f"❌ Erreur EPANET {error_code}: {error_text}")
         else:
             print(f"❌ Erreur EPANET {error_code}: DLL non chargée")
+
+
+class EPANETOptimizer:
+    """Wrapper EPANET unifié basé sur wntr, avec retries et archivage pour l'optimisation."""
+    
+    def __init__(self, wntr_lib: Optional[Any] = None):
+        if not WNTR_AVAILABLE:
+            raise ImportError("La librairie `wntr` est requise. Veuillez l'installer avec `pip install wntr`.")
+        
+        self.wntr = wntr_lib or wntr
+        
+    def simulate(
+        self,
+        network_path: Union[Path, str],
+        H_tank_map: Optional[Dict[str, float]] = None,
+        diameters_map: Optional[Dict[str, int]] = None,
+        duration_h: int = 24,
+        timestep_min: int = 5,
+        timeout_s: int = 60,
+        num_retries: int = 2,
+        output_dir: Optional[Path] = None,
+    ) -> Dict[str, Any]:
+        """
+        Simule un fichier INP avec modifications, retries, et archivage.
+        
+        Args:
+            network_path: Chemin vers le fichier .inp
+            H_tank_map: Mapping {tank_id: hauteur_m} pour modifier les réservoirs
+            diameters_map: Mapping {link_id: diametre_mm} pour modifier les conduites
+            duration_h: Durée de simulation en heures
+            timestep_min: Pas de temps en minutes
+            timeout_s: Timeout en secondes
+            num_retries: Nombre de tentatives en cas d'échec
+            output_dir: Dossier de sortie pour l'archivage
+            
+        Returns:
+            Dictionnaire avec les résultats de simulation
+        """
+        H_tank_map = H_tank_map or {}
+        diameters_map = diameters_map or {}
+        network_path = Path(network_path)
+
+        try:
+            model = self.wntr.network.WaterNetworkModel(str(network_path))
+        except Exception as e:
+            return {"success": False, "error": f"Chargement INP échoué: {e}"}
+
+        # Appliquer les modifications au modèle wntr
+        self._apply_modifications(model, H_tank_map, diameters_map, duration_h, timestep_min)
+
+        # Préparer le dossier d'archivage
+        archive_dir = self._prepare_archive_dir(output_dir)
+        modified_inp_path = archive_dir / f"{network_path.stem}_modified.inp"
+
+        # Écriture du fichier INP modifié (compatibilité wntr) — best effort, ne bloque pas la simulation
+        try:
+            if hasattr(model, 'write_inpfile'):
+                model.write_inpfile(str(modified_inp_path))
+            else:
+                try:
+                    from wntr.epanet.io import InpFile
+                    InpFile().write(model, str(modified_inp_path))
+                except Exception:
+                    pass
+        except Exception:
+            # On ignore l'écriture d'archive si non supportée
+            pass
+
+        @retry(
+            stop=stop_after_attempt(num_retries + 1),
+            wait=wait_fixed(2),
+            retry=retry_if_exception_type((TimeoutError, IOError)),
+        )
+        def _run_simulation_with_retry():
+            # Choisir le simulateur disponible (EpanetSimulator ou WNTRSimulator)
+            SimClass = getattr(self.wntr.sim, 'EpanetSimulator', None)
+            if SimClass is None:
+                SimClass = getattr(self.wntr.sim, 'EPANETSimulator', None)
+            if SimClass is None:
+                SimClass = getattr(self.wntr.sim, 'WNTRSimulator', None)
+            if SimClass is None:
+                raise RuntimeError('Aucun simulateur wntr disponible (EpanetSimulator/WNTRSimulator)')
+
+            sim = SimClass(model)
+            # Le préfixe de fichier pour les résultats est important pour l'archivage
+            try:
+                results = sim.run_sim(file_prefix=str(archive_dir / "sim"))
+            except TypeError:
+                # Anciennes signatures sans file_prefix
+                results = sim.run_sim()
+            return self._extract_results(model, results, archive_dir)
+
+        with ThreadPoolExecutor(max_workers=1) as ex:
+            fut = ex.submit(_run_simulation_with_retry)
+            try:
+                final_results = fut.result(timeout=timeout_s * (num_retries + 1))
+                final_results["archive_path"] = str(archive_dir)
+                return final_results
+            except TimeoutError:
+                return {"success": False, "error": f"Timeout EPANET après {num_retries} tentatives", "archive_path": str(archive_dir)}
+            except Exception as e:
+                return {"success": False, "error": f"Simulation EPANET échouée: {e}", "archive_path": str(archive_dir)}
+
+    def simulate_with_tank_height(
+        self, 
+        network_model: Union[Dict, Any], 
+        H_tank: float, 
+        diameters: Dict[str, int]
+    ) -> Dict[str, Any]:
+        """
+        Méthode de compatibilité avec l'ancien code d'optimisation.
+        
+        Args:
+            network_model: Modèle réseau (YAML ou INP)
+            H_tank: Hauteur du réservoir (m)
+            diameters: Mapping {link_id: diameter_mm}
+            
+        Returns:
+            Résultats de simulation avec pressions et vitesses
+        """
+        # Si c'est un NetworkModel Pydantic, extraire le chemin
+        if hasattr(network_model, 'dict'):
+            # C'est un modèle Pydantic, on simule avec des valeurs par défaut
+            return self._simulate_mock_network(network_model, H_tank, diameters)
+        
+        # Sinon, traiter comme un chemin de fichier
+        network_path = network_model if isinstance(network_model, (str, Path)) else str(network_model)
+        H_tank_map = {"tank1": H_tank}  # Nom par défaut du tank
+        
+        results = self.simulate(
+            network_path=network_path,
+            H_tank_map=H_tank_map,
+            diameters_map=diameters,
+            duration_h=1,  # Simulation courte pour l'optimisation
+            timestep_min=5,
+            timeout_s=30
+        )
+        
+        if results.get("success"):
+            return {
+                "pressures": results.get("pressures", {}),
+                "velocities": results.get("velocities", {}),
+                "min_pressure_m": results.get("min_pressure_m", 0.0),
+                "max_velocity_m_s": results.get("max_velocity_m_s", 0.0)
+            }
+        else:
+            return {
+                "pressures": {},
+                "velocities": {},
+                "min_pressure_m": 0.0,
+                "max_velocity_m_s": 0.0,
+                "error": results.get("error", "Simulation échouée")
+            }
+
+    def _apply_modifications(self, model: Any, H_tank_map: Dict, diameters_map: Dict, duration_h: int, timestep_min: int):
+        """Applique les modifications au modèle wntr."""
+        # Modifier les réservoirs (robuste aux différentes API wntr)
+        for tank_id, height in H_tank_map.items():
+            try:
+                # Vérifier présence du tank
+                has_tank = False
+                if hasattr(model, 'tank_name_list'):
+                    try:
+                        has_tank = tank_id in set(model.tank_name_list)
+                    except Exception:
+                        has_tank = False
+                elif isinstance(getattr(model, 'tanks', None), dict):
+                    try:
+                        has_tank = tank_id in model.tanks
+                    except Exception:
+                        has_tank = False
+                else:
+                    # Fallback: si le nœud existe, tenter la modification directe
+                    has_tank = isinstance(getattr(model, 'nodes', None), dict) and tank_id in model.nodes
+
+                if not has_tank:
+                    continue
+
+                node_obj = None
+                if hasattr(model, 'get_node'):
+                    try:
+                        node_obj = model.get_node(tank_id)
+                    except Exception:
+                        node_obj = None
+                if node_obj is None and isinstance(getattr(model, 'nodes', None), dict):
+                    node_obj = model.nodes.get(tank_id)
+
+                if node_obj is not None and hasattr(node_obj, 'elevation'):
+                    node_obj.elevation = height
+            except Exception:
+                # Continuer sans interrompre
+                pass
+        
+        # Modifier les diamètres des conduites (si l'objet lien a un attribut diameter)
+        for link_id, diameter in diameters_map.items():
+            try:
+                link_obj = None
+                if hasattr(model, 'get_link'):
+                    try:
+                        link_obj = model.get_link(link_id)
+                    except Exception:
+                        link_obj = None
+                if link_obj is None:
+                    # Essayer via maps
+                    links_map = getattr(model, 'links', None)
+                    if isinstance(links_map, dict):
+                        link_obj = links_map.get(link_id)
+                    if link_obj is None:
+                        pipes_map = getattr(model, 'pipes', None)
+                        if isinstance(pipes_map, dict):
+                            link_obj = pipes_map.get(link_id)
+                if link_obj is not None and hasattr(link_obj, 'diameter'):
+                    link_obj.diameter = float(diameter) / 1000.0  # mm -> m
+            except Exception:
+                pass
+        
+        # Modifier la durée et le pas de temps
+        model.options.time.duration = duration_h * 3600  # heures -> secondes
+        model.options.time.hydraulic_timestep = timestep_min * 60  # minutes -> secondes
+
+    def _prepare_archive_dir(self, output_dir: Optional[Path]) -> Path:
+        """Prépare le dossier d'archivage pour les simulations."""
+        if output_dir:
+            archive_dir = output_dir / "epanet_archive"
+        else:
+            archive_dir = Path("temp") / "epanet_archive"
+        
+        archive_dir.mkdir(parents=True, exist_ok=True)
+        return archive_dir
+
+    def _extract_results(self, model: Any, results: Any, archive_dir: Path) -> Dict[str, Any]:
+        """Extrait les résultats de simulation wntr (robuste aux variations d'API)."""
+        try:
+            # Accès robuste aux structures de résultats
+            node_block = getattr(results, "node", None)
+            if callable(node_block):
+                node_block = node_block()
+            link_block = getattr(results, "link", None)
+            if callable(link_block):
+                link_block = link_block()
+
+            # Récupérer DataFrames
+            pressure_df = None
+            velocity_df = None
+            if isinstance(node_block, dict):
+                pressure_df = node_block.get("pressure")
+            elif node_block is not None:
+                pressure_df = getattr(node_block, "pressure", None)
+
+            if isinstance(link_block, dict):
+                velocity_df = link_block.get("velocity")
+            elif link_block is not None:
+                velocity_df = getattr(link_block, "velocity", None)
+
+            # Extraire les pressions aux nœuds
+            pressures: Dict[str, float] = {}
+            if pressure_df is not None:
+                try:
+                    cols = set(getattr(pressure_df, "columns", []))
+                    for node_id in model.nodes:
+                        if node_id in cols:
+                            pressures[node_id] = float(pressure_df.loc[:, node_id].min())
+                except Exception:
+                    pass
+            
+            # Extraire les vitesses dans les conduites
+            velocities: Dict[str, float] = {}
+            if velocity_df is not None:
+                try:
+                    cols = set(getattr(velocity_df, "columns", []))
+                    for link_id in model.pipes:
+                        if link_id in cols:
+                            velocities[link_id] = float(velocity_df.loc[:, link_id].max())
+                except Exception:
+                    pass
+            
+            return {
+                "success": True,
+                "pressures": pressures,
+                "velocities": velocities,
+                "min_pressure_m": min(pressures.values()) if pressures else 0.0,
+                "max_velocity_m_s": max(velocities.values()) if velocities else 0.0,
+                "archive_path": str(archive_dir)
+            }
+        except Exception as e:
+            return {
+                "success": False,
+                "error": f"Extraction des résultats échouée: {e}",
+                "archive_path": str(archive_dir)
+            }
+
+    def _simulate_mock_network(self, network_model: Any, H_tank: float, diameters: Dict[str, int]) -> Dict[str, Any]:
+        """Simulation mock pour les modèles réseau sans fichier INP."""
+        # Simulation simple basée sur la hauteur du réservoir
+        mock_pressures = {}
+        mock_velocities = {}
+        
+        # Générer des pressions mock basées sur la hauteur
+        for node_id in getattr(network_model, 'nodes', {}):
+            mock_pressures[node_id] = H_tank - 5.0  # Pression = hauteur - pertes
+        
+        # Générer des vitesses mock basées sur les diamètres
+        for link_id, diameter in diameters.items():
+            mock_velocities[link_id] = 1.0 + (diameter / 1000.0)  # Vitesse basée sur diamètre
+        
+        return {
+            "pressures": mock_pressures,
+            "velocities": mock_velocities,
+            "min_pressure_m": min(mock_pressures.values()) if mock_pressures else 0.0,
+            "max_velocity_m_s": max(mock_velocities.values()) if mock_velocities else 0.0
+        }
 
 
 def create_epanet_inp_file(network_data: Dict[str, Any], output_path: str) -> bool:

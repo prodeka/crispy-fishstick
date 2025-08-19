@@ -1,0 +1,19 @@
+description: "Vérification de la flèche d'une poutre en bois C24"
+profil:
+  type: "rectangulaire"
+  dimensions_mm:
+    b: 100
+    h: 200
+materiau:
+  classe_resistance: "C24"
+  classe_service: 2
+  duree_charge: "Moyen terme"
+portee_m: 4.0
+type_ouvrage: "Bâtiments courants"
+charges_service:
+  permanente_G:
+    type: "uniformement repartie"
+    valeur_kN_m: 3.0
+  exploitation_Q:
+    type: "ponctuelle"
+    valeur_kN: 8.0 

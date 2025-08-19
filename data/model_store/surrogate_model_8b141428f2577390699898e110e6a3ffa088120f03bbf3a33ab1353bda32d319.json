@@ -1,0 +1,24 @@
+{
+  "name": "surrogate_model_8b141428f2577390699898e110e6a3ffa088120f03bbf3a33ab1353bda32d319",
+  "type": "RandomForestRegressor",
+  "features": [
+    "height"
+  ],
+  "training_date": "2025-08-19T04:39:03.399111",
+  "performance": {},
+  "dataset_size": 2,
+  "config": {
+    "h_bounds_m": {
+      "TANK1": [
+        50.0,
+        100.0
+      ]
+    },
+    "pressure_min_m": 10.0,
+    "surrogate_config": {
+      "persist_model": true,
+      "initial_samples": 5
+    },
+    "cache_dir": "C:\\Users\\prota\\AppData\\Local\\Temp\\tmpv6wg8d52\\cache"
+  }
+}
