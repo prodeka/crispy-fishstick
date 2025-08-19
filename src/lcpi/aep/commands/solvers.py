@@ -18,6 +18,47 @@ from ..core.validators import validate_network_config
 app = typer.Typer(help="Gestion des solveurs hydrauliques")
 console = Console()
 
+
+def _try_import_wntr() -> bool:
+    try:
+        import wntr  # type: ignore
+        return True
+    except Exception:
+        return False
+
+
+def _install_wntr_offline() -> bool:
+    """Tente d'installer wntr depuis des wheels locaux pour faciliter la distribution offline.
+
+    Cherche dans `vendor/packages/` puis `offline_packages/` et utilise pip en mode no-index.
+    """
+    import subprocess, sys
+    candidate_dirs = [
+        Path(__file__).resolve().parents[3] / "vendor" / "packages",
+        Path(__file__).resolve().parents[3] / "offline_packages",
+    ]
+    for wheel_dir in candidate_dirs:
+        if wheel_dir.exists():
+            try:
+                console.print(f"📦 Tentative d'installation offline de wntr depuis: {wheel_dir}")
+                subprocess.check_call(
+                    [
+                        sys.executable,
+                        "-m",
+                        "pip",
+                        "install",
+                        "--no-index",
+                        "--find-links",
+                        str(wheel_dir),
+                        "wntr",
+                    ],
+                )
+                return _try_import_wntr()
+            except Exception as e:
+                console.print(f"⚠️  Offline install échouée depuis {wheel_dir}: {e}")
+                continue
+    return False
+
 @app.command("list")
 def list_solvers(
     verbose: bool = typer.Option(False, "--verbose", "-v", help="Affichage détaillé")
@@ -304,6 +345,22 @@ def install_solver(
                 console.print("⚠️  EPANET Python n'est pas installé")
                 console.print("📥 Installation recommandée: pip install epanet-python")
             
+            # Installer wntr via pip si manquant
+            if _try_import_wntr():
+                console.print("✅ wntr est déjà installé")
+            else:
+                # Offline first
+                if _install_wntr_offline():
+                    console.print("✅ wntr installé (offline)")
+                else:
+                    console.print("⚠️  wntr introuvable offline — tentative d'installation via pip (online)")
+                    try:
+                        import subprocess, sys
+                        subprocess.check_call([sys.executable, "-m", "pip", "install", "wntr"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                        console.print("✅ wntr installé (pip)")
+                    except Exception as e:
+                        console.print(f"❌ Échec installation wntr: {e}")
+
             # Vérifier si le binaire EPANET est disponible
             epanet_binary = shutil.which("epanet")
             if epanet_binary:

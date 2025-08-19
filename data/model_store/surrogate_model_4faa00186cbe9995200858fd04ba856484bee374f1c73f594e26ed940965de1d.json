@@ -1,0 +1,25 @@
+{
+  "name": "surrogate_model_4faa00186cbe9995200858fd04ba856484bee374f1c73f594e26ed940965de1d",
+  "type": "RandomForestRegressor",
+  "features": [],
+  "training_date": "2025-08-19T11:49:48.892347",
+  "performance": {
+    "mse": 0.0,
+    "mae": 0.0,
+    "r2": 1.0,
+    "rmse": 0.0
+  },
+  "dataset_size": 10,
+  "config": {
+    "penalty_weight": 1000000.0,
+    "penalty_beta": 1.0,
+    "h_bounds_m": {
+      "TANK1": [
+        5.0,
+        30.0
+      ]
+    },
+    "pressure_min_m": 10.0,
+    "solver": "epanet"
+  }
+}

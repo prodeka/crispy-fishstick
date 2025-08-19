@@ -1,0 +1,32 @@
+{
+  "proposals": [],
+  "pareto_front": null,
+  "metadata": {
+    "method": "surrogate_optimization",
+    "error": "Aucun point faisable trouvé par le surrogate",
+    "dataset_size": 10,
+    "feasible": false
+  },
+  "meta": {
+    "method": "surrogate",
+    "solver": "epanet",
+    "constraints": {
+      "pressure_min_m": 10.0,
+      "velocity_min_m_s": 0.3,
+      "velocity_max_m_s": 2.0
+    },
+    "source_meta": {
+      "source": "inp",
+      "file": "src\\lcpi\\aep\\PROTOTYPE\\INP\\bismark-Administrator.inp",
+      "converted_at": 1755603999.0164971
+    }
+  },
+  "integrity": {
+    "checksum": "d7bb09414522d6d68ac36677f025f4b298e49c87c84bc393792f0c0fef23a4c6",
+    "signature": "13a28f31232f50fc31318459479d31e7d2ca64baa57ee577e1d679eeb66b2691",
+    "signature_valid": true,
+    "algorithm": "HMAC-SHA256",
+    "timestamp": 1755603999.524403,
+    "signed_at": "2025-08-19T11:46:39.524403"
+  }
+}

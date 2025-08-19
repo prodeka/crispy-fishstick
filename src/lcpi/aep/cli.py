@@ -23,6 +23,7 @@ from .optimization.models import ConfigurationOptimisation
 from .core.solvers import SolverFactory
 from .commands.tank_optimization import app as tank_app
 from .optimizer.cli_commands import app as optimizer_cli
+from .commands.solvers import app as solvers_app
 
 app = typer.Typer(name="aep", help="Module Alimentation en Eau Potable")
 
@@ -31,6 +32,7 @@ app.add_typer(tank_app, name="tank")
 
 # Sous-commande Optimizer (V11)
 app.add_typer(optimizer_cli, name="optimizer")
+app.add_typer(solvers_app, name="solvers")
 
 # =============================================================================
 # OUTILS COMMUNS POUR LES COMMANDES UNIFIÉES
@@ -944,7 +946,22 @@ def network_unified(
         else:
             project_path = context['path']
         
-        # S'assurer que la structure du projet existe
+        # S'assurer que la structure du projet existe (garde-fou sandbox si chemin invalide)
+        try:
+            if project_path is None:
+                from ..core.context import handle_sandbox_logic
+                project_path = handle_sandbox_logic()
+            else:
+                # Si le chemin n'existe pas (projet actif invalide), basculer en sandbox
+                from pathlib import Path as _Path
+                if not _Path(project_path).exists():
+                    from ..core.context import handle_sandbox_logic
+                    project_path = handle_sandbox_logic()
+        except Exception:
+            # Dernier recours: sandbox
+            from ..core.context import handle_sandbox_logic
+            project_path = handle_sandbox_logic()
+
         ensure_project_structure(project_path)
         
         # Logique de journalisation
@@ -2816,7 +2833,15 @@ def network_optimize_unified(
         else:
             project_path = context['path']
         
-        # S'assurer que la structure du projet existe
+        # S'assurer que la structure du projet existe (garde-fou sandbox si chemin invalide)
+        try:
+            from pathlib import Path as _Path
+            if project_path is None or not _Path(project_path).exists():
+                from ..core.context import handle_sandbox_logic
+                project_path = handle_sandbox_logic()
+        except Exception:
+            from ..core.context import handle_sandbox_logic
+            project_path = handle_sandbox_logic()
         ensure_project_structure(project_path)
         
         # 1. Charger et valider la configuration / ou déléguer (INP)
@@ -2846,11 +2871,30 @@ def network_optimize_unified(
                     verbose=verbose,
                 )
 
-                # Sauvegarde éventuelle
-                if output:
-                    with open(output, 'w', encoding='utf-8') as f:
-                        json.dump(resultats, f, indent=2, ensure_ascii=False)
-                    typer.echo(f"✅ Résultats sauvegardés: {output}")
+                # Sauvegarde (Sprint 3: par défaut vers results/ avec log signé)
+                try:
+                    if output:
+                        with open(output, 'w', encoding='utf-8') as f:
+                            json.dump(resultats, f, indent=2, ensure_ascii=False)
+                        typer.echo(f"✅ Résultats sauvegardés: {output}")
+                    else:
+                        from time import strftime
+                        from pathlib import Path as _P
+                        from ..lcpi_logging.integrity import integrity_manager  # type: ignore
+                        results_dir = _P('results'); results_dir.mkdir(parents=True, exist_ok=True)
+                        run_id = f"opt_{strftime('%Y%m%d_%H%M%S')}"
+                        res_file = results_dir / f"{run_id}.json"
+                        log_file = results_dir / f"{run_id}.log.json"
+                        with open(res_file, 'w', encoding='utf-8') as f:
+                            json.dump(resultats, f, indent=2, ensure_ascii=False)
+                        signed = integrity_manager.sign_log(resultats)
+                        with open(log_file, 'w', encoding='utf-8') as f:
+                            json.dump(signed, f, indent=2, ensure_ascii=False)
+                        typer.echo(f"💾 Résultats: {res_file}")
+                        typer.echo(f"🔏 Log signé: {log_file}")
+                except Exception as _e:
+                    if verbose:
+                        typer.echo(f"⚠️  Sauvegarde non critique échouée: {_e}")
 
                 # Journalisation simple
                 if log is None and not no_log:
@@ -2964,11 +3008,31 @@ def network_optimize_unified(
                 performance = meilleure_solution.get('performance', {}).get('performance_hydraulique', 0)
                 typer.echo(f"🎯 Optimisation terminée: Coût={cout:.0f}FCFA, Performance={performance:.3f}")
         
-        # 9. Sauvegarder les résultats
-        if output:
-            with open(output, 'w', encoding='utf-8') as f:
-                json.dump(resultats, f, indent=2, ensure_ascii=False)
-            typer.echo(f"✅ Résultats sauvegardés: {output}")
+        # 9. Sauvegarder les résultats (Sprint 3: par défaut vers results/ avec log signé)
+        try:
+            if output:
+                with open(output, 'w', encoding='utf-8') as f:
+                    json.dump(resultats, f, indent=2, ensure_ascii=False)
+                typer.echo(f"✅ Résultats sauvegardés: {output}")
+            else:
+                from time import strftime
+                from pathlib import Path as _P
+                from ..lcpi_logging.integrity import integrity_manager  # type: ignore
+                results_dir = _P('results')
+                results_dir.mkdir(parents=True, exist_ok=True)
+                run_id = f"opt_{strftime('%Y%m%d_%H%M%S')}"
+                res_file = results_dir / f"{run_id}.json"
+                log_file = results_dir / f"{run_id}.log.json"
+                with open(res_file, 'w', encoding='utf-8') as f:
+                    json.dump(resultats, f, indent=2, ensure_ascii=False)
+                signed = integrity_manager.sign_log(resultats)
+                with open(log_file, 'w', encoding='utf-8') as f:
+                    json.dump(signed, f, indent=2, ensure_ascii=False)
+                typer.echo(f"💾 Résultats: {res_file}")
+                typer.echo(f"🔏 Log signé: {log_file}")
+        except Exception as _e:
+            if verbose:
+                typer.echo(f"⚠️  Sauvegarde non critique échouée: {_e}")
         
         # 10. Logique de journalisation
         should_log = log

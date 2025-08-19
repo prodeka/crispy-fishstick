@@ -332,3 +332,20 @@ def ensure_project_structure(project_path: Optional[Path] = None) -> Path:
         (project_path / subdir).mkdir(exist_ok=True)
     
     return project_path
+
+def handle_sandbox_logic() -> Path:
+    """Prépare et retourne un répertoire sandbox lorsque aucun projet n'est actif.
+
+    Crée la structure minimale (data/output/temp/docs/scripts/logs) dans le sandbox
+    défini par la configuration globale, puis retourne le chemin.
+    """
+    try:
+        sandbox_path = project_context.get_sandbox_path()
+    except Exception:
+        # Fallback via global_config si méthode indisponible
+        from .global_config import global_config  # type: ignore
+        sandbox_path = global_config.get_sandbox_path()
+    # Créer la structure attendue
+    for subdir in ["data", "output", "temp", "docs", "scripts", "logs"]:
+        (sandbox_path / subdir).mkdir(parents=True, exist_ok=True)
+    return sandbox_path

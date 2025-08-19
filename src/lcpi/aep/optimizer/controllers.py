@@ -191,6 +191,9 @@ class OptimizationController:
                     else:
                         nm = network_model
                     cfg = dict(config or {})
+                    # Valeurs par défaut sûres si non fournies
+                    cfg.setdefault("h_bounds_m", {"TANK1": (5.0, 30.0)})
+                    cfg.setdefault("pressure_min_m", 10.0)
                     cfg.setdefault("solver", solver)
                     self.impl = _Surrogate(nm, cfg)
 
@@ -198,6 +201,16 @@ class OptimizationController:
                     # Dry run path for CI
                     if (self.config or {}).get("dry_run"):
                         return {"meta": {"method": "surrogate", "dry_run": True}, "proposals": []}
+                    # Mettre à jour dynamiquement les contraintes si fournies
+                    try:
+                        if constraints:
+                            if "pressure_min_m" in constraints:
+                                self.impl.config["pressure_min_m"] = float(constraints.get("pressure_min_m"))
+                            # si des bornes H sont données via config sous forme H_bounds
+                            if "H_bounds" in (self.config or {}):
+                                self.impl.config["h_bounds_m"] = {"TANK1": tuple(self.config.get("H_bounds"))}
+                    except Exception:
+                        pass
                     res = self.impl.build_and_optimize()
                     try:
                         return res.dict()
@@ -257,29 +270,53 @@ class OptimizationController:
 
             return MultiTankAdapter
 
-        # Genetic: legacy optimizer not directly compatible -> placeholder/dry-run
+        # Genetic: utilise l'implémentation legacy pour YAML; pour INP proposer alternative
         if name == "genetic":
             class GeneticAdapter(BaseOptimizer):
+                def __init__(self, network_model: Any, solver: str = "epanet", price_db: Optional[Any] = None, config: Optional[Dict[str, Any]] = None) -> None:
+                    super().__init__(network_model, solver, price_db, config)
+
                 def optimize(self, constraints: Dict[str, Any], objective: str = "price", seed: Optional[int] = None) -> Dict[str, Any]:
-                    # No direct integration yet; return placeholder or fallback
                     if (self.config or {}).get("dry_run"):
                         return {"meta": {"method": "genetic", "dry_run": True}, "proposals": []}
-                    # Fallback to nested
-                    nested = self.__class__.__mro__[1]  # BaseOptimizer, ignore
-                    # Simpler: call nested adapter returned above
-                    NestedC = self.__class__.__qualname__  # unused; keep interface
-                    from .algorithms.nested import NestedGreedyOptimizer as _Nested
-                    impl = _Nested(self.network_model, solver=self.solver)
-                    res = impl.optimize_nested(
-                        H_bounds=tuple((self.config or {}).get("H_bounds", (5.0, 50.0))),
-                        pressure_min_m=float(constraints.get("pressure_min_m", 10.0)),
-                        velocity_constraints={"min_m_s": constraints.get("velocity_min_m_s", 0.3), "max_m_s": constraints.get("velocity_max_m_s", 2.0)},
-                        diameter_db_path=None,
-                    )
-                    try:
-                        return res.dict()
-                    except Exception:
-                        return {"meta": {"method": "genetic"}, "proposals": []}
+
+                    # Si YAML: utiliser l'optimiseur legacy
+                    if isinstance(self.network_model, (str, Path)) and str(self.network_model).lower().endswith((".yml", ".yaml")):
+                        import yaml
+                        from ..optimization.models import ConfigurationOptimisation  # type: ignore
+                        from ..optimization.constraints import ConstraintManager  # type: ignore
+                        from ..optimization.genetic_algorithm import GeneticOptimizer as _GA  # type: ignore
+
+                        cfg_raw = yaml.safe_load(Path(self.network_model).read_text(encoding="utf-8")) or {}
+                        if "optimisation" not in cfg_raw:
+                            return {"meta": {"method": "genetic", "error": "Section 'optimisation' manquante dans le YAML"}, "proposals": []}
+                        cfg = ConfigurationOptimisation(**cfg_raw["optimisation"])  # pydantic
+                        cm = ConstraintManager(cfg.contraintes_budget, cfg.contraintes_techniques)
+                        ga = _GA(cfg, cm)
+
+                        reseau_data = cfg_raw.get("reseau_complet", {})
+                        nb_conduites = len(reseau_data.get("conduites", []))
+                        if nb_conduites <= 0:
+                            return {"meta": {"method": "genetic", "error": "Aucune conduite dans 'reseau_complet'"}, "proposals": []}
+
+                        out = ga.optimiser(reseau_data, nb_conduites)
+                        # Adapter la sortie legacy vers le contrat unifié
+                        best = (out or {}).get("optimisation", {}).get("meilleure_solution", {})
+                        diam_map = {k: v for k, v in best.get("diametres", {}).items()}
+                        perf = best.get("performance", {})
+                        proposal = {
+                            "id": "genetic_best",
+                            "H_tank_m": None,
+                            "diameters_mm": diam_map,
+                            "CAPEX": perf.get("cout_total_fcfa"),
+                            "OPEX_NPV": None,
+                            "constraints_ok": True,
+                            "metrics": {"performance_hydraulique": perf.get("performance_hydraulique", 0.0)},
+                        }
+                        return {"meta": {"method": "genetic", "solver": self.solver}, "proposals": [proposal]}
+
+                    # Sinon (INP): recommander 'global' ou 'surrogate'
+                    return {"meta": {"method": "genetic", "warning": "Genetic non supporté pour INP direct; utilisez 'global' ou 'surrogate'"}, "proposals": []}
 
             return GeneticAdapter
         raise ImportError(f"Optimiseur inconnu: {name}")

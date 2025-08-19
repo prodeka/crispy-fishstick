@@ -1,0 +1,9 @@
+wntr
+numpy
+scipy
+pandas
+networkx
+matplotlib
+openpyxl
+xlrd
+

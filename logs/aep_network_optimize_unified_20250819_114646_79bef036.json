@@ -1,0 +1,53 @@
+{
+  "log_id": "79bef036-a677-46c0-8f4b-371d3e6c8235",
+  "timestamp": "2025-08-19T11:46:46.802153",
+  "plugin": "aep",
+  "command": "network_optimize_unified",
+  "parameters": {
+    "input_file": "src\\lcpi\\aep\\PROTOTYPE\\INP\\bismark-Administrator.inp",
+    "solver": "epanet"
+  },
+  "results": {
+    "proposals": [],
+    "pareto_front": null,
+    "metadata": {
+      "method": "surrogate_optimization",
+      "error": "Aucun point faisable trouvé par le surrogate",
+      "dataset_size": 10,
+      "feasible": false
+    },
+    "meta": {
+      "method": "surrogate",
+      "solver": "epanet",
+      "constraints": {
+        "pressure_min_m": 10.0,
+        "velocity_min_m_s": 0.3,
+        "velocity_max_m_s": 2.0
+      },
+      "source_meta": {
+        "source": "inp",
+        "file": "src\\lcpi\\aep\\PROTOTYPE\\INP\\bismark-Administrator.inp",
+        "converted_at": 1755603999.0164971
+      }
+    },
+    "integrity": {
+      "checksum": "d7bb09414522d6d68ac36677f025f4b298e49c87c84bc393792f0c0fef23a4c6",
+      "signature": "13a28f31232f50fc31318459479d31e7d2ca64baa57ee577e1d679eeb66b2691",
+      "signature_valid": true,
+      "algorithm": "HMAC-SHA256",
+      "timestamp": 1755603999.524403,
+      "signed_at": "2025-08-19T11:46:39.524403"
+    }
+  },
+  "execution_time": 0.0,
+  "status": "success",
+  "metadata": {},
+  "integrity": {
+    "checksum": "01c94fc5b473258b7d25b4835567808cbb8293316151570167842c216c7f9a02",
+    "signature": "f36447f65a2106591530b662cfb06998f01de259eba605bd1f9c8efb4d36d040",
+    "signature_valid": true,
+    "algorithm": "HMAC-SHA256",
+    "timestamp": 1755604006.8021693,
+    "signed_at": "2025-08-19T11:46:46.802169"
+  }
+}

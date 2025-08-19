@@ -1,6 +1,7 @@
 {
     "active_plugins": [
         "aep",
+        "cm",
         "shell",
         "utils"
     ],
