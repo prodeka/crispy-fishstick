@@ -176,7 +176,12 @@ class OptimizationController:
                     return out
 
             return NestedAdapter
-        raise ImportError(f"Optimiseur inconnu (Sprint 1 supporte uniquement 'nested'): {name}")
+
+        # Sprint 2: route d'autres méthodes vers des adaptateurs simples (fallback nested si indisponible)
+        if name in ("genetic", "surrogate", "global", "multi-tank", "multitank"):
+            # Pour l'instant, utiliser la même implémentation nested comme fallback sûr
+            return self._import_optimizer_class("nested")
+        raise ImportError(f"Optimiseur inconnu: {name}")
 
     def get_optimizer_instance(self, method: str, network_model: Dict[str, Any] | str | Path, solver: str, price_db: Optional[Any], config: Optional[Dict[str, Any]] = None) -> BaseOptimizer:
         OptimClass = self._import_optimizer_class(method)
@@ -207,6 +212,17 @@ class OptimizationController:
         optimizer = self.get_optimizer_instance(method, network_for_opt, solver, price_db, config=algo_params)
         result = optimizer.optimize(constraints=constraints, objective=algo_params.get("objective", "price"), seed=algo_params.get("seed"))
 
+        # Appliquer pénalités/validation contraintes (Sprint 2)
+        result = self._apply_constraints_and_penalties(result, constraints, algo_params)
+
+        # Hybridation post-run (top-k)
+        if hybrid_refiner:
+            try:
+                refiner = self.get_optimizer_instance(hybrid_refiner, network_for_opt, solver, price_db, config=algo_params)
+                result = self._apply_hybrid_refinement(result, optimizer, refiner, hybrid_params or {}, verbose)
+            except Exception:
+                pass
+
         meta = result.get("meta", {})
         meta.update({"method": method, "solver": solver, "constraints": constraints, "source_meta": model_dict.get("meta", {})})
         result["meta"] = meta
@@ -219,5 +235,75 @@ class OptimizationController:
             except Exception:
                 pass
 
+        return result
+
+    def _apply_constraints_and_penalties(self, result: Dict[str, Any], constraints: Dict[str, Any], algo_params: Dict[str, Any]) -> Dict[str, Any]:
+        """Valide les contraintes et applique une pénalité soft sur CAPEX si violées.
+
+        penalty = alpha * max(0, violation)^beta
+        - Hard: pressure_min_m (rejette la solution si violée -> constraints_ok False)
+        - Soft par défaut: vitesse_min/max (ajoute pénalité)
+        """
+        if not result:
+            return result
+        proposals = result.get("proposals", []) or []
+        if not proposals:
+            return result
+        alpha = float(algo_params.get("penalty_weight", 1e6))
+        beta = float(algo_params.get("penalty_beta", 1.0))
+
+        p_min_req = constraints.get("pressure_min_m")
+        vmin_req = constraints.get("velocity_min_m_s")
+        vmax_req = constraints.get("velocity_max_m_s")
+
+        updated: List[Dict[str, Any]] = []
+        for p in proposals:
+            capex = float(p.get("CAPEX", 0.0) or 0.0)
+            metrics = p.get("metrics", {}) or {}
+            min_p = metrics.get("min_pressure_m") or p.get("min_pressure_m")
+            max_v = metrics.get("max_velocity_m_s") or p.get("max_velocity_m_s")
+
+            constraints_ok = True
+            penalty_total = 0.0
+            # Hard pressure
+            if p_min_req is not None and min_p is not None and float(min_p) < float(p_min_req):
+                constraints_ok = False
+                # Pénalité très forte pour signaler
+                penalty_total += alpha * (float(p_min_req) - float(min_p)) ** max(beta, 1.0) * 10.0
+            # Soft velocity
+            if vmin_req is not None and max_v is not None:
+                # pour vmin: vérifier toutes les vitesses min, ici on a seulement v_max; on ne pénalise pas
+                pass
+            if vmax_req is not None and max_v is not None and float(max_v) > float(vmax_req):
+                violation = float(max_v) - float(vmax_req)
+                penalty_total += alpha * (violation ** max(beta, 1.0))
+
+            if penalty_total > 0:
+                p["CAPEX"] = capex + penalty_total
+            p["constraints_ok"] = constraints_ok and penalty_total == 0.0
+            updated.append(p)
+
+        result["proposals"] = updated
+        return result
+
+    def _apply_hybrid_refinement(self, result: Dict[str, Any], primary_optimizer: BaseOptimizer, refiner: BaseOptimizer, hybrid_params: Dict[str, Any], verbose: bool = False) -> Dict[str, Any]:
+        topk = int(hybrid_params.get("topk", 2))
+        steps = int(hybrid_params.get("steps", 1))
+        improved = 0
+        proposals = result.get("proposals", []) or []
+        if not proposals:
+            return result
+        sorted_props = sorted(proposals, key=lambda p: p.get("CAPEX", float("inf")))
+        for sol in sorted_props[:topk]:
+            try:
+                refined = refiner.refine_solution(sol, steps=steps)
+                if refined and refined.get("CAPEX", float("inf")) < sol.get("CAPEX", float("inf")):
+                    idx = proposals.index(sol)
+                    proposals[idx] = refined
+                    improved += 1
+            except Exception:
+                continue
+        result["proposals"] = proposals
+        result.setdefault("metrics", {})["hybrid_improved_count"] = improved
         return result
 

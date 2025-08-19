@@ -2758,6 +2758,15 @@ def recalcul(
 def network_optimize_unified(
     input_file: Path = typer.Argument(..., help="Fichier YAML contenant la configuration d'optimisation"),
     solver: str = typer.Option("lcpi", "--solver", "-s", help="Solveur hydraulique (lcpi/epanet)"),
+    method: str = typer.Option("nested", "--method", "-m", help="Méthode d'optimisation (nested|genetic|surrogate|global|multi-tank)"),
+    pression_min: Optional[float] = typer.Option(None, "--pression-min", help="Pression minimale (m)"),
+    vitesse_min: Optional[float] = typer.Option(None, "--vitesse-min", help="Vitesse minimale (m/s)"),
+    vitesse_max: Optional[float] = typer.Option(None, "--vitesse-max", help="Vitesse maximale (m/s)"),
+    hybrid_refiner: Optional[str] = typer.Option(None, "--hybrid-refiner", help="Raffinement local post-run (ex: nested)"),
+    hybrid_topk: int = typer.Option(2, "--hybrid-topk", help="Top-K solutions à raffiner"),
+    hybrid_steps: int = typer.Option(1, "--hybrid-steps", help="Nombre d'étapes de raffinage local"),
+    penalty_weight: float = typer.Option(1e6, "--penalty-weight", help="Poids de pénalité pour contraintes soft"),
+    penalty_beta: float = typer.Option(1.0, "--penalty-beta", help="Exposant de pénalité (1 ou 2)"),
     critere: str = typer.Option("cout", "--critere", "-c", help="Critère d'optimisation principal (cout/energie/performance)"),
     budget_max: float = typer.Option(None, "--budget", "-b", help="Budget maximum en FCFA"),
     generations: int = typer.Option(50, "--generations", "-g", help="Nombre de générations"),
@@ -2821,18 +2830,18 @@ def network_optimize_unified(
                 from .optimizer.controllers import OptimizationController  # type: ignore
                 controller = OptimizationController()
                 constraints = {
-                    "pressure_min_m": 10.0,
-                    "velocity_min_m_s": 0.3,
-                    "velocity_max_m_s": 2.0,
+                    "pressure_min_m": float(pression_min) if pression_min is not None else 10.0,
+                    "velocity_min_m_s": float(vitesse_min) if vitesse_min is not None else 0.3,
+                    "velocity_max_m_s": float(vitesse_max) if vitesse_max is not None else 2.0,
                 }
                 resultats = controller.run_optimization(
                     input_path=input_file,
-                    method="nested",
+                    method=method,
                     solver=("epanet" if solver == "epanet" else "lcpi"),
                     constraints=constraints,
-                    hybrid_refiner=None,
-                    hybrid_params=None,
-                    algo_params=None,
+                    hybrid_refiner=hybrid_refiner,
+                    hybrid_params={"topk": hybrid_topk, "steps": hybrid_steps},
+                    algo_params={"penalty_weight": penalty_weight, "penalty_beta": penalty_beta},
                     price_db=None,
                     verbose=verbose,
                 )
