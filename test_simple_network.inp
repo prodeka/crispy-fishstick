@@ -1,0 +1,111 @@
+[TITLE]
+Test Simple Network for Hydraulic Reports
+
+[JUNCTIONS]
+;ID               Elevation  Demand  Pattern
+J1                100.0      0.0     
+J2                95.0       10.0    
+J3                90.0       15.0    
+
+[RESERVOIRS]
+;ID               Head  Pattern
+R1                120.0
+
+[TANKS]
+;ID               Elevation  InitialLevel  MinimumLevel  MaximumLevel  Diameter  MinimumVolume  VolumeCurve
+
+[PIPES]
+;ID               Node1  Node2  Length  Diameter  Roughness  MinorLoss  Status
+P1                R1     J1     1000    200       100        0.0        Open
+P2                J1     J2     800     150       100        0.0        Open
+P3                J2     J3     600     100       100        0.0        Open
+
+[PUMPS]
+;ID               Node1  Node2  Properties
+
+[VALVES]
+;ID               Node1  Node2  Diameter  Type  Setting  MinorLoss
+
+[WATERQUALITY]
+;Type             ChemicalName  TraceNode
+CHEMICAL          Chlorine      J1
+
+[REACTIONS]
+;Order  Bulk  Wall
+1       0.0   0.0
+
+[MIXING]
+;TankID            Model
+;TankID            Compartment
+
+[SOURCES]
+;NodeID            Type  Quality  Pattern
+
+[EMITTERS]
+;JunctionID        Coefficient
+
+[PATTERNS]
+;ID               Multipliers
+Pattern1          1.0 1.2 1.4 1.2 1.0 0.8 0.6 0.8 1.0 1.2 1.4 1.2
+
+[CURVES]
+;ID               X-Value  Y-Value
+
+[TIMES]
+Duration          24:00
+HydraulicTimestep 1:00
+QualityTimestep   0:05
+PatternTimestep   1:00
+PatternStart      0:00
+ReportTimestep    1:00
+ReportStart       0:00
+StartClockTime    12:00 AM
+Statistic         AVERAGE
+
+[REPORT]
+Status            YES
+Summary            YES
+Page              0
+File              
+Energy            YES
+
+[OPTIONS]
+Units             LPS
+Headloss          H-W
+SpecificGravity   1.0
+Viscosity         1.0
+Trials            40
+Accuracy          0.01
+CHECKFREQ         2
+MAXCHECK          10
+DAMPLIMIT         0
+Unbalanced        STOP
+Pattern           1
+DemandMultiplier  1.0
+EmitterExponent   0.5
+Quality           Chemical mg/L
+Diffusivity       1.0
+Tolerance         0.01
+
+[COORDINATES]
+;Node             X-Coord  Y-Coord
+J1                0.0      0.0
+J2                1000.0   0.0
+J3                1800.0   0.0
+R1                -500.0   0.0
+
+[VERTICES]
+;Link             X-Coord  Y-Coord
+
+[LABELS]
+;X-Coord  Y-Coord  Label  AnchorNode
+
+[BACKDROP]
+DIMENSIONS        0.0 0.0 2000.0 1000.0
+UNITS             None
+FILE              
+OFFSET            0.0 0.0
+
+[TAGS]
+
+[END]

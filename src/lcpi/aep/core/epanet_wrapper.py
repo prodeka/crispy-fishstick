@@ -994,8 +994,9 @@ class EPANETOptimizer:
             elif link_block is not None:
                 velocity_df = getattr(link_block, "velocity", None)
 
-            # Extraire les pressions aux nœuds
+            # Extraire les pressions et charges (head) aux nœuds
             pressures: Dict[str, float] = {}
+            heads: Dict[str, float] = {}
             if pressure_df is not None:
                 try:
                     cols = set(getattr(pressure_df, "columns", []))
@@ -1004,22 +1005,121 @@ class EPANETOptimizer:
                             pressures[node_id] = float(pressure_df.loc[:, node_id].min())
                 except Exception:
                     pass
-            
-            # Extraire les vitesses dans les conduites
-            velocities: Dict[str, float] = {}
-            if velocity_df is not None:
+            head_df = None
+            if isinstance(node_block, dict):
+                head_df = node_block.get("head")
+            elif node_block is not None:
+                head_df = getattr(node_block, "head", None)
+            if head_df is not None:
                 try:
-                    cols = set(getattr(velocity_df, "columns", []))
-                    for link_id in model.pipes:
-                        if link_id in cols:
-                            velocities[link_id] = float(velocity_df.loc[:, link_id].max())
+                    cols = set(getattr(head_df, "columns", []))
+                    for node_id in model.nodes:
+                        if node_id in cols:
+                            # prendre la moyenne de la charge
+                            heads[node_id] = float(head_df.loc[:, node_id].mean())
                 except Exception:
                     pass
             
+            # Extraire les vitesses, pertes de charge et débits dans les conduites
+            velocities: Dict[str, float] = {}
+            if velocity_df is not None:
+                try:
+                    cols = list(getattr(velocity_df, "columns", []))
+                    # Correspondance stricte sur les IDs de conduites
+                    try:
+                        for link_id in model.pipes:
+                            if link_id in cols:
+                                velocities[link_id] = float(velocity_df.loc[:, link_id].max())
+                    except Exception:
+                        pass
+                    # Fallback: si aucune correspondance stricte, utiliser toutes les colonnes
+                    if not velocities:
+                        for col in cols:
+                            try:
+                                velocities[str(col)] = float(velocity_df.loc[:, col].max())
+                            except Exception:
+                                continue
+                except Exception:
+                    pass
+            headloss_df = None
+            flow_df = None
+            if isinstance(link_block, dict):
+                headloss_df = link_block.get("headloss")
+                _flowrate = link_block.get("flowrate")
+                if _flowrate is not None:
+                    flow_df = _flowrate
+                else:
+                    flow_df = link_block.get("flow")
+            elif link_block is not None:
+                headloss_df = getattr(link_block, "headloss", None)
+                _flowrate = getattr(link_block, "flowrate", None)
+                if _flowrate is not None:
+                    flow_df = _flowrate
+                else:
+                    flow_df = getattr(link_block, "flow", None)
+
+            headlosses: Dict[str, float] = {}
+            if headloss_df is not None:
+                try:
+                    cols = list(getattr(headloss_df, "columns", []))
+                    try:
+                        for link_id in model.pipes:
+                            if link_id in cols:
+                                headlosses[link_id] = float(headloss_df.loc[:, link_id].mean())
+                    except Exception:
+                        pass
+                    # Fallback: toutes colonnes si aucune correspondance
+                    if not headlosses:
+                        for col in cols:
+                            try:
+                                headlosses[str(col)] = float(headloss_df.loc[:, col].mean())
+                            except Exception:
+                                continue
+                except Exception:
+                    pass
+
+            flows: Dict[str, float] = {}
+            if flow_df is not None:
+                try:
+                    cols = list(getattr(flow_df, "columns", []))
+                    try:
+                        for link_id in model.pipes:
+                            if link_id in cols:
+                                # Débit moyen en m3/s
+                                flows[link_id] = float(flow_df.loc[:, link_id].mean())
+                    except Exception:
+                        pass
+                    # Fallback: toutes colonnes si aucune correspondance
+                    if not flows:
+                        for col in cols:
+                            try:
+                                flows[str(col)] = float(flow_df.loc[:, col].mean())
+                            except Exception:
+                                continue
+                except Exception:
+                    pass
+            
+            # Aliases standardisés pour compatibilité inter-solveurs
+            pressures_m = pressures
+            velocities_m_s = velocities
+            heads_m = heads
+            headlosses_m = headlosses
+
             return {
                 "success": True,
+                # Clés historiques
                 "pressures": pressures,
                 "velocities": velocities,
+                "heads": heads,
+                "headlosses": headlosses,
+                # Clés normalisées (unités explicites)
+                "pressures_m": pressures_m,
+                "velocities_m_s": velocities_m_s,
+                "heads_m": heads_m,
+                "headlosses_m": headlosses_m,
+                # Débits déjà en m3/s
+                "flows_m3_s": flows,
+                # Agrégats
                 "min_pressure_m": min(pressures.values()) if pressures else 0.0,
                 "max_velocity_m_s": max(velocities.values()) if velocities else 0.0,
                 "archive_path": str(archive_dir)

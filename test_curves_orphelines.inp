@@ -1,0 +1,42 @@
+[TITLE]
+Test Courbes Orphelines
+
+[JUNCTIONS]
+N1 100 0
+N2 100 0
+
+[RESERVOIRS]
+R1 100 0
+
+[TANKS]
+
+[PIPES]
+P1 N1 N2 100 100 100 OPEN
+
+[PUMPS]
+
+[VALVES]
+
+[CURVES]
+;ID              	X-Value     	Y-Value
+; Courbe utilisée (sera gardée)
+; PUMP1	0.0	95.0  ; COURBE ORPHELINE - IGNORÉE
+; PUMP1	101.0	80.0  ; COURBE ORPHELINE - IGNORÉE
+; PUMP1	131.0	65.0  ; COURBE ORPHELINE - IGNORÉE
+
+; Courbe orpheline (sera commentée)
+; PmpSO	0.0	95.0  ; COURBE ORPHELINE - IGNORÉE
+; PmpSO	101.0	80.0  ; COURBE ORPHELINE - IGNORÉE
+; PmpSO	131.0	65.0  ; COURBE ORPHELINE - IGNORÉE
+
+; Autre courbe orpheline
+; PUMP2	0.0	90.0  ; COURBE ORPHELINE - IGNORÉE
+; PUMP2	100.0	75.0  ; COURBE ORPHELINE - IGNORÉE
+
+[CONTROLS]
+
+[OPTIONS]
+Units LPS
+Headloss C-M
+
+[END]

@@ -57,7 +57,7 @@ class Proposal(BaseModel):
     is_feasible: bool
     tanks: List[TankDecision]
     diameters_mm: Dict[str, int]
-    costs: Dict[str, float]  # CAPEX, OPEX_annual, OPEX_npv
+    costs: Dict[str, Any]  # CAPEX, OPEX_annual, OPEX_npv, CAPEX_breakdown (peut être dict)
     metrics: Dict[str, float]  # min_pressure_m, max_velocity_m_s
 
 

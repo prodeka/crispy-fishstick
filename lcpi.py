@@ -28,8 +28,8 @@ if __name__ == "__main__":
         # Lancer la CLI classique
         try:
             from src.lcpi.main import app
-            # Pour Typer, on appelle directement l'instance (Click CLI)
-            app()
+            # Appeler l'application avec un nom de programme explicite pour un usage clair
+            app(prog_name="lcpi")
         except ImportError as e:
             print("[ERREUR] Impossible de lancer la CLI classique :", e)
             sys.exit(1)

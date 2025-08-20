@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Comparaison multi-solveurs</title>
+  {% if inline_css %}
+  <style>
+  {{ inline_css }}
+  </style>
+  {% endif %}
+  <style>
+    body{font-family:Inter,Segoe UI,system-ui,Arial,sans-serif;margin:0;background:#0b0f13;color:#e7edf4}
+    .container{max-width:1200px;margin:0 auto;padding:24px}
+    .tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+    .tab{padding:8px 12px;border:1px solid #233041;border-radius:8px;background:#11161c;color:#e7edf4;cursor:pointer}
+    .tab.active{background:#161c23;border-color:#4aa3ff}
+    .panel{display:none}
+    .panel.active{display:block}
+    .cards{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+    .card{background:#11161c;border:1px solid #233041;border-radius:10px;padding:12px}
+    .kpi{display:flex;justify-content:space-between;margin:6px 0}
+    .kpi .label{color:#9db0c2}
+    .kpi .value{font-weight:600}
+    .chart{margin-top:12px;background:#11161c;border:1px solid #233041;border-radius:10px;padding:12px}
+    .bar-row{display:flex;align-items:center;gap:8px;margin:6px 0}
+    .bar-label{width:140px;color:#9db0c2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .bar{height:10px;background:#4aa3ff;border-radius:6px}
+    .section{margin-top:18px}
+    .section h3{margin:6px 0}
+    table.comp{width:100%;border-collapse:collapse;margin-top:8px}
+    table.comp th, table.comp td{border:1px solid #233041;padding:6px;text-align:left}
+    table.comp th{background:#0e141a}
+    .info{color:#9db0c2; margin-bottom:8px}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Comparaison multi-solveurs</h1>
+    <div class="info">Sélectionnez un onglet pour afficher le rapport d'un solveur. L'onglet "Comparaison" affiche une synthèse.</div>
+    <div id="tabs" class="tabs"></div>
+    <div id="panels"></div>
+  </div>
+  <script>
+    // Fallback sans multi_context: on s'appuie sur logs_selectionnes (normalisés) fourni par le générateur
+    const norm = {{ logs_selectionnes | tojson }};
+    const tabs = document.getElementById('tabs');
+    const panels = document.getElementById('panels');
+    const makeTab = (id, label) => { const b=document.createElement('button'); b.className='tab'; b.textContent=label; b.dataset.target=id; b.addEventListener('click',()=>activate(id)); return b; };
+    const makePanelDiv = (id) => { const d=document.createElement('div'); d.className='panel'; d.id=id; return d; };
+    const activate = (id) => { document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active', t.dataset.target===id)); document.querySelectorAll('.panel').forEach(p=>p.classList.toggle('active', p.id===id)); };
+
+    // Construire jeux de données comparatifs
+    const entries = norm.map(x=>({
+      solver: (x.donnees_resultat?.meta?.solver)||'?',
+      method: (x.donnees_resultat?.meta?.method)||'?',
+      capex: Number(x.donnees_resultat?.proposals?.[0]?.CAPEX)||null,
+      minP: Number(x.donnees_resultat?.proposals?.[0]?.metrics?.min_pressure_m ?? x.donnees_resultat?.proposals?.[0]?.min_pressure_m)||null,
+      maxV: Number(x.donnees_resultat?.proposals?.[0]?.metrics?.max_velocity_m_s ?? x.donnees_resultat?.proposals?.[0]?.max_velocity_m_s)||null,
+      ok: Boolean(x.donnees_resultat?.proposals?.[0]?.constraints_ok),
+      hyd: x.donnees_resultat?.hydraulics||{},
+      constraints: x.donnees_resultat?.meta?.constraints||{}
+    }));
+
+    if (entries.length>1){
+      // Onglet comparaison
+      tabs.appendChild(makeTab('compare','Comparaison'));
+      const comp = makePanelDiv('compare');
+
+      // Helpers
+      const valuesOf = (obj) => Object.values(obj||{}).map(Number).filter(v=>Number.isFinite(v));
+      const stats = (arr) => { const a=[...arr].sort((x,y)=>x-y); const n=a.length||1; const s=a.reduce((p,c)=>p+c,0); return {min:a[0]??null,max:a[a.length-1]??null,mean:(s/(a.length||1))||null,median:a.length? a[Math.floor((a.length-1)/2)] : null,count:a.length}; };
+      const maxOfEntries = (getter) => Math.max(...entries.map(getter).map(v=>Number.isFinite(v)?v:0), 1);
+      const barBlock = (title, getter, unit, color) => {
+        const wrap = document.createElement('div'); wrap.className='chart section';
+        const h3=document.createElement('h3'); h3.textContent=title; wrap.appendChild(h3);
+        const maxv=maxOfEntries(getter);
+        entries.forEach(e=>{
+          const row=document.createElement('div'); row.className='bar-row';
+          const lab=document.createElement('div'); lab.className='bar-label'; lab.textContent=e.solver; row.appendChild(lab);
+          const bar=document.createElement('div'); bar.className='bar'; bar.style.width=((getter(e)||0)/maxv*100)+'%'; bar.style.background=color; row.appendChild(bar);
+          const val=document.createElement('div'); const v= getter(e); val.textContent=(v!=null? v.toLocaleString(): '—')+(unit||''); row.appendChild(val);
+          wrap.appendChild(row);
+        });
+        return wrap;
+      };
+
+      // KPI globaux
+      comp.appendChild(barBlock('CAPEX (FCFA)', e=>e.capex, '', '#4aa3ff'));
+      comp.appendChild(barBlock('Min pression (m)', e=>e.minP, ' m', '#21c55d'));
+      comp.appendChild(barBlock('Max vitesse (m/s)', e=>e.maxV, ' m/s', '#ef8f2f'));
+
+      // Comparaisons hydrauliques détaillées
+      const pMin = entries[0].constraints?.pressure_min_m ?? 12;
+      const vMax = entries[0].constraints?.velocity_max_m_s ?? 2.0;
+
+      // Statistiques Pressions
+      const pressStats = entries.map(e=>({ solver:e.solver, s: stats(valuesOf(e.hyd.pressures_m||e.hyd.pressures)) }));
+      comp.appendChild(barBlock('Pressions — moyenne (m)', e=>({ep:stats(valuesOf(e.hyd.pressures_m||e.hyd.pressures)).mean}).ep, ' m', '#6aa84f'));
+      comp.appendChild(barBlock('Pressions — médiane (m)', e=>({ep:stats(valuesOf(e.hyd.pressures_m||e.hyd.pressures)).median}).ep, ' m', '#38761d'));
+      // % sous seuil pression
+      const percUnder = (e)=>{ const vals=valuesOf(e.hyd.pressures_m||e.hyd.pressures); if (!vals.length) return 0; const c=vals.filter(v=>v<pMin).length; return Math.round(100*c/vals.length); };
+      comp.appendChild(barBlock(`Pressions — % sous ${pMin} m`, e=>percUnder(e), ' %', '#cc0000'));
+
+      // Statistiques Vitesses
+      comp.appendChild(barBlock('Vitesses — moyenne (m/s)', e=>({ev:stats(valuesOf(e.hyd.velocities_m_s||e.hyd.velocities)).mean}).ev, ' m/s', '#ff9900'));
+      // % au-dessus vmax
+      const percOver = (e)=>{ const vals=valuesOf(e.hyd.velocities_m_s||e.hyd.velocities); if (!vals.length) return 0; const c=vals.filter(v=>v>vMax).length; return Math.round(100*c/vals.length); };
+      comp.appendChild(barBlock(`Vitesses — % au-dessus ${vMax} m/s`, e=>percOver(e), ' %', '#e69138'));
+
+      // Charges
+      comp.appendChild(barBlock('Charges (heads) — moyenne (m)', e=>({eh:stats(valuesOf(e.hyd.heads_m||e.hyd.heads)).mean}).eh, ' m', '#3d85c6'));
+
+      // Pertes de charge
+      comp.appendChild(barBlock('Pertes de charge — moyenne', e=>({el:stats(valuesOf(e.hyd.headlosses_m||e.hyd.headlosses)).mean}).el, '', '#674ea7'));
+
+      // Débits
+      comp.appendChild(barBlock('Débits — moyenne (m³/s)', e=>({ef:stats(valuesOf(e.hyd.flows_m3_s)).mean}).ef, ' m³/s', '#0b5394'));
+
+      // Tables de différences (Pressions et Vitesses) — Top 10
+      const diffTable = (title, getDict, unit) => {
+        const box=document.createElement('div'); box.className='section';
+        const h3=document.createElement('h3'); h3.textContent=title; box.appendChild(h3);
+        const [a,b]=entries; const A=getDict(a)||{}, B=getDict(b)||{}; const keys=[...new Set([...Object.keys(A), ...Object.keys(B)])];
+        const diffs = keys.map(k=>({ id:k, v1:Number(A[k]??NaN), v2:Number(B[k]??NaN), diff: (Number(A[k]??NaN)-Number(B[k]??NaN)) } )).filter(x=>Number.isFinite(x.v1)&&Number.isFinite(x.v2));
+        diffs.sort((x,y)=>Math.abs(y.diff)-Math.abs(x.diff));
+        const top = diffs.slice(0,10);
+        const tbl=document.createElement('table'); tbl.className='comp';
+        tbl.innerHTML=`<thead><tr><th>ID</th><th>${a.solver}</th><th>${b.solver}</th><th>Δ</th></tr></thead>`;
+        const tb=document.createElement('tbody');
+        top.forEach(d=>{ const tr=document.createElement('tr'); tr.innerHTML=`<td>${d.id}</td><td>${d.v1.toFixed(3)}${unit}</td><td>${d.v2.toFixed(3)}${unit}</td><td>${d.diff.toFixed(3)}${unit}</td>`; tb.appendChild(tr); });
+        tbl.appendChild(tb); box.appendChild(tbl); return box;
+      };
+      comp.appendChild(diffTable('Pressions — Top 10 écarts (par nœud)', e=> (e.hyd.pressures_m||e.hyd.pressures), ' m'));
+      comp.appendChild(diffTable('Vitesses — Top 10 écarts (par conduite)', e=> (e.hyd.velocities_m_s||e.hyd.velocities), ' m/s'));
+
+      panels.appendChild(comp);
+      panels.appendChild(comp);
+      // Onglets par solveur
+      entries.forEach(e=>{
+        const tabId='tab_'+e.solver; tabs.appendChild(makeTab(tabId, e.solver));
+        const p=makePanelDiv(tabId);
+        const head=document.createElement('div'); head.className='cards';
+        head.innerHTML=`
+          <div class="card"><h4>KPIs</h4>
+            <div class="kpi"><span class="label">CAPEX</span><span class="value">${e.capex?.toLocaleString()||'—'}</span></div>
+            <div class="kpi"><span class="label">Min pression</span><span class="value">${e.minP??'—'} m</span></div>
+            <div class="kpi"><span class="label">Max vitesse</span><span class="value">${e.maxV??'—'} m/s</span></div>
+            <div class="kpi"><span class="label">Contraintes</span><span class="value">${e.ok? 'OK':'Non'}</span></div>
+          </div>
+          <div class="card"><h4>Pressions (n=${Object.keys(e.hyd?.pressures_m||e.hyd?.pressures||{}).length})</h4></div>
+          <div class="card"><h4>Vitesses/Flux</h4></div>`;
+        p.appendChild(head);
+        panels.appendChild(p);
+      });
+      activate('compare');
+    } else {
+      const p=document.createElement('p'); p.textContent='Aucun contenu multi-solveurs.'; panels.appendChild(p);
+    }
+  </script>
+</body>
+</html>
+
+

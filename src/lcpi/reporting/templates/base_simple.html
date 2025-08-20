@@ -4,23 +4,65 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Rapport Technique LCPI</title>
+    {% if inline_css %}
+    <style>
+    {{ inline_css }}
+    </style>
+    {% endif %}
 </head>
 <body>
     <div class="report-container">
         <header>
             <h1>RAPPORT TECHNIQUE</h1>
             <h2>{{ projet_metadata.nom_projet if projet_metadata else "Projet LCPI" }}</h2>
+            <div class="project-meta">
+                {% if projet_metadata.client %}Client: {{ projet_metadata.client }} | {% endif %}
+                Date de génération: {{ generation_date }}
+            </div>
         </header>
 
         <main>
+            <h2>Sommaire</h2>
+            <nav class="toc">
+                <ul>
+                {% for log in logs_selectionnes %}
+                    <li><a href="#log-{{ loop.index }}">{{ loop.index }}. {{ log.titre_calcul }}</a></li>
+                {% endfor %}
+                </ul>
+            </nav>
+
             <h2>Logs de Calcul</h2>
             
             {% if logs_selectionnes %}
                 <p>Nombre de logs : {{ logs_selectionnes|length }}</p>
                 
                 {% for log in logs_selectionnes %}
-                    <section class="calculation-section">
-                        <h3>{{ log.titre_calcul }}</h3>
+                    <section class="calculation-section" id="log-{{ loop.index }}">
+                        <h3>{{ loop.index }}. {{ log.titre_calcul }}</h3>
+                        {% if log.resume %}
+                        <table class="recap-table">
+                            <thead>
+                                <tr>
+                                    <th>OK Contraintes</th>
+                                    <th>Min pression (m)</th>
+                                    <th>Max vitesse (m/s)</th>
+                                    <th>CAPEX</th>
+                                    <th>Noeuds</th>
+                                    <th>Liaisons</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>{{ log.resume.constraints_ok }}</td>
+                                    <td>{{ '%.3f'|format(log.resume.min_pressure_m) if log.resume.min_pressure_m is not none else '—' }}</td>
+                                    <td>{{ '%.3f'|format(log.resume.max_velocity_m_s) if log.resume.max_velocity_m_s is not none else '—' }}</td>
+                                    <td>{{ log.resume.capex if log.resume.capex is not none else '—' }}</td>
+                                    <td>{{ log.resume.nodes_count }}</td>
+                                    <td>{{ log.resume.links_count }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        {% endif %}
                         <p><strong>ID :</strong> {{ log.id }}</p>
                         <p><strong>Date :</strong> {{ log.timestamp[:19].replace('T', ' ') }}</p>
                         <p><strong>Commande :</strong> <code>{{ log.commande_executee }}</code></p>

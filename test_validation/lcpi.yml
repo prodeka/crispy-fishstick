@@ -8,7 +8,7 @@ plugins:
 - hydro
 project:
   author: LCPI CLI
-  created: G:\Mon Drive\Other\PROJET_DIMENTIONEMENT_2
+  created: .
   description: Projet test_validation créé avec le template canal-simple
   name: test_validation
   template: canal-simple

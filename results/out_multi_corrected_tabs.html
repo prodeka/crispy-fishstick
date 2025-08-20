@@ -1,0 +1,2430 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comparaison Multi-Solveurs - test_validation</title>
+    
+    <style>
+    /* templates/style.css */
+@import url('https://fonts.googleapis.com/css2?family=Lato:wght@400;700&family=Roboto+Slab:wght@400;700&display=swap');
+
+:root {
+    --primary-color: #003366;
+    --secondary-color: #4a6a8a;
+    --border-color: #cccccc;
+    --bg-light: #f8f9fa;
+    --text-color: #333333;
+}
+
+body {
+    font-family: 'Lato', sans-serif;
+    line-height: 1.6;
+    color: var(--text-color);
+    margin: 0;
+    padding: 0;
+    background-color: #fff;
+}
+
+.report-container {
+    max-width: 800px;
+    margin: 40px auto;
+    padding: 20px 40px;
+    border: 1px solid var(--border-color);
+    box-shadow: 0 0 10px rgba(0,0,0,0.05);
+}
+
+header {
+    text-align: center;
+    border-bottom: 2px solid var(--primary-color);
+    padding-bottom: 20px;
+    margin-bottom: 30px;
+}
+
+header h1 {
+    font-family: 'Roboto Slab', serif;
+    color: var(--primary-color);
+    margin: 0;
+}
+
+header .project-meta {
+    font-size: 0.9em;
+    color: #666;
+}
+
+h2 {
+    font-family: 'Roboto Slab', serif;
+    color: var(--primary-color);
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 10px;
+    margin-top: 40px;
+}
+
+h3 {
+    font-family: 'Roboto Slab', serif;
+    color: var(--secondary-color);
+    margin-top: 30px;
+}
+
+.toc {
+    background: var(--bg-light);
+    border: 1px solid #e0e0e0;
+    padding: 15px 25px;
+    margin-bottom: 30px;
+}
+
+.toc ul {
+    list-style-type: none;
+    padding-left: 0;
+}
+
+.toc li a {
+    text-decoration: none;
+    color: var(--primary-color);
+}
+
+.calculation-section {
+    margin-bottom: 40px;
+    padding-bottom: 20px;
+    border-bottom: 1px dashed var(--border-color);
+}
+
+.calc-meta {
+    font-size: 0.8em;
+    color: #777;
+    background: var(--bg-light);
+    padding: 8px;
+    border: 1px solid #eee;
+    margin-bottom: 15px;
+    word-wrap: break-word;
+}
+
+.calc-meta code {
+    background: #e0e0e0;
+    padding: 2px 4px;
+    border-radius: 3px;
+}
+
+/* Style pour les tableaux récapitulatifs */
+.recap-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    margin-bottom: 20px;
+    font-size: 0.9em;
+}
+
+.recap-table th, .recap-table td {
+    border: 1px solid var(--border-color);
+    padding: 8px 12px;
+    text-align: left;
+}
+
+.recap-table thead {
+    background-color: var(--secondary-color);
+    color: white;
+    font-weight: bold;
+}
+
+.recap-table tbody tr:nth-child(even) {
+    background-color: var(--bg-light);
+}
+
+/* Transparence Mathématique */
+details {
+    margin-top: 15px;
+    background: #fafafa;
+    border: 1px solid #eee;
+    padding: 10px;
+}
+
+summary {
+    cursor: pointer;
+    font-weight: bold;
+    color: var(--secondary-color);
+}
+
+footer {
+    text-align: center;
+    margin-top: 40px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border-color);
+    font-size: 0.8em;
+    color: #888;
+}
+
+@media print {
+    body { font-size: 10pt; }
+    .report-container { border: none; box-shadow: none; margin: 0; padding: 0; max-width: 100%; }
+    .toc { display: none; }
+    footer { display: none; }
+    h2 { page-break-before: always; }
+}
+
+    </style>
+    
+    <style>
+    /* Styles spécifiques pour le template multi-solveurs */
+    :root {
+        --bg: #0b0f13;
+        --surface: #11161c;
+        --surface-2: #161c23;
+        --text: #e7edf4;
+        --muted: #9db0c2;
+        --brand: #4aa3ff;
+        --ok: #21c55d;
+        --ko: #ef4444;
+        --border: #233041;
+        --card-shadow: 0 1px 0 rgba(0,0,0,.25), 0 6px 20px rgba(0,0,0,.25);
+        --radius: 10px;
+        --epanet-color: #4aa3ff;
+        --lcpi-color: #21c55d;
+    }
+
+    * {
+        box-sizing: border-box;
+    }
+
+    html, body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+        font-family: Inter, Segoe UI, system-ui, Arial, sans-serif;
+        line-height: 1.45;
+    }
+
+    .report-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 24px;
+    }
+
+    /* Header */
+    .page-header {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 24px;
+        margin-bottom: 24px;
+        box-shadow: var(--card-shadow);
+    }
+
+    .header-content h1 {
+        margin: 0 0 8px 0;
+        font-size: 32px;
+        font-weight: 700;
+        background: linear-gradient(135deg, var(--brand), var(--ok));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .header-content h2 {
+        margin: 0 0 12px 0;
+        font-weight: 500;
+        color: var(--muted);
+        font-size: 18px;
+    }
+
+    .meta-info {
+        color: var(--muted);
+        font-size: 14px;
+    }
+
+    /* Navigation */
+    .toc {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 16px 20px;
+        margin-bottom: 24px;
+        box-shadow: var(--card-shadow);
+    }
+
+    .toc h3 {
+        margin: 0 0 12px 0;
+        color: var(--brand);
+        font-size: 16px;
+    }
+
+    .toc ul {
+        margin: 0;
+        padding-left: 20px;
+        list-style: none;
+    }
+
+    .toc li {
+        margin-bottom: 6px;
+    }
+
+    .toc a {
+        color: var(--text);
+        text-decoration: none;
+        padding: 4px 8px;
+        border-radius: 6px;
+        transition: all 0.2s ease;
+    }
+
+    .toc a:hover {
+        background: var(--surface-2);
+        color: var(--brand);
+    }
+
+    /* Sections */
+    .section {
+        margin-bottom: 32px;
+    }
+
+    .section h3 {
+        margin: 0 0 20px 0;
+        font-size: 24px;
+        font-weight: 600;
+        color: var(--text);
+        border-bottom: 2px solid var(--border);
+        padding-bottom: 8px;
+    }
+
+    /* Vue d'ensemble */
+    .overview-cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+        gap: 20px;
+        margin-bottom: 24px;
+    }
+
+    .overview-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 20px;
+        box-shadow: var(--card-shadow);
+    }
+
+    .overview-card h4 {
+        margin: 0 0 16px 0;
+        font-size: 18px;
+        font-weight: 600;
+        color: var(--brand);
+    }
+
+    /* KPI Grid */
+    .kpi-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 16px;
+    }
+
+    .kpi-item {
+        background: var(--surface-2);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 16px;
+        text-align: center;
+    }
+
+    .kpi-label {
+        font-size: 14px;
+        color: var(--muted);
+        margin-bottom: 8px;
+        font-weight: 500;
+    }
+
+    .kpi-main {
+        font-size: 24px;
+        font-weight: 700;
+        color: var(--text);
+        margin-bottom: 4px;
+    }
+
+    .kpi-sub {
+        font-size: 12px;
+        color: var(--muted);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+
+    /* Badges */
+    .badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 4px 8px;
+        border-radius: 12px;
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .badge-ok {
+        background: rgba(33, 197, 93, 0.15);
+        color: var(--ok);
+        border: 1px solid rgba(33, 197, 93, 0.3);
+    }
+
+    .badge-ko {
+        background: rgba(239, 68, 68, 0.15);
+        color: var(--ko);
+        border: 1px solid rgba(239, 68, 68, 0.3);
+    }
+
+    /* Comparaison des coûts */
+    .cost-comparison {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .cost-bar {
+        display: grid;
+        grid-template-columns: 80px 1fr 120px;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .cost-label {
+        font-weight: 600;
+        color: var(--text);
+        font-size: 14px;
+    }
+
+    .cost-bar-container {
+        height: 8px;
+        background: var(--surface-2);
+        border-radius: 4px;
+        overflow: hidden;
+    }
+
+    .cost-bar-fill {
+        height: 100%;
+        background: linear-gradient(90deg, var(--epanet-color), var(--lcpi-color));
+        border-radius: 4px;
+        transition: width 0.3s ease;
+    }
+
+    .cost-value {
+        font-weight: 600;
+        color: var(--text);
+        font-size: 14px;
+        text-align: right;
+    }
+
+    /* Tableau de comparaison */
+    .comparison-table-container {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        overflow: hidden;
+        box-shadow: var(--card-shadow);
+    }
+
+    .comparison-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .comparison-table thead th {
+        background: var(--surface-2);
+        color: var(--text);
+        font-weight: 600;
+        text-align: left;
+        padding: 16px;
+        border-bottom: 1px solid var(--border);
+        font-size: 14px;
+    }
+
+    .comparison-table tbody td {
+        padding: 16px;
+        border-bottom: 1px solid var(--border);
+        font-size: 14px;
+    }
+
+    .comparison-table tbody tr:nth-child(odd) {
+        background: rgba(255, 255, 255, 0.02);
+    }
+
+    .comparison-table tbody tr:hover {
+        background: var(--surface-2);
+    }
+
+    .diff {
+        font-weight: 600;
+    }
+
+    .diff-positive {
+        color: var(--ok);
+    }
+
+    .diff-negative {
+        color: var(--ko);
+    }
+
+    /* Sections par solveur */
+    .solver-cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+        gap: 20px;
+    }
+
+    .solver-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 20px;
+        box-shadow: var(--card-shadow);
+    }
+
+    .solver-card h4 {
+        margin: 0 0 16px 0;
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--brand);
+    }
+
+    /* Grilles de métadonnées et résultats */
+    .meta-grid, .results-grid {
+        display: grid;
+        gap: 12px;
+    }
+
+    .meta-item, .result-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 8px 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .meta-label, .result-label {
+        color: var(--muted);
+        font-size: 13px;
+    }
+
+    .meta-value, .result-value {
+        color: var(--text);
+        font-weight: 500;
+        font-size: 13px;
+    }
+
+    /* Analyse hydraulique */
+    .hydraulics-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+        gap: 20px;
+    }
+
+    .hydraulics-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 20px;
+        box-shadow: var(--card-shadow);
+    }
+
+    .hydraulics-card h4 {
+        margin: 0 0 16px 0;
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--brand);
+    }
+
+    .pressure-chart {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .pressure-bar {
+        display: grid;
+        grid-template-columns: 120px 1fr 60px;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .pressure-label {
+        font-size: 12px;
+        color: var(--muted);
+        font-family: monospace;
+    }
+
+    .pressure-bar-container {
+        height: 6px;
+        background: var(--surface-2);
+        border-radius: 3px;
+        overflow: hidden;
+    }
+
+    .pressure-bar-fill {
+        height: 100%;
+        background: linear-gradient(90deg, var(--ko), var(--ok));
+        border-radius: 3px;
+    }
+
+    .pressure-value {
+        font-size: 12px;
+        color: var(--text);
+        font-weight: 500;
+        text-align: right;
+    }
+
+    /* Analyse des diamètres */
+    .diameters-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+        gap: 20px;
+    }
+
+    .diameters-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 20px;
+        box-shadow: var(--card-shadow);
+    }
+
+    .diameters-card h4 {
+        margin: 0 0 16px 0;
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--brand);
+    }
+
+    .diameter-stats {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+        margin-bottom: 16px;
+    }
+
+    .stat-item {
+        text-align: center;
+        padding: 12px;
+        background: var(--surface-2);
+        border-radius: 8px;
+    }
+
+    .stat-label {
+        display: block;
+        font-size: 11px;
+        color: var(--muted);
+        margin-bottom: 4px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .stat-value {
+        display: block;
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--text);
+    }
+
+    .diameter-distribution {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+        gap: 8px;
+    }
+
+    .dia-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 8px 12px;
+        background: var(--surface-2);
+        border-radius: 6px;
+        font-size: 12px;
+    }
+
+    .dia-size {
+        color: var(--text);
+        font-weight: 500;
+    }
+
+    .dia-count {
+        color: var(--muted);
+        font-size: 11px;
+    }
+
+    /* Messages d'absence de données */
+    .no-data {
+        color: var(--muted);
+        font-style: italic;
+        text-align: center;
+        padding: 20px;
+    }
+
+    /* Footer */
+    .page-footer {
+        margin-top: 40px;
+        padding: 20px;
+        text-align: center;
+        color: var(--muted);
+        font-size: 14px;
+        border-top: 1px solid var(--border);
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .report-container {
+            padding: 16px;
+        }
+        
+        .overview-cards {
+            grid-template-columns: 1fr;
+        }
+        
+        .kpi-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+        
+        .solver-cards {
+            grid-template-columns: 1fr;
+        }
+        
+        .hydraulics-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .diameters-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .cost-bar {
+            grid-template-columns: 1fr;
+            gap: 8px;
+        }
+        
+        .cost-label {
+            text-align: center;
+        }
+        
+        .cost-value {
+            text-align: center;
+        }
+        
+        .comparison-table {
+            font-size: 12px;
+        }
+        
+        .comparison-table thead th,
+        .comparison-table tbody td {
+            padding: 8px;
+        }
+        
+        .diameter-stats {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .kpi-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .pressure-bar {
+            grid-template-columns: 1fr;
+            gap: 4px;
+        }
+        
+        .pressure-label {
+            text-align: center;
+        }
+        
+        .pressure-value {
+            text-align: center;
+        }
+    }
+    </style>
+</head>
+<body>
+    <div class="report-container">
+        <header class="page-header">
+            <div class="header-content">
+                <h1>Comparaison Multi-Solveurs</h1>
+                <h2>test_validation</h2>
+                <div class="meta-info">
+                    
+                    Généré le 2025-08-19 · LCPI v2.1.0
+                </div>
+            </div>
+        </header>
+
+        <nav class="toc">
+            <h3>Sommaire</h3>
+            <ul>
+                <li><a href="#overview">Vue d'ensemble</a></li>
+                <li><a href="#comparison">Comparaison détaillée</a></li>
+                
+                <li><a href="#solver-epanet">EPANET</a></li>
+                
+                <li><a href="#solver-lcpi">LCPI</a></li>
+                
+                <li><a href="#hydraulics">Analyse hydraulique</a></li>
+                <li><a href="#diameters">Analyse des diamètres</a></li>
+            </ul>
+        </nav>
+
+        <main>
+            <!-- Vue d'ensemble -->
+            <section id="overview" class="section">
+                <h3>Vue d'ensemble</h3>
+                <div class="overview-cards">
+                    <div class="overview-card">
+                        <h4>Résumé global</h4>
+                        <div class="kpi-grid">
+                            
+                            
+                            
+                            <div class="kpi-item">
+                                <div class="kpi-label">EPANET</div>
+                                <div class="kpi-value">
+                                    <div class="kpi-main">69251590 FCFA</div>
+                                    <div class="kpi-sub">
+                                        
+                                        <span class="badge badge-ko">KO</span>
+                                        
+                                        Pmin: 4.5m
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            
+                            
+                            <div class="kpi-item">
+                                <div class="kpi-label">LCPI</div>
+                                <div class="kpi-value">
+                                    <div class="kpi-main">69251590 FCFA</div>
+                                    <div class="kpi-sub">
+                                        
+                                        <span class="badge badge-ko">KO</span>
+                                        
+                                        Pmin: 4.5m
+                                    </div>
+                                </div>
+                            </div>
+                            
+                        </div>
+                    </div>
+
+                    <div class="overview-card">
+                        <h4>Comparaison des coûts</h4>
+                        <div class="cost-comparison">
+                            
+                            
+                                
+                                
+                                
+                            
+                                
+                                
+                                
+                            
+                            
+                            
+                            
+                            
+                            
+                            
+                            
+                            
+                            <div class="cost-bar">
+                                <div class="cost-label">EPANET</div>
+                                <div class="cost-bar-container">
+                                    <div class="cost-bar-fill" style="width: 0%"></div>
+                                </div>
+                                <div class="cost-value">69251590 FCFA</div>
+                            </div>
+                            
+                            
+                            
+                            
+                            
+                            <div class="cost-bar">
+                                <div class="cost-label">LCPI</div>
+                                <div class="cost-bar-container">
+                                    <div class="cost-bar-fill" style="width: 0%"></div>
+                                </div>
+                                <div class="cost-value">69251590 FCFA</div>
+                            </div>
+                            
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Comparaison détaillée -->
+            <section id="comparison" class="section">
+                <h3>Comparaison détaillée</h3>
+                <div class="comparison-table-container">
+                    <table class="comparison-table">
+                        <thead>
+                            <tr>
+                                <th>Métrique</th>
+                                
+                                <th>EPANET</th>
+                                
+                                <th>LCPI</th>
+                                
+                                <th>Différence</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            
+                            
+                            
+                            
+                            
+                            <tr>
+                                <td>CAPEX (FCFA)</td>
+                                <td>69251590</td>
+                                <td>69251590</td>
+                                <td class="diff">
+                                    
+                                        
+                                        
+                                        <span class="diff-negative">
+                                            0.0%
+                                        </span>
+                                    
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Pression min (m)</td>
+                                <td>4.500</td>
+                                <td>4.500</td>
+                                <td class="diff">
+                                    
+                                        
+                                        <span class="diff-negative">
+                                            0.000m
+                                        </span>
+                                    
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Vitesse max (m/s)</td>
+                                <td>1.493</td>
+                                <td>1.493</td>
+                                <td class="diff">
+                                    
+                                        
+                                        <span class="diff-negative">
+                                            0.000m/s
+                                        </span>
+                                    
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Contraintes OK</td>
+                                <td>
+                                    <span class="badge badge-ko">
+                                        Non
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="badge badge-ko">
+                                        Non
+                                    </span>
+                                </td>
+                                <td>—</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Sections par solveur -->
+            
+            
+            <section id="solver-epanet" class="section">
+                <h3>EPANET</h3>
+                
+                <div class="solver-cards">
+                    <div class="solver-card">
+                        <h4>Métadonnées</h4>
+                        <div class="meta-grid">
+                            <div class="meta-item">
+                                <span class="meta-label">Fichier réseau</span>
+                                <span class="meta-value">src\lcpi\aep\PROTOTYPE\INP\bismark-Administrator.inp</span>
+                            </div>
+                            <div class="meta-item">
+                                <span class="meta-label">Méthode</span>
+                                <span class="meta-value">genetic</span>
+                            </div>
+                            <div class="meta-item">
+                                <span class="meta-label">Contraintes</span>
+                                <span class="meta-value">
+                                    Pmin: 10.0m ·
+                                    Vmax: 1.5m/s
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="solver-card">
+                        <h4>Résultats</h4>
+                        
+                        
+                        <div class="results-grid">
+                            <div class="result-item">
+                                <span class="result-label">CAPEX</span>
+                                <span class="result-value">69251590 FCFA</span>
+                            </div>
+                            <div class="result-item">
+                                <span class="result-label">Pression min</span>
+                                <span class="result-value">4.500 m</span>
+                            </div>
+                            <div class="result-item">
+                                <span class="result-label">Vitesse max</span>
+                                <span class="result-value">1.493 m/s</span>
+                            </div>
+                            <div class="result-item">
+                                <span class="result-label">Statut</span>
+                                <span class="result-value">
+                                    <span class="badge badge-ko">
+                                        KO
+                                    </span>
+                                </span>
+                            </div>
+                        </div>
+                        
+                    </div>
+                </div>
+            </section>
+            
+            
+            <section id="solver-lcpi" class="section">
+                <h3>LCPI</h3>
+                
+                <div class="solver-cards">
+                    <div class="solver-card">
+                        <h4>Métadonnées</h4>
+                        <div class="meta-grid">
+                            <div class="meta-item">
+                                <span class="meta-label">Fichier réseau</span>
+                                <span class="meta-value">src\lcpi\aep\PROTOTYPE\INP\bismark-Administrator.inp</span>
+                            </div>
+                            <div class="meta-item">
+                                <span class="meta-label">Méthode</span>
+                                <span class="meta-value">genetic</span>
+                            </div>
+                            <div class="meta-item">
+                                <span class="meta-label">Contraintes</span>
+                                <span class="meta-value">
+                                    Pmin: 10.0m ·
+                                    Vmax: 1.5m/s
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="solver-card">
+                        <h4>Résultats</h4>
+                        
+                        
+                        <div class="results-grid">
+                            <div class="result-item">
+                                <span class="result-label">CAPEX</span>
+                                <span class="result-value">69251590 FCFA</span>
+                            </div>
+                            <div class="result-item">
+                                <span class="result-label">Pression min</span>
+                                <span class="result-value">4.500 m</span>
+                            </div>
+                            <div class="result-item">
+                                <span class="result-label">Vitesse max</span>
+                                <span class="result-value">1.493 m/s</span>
+                            </div>
+                            <div class="result-item">
+                                <span class="result-label">Statut</span>
+                                <span class="result-value">
+                                    <span class="badge badge-ko">
+                                        KO
+                                    </span>
+                                </span>
+                            </div>
+                        </div>
+                        
+                    </div>
+                </div>
+            </section>
+            
+
+            <!-- Analyse hydraulique -->
+            <section id="hydraulics" class="section">
+                <h3>Analyse hydraulique</h3>
+                <div class="hydraulics-grid">
+                    
+                    
+                    
+                    
+                    
+                    
+                    <div class="hydraulics-card">
+                        <h4>EPANET - Pressions</h4>
+                        
+                            
+                            <div class="pressure-chart">
+                                
+                                <div class="pressure-bar">
+                                    <div class="pressure-label">R1</div>
+                                    <div class="pressure-bar-container">
+                                        <div class="pressure-bar-fill" style="width: 5.6%"></div>
+                                    </div>
+                                    <div class="pressure-value">4.5m</div>
+                                </div>
+                                
+                                <div class="pressure-bar">
+                                    <div class="pressure-label">R2</div>
+                                    <div class="pressure-bar-container">
+                                        <div class="pressure-bar-fill" style="width: 6.5%"></div>
+                                    </div>
+                                    <div class="pressure-value">5.2m</div>
+                                </div>
+                                
+                                <div class="pressure-bar">
+                                    <div class="pressure-label">R3</div>
+                                    <div class="pressure-bar-container">
+                                        <div class="pressure-bar-fill" style="width: 33.4%"></div>
+                                    </div>
+                                    <div class="pressure-value">26.7m</div>
+                                </div>
+                                
+                                <div class="pressure-bar">
+                                    <div class="pressure-label">N20</div>
+                                    <div class="pressure-bar-container">
+                                        <div class="pressure-bar-fill" style="width: 68.4%"></div>
+                                    </div>
+                                    <div class="pressure-value">54.7m</div>
+                                </div>
+                                
+                                <div class="pressure-bar">
+                                    <div class="pressure-label">N57</div>
+                                    <div class="pressure-bar-container">
+                                        <div class="pressure-bar-fill" style="width: 70.9%"></div>
+                                    </div>
+                                    <div class="pressure-value">56.7m</div>
+                                </div>
+                                
+                                <div class="pressure-bar">
+                                    <div class="pressure-label">N27</div>
+                                    <div class="pressure-bar-container">
+                                        <div class="pressure-bar-fill" style="width: 70.9%"></div>
+                                    </div>
+                                    <div class="pressure-value">56.7m</div>
+                                </div>
+                                
+                                <div class="pressure-bar">
+                                    <div class="pressure-label">N184</div>
+                                    <div class="pressure-bar-container">
+                                        <div class="pressure-bar-fill" style="width: 72.2%"></div>
+                                    </div>
+                                    <div class="pressure-value">57.7m</div>
+                                </div>
+                                
+                                <div class="pressure-bar">
+                                    <div class="pressure-label">N140</div>
+                                    <div class="pressure-bar-container">
+                                        <div class="pressure-bar-fill" style="width: 72.2%"></div>
+                                    </div>
+                                    <div class="pressure-value">57.7m</div>
+                                </div>
+                                
+                                <div class="pressure-bar">
+                                    <div class="pressure-label">N5</div>
+                                    <div class="pressure-bar-container">
+                                        <div class="pressure-bar-fill" style="width: 72.2%"></div>
+                                    </div>
+                                    <div class="pressure-value">57.7m</div>
+                                </div>
+                                
+                                <div class="pressure-bar">
+                                    <div class="pressure-label">N139</div>
+                                    <div class="pressure-bar-container">
+                                        <div class="pressure-bar-fill" style="width: 73.4%"></div>
+                                    </div>
+                                    <div class="pressure-value">58.7m</div>
+                                </div>
+                                
+                            </div>
+                        
+                    </div>
+                    
+                    
+                    
+                    
+                    
+                    
+                    <div class="hydraulics-card">
+                        <h4>LCPI - Pressions</h4>
+                        
+                            
+                            <div class="pressure-chart">
+                                
+                                <div class="pressure-bar">
+                                    <div class="pressure-label">R1</div>
+                                    <div class="pressure-bar-container">
+                                        <div class="pressure-bar-fill" style="width: 5.6%"></div>
+                                    </div>
+                                    <div class="pressure-value">4.5m</div>
+                                </div>
+                                
+                                <div class="pressure-bar">
+                                    <div class="pressure-label">R2</div>
+                                    <div class="pressure-bar-container">
+                                        <div class="pressure-bar-fill" style="width: 6.5%"></div>
+                                    </div>
+                                    <div class="pressure-value">5.2m</div>
+                                </div>
+                                
+                                <div class="pressure-bar">
+                                    <div class="pressure-label">R3</div>
+                                    <div class="pressure-bar-container">
+                                        <div class="pressure-bar-fill" style="width: 33.4%"></div>
+                                    </div>
+                                    <div class="pressure-value">26.7m</div>
+                                </div>
+                                
+                                <div class="pressure-bar">
+                                    <div class="pressure-label">N20</div>
+                                    <div class="pressure-bar-container">
+                                        <div class="pressure-bar-fill" style="width: 68.4%"></div>
+                                    </div>
+                                    <div class="pressure-value">54.7m</div>
+                                </div>
+                                
+                                <div class="pressure-bar">
+                                    <div class="pressure-label">N57</div>
+                                    <div class="pressure-bar-container">
+                                        <div class="pressure-bar-fill" style="width: 70.9%"></div>
+                                    </div>
+                                    <div class="pressure-value">56.7m</div>
+                                </div>
+                                
+                                <div class="pressure-bar">
+                                    <div class="pressure-label">N27</div>
+                                    <div class="pressure-bar-container">
+                                        <div class="pressure-bar-fill" style="width: 70.9%"></div>
+                                    </div>
+                                    <div class="pressure-value">56.7m</div>
+                                </div>
+                                
+                                <div class="pressure-bar">
+                                    <div class="pressure-label">N184</div>
+                                    <div class="pressure-bar-container">
+                                        <div class="pressure-bar-fill" style="width: 72.2%"></div>
+                                    </div>
+                                    <div class="pressure-value">57.7m</div>
+                                </div>
+                                
+                                <div class="pressure-bar">
+                                    <div class="pressure-label">N140</div>
+                                    <div class="pressure-bar-container">
+                                        <div class="pressure-bar-fill" style="width: 72.2%"></div>
+                                    </div>
+                                    <div class="pressure-value">57.7m</div>
+                                </div>
+                                
+                                <div class="pressure-bar">
+                                    <div class="pressure-label">N5</div>
+                                    <div class="pressure-bar-container">
+                                        <div class="pressure-bar-fill" style="width: 72.2%"></div>
+                                    </div>
+                                    <div class="pressure-value">57.7m</div>
+                                </div>
+                                
+                                <div class="pressure-bar">
+                                    <div class="pressure-label">N139</div>
+                                    <div class="pressure-bar-container">
+                                        <div class="pressure-bar-fill" style="width: 73.4%"></div>
+                                    </div>
+                                    <div class="pressure-value">58.7m</div>
+                                </div>
+                                
+                            </div>
+                        
+                    </div>
+                    
+                </div>
+            </section>
+
+            <!-- Analyse des diamètres -->
+            <section id="diameters" class="section">
+                <h3>Analyse des diamètres</h3>
+                <div class="diameters-grid">
+                    
+                    
+                    
+                    
+                    
+                    <div class="diameters-card">
+                        <h4>EPANET - Distribution des diamètres</h4>
+                        
+                            
+                            <div class="diameter-stats">
+                                <div class="stat-item">
+                                    <span class="stat-label">Diamètre min</span>
+                                    <span class="stat-value">20 mm</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-label">Diamètre max</span>
+                                    <span class="stat-value">900 mm</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-label">Moyenne</span>
+                                    <span class="stat-value">
+                                        295 mm
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="diameter-distribution">
+                                
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                
+                                <div class="dia-item">
+                                    <span class="dia-size">20mm</span>
+                                    <span class="dia-count">7</span>
+                                </div>
+                                
+                                <div class="dia-item">
+                                    <span class="dia-size">25mm</span>
+                                    <span class="dia-count">7</span>
+                                </div>
+                                
+                                <div class="dia-item">
+                                    <span class="dia-size">32mm</span>
+                                    <span class="dia-count">4</span>
+                                </div>
+                                
+                                <div class="dia-item">
+                                    <span class="dia-size">40mm</span>
+                                    <span class="dia-count">6</span>
+                                </div>
+                                
+                                <div class="dia-item">
+                                    <span class="dia-size">50mm</span>
+                                    <span class="dia-count">4</span>
+                                </div>
+                                
+                                <div class="dia-item">
+                                    <span class="dia-size">65mm</span>
+                                    <span class="dia-count">6</span>
+                                </div>
+                                
+                                <div class="dia-item">
+                                    <span class="dia-size">75mm</span>
+                                    <span class="dia-count">9</span>
+                                </div>
+                                
+                                <div class="dia-item">
+                                    <span class="dia-size">80mm</span>
+                                    <span class="dia-count">7</span>
+                                </div>
+                                
+                                <div class="dia-item">
+                                    <span class="dia-size">90mm</span>
+                                    <span class="dia-count">9</span>
+                                </div>
+                                
+                                <div class="dia-item">
+                                    <span class="dia-size">110mm</span>
+                                    <span class="dia-count">9</span>
+                                </div>
+                                
+                                <div class="dia-item">
+                                    <span class="dia-size">125mm</span>
+                                    <span class="dia-count">10</span>
+                                </div>
+                                
+                                <div class="dia-item">
+                                    <span class="dia-size">140mm</span>
+                                    <span class="dia-count">7</span>
+                                </div>
+                                
+                                <div class="dia-item">
+                                    <span class="dia-size">160mm</span>
+                                    <span class="dia-count">5</span>
+                                </div>
+                                
+                                <div class="dia-item">
+                                    <span class="dia-size">180mm</span>
+                                    <span class="dia-count">5</span>
+                                </div>
+                                
+                                <div class="dia-item">
+                                    <span class="dia-size">200mm</span>
+                                    <span class="dia-count">9</span>
+                                </div>
+                                
+                                <div class="dia-item">
+                                    <span class="dia-size">225mm</span>
+                                    <span class="dia-count">11</span>
+                                </div>
+                                
+                                <div class="dia-item">
+                                    <span class="dia-size">250mm</span>
+                                    <span class="dia-count">5</span>
+                                </div>
+                                
+                                <div class="dia-item">
+                                    <span class="dia-size">280mm</span>
+                                    <span class="dia-count">8</span>
+                                </div>
+                                
+                                <div class="dia-item">
+                                    <span class="dia-size">315mm</span>
+                                    <span class="dia-count">7</span>
+                                </div>
+                                
+                                <div class="dia-item">
+                                    <span class="dia-size">350mm</span>
+                                    <span class="dia-count">6</span>
+                                </div>
+                                
+                                <div class="dia-item">
+                                    <span class="dia-size">400mm</span>
+                                    <span class="dia-count">4</span>
+                                </div>
+                                
+                                <div class="dia-item">
+                                    <span class="dia-size">450mm</span>
+                                    <span class="dia-count">7</span>
+                                </div>
+                                
+                                <div class="dia-item">
+                                    <span class="dia-size">500mm</span>
+                                    <span class="dia-count">12</span>
+                                </div>
+                                
+                                <div class="dia-item">
+                                    <span class="dia-size">560mm</span>
+                                    <span class="dia-count">11</span>
+                                </div>
+                                
+                                <div class="dia-item">
+                                    <span class="dia-size">630mm</span>
+                                    <span class="dia-count">6</span>
+                                </div>
+                                
+                                <div class="dia-item">
+                                    <span class="dia-size">710mm</span>
+                                    <span class="dia-count">8</span>
+                                </div>
+                                
+                                <div class="dia-item">
+                                    <span class="dia-size">800mm</span>
+                                    <span class="dia-count">6</span>
+                                </div>
+                                
+                                <div class="dia-item">
+                                    <span class="dia-size">900mm</span>
+                                    <span class="dia-count">10</span>
+                                </div>
+                                
+                            </div>
+                        
+                    </div>
+                    
+                    
+                    
+                    
+                    
+                    <div class="diameters-card">
+                        <h4>LCPI - Distribution des diamètres</h4>
+                        
+                            
+                            <div class="diameter-stats">
+                                <div class="stat-item">
+                                    <span class="stat-label">Diamètre min</span>
+                                    <span class="stat-value">20 mm</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-label">Diamètre max</span>
+                                    <span class="stat-value">900 mm</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-label">Moyenne</span>
+                                    <span class="stat-value">
+                                        295 mm
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="diameter-distribution">
+                                
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                
+                                <div class="dia-item">
+                                    <span class="dia-size">20mm</span>
+                                    <span class="dia-count">7</span>
+                                </div>
+                                
+                                <div class="dia-item">
+                                    <span class="dia-size">25mm</span>
+                                    <span class="dia-count">7</span>
+                                </div>
+                                
+                                <div class="dia-item">
+                                    <span class="dia-size">32mm</span>
+                                    <span class="dia-count">4</span>
+                                </div>
+                                
+                                <div class="dia-item">
+                                    <span class="dia-size">40mm</span>
+                                    <span class="dia-count">6</span>
+                                </div>
+                                
+                                <div class="dia-item">
+                                    <span class="dia-size">50mm</span>
+                                    <span class="dia-count">4</span>
+                                </div>
+                                
+                                <div class="dia-item">
+                                    <span class="dia-size">65mm</span>
+                                    <span class="dia-count">6</span>
+                                </div>
+                                
+                                <div class="dia-item">
+                                    <span class="dia-size">75mm</span>
+                                    <span class="dia-count">9</span>
+                                </div>
+                                
+                                <div class="dia-item">
+                                    <span class="dia-size">80mm</span>
+                                    <span class="dia-count">7</span>
+                                </div>
+                                
+                                <div class="dia-item">
+                                    <span class="dia-size">90mm</span>
+                                    <span class="dia-count">9</span>
+                                </div>
+                                
+                                <div class="dia-item">
+                                    <span class="dia-size">110mm</span>
+                                    <span class="dia-count">9</span>
+                                </div>
+                                
+                                <div class="dia-item">
+                                    <span class="dia-size">125mm</span>
+                                    <span class="dia-count">10</span>
+                                </div>
+                                
+                                <div class="dia-item">
+                                    <span class="dia-size">140mm</span>
+                                    <span class="dia-count">7</span>
+                                </div>
+                                
+                                <div class="dia-item">
+                                    <span class="dia-size">160mm</span>
+                                    <span class="dia-count">5</span>
+                                </div>
+                                
+                                <div class="dia-item">
+                                    <span class="dia-size">180mm</span>
+                                    <span class="dia-count">5</span>
+                                </div>
+                                
+                                <div class="dia-item">
+                                    <span class="dia-size">200mm</span>
+                                    <span class="dia-count">9</span>
+                                </div>
+                                
+                                <div class="dia-item">
+                                    <span class="dia-size">225mm</span>
+                                    <span class="dia-count">11</span>
+                                </div>
+                                
+                                <div class="dia-item">
+                                    <span class="dia-size">250mm</span>
+                                    <span class="dia-count">5</span>
+                                </div>
+                                
+                                <div class="dia-item">
+                                    <span class="dia-size">280mm</span>
+                                    <span class="dia-count">8</span>
+                                </div>
+                                
+                                <div class="dia-item">
+                                    <span class="dia-size">315mm</span>
+                                    <span class="dia-count">7</span>
+                                </div>
+                                
+                                <div class="dia-item">
+                                    <span class="dia-size">350mm</span>
+                                    <span class="dia-count">6</span>
+                                </div>
+                                
+                                <div class="dia-item">
+                                    <span class="dia-size">400mm</span>
+                                    <span class="dia-count">4</span>
+                                </div>
+                                
+                                <div class="dia-item">
+                                    <span class="dia-size">450mm</span>
+                                    <span class="dia-count">7</span>
+                                </div>
+                                
+                                <div class="dia-item">
+                                    <span class="dia-size">500mm</span>
+                                    <span class="dia-count">12</span>
+                                </div>
+                                
+                                <div class="dia-item">
+                                    <span class="dia-size">560mm</span>
+                                    <span class="dia-count">11</span>
+                                </div>
+                                
+                                <div class="dia-item">
+                                    <span class="dia-size">630mm</span>
+                                    <span class="dia-count">6</span>
+                                </div>
+                                
+                                <div class="dia-item">
+                                    <span class="dia-size">710mm</span>
+                                    <span class="dia-count">8</span>
+                                </div>
+                                
+                                <div class="dia-item">
+                                    <span class="dia-size">800mm</span>
+                                    <span class="dia-count">6</span>
+                                </div>
+                                
+                                <div class="dia-item">
+                                    <span class="dia-size">900mm</span>
+                                    <span class="dia-count">10</span>
+                                </div>
+                                
+                            </div>
+                        
+                    </div>
+                    
+                </div>
+            </section>
+        </main>
+
+        <footer class="page-footer">
+            <p>Rapport généré le 2025-08-19 — LCPI v2.1.0</p>
+        </footer>
+    </div>
+</body>
+</html>

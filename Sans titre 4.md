@@ -1,17 +1,19 @@
-## 1) Workflow global — de la feuille de prix au résultat optimisé
+il y'aune chose qui m'etone un peu. Si on prend le solveur epanet par exemple et on efectue une simulation simple sur le logiciel epanet 2.0 cela prend environs 1 a 5 seconde dependament de la complexiter du reseau. Pourquoi est ce que la commande lcpi aep network-optimize-unified est si rapide or elle attend des contrainte de cout, de performance hydrodynamique un solveur un algo gentique et meme une optimisation local hybride. et genere un rapport. Et pourtant elle est extrememnt rapide. est ce normal ? y'a t'il des element mal implementer ?
 
-1. **Extraire** les tableaux du PDF bordereau → CSV(s).
-    
-2. **Nettoyer / normaliser** les colonnes (codes, unités, prix, matériel, DN/DNMM, remarques).
-    
-3. **Importer** les tableaux propres dans une base SQLite centralisée `aep_prices.db`.
-    
-4. **Exposer** un DAO Python (ex : `optimizer/db.py`) qui retourne `cost_per_m(d_mm, material)` et `unit_price(item_code)` et gère conversions d’unités.
-    
-5. **Appeler** le DAO depuis `scoring.compute_capex(...)` dans LCPI : CAPEX = Σ length * cost_per_m(d). Pour postes non-linéaires (fourniture + pose) utiliser `unit_price * qty`.
-    
-6. **Lancer optimisation** (nested/global/surrogate) : chaque candidat -> simulateur (EPANET ou LCPI) -> OPEX calc -> score = CAPEX + λ·OPEX_NPV.
-    
-7. **Sélectionner** les deux propositions (min CAPEX et knee/compromis).
-    
-8. **Générer rapport** (JSON + simulation files + template Jinja2 pour `lcpi rapport`).
+#### 1. Priorité haute : Corriger les métadonnées des solveurs
+
+- Implémenter une vraie différenciation entre EPANET et LCPI
+
+- Utiliser des algorithmes d'optimisation différents selon le solveur
+
+#### 2. Priorité moyenne : Améliorer la cohérence des coûts
+
+- Limiter les variations de coût à un ratio maximum (ex: 5x)
+
+- Valider que les variations respectent les contraintes
+
+#### 3. Priorité basse : Optimisations supplémentaires
+
+- Ajouter des métriques de diversité entre les propositions
+
+- Implémenter un système de validation des variations

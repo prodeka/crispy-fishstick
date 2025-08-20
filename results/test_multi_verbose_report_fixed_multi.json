@@ -1,0 +1,12 @@
+{
+  "meta": {
+    "solvers": [
+      "epanet",
+      "lcpi"
+    ]
+  },
+  "results": {
+    "epanet": "results\\test_multi_verbose_report_fixed_epanet.json",
+    "lcpi": "results\\test_multi_verbose_report_fixed_lcpi.json"
+  }
+}

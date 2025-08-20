@@ -250,6 +250,8 @@ Inclure dans `tests/integration/` :
 - API exposée aux optimiseurs (ou utilisée par wrapper lors du scoring).  
     **Effort** : 0.5 j.
     
+    - Standardiser les clés de contraintes entre composants: utiliser `pressure_min_m`, `velocity_min_m_s`, `velocity_max_m_s` partout (actuellement le module `constraints_handler` emploie `pression_min_m`, `vitesse_min_ms`, `vitesse_max_ms`).
+    
 
 ## Écart 2 — Hook within GeneticOptimizer (Criticité : Moyenne)
 
@@ -344,4 +346,32 @@ Avant merge en `main` / release V16, confirmer :
 
 La V15 est bien conçue — l’API, le controller et le wrapper hybrid sont en place. Pour livrer V16 (production), il faut prioriser **gestion centralisée des contraintes / pénalités**, **tests CI e2e**, et **un petit refactor pour hook dans GeneticOptimizer** afin d’exécuter le raffinage de façon non intrusive et reproductible. Avec les actions listées ci-dessus (≈5 j), l’équipe pourra livrer V16 robuste, auditée et intégrée au workflow `lcpi report`.
 
+
+
+---
+
+# 11 — Annexes : Vérifications de code (références)
+
+- CLI unifiée — commande `network-optimize-unified`:
+  - Implémentée dans `src/lcpi/aep/cli.py` (commande Typer, support `.inp` via délégation au contrôleur, `.yml` via flux legacy GA).
+  - Sous-app dédiée aussi disponible: `src/lcpi/aep/commands/network_optimize_unified.py` (app Typer, appelle le `OptimizationController`).
+
+- Contrôleur d’optimisation — `src/lcpi/aep/optimizer/controllers.py`:
+  - `convert_inp_to_unified_model(...)` avec fallback sans WNTR.
+  - Factory `get_optimizer_instance(...)` supportant `nested|genetic|surrogate|global|multi-tank`.
+  - Post-traitements: `_apply_constraints_and_penalties(...)` (soft penalty par défaut), `_apply_hybrid_refinement(...)` (raffinage top-K via `refine_solution`).
+  - Signature/auditabilité: appel conditionnel à `integrity_manager.sign_log`.
+
+- API commune optimiseur — `src/lcpi/aep/optimizer/base.py`:
+  - `BaseOptimizer.optimize(...)` (contrat de sortie standard) et `SimpleAdapter` (fallback `optimize/run`).
+
+- Gestion centralisée des contraintes — `src/lcpi/aep/optimizer/constraints_handler.py`:
+  - Module présent (non encore intégré au contrôleur) avec `apply_constraints(...)` (modes soft/hard). Clés à harmoniser avec le reste du pipeline.
+
+- Reporting — Template présent: `src/lcpi/reporting/templates/optimisation_tank.jinja2`.
+
+- Points complémentaires constatés:
+  - Les options `--method`, `--pression-min`, `--vitesse-min`, `--vitesse-max`, `--hybrid-refiner` sont exposées côté CLI.
+  - Pour `.yml`, le chemin legacy GA est utilisé; pour `.inp`, la délégation passe par le `OptimizationController` (unifié).
+  - Aucune inclusion systématique de `price_db_info` observée dans la sortie actuelle — à ajouter côté contrôleur/optimiseurs.
 

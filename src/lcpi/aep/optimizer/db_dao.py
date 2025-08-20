@@ -314,6 +314,16 @@ class AEPPricesDAO:
 prices_dao = AEPPricesDAO()
 
 
+def set_global_price_db(db_path: Path) -> None:
+    """Redéfinit l'instance globale de DAO pour pointer vers une autre base de prix."""
+    global prices_dao
+    try:
+        prices_dao = AEPPricesDAO(db_path)
+    except Exception as e:
+        # Conserver l'ancienne instance en cas d'échec
+        print(f"⚠️  Impossible de définir la base de prix globale: {e}")
+
+
 def get_candidate_diameters(material: Optional[str] = None) -> List[Dict[str, Any]]:
     """
     Fonction de compatibilité avec l'ancien code.

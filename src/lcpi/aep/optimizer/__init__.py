@@ -1,20 +1,14 @@
 """
-Extension Optimizer (MVP Binary) pour AEP.
-
-Contient:
-- algorithms.binary: Recherche binaire sur H_tank avec MockSolver
-- io: Chargement YAML/INP minimal -> NetworkModel
-- validators: Intégrité et validations simples
-- scoring: Stubs de calcul de coûts (CAPEX/OPEX)
-- controllers: Orchestrateur simple (placeholder)
+Package d'optimisation pour les réseaux AEP.
 """
 
+from .warnings_filter import suppress_warnings_globally
+
+# Supprime automatiquement les warnings intrusifs au chargement du package
+suppress_warnings_globally()
+
 __all__ = [
-	"algorithms",
-	"io",
-	"validators",
-	"scoring",
-	"controllers",
+    "suppress_warnings_globally",
 ]
 
 

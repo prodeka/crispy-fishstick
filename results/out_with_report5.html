@@ -1,0 +1,4280 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Rapport Optimisation Réseau</title>
+	
+	<style>
+	/* templates/style.css */
+@import url('https://fonts.googleapis.com/css2?family=Lato:wght@400;700&family=Roboto+Slab:wght@400;700&display=swap');
+
+:root {
+    --primary-color: #003366;
+    --secondary-color: #4a6a8a;
+    --border-color: #cccccc;
+    --bg-light: #f8f9fa;
+    --text-color: #333333;
+}
+
+body {
+    font-family: 'Lato', sans-serif;
+    line-height: 1.6;
+    color: var(--text-color);
+    margin: 0;
+    padding: 0;
+    background-color: #fff;
+}
+
+.report-container {
+    max-width: 800px;
+    margin: 40px auto;
+    padding: 20px 40px;
+    border: 1px solid var(--border-color);
+    box-shadow: 0 0 10px rgba(0,0,0,0.05);
+}
+
+header {
+    text-align: center;
+    border-bottom: 2px solid var(--primary-color);
+    padding-bottom: 20px;
+    margin-bottom: 30px;
+}
+
+header h1 {
+    font-family: 'Roboto Slab', serif;
+    color: var(--primary-color);
+    margin: 0;
+}
+
+header .project-meta {
+    font-size: 0.9em;
+    color: #666;
+}
+
+h2 {
+    font-family: 'Roboto Slab', serif;
+    color: var(--primary-color);
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 10px;
+    margin-top: 40px;
+}
+
+h3 {
+    font-family: 'Roboto Slab', serif;
+    color: var(--secondary-color);
+    margin-top: 30px;
+}
+
+.toc {
+    background: var(--bg-light);
+    border: 1px solid #e0e0e0;
+    padding: 15px 25px;
+    margin-bottom: 30px;
+}
+
+.toc ul {
+    list-style-type: none;
+    padding-left: 0;
+}
+
+.toc li a {
+    text-decoration: none;
+    color: var(--primary-color);
+}
+
+.calculation-section {
+    margin-bottom: 40px;
+    padding-bottom: 20px;
+    border-bottom: 1px dashed var(--border-color);
+}
+
+.calc-meta {
+    font-size: 0.8em;
+    color: #777;
+    background: var(--bg-light);
+    padding: 8px;
+    border: 1px solid #eee;
+    margin-bottom: 15px;
+    word-wrap: break-word;
+}
+
+.calc-meta code {
+    background: #e0e0e0;
+    padding: 2px 4px;
+    border-radius: 3px;
+}
+
+/* Style pour les tableaux récapitulatifs */
+.recap-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    margin-bottom: 20px;
+    font-size: 0.9em;
+}
+
+.recap-table th, .recap-table td {
+    border: 1px solid var(--border-color);
+    padding: 8px 12px;
+    text-align: left;
+}
+
+.recap-table thead {
+    background-color: var(--secondary-color);
+    color: white;
+    font-weight: bold;
+}
+
+.recap-table tbody tr:nth-child(even) {
+    background-color: var(--bg-light);
+}
+
+/* Transparence Mathématique */
+details {
+    margin-top: 15px;
+    background: #fafafa;
+    border: 1px solid #eee;
+    padding: 10px;
+}
+
+summary {
+    cursor: pointer;
+    font-weight: bold;
+    color: var(--secondary-color);
+}
+
+footer {
+    text-align: center;
+    margin-top: 40px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border-color);
+    font-size: 0.8em;
+    color: #888;
+}
+
+@media print {
+    body { font-size: 10pt; }
+    .report-container { border: none; box-shadow: none; margin: 0; padding: 0; max-width: 100%; }
+    .toc { display: none; }
+    footer { display: none; }
+    h2 { page-break-before: always; }
+}
+
+	</style>
+	
+	<style>
+:root{
+	--bg:#0b0f13;
+	--surface:#11161c;
+	--surface-2:#161c23;
+	--text:#e7edf4;
+	--muted:#9db0c2;
+	--brand:#4aa3ff;
+	--ok:#21c55d;
+	--ko:#ef4444;
+	--border:#233041;
+	--card-shadow:0 1px 0 rgba(0,0,0,.25),0 6px 20px rgba(0,0,0,.25);
+	--radius:10px;
+}
+
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,Segoe UI,system-ui,Arial,sans-serif;line-height:1.45}
+.report-container{max-width:1200px;margin:0 auto;padding:24px}
+
+.page-header{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:24px}
+h1{margin:0 0 6px 0;font-size:28px}
+h2{margin:0 0 8px 0;font-weight:500;color:var(--muted)}
+h3{margin:0 0 12px 0}
+h4{margin:0 0 10px 0}
+.muted{color:var(--muted)}
+.meta-inline code{background:var(--surface-2);padding:2px 6px;border-radius:6px}
+
+.toc{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px 16px;margin-bottom:20px}
+.toc ul{margin:0;padding-left:18px}
+.toc a{color:var(--brand);text-decoration:none}
+.toc a:hover{text-decoration:underline}
+
+.cards{display:grid;gap:16px}
+.cards.two-col{grid-template-columns:repeat(2,minmax(0,1fr))}
+@media (max-width:900px){.cards.two-col{grid-template-columns:1fr}}
+
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;box-shadow:var(--card-shadow)}
+
+.meta-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+@media (max-width:700px){.meta-grid{grid-template-columns:1fr}}
+
+.kpi-row{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:12px}
+@media (max-width:1100px){.kpi-row{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (max-width:600px){.kpi-row{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.kpi{background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:10px 12px}
+.kpi-label{font-size:12px;color:var(--muted);margin-bottom:4px}
+.kpi-value{font-size:18px;font-weight:600}
+.kpi .unit{font-size:12px;margin-left:6px;color:var(--muted)}
+
+.card-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+@media (max-width:1100px){.card-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:700px){.card-grid{grid-template-columns:1fr}}
+
+.proposal-card{background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:12px}
+.proposal-card .title{font-weight:600;margin-bottom:6px}
+.badges{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+.badge{display:inline-flex;align-items:center;gap:6px;background:#1a2430;border:1px solid var(--border);padding:2px 8px;border-radius:999px;font-size:12px;color:var(--text)}
+.badge-ok{background:rgba(33,197,93,.12);border-color:rgba(33,197,93,.25);color:#a9efc8}
+.badge-ko{background:rgba(239,68,68,.12);border-color:rgba(239,68,68,.25);color:#f9b3b3}
+.proposal-card.ok{outline:1px solid rgba(33,197,93,.15)}
+.proposal-card.ko{outline:1px solid rgba(239,68,68,.15)}
+.mini-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+@media (max-width:700px){.mini-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+.data-table{width:100%;border-collapse:separate;border-spacing:0;border:1px solid var(--border);border-radius:8px;overflow:hidden;background:var(--surface)}
+.data-table thead th{position:sticky;top:0;background:#10161d;color:var(--muted);font-weight:600;text-align:left;padding:10px;border-bottom:1px solid var(--border);z-index:1}
+.data-table tbody td{padding:10px;border-bottom:1px solid #1f2a37}
+.data-table tbody tr:nth-child(odd){background:#0f141b}
+.data-table.compact tbody td{padding:6px 8px}
+.data-table tbody tr:hover{background:#16202b}
+
+.details{margin-top:10px}
+.details > summary{cursor:pointer;list-style:none;background:var(--surface-2);border:1px solid var(--border);padding:8px 12px;border-radius:8px}
+.details > summary::-webkit-details-marker{display:none}
+.pre-json{max-height:420px;overflow:auto;background:#0e141a;border:1px solid var(--border);border-radius:8px;padding:12px}
+
+.page-footer{margin-top:28px;color:var(--muted);text-align:center}
+	</style>
+</head>
+<body>
+	<div class="report-container">
+		<header class="page-header">
+			<div>
+				<h1>Rapport d'Optimisation Réseau</h1>
+				<h2>test_validation</h2>
+				<div class="muted">
+					
+					Généré le 2025-08-19 · LCPI v2.1.0
+				</div>
+			</div>
+		</header>
+
+		<main>
+			<nav class="toc">
+				<h3>Sommaire</h3>
+				<ul>
+					
+						<li><a href="#log-1">1. genetic</a></li>
+					
+				</ul>
+			</nav>
+
+			
+
+			
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+
+				<section class="log-section" id="log-1">
+					<div class="section-header">
+						<h3>1. genetic</h3>
+						<div class="meta-inline muted">
+							ID: a5b89658742c1ea12418ecadf47d7ef16e1e3040f80c6cceb04116c82893d2b4 · 2025-08-19 17:38:16 · Commande: <code>lcpi aep network-optimize-unified</code>
+						</div>
+					</div>
+
+					<div class="cards two-col">
+						<div class="card">
+							<h4>Métadonnées</h4>
+							<div class="meta-grid">
+								<div><span class="muted">Fichier réseau</span><div>src\lcpi\aep\PROTOTYPE\INP\bismark-Administrator.inp</div></div>
+								<div><span class="muted">Méthode</span><div>genetic</div></div>
+								<div><span class="muted">Solveur</span><div>epanet</div></div>
+								<div><span class="muted">Contraintes</span>
+									<div>
+										Pmin: 12.0 m ·
+										Vmin: 0.3 m/s ·
+										Vmax: 2.0 m/s
+									</div>
+								</div>
+							</div>
+						</div>
+
+						<div class="card">
+							<h4>Résumé</h4>
+							<div class="kpi-row">
+								<div class="kpi">
+				<div class="kpi-label">Contraintes OK</div>
+				<div class="kpi-value">
+					Non
+				</div>
+			</div>
+								<div class="kpi">
+				<div class="kpi-label">Min pression</div>
+				<div class="kpi-value">
+					4.500<span class="unit">m</span>
+				</div>
+			</div>
+								<div class="kpi">
+				<div class="kpi-label">Max vitesse</div>
+				<div class="kpi-value">
+					1.493<span class="unit">m/s</span>
+				</div>
+			</div>
+								<div class="kpi">
+				<div class="kpi-label">CAPEX</div>
+				<div class="kpi-value">
+					88758876<span class="unit">FCFA</span>
+				</div>
+			</div>
+								<div class="kpi">
+				<div class="kpi-label">Noeuds</div>
+				<div class="kpi-value">
+					199
+				</div>
+			</div>
+								<div class="kpi">
+				<div class="kpi-label">Liaisons</div>
+				<div class="kpi-value">
+					205
+				</div>
+			</div>
+							</div>
+						</div>
+					</div>
+
+					
+					<div class="card">
+						<h4>Propositions</h4>
+						<div class="card-grid">
+							
+							<div class="proposal-card ko">
+								<div class="title">genetic_best</div>
+								<div class="badges">
+									<span class="badge badge-ko">KO</span>
+									
+										<span class="badge">Perf hydro: 0.540</span>
+									
+								</div>
+								<div class="mini-grid">
+									<div><span class="muted">CAPEX</span><div>88758876</div></div>
+									<div><span class="muted">Min P</span><div>4.500 m</div></div>
+									<div><span class="muted">Max V</span><div>1.493 m/s</div></div>
+								</div>
+							</div>
+							
+						</div>
+					</div>
+					
+
+					<div class="cards two-col">
+						<div class="card">
+							<h4>Hydraulique — Pressions (Top plus faibles)</h4>
+							
+								
+								<table class="data-table">
+									<thead><tr><th>Noeud</th><th>Pression (m)</th></tr></thead>
+									<tbody>
+										
+										<tr><td>R1</td><td>4.500</td></tr>
+										
+										<tr><td>R2</td><td>5.200</td></tr>
+										
+										<tr><td>R3</td><td>26.732</td></tr>
+										
+										<tr><td>N20</td><td>54.732</td></tr>
+										
+										<tr><td>N57</td><td>56.732</td></tr>
+										
+										<tr><td>N27</td><td>56.732</td></tr>
+										
+										<tr><td>N184</td><td>57.732</td></tr>
+										
+										<tr><td>N140</td><td>57.732</td></tr>
+										
+										<tr><td>N5</td><td>57.732</td></tr>
+										
+										<tr><td>N139</td><td>58.732</td></tr>
+										
+										<tr><td>N80</td><td>58.732</td></tr>
+										
+										<tr><td>N36</td><td>58.732</td></tr>
+										
+										<tr><td>N32</td><td>58.732</td></tr>
+										
+										<tr><td>N24</td><td>58.732</td></tr>
+										
+										<tr><td>N6</td><td>58.732</td></tr>
+										
+										<tr><td>N141</td><td>59.732</td></tr>
+										
+										<tr><td>N58</td><td>59.732</td></tr>
+										
+										<tr><td>N11</td><td>59.732</td></tr>
+										
+										<tr><td>N17</td><td>59.732</td></tr>
+										
+										<tr><td>N8</td><td>59.732</td></tr>
+										
+									</tbody>
+								</table>
+								<details class="details">
+									<summary>Voir toutes les pressions</summary>
+									<table class="data-table compact">
+										<thead><tr><th>Noeud</th><th>Pression (m)</th></tr></thead>
+										<tbody>
+											
+											<tr><td>R1</td><td>4.500</td></tr>
+											
+											<tr><td>R2</td><td>5.200</td></tr>
+											
+											<tr><td>R3</td><td>26.732</td></tr>
+											
+											<tr><td>N20</td><td>54.732</td></tr>
+											
+											<tr><td>N57</td><td>56.732</td></tr>
+											
+											<tr><td>N27</td><td>56.732</td></tr>
+											
+											<tr><td>N184</td><td>57.732</td></tr>
+											
+											<tr><td>N140</td><td>57.732</td></tr>
+											
+											<tr><td>N5</td><td>57.732</td></tr>
+											
+											<tr><td>N139</td><td>58.732</td></tr>
+											
+											<tr><td>N80</td><td>58.732</td></tr>
+											
+											<tr><td>N36</td><td>58.732</td></tr>
+											
+											<tr><td>N32</td><td>58.732</td></tr>
+											
+											<tr><td>N24</td><td>58.732</td></tr>
+											
+											<tr><td>N6</td><td>58.732</td></tr>
+											
+											<tr><td>N141</td><td>59.732</td></tr>
+											
+											<tr><td>N58</td><td>59.732</td></tr>
+											
+											<tr><td>N11</td><td>59.732</td></tr>
+											
+											<tr><td>N17</td><td>59.732</td></tr>
+											
+											<tr><td>N8</td><td>59.732</td></tr>
+											
+											<tr><td>N94</td><td>60.732</td></tr>
+											
+											<tr><td>N90</td><td>60.732</td></tr>
+											
+											<tr><td>N89</td><td>60.732</td></tr>
+											
+											<tr><td>N81</td><td>60.732</td></tr>
+											
+											<tr><td>N118</td><td>60.732</td></tr>
+											
+											<tr><td>N59</td><td>60.732</td></tr>
+											
+											<tr><td>N124</td><td>60.732</td></tr>
+											
+											<tr><td>N44</td><td>60.732</td></tr>
+											
+											<tr><td>N111</td><td>60.732</td></tr>
+											
+											<tr><td>N110</td><td>60.732</td></tr>
+											
+											<tr><td>N109</td><td>60.732</td></tr>
+											
+											<tr><td>N10</td><td>60.732</td></tr>
+											
+											<tr><td>N108</td><td>60.732</td></tr>
+											
+											<tr><td>N29</td><td>60.732</td></tr>
+											
+											<tr><td>N2</td><td>60.732</td></tr>
+											
+											<tr><td>N4</td><td>60.732</td></tr>
+											
+											<tr><td>N7</td><td>60.732</td></tr>
+											
+											<tr><td>N105</td><td>61.732</td></tr>
+											
+											<tr><td>N147</td><td>61.732</td></tr>
+											
+											<tr><td>N143</td><td>61.732</td></tr>
+											
+											<tr><td>N144</td><td>61.732</td></tr>
+											
+											<tr><td>N142</td><td>61.732</td></tr>
+											
+											<tr><td>N93</td><td>61.732</td></tr>
+											
+											<tr><td>N116</td><td>61.732</td></tr>
+											
+											<tr><td>N138</td><td>61.732</td></tr>
+											
+											<tr><td>N137</td><td>61.732</td></tr>
+											
+											<tr><td>N60</td><td>61.732</td></tr>
+											
+											<tr><td>N129</td><td>61.732</td></tr>
+											
+											<tr><td>N79</td><td>61.732</td></tr>
+											
+											<tr><td>N54</td><td>61.732</td></tr>
+											
+											<tr><td>N53</td><td>61.732</td></tr>
+											
+											<tr><td>N14</td><td>61.732</td></tr>
+											
+											<tr><td>N123</td><td>61.732</td></tr>
+											
+											<tr><td>N41</td><td>61.732</td></tr>
+											
+											<tr><td>N38</td><td>61.732</td></tr>
+											
+											<tr><td>N31</td><td>61.732</td></tr>
+											
+											<tr><td>N30</td><td>61.732</td></tr>
+											
+											<tr><td>N9</td><td>61.732</td></tr>
+											
+											<tr><td>N177</td><td>62.732</td></tr>
+											
+											<tr><td>N183</td><td>62.732</td></tr>
+											
+											<tr><td>N103</td><td>62.732</td></tr>
+											
+											<tr><td>N104</td><td>62.732</td></tr>
+											
+											<tr><td>N96</td><td>62.732</td></tr>
+											
+											<tr><td>N50</td><td>62.732</td></tr>
+											
+											<tr><td>N87</td><td>62.732</td></tr>
+											
+											<tr><td>N63</td><td>62.732</td></tr>
+											
+											<tr><td>N84</td><td>62.732</td></tr>
+											
+											<tr><td>N125</td><td>62.732</td></tr>
+											
+											<tr><td>N37</td><td>62.732</td></tr>
+											
+											<tr><td>N12</td><td>62.732</td></tr>
+											
+											<tr><td>N106</td><td>62.732</td></tr>
+											
+											<tr><td>N19</td><td>62.732</td></tr>
+											
+											<tr><td>N179</td><td>63.732</td></tr>
+											
+											<tr><td>N100</td><td>63.732</td></tr>
+											
+											<tr><td>N172</td><td>63.732</td></tr>
+											
+											<tr><td>N171</td><td>63.732</td></tr>
+											
+											<tr><td>N99</td><td>63.732</td></tr>
+											
+											<tr><td>N145</td><td>63.732</td></tr>
+											
+											<tr><td>N95</td><td>63.732</td></tr>
+											
+											<tr><td>N88</td><td>63.732</td></tr>
+											
+											<tr><td>N115</td><td>63.732</td></tr>
+											
+											<tr><td>N133</td><td>63.732</td></tr>
+											
+											<tr><td>N165</td><td>63.732</td></tr>
+											
+											<tr><td>N83</td><td>63.732</td></tr>
+											
+											<tr><td>N82</td><td>63.732</td></tr>
+											
+											<tr><td>N127</td><td>63.732</td></tr>
+											
+											<tr><td>N47</td><td>63.732</td></tr>
+											
+											<tr><td>N126</td><td>63.732</td></tr>
+											
+											<tr><td>N56</td><td>63.732</td></tr>
+											
+											<tr><td>N77</td><td>63.732</td></tr>
+											
+											<tr><td>N75</td><td>63.732</td></tr>
+											
+											<tr><td>N113</td><td>63.732</td></tr>
+											
+											<tr><td>N120</td><td>63.732</td></tr>
+											
+											<tr><td>N13</td><td>63.732</td></tr>
+											
+											<tr><td>N35</td><td>63.732</td></tr>
+											
+											<tr><td>N196</td><td>63.732</td></tr>
+											
+											<tr><td>N26</td><td>63.732</td></tr>
+											
+											<tr><td>N21</td><td>63.732</td></tr>
+											
+											<tr><td>N3</td><td>63.732</td></tr>
+											
+											<tr><td>N178</td><td>64.732</td></tr>
+											
+											<tr><td>N189</td><td>64.732</td></tr>
+											
+											<tr><td>N98</td><td>64.732</td></tr>
+											
+											<tr><td>N70</td><td>64.732</td></tr>
+											
+											<tr><td>N160</td><td>64.732</td></tr>
+											
+											<tr><td>N66</td><td>64.732</td></tr>
+											
+											<tr><td>N85</td><td>64.732</td></tr>
+											
+											<tr><td>N135</td><td>64.732</td></tr>
+											
+											<tr><td>N45</td><td>64.732</td></tr>
+											
+											<tr><td>N55</td><td>64.732</td></tr>
+											
+											<tr><td>N39</td><td>64.732</td></tr>
+											
+											<tr><td>N121</td><td>64.732</td></tr>
+											
+											<tr><td>N33</td><td>64.732</td></tr>
+											
+											<tr><td>N28</td><td>64.732</td></tr>
+											
+											<tr><td>N23</td><td>64.732</td></tr>
+											
+											<tr><td>N18</td><td>64.732</td></tr>
+											
+											<tr><td>N1</td><td>64.732</td></tr>
+											
+											<tr><td>N180</td><td>65.732</td></tr>
+											
+											<tr><td>N173</td><td>65.732</td></tr>
+											
+											<tr><td>N185</td><td>65.732</td></tr>
+											
+											<tr><td>N187</td><td>65.732</td></tr>
+											
+											<tr><td>N169</td><td>65.732</td></tr>
+											
+											<tr><td>N151</td><td>65.732</td></tr>
+											
+											<tr><td>N146</td><td>65.732</td></tr>
+											
+											<tr><td>N155</td><td>65.732</td></tr>
+											
+											<tr><td>N158</td><td>65.732</td></tr>
+											
+											<tr><td>N68</td><td>65.732</td></tr>
+											
+											<tr><td>N91</td><td>65.732</td></tr>
+											
+											<tr><td>N134</td><td>65.732</td></tr>
+											
+											<tr><td>N128</td><td>65.732</td></tr>
+											
+											<tr><td>N78</td><td>65.732</td></tr>
+											
+											<tr><td>N46</td><td>65.732</td></tr>
+											
+											<tr><td>N73</td><td>65.732</td></tr>
+											
+											<tr><td>N42</td><td>65.732</td></tr>
+											
+											<tr><td>N43</td><td>65.732</td></tr>
+											
+											<tr><td>N22</td><td>65.732</td></tr>
+											
+											<tr><td>N176</td><td>66.732</td></tr>
+											
+											<tr><td>N102</td><td>66.732</td></tr>
+											
+											<tr><td>N168</td><td>66.732</td></tr>
+											
+											<tr><td>N193</td><td>66.732</td></tr>
+											
+											<tr><td>N192</td><td>66.732</td></tr>
+											
+											<tr><td>N97</td><td>66.732</td></tr>
+											
+											<tr><td>N167</td><td>66.732</td></tr>
+											
+											<tr><td>N148</td><td>66.732</td></tr>
+											
+											<tr><td>N152</td><td>66.732</td></tr>
+											
+											<tr><td>N157</td><td>66.732</td></tr>
+											
+											<tr><td>N161</td><td>66.732</td></tr>
+											
+											<tr><td>N65</td><td>66.732</td></tr>
+											
+											<tr><td>N49</td><td>66.732</td></tr>
+											
+											<tr><td>N64</td><td>66.732</td></tr>
+											
+											<tr><td>N195</td><td>66.732</td></tr>
+											
+											<tr><td>N130</td><td>66.732</td></tr>
+											
+											<tr><td>N131</td><td>66.732</td></tr>
+											
+											<tr><td>N76</td><td>66.732</td></tr>
+											
+											<tr><td>N52</td><td>66.732</td></tr>
+											
+											<tr><td>N40</td><td>66.732</td></tr>
+											
+											<tr><td>N182</td><td>67.732</td></tr>
+											
+											<tr><td>N175</td><td>67.732</td></tr>
+											
+											<tr><td>N186</td><td>67.732</td></tr>
+											
+											<tr><td>N170</td><td>67.732</td></tr>
+											
+											<tr><td>N150</td><td>67.732</td></tr>
+											
+											<tr><td>N166</td><td>67.732</td></tr>
+											
+											<tr><td>N156</td><td>67.732</td></tr>
+											
+											<tr><td>N69</td><td>67.732</td></tr>
+											
+											<tr><td>N51</td><td>67.732</td></tr>
+											
+											<tr><td>N67</td><td>67.732</td></tr>
+											
+											<tr><td>N92</td><td>67.732</td></tr>
+											
+											<tr><td>N48</td><td>67.732</td></tr>
+											
+											<tr><td>N112</td><td>67.732</td></tr>
+											
+											<tr><td>N114</td><td>67.732</td></tr>
+											
+											<tr><td>N15</td><td>67.732</td></tr>
+											
+											<tr><td>N107</td><td>67.732</td></tr>
+											
+											<tr><td>N25</td><td>67.732</td></tr>
+											
+											<tr><td>N181</td><td>68.732</td></tr>
+											
+											<tr><td>N174</td><td>68.732</td></tr>
+											
+											<tr><td>N194</td><td>68.732</td></tr>
+											
+											<tr><td>N191</td><td>68.732</td></tr>
+											
+											<tr><td>N71</td><td>68.732</td></tr>
+											
+											<tr><td>N159</td><td>68.732</td></tr>
+											
+											<tr><td>N86</td><td>68.732</td></tr>
+											
+											<tr><td>N62</td><td>68.732</td></tr>
+											
+											<tr><td>N61</td><td>68.732</td></tr>
+											
+											<tr><td>N117</td><td>68.732</td></tr>
+											
+											<tr><td>N119</td><td>68.732</td></tr>
+											
+											<tr><td>N16</td><td>68.732</td></tr>
+											
+											<tr><td>N74</td><td>68.732</td></tr>
+											
+											<tr><td>N122</td><td>68.732</td></tr>
+											
+											<tr><td>N34</td><td>68.732</td></tr>
+											
+											<tr><td>N153</td><td>69.732</td></tr>
+											
+											<tr><td>N163</td><td>69.732</td></tr>
+											
+											<tr><td>N101</td><td>70.732</td></tr>
+											
+											<tr><td>N188</td><td>70.732</td></tr>
+											
+											<tr><td>N149</td><td>70.732</td></tr>
+											
+											<tr><td>N162</td><td>70.732</td></tr>
+											
+											<tr><td>N164</td><td>70.732</td></tr>
+											
+											<tr><td>N136</td><td>71.732</td></tr>
+											
+											<tr><td>N72</td><td>71.732</td></tr>
+											
+											<tr><td>N190</td><td>72.732</td></tr>
+											
+											<tr><td>N154</td><td>72.732</td></tr>
+											
+											<tr><td>N132</td><td>72.732</td></tr>
+											
+										</tbody>
+									</table>
+								</details>
+							
+						</div>
+
+						<div class="card">
+							<h4>Hydraulique — Vitesses (Top plus élevées)</h4>
+							
+								
+								<table class="data-table">
+									<thead><tr><th>Liaison</th><th>Vitesse (m/s)</th></tr></thead>
+									<tbody>
+										
+										<tr><td>N84_N83</td><td>1.493</td></tr>
+										
+										<tr><td>N164_N165</td><td>1.366</td></tr>
+										
+										<tr><td>N58_N57</td><td>1.362</td></tr>
+										
+										<tr><td>N59_N58</td><td>1.342</td></tr>
+										
+										<tr><td>N163_N164</td><td>1.330</td></tr>
+										
+										<tr><td>N60_N59</td><td>1.309</td></tr>
+										
+										<tr><td>N162_N163</td><td>1.303</td></tr>
+										
+										<tr><td>N71_N70</td><td>1.300</td></tr>
+										
+										<tr><td>N42_N72</td><td>1.289</td></tr>
+										
+										<tr><td>N61_N60</td><td>1.270</td></tr>
+										
+										<tr><td>N72_N73</td><td>1.270</td></tr>
+										
+										<tr><td>N49_N48</td><td>1.266</td></tr>
+										
+										<tr><td>N73_N74</td><td>1.251</td></tr>
+										
+										<tr><td>N161_N162</td><td>1.242</td></tr>
+										
+										<tr><td>N62_N61</td><td>1.233</td></tr>
+										
+										<tr><td>N74_N75</td><td>1.231</td></tr>
+										
+										<tr><td>N43_N17</td><td>1.229</td></tr>
+										
+										<tr><td>N75_N76</td><td>1.210</td></tr>
+										
+										<tr><td>N63_N62</td><td>1.194</td></tr>
+										
+										<tr><td>N76_N77</td><td>1.192</td></tr>
+										
+									</tbody>
+								</table>
+								<details class="details">
+									<summary>Voir toutes les vitesses</summary>
+									<table class="data-table compact">
+										<thead><tr><th>Liaison</th><th>Vitesse (m/s)</th></tr></thead>
+										<tbody>
+											
+											<tr><td>N84_N83</td><td>1.493</td></tr>
+											
+											<tr><td>N164_N165</td><td>1.366</td></tr>
+											
+											<tr><td>N58_N57</td><td>1.362</td></tr>
+											
+											<tr><td>N59_N58</td><td>1.342</td></tr>
+											
+											<tr><td>N163_N164</td><td>1.330</td></tr>
+											
+											<tr><td>N60_N59</td><td>1.309</td></tr>
+											
+											<tr><td>N162_N163</td><td>1.303</td></tr>
+											
+											<tr><td>N71_N70</td><td>1.300</td></tr>
+											
+											<tr><td>N42_N72</td><td>1.289</td></tr>
+											
+											<tr><td>N61_N60</td><td>1.270</td></tr>
+											
+											<tr><td>N72_N73</td><td>1.270</td></tr>
+											
+											<tr><td>N49_N48</td><td>1.266</td></tr>
+											
+											<tr><td>N73_N74</td><td>1.251</td></tr>
+											
+											<tr><td>N161_N162</td><td>1.242</td></tr>
+											
+											<tr><td>N62_N61</td><td>1.233</td></tr>
+											
+											<tr><td>N74_N75</td><td>1.231</td></tr>
+											
+											<tr><td>N43_N17</td><td>1.229</td></tr>
+											
+											<tr><td>N75_N76</td><td>1.210</td></tr>
+											
+											<tr><td>N63_N62</td><td>1.194</td></tr>
+											
+											<tr><td>N76_N77</td><td>1.192</td></tr>
+											
+											<tr><td>N160_N161</td><td>1.174</td></tr>
+											
+											<tr><td>N77_N78</td><td>1.174</td></tr>
+											
+											<tr><td>N50_N49</td><td>1.171</td></tr>
+											
+											<tr><td>N44_N43</td><td>1.163</td></tr>
+											
+											<tr><td>N192_N71</td><td>1.162</td></tr>
+											
+											<tr><td>N121_N122</td><td>1.155</td></tr>
+											
+											<tr><td>N78_N79</td><td>1.146</td></tr>
+											
+											<tr><td>N159_N160</td><td>1.126</td></tr>
+											
+											<tr><td>N122_N123</td><td>1.125</td></tr>
+											
+											<tr><td>N7_N106</td><td>1.123</td></tr>
+											
+											<tr><td>N80_N79</td><td>1.120</td></tr>
+											
+											<tr><td>N138_N139</td><td>1.117</td></tr>
+											
+											<tr><td>N64_N63</td><td>1.113</td></tr>
+											
+											<tr><td>N51_N50</td><td>1.112</td></tr>
+											
+											<tr><td>N18_N3</td><td>1.112</td></tr>
+											
+											<tr><td>N19_N18</td><td>1.107</td></tr>
+											
+											<tr><td>N20_N19</td><td>1.104</td></tr>
+											
+											<tr><td>N81_N80</td><td>1.103</td></tr>
+											
+											<tr><td>N45_N44</td><td>1.101</td></tr>
+											
+											<tr><td>N21_N20</td><td>1.100</td></tr>
+											
+											<tr><td>N22_N21</td><td>1.092</td></tr>
+											
+											<tr><td>N23_N22</td><td>1.084</td></tr>
+											
+											<tr><td>N106_N107</td><td>1.079</td></tr>
+											
+											<tr><td>N24_N23</td><td>1.079</td></tr>
+											
+											<tr><td>N123_N124</td><td>1.078</td></tr>
+											
+											<tr><td>N158_N159</td><td>1.077</td></tr>
+											
+											<tr><td>N25_N24</td><td>1.074</td></tr>
+											
+											<tr><td>N26_N25</td><td>1.069</td></tr>
+											
+											<tr><td>N191_N192</td><td>1.069</td></tr>
+											
+											<tr><td>N27_N26</td><td>1.065</td></tr>
+											
+											<tr><td>N28_N27</td><td>1.060</td></tr>
+											
+											<tr><td>N196_N28</td><td>1.055</td></tr>
+											
+											<tr><td>N46_N45</td><td>1.055</td></tr>
+											
+											<tr><td>N107_N108</td><td>1.054</td></tr>
+											
+											<tr><td>N29_N196</td><td>1.051</td></tr>
+											
+											<tr><td>N69_N51</td><td>1.047</td></tr>
+											
+											<tr><td>N30_N29</td><td>1.046</td></tr>
+											
+											<tr><td>N167_N168</td><td>1.046</td></tr>
+											
+											<tr><td>N84_N85</td><td>1.045</td></tr>
+											
+											<tr><td>N31_N30</td><td>1.037</td></tr>
+											
+											<tr><td>N108_N109</td><td>1.033</td></tr>
+											
+											<tr><td>N82_N81</td><td>1.032</td></tr>
+											
+											<tr><td>N124_N125</td><td>1.031</td></tr>
+											
+											<tr><td>N157_N158</td><td>1.030</td></tr>
+											
+											<tr><td>N65_N64</td><td>1.027</td></tr>
+											
+											<tr><td>N52_N42</td><td>1.023</td></tr>
+											
+											<tr><td>N121_N120</td><td>1.021</td></tr>
+											
+											<tr><td>N92_N93</td><td>1.018</td></tr>
+											
+											<tr><td>N83_N82</td><td>1.006</td></tr>
+											
+											<tr><td>N190_N191</td><td>1.003</td></tr>
+											
+											<tr><td>N47_N46</td><td>1.001</td></tr>
+											
+											<tr><td>N109_N110</td><td>1.000</td></tr>
+											
+											<tr><td>N85_N86</td><td>0.996</td></tr>
+											
+											<tr><td>N66_N65</td><td>0.986</td></tr>
+											
+											<tr><td>N139_N140</td><td>0.984</td></tr>
+											
+											<tr><td>N156_N157</td><td>0.982</td></tr>
+											
+											<tr><td>N32_N31</td><td>0.981</td></tr>
+											
+											<tr><td>N120_N119</td><td>0.977</td></tr>
+											
+											<tr><td>N127_N136</td><td>0.976</td></tr>
+											
+											<tr><td>N94_N95</td><td>0.976</td></tr>
+											
+											<tr><td>N110_N121</td><td>0.973</td></tr>
+											
+											<tr><td>N53_N52</td><td>0.968</td></tr>
+											
+											<tr><td>N33_N32</td><td>0.968</td></tr>
+											
+											<tr><td>N125_N126</td><td>0.967</td></tr>
+											
+											<tr><td>N169_N170</td><td>0.966</td></tr>
+											
+											<tr><td>N34_N33</td><td>0.956</td></tr>
+											
+											<tr><td>N8_N7</td><td>0.954</td></tr>
+											
+											<tr><td>N67_N66</td><td>0.953</td></tr>
+											
+											<tr><td>N86_N87</td><td>0.951</td></tr>
+											
+											<tr><td>N35_N34</td><td>0.949</td></tr>
+											
+											<tr><td>N36_N35</td><td>0.943</td></tr>
+											
+											<tr><td>N70_N69</td><td>0.939</td></tr>
+											
+											<tr><td>N37_N36</td><td>0.936</td></tr>
+											
+											<tr><td>N115_N114</td><td>0.933</td></tr>
+											
+											<tr><td>N38_N37</td><td>0.927</td></tr>
+											
+											<tr><td>N48_N47</td><td>0.923</td></tr>
+											
+											<tr><td>N155_N156</td><td>0.919</td></tr>
+											
+											<tr><td>N54_N53</td><td>0.919</td></tr>
+											
+											<tr><td>N39_N38</td><td>0.918</td></tr>
+											
+											<tr><td>N68_N67</td><td>0.910</td></tr>
+											
+											<tr><td>N40_N39</td><td>0.910</td></tr>
+											
+											<tr><td>N117_N195</td><td>0.907</td></tr>
+											
+											<tr><td>N9_N8</td><td>0.900</td></tr>
+											
+											<tr><td>N172_N173</td><td>0.899</td></tr>
+											
+											<tr><td>N41_N40</td><td>0.898</td></tr>
+											
+											<tr><td>N126_N127</td><td>0.898</td></tr>
+											
+											<tr><td>N93_N94</td><td>0.895</td></tr>
+											
+											<tr><td>N175_N176</td><td>0.893</td></tr>
+											
+											<tr><td>N41_N42</td><td>0.887</td></tr>
+											
+											<tr><td>N168_N169</td><td>0.876</td></tr>
+											
+											<tr><td>N189_N190</td><td>0.876</td></tr>
+											
+											<tr><td>N136_N137</td><td>0.875</td></tr>
+											
+											<tr><td>N55_N54</td><td>0.872</td></tr>
+											
+											<tr><td>N154_N155</td><td>0.869</td></tr>
+											
+											<tr><td>N99_N100</td><td>0.868</td></tr>
+											
+											<tr><td>N140_N141</td><td>0.868</td></tr>
+											
+											<tr><td>N97_N98</td><td>0.865</td></tr>
+											
+											<tr><td>R3_N1</td><td>0.863</td></tr>
+											
+											<tr><td>N1_N2</td><td>0.860</td></tr>
+											
+											<tr><td>N185_N186</td><td>0.860</td></tr>
+											
+											<tr><td>N2_N3</td><td>0.856</td></tr>
+											
+											<tr><td>N87_N88</td><td>0.854</td></tr>
+											
+											<tr><td>N56_N55</td><td>0.845</td></tr>
+											
+											<tr><td>N153_N154</td><td>0.836</td></tr>
+											
+											<tr><td>N10_N9</td><td>0.835</td></tr>
+											
+											<tr><td>N165_N84</td><td>0.834</td></tr>
+											
+											<tr><td>N96_N97</td><td>0.821</td></tr>
+											
+											<tr><td>N69_N68</td><td>0.821</td></tr>
+											
+											<tr><td>N57_N56</td><td>0.818</td></tr>
+											
+											<tr><td>N170_N171</td><td>0.817</td></tr>
+											
+											<tr><td>N112_N111</td><td>0.814</td></tr>
+											
+											<tr><td>N152_N153</td><td>0.786</td></tr>
+											
+											<tr><td>N95_N96</td><td>0.785</td></tr>
+											
+											<tr><td>N17_N16</td><td>0.783</td></tr>
+											
+											<tr><td>N141_N142</td><td>0.776</td></tr>
+											
+											<tr><td>N11_N10</td><td>0.770</td></tr>
+											
+											<tr><td>N88_N89</td><td>0.761</td></tr>
+											
+											<tr><td>N184_N185</td><td>0.760</td></tr>
+											
+											<tr><td>N100_N101</td><td>0.759</td></tr>
+											
+											<tr><td>N137_N138</td><td>0.757</td></tr>
+											
+											<tr><td>N151_N152</td><td>0.745</td></tr>
+											
+											<tr><td>N192_N193</td><td>0.731</td></tr>
+											
+											<tr><td>N89_N90</td><td>0.730</td></tr>
+											
+											<tr><td>N188_N189</td><td>0.721</td></tr>
+											
+											<tr><td>N150_N151</td><td>0.720</td></tr>
+											
+											<tr><td>N173_N174</td><td>0.715</td></tr>
+											
+											<tr><td>N148_N166</td><td>0.712</td></tr>
+											
+											<tr><td>N14_N13</td><td>0.707</td></tr>
+											
+											<tr><td>N149_N150</td><td>0.701</td></tr>
+											
+											<tr><td>N12_N11</td><td>0.700</td></tr>
+											
+											<tr><td>N119_N118</td><td>0.697</td></tr>
+											
+											<tr><td>N171_N172</td><td>0.680</td></tr>
+											
+											<tr><td>N145_N146</td><td>0.672</td></tr>
+											
+											<tr><td>N148_N149</td><td>0.665</td></tr>
+											
+											<tr><td>N90_N91</td><td>0.658</td></tr>
+											
+											<tr><td>N183_N184</td><td>0.643</td></tr>
+											
+											<tr><td>N3_N4</td><td>0.625</td></tr>
+											
+											<tr><td>N142_N143</td><td>0.619</td></tr>
+											
+											<tr><td>N4_N5</td><td>0.616</td></tr>
+											
+											<tr><td>N166_N167</td><td>0.614</td></tr>
+											
+											<tr><td>N5_N6</td><td>0.609</td></tr>
+											
+											<tr><td>N6_N7</td><td>0.604</td></tr>
+											
+											<tr><td>N187_N188</td><td>0.603</td></tr>
+											
+											<tr><td>N174_N175</td><td>0.594</td></tr>
+											
+											<tr><td>N113_N112</td><td>0.590</td></tr>
+											
+											<tr><td>N31_N17</td><td>0.586</td></tr>
+											
+											<tr><td>N176_N177</td><td>0.579</td></tr>
+											
+											<tr><td>N193_N194</td><td>0.576</td></tr>
+											
+											<tr><td>N135_N134</td><td>0.576</td></tr>
+											
+											<tr><td>N146_N147</td><td>0.574</td></tr>
+											
+											<tr><td>N13_N12</td><td>0.568</td></tr>
+											
+											<tr><td>N91_N92</td><td>0.560</td></tr>
+											
+											<tr><td>N181_N182</td><td>0.560</td></tr>
+											
+											<tr><td>N101_N102</td><td>0.544</td></tr>
+											
+											<tr><td>N81_N135</td><td>0.535</td></tr>
+											
+											<tr><td>N103_N104</td><td>0.522</td></tr>
+											
+											<tr><td>N186_N187</td><td>0.513</td></tr>
+											
+											<tr><td>N182_N183</td><td>0.511</td></tr>
+											
+											<tr><td>N114_N113</td><td>0.479</td></tr>
+											
+											<tr><td>N128_N127</td><td>0.473</td></tr>
+											
+											<tr><td>N194_N99</td><td>0.471</td></tr>
+											
+											<tr><td>N143_N144</td><td>0.467</td></tr>
+											
+											<tr><td>N130_N129</td><td>0.457</td></tr>
+											
+											<tr><td>N118_N117</td><td>0.447</td></tr>
+											
+											<tr><td>N111_N42</td><td>0.420</td></tr>
+											
+											<tr><td>N144_N145</td><td>0.407</td></tr>
+											
+											<tr><td>N177_N178</td><td>0.395</td></tr>
+											
+											<tr><td>N133_N132</td><td>0.389</td></tr>
+											
+											<tr><td>N15_N14</td><td>0.368</td></tr>
+											
+											<tr><td>N102_N103</td><td>0.367</td></tr>
+											
+											<tr><td>N180_N181</td><td>0.362</td></tr>
+											
+											<tr><td>N131_N130</td><td>0.360</td></tr>
+											
+											<tr><td>N147_N148</td><td>0.343</td></tr>
+											
+											<tr><td>N129_N128</td><td>0.330</td></tr>
+											
+											<tr><td>N104_N105</td><td>0.313</td></tr>
+											
+											<tr><td>N132_N131</td><td>0.303</td></tr>
+											
+											<tr><td>N195_N116</td><td>0.274</td></tr>
+											
+											<tr><td>N98_N99</td><td>0.245</td></tr>
+											
+											<tr><td>N179_N180</td><td>0.192</td></tr>
+											
+											<tr><td>N178_N179</td><td>0.183</td></tr>
+											
+											<tr><td>N134_N133</td><td>0.172</td></tr>
+											
+											<tr><td>N116_N115</td><td>0.103</td></tr>
+											
+											<tr><td>N16_N15</td><td>0.015</td></tr>
+											
+											<tr><td>N105_R1</td><td>0.000</td></tr>
+											
+											<tr><td>R2_N41</td><td>0.000</td></tr>
+											
+										</tbody>
+									</table>
+								</details>
+							
+						</div>
+					</div>
+
+					<div class="card">
+						<h4>Diamètres</h4>
+						
+							
+							<table class="data-table">
+								<thead><tr><th>Conduite</th><th>Diamètre (mm)</th></tr></thead>
+								<tbody>
+									
+									<tr><td>C6</td><td>900</td></tr>
+									
+									<tr><td>C10</td><td>900</td></tr>
+									
+									<tr><td>C32</td><td>900</td></tr>
+									
+									<tr><td>C57</td><td>900</td></tr>
+									
+									<tr><td>C85</td><td>900</td></tr>
+									
+									<tr><td>C92</td><td>900</td></tr>
+									
+									<tr><td>C133</td><td>900</td></tr>
+									
+									<tr><td>C142</td><td>900</td></tr>
+									
+									<tr><td>C143</td><td>900</td></tr>
+									
+									<tr><td>C170</td><td>900</td></tr>
+									
+									<tr><td>C181</td><td>900</td></tr>
+									
+									<tr><td>C7</td><td>800</td></tr>
+									
+									<tr><td>C21</td><td>800</td></tr>
+									
+									<tr><td>C175</td><td>800</td></tr>
+									
+									<tr><td>C205</td><td>800</td></tr>
+									
+									<tr><td>C1</td><td>710</td></tr>
+									
+									<tr><td>C46</td><td>710</td></tr>
+									
+									<tr><td>C62</td><td>710</td></tr>
+									
+									<tr><td>C64</td><td>710</td></tr>
+									
+									<tr><td>C82</td><td>710</td></tr>
+									
+									<tr><td>C160</td><td>710</td></tr>
+									
+									<tr><td>C12</td><td>630</td></tr>
+									
+									<tr><td>C35</td><td>630</td></tr>
+									
+									<tr><td>C36</td><td>630</td></tr>
+									
+									<tr><td>C41</td><td>630</td></tr>
+									
+									<tr><td>C77</td><td>630</td></tr>
+									
+									<tr><td>C138</td><td>630</td></tr>
+									
+									<tr><td>C161</td><td>630</td></tr>
+									
+									<tr><td>C177</td><td>630</td></tr>
+									
+									<tr><td>C118</td><td>560</td></tr>
+									
+									<tr><td>C139</td><td>560</td></tr>
+									
+									<tr><td>C140</td><td>560</td></tr>
+									
+									<tr><td>C144</td><td>560</td></tr>
+									
+									<tr><td>C167</td><td>560</td></tr>
+									
+									<tr><td>C194</td><td>560</td></tr>
+									
+									<tr><td>C195</td><td>560</td></tr>
+									
+									<tr><td>C200</td><td>560</td></tr>
+									
+									<tr><td>C20</td><td>500</td></tr>
+									
+									<tr><td>C69</td><td>500</td></tr>
+									
+									<tr><td>C98</td><td>500</td></tr>
+									
+									<tr><td>C103</td><td>500</td></tr>
+									
+									<tr><td>C114</td><td>500</td></tr>
+									
+									<tr><td>C124</td><td>500</td></tr>
+									
+									<tr><td>C149</td><td>500</td></tr>
+									
+									<tr><td>C156</td><td>500</td></tr>
+									
+									<tr><td>C163</td><td>500</td></tr>
+									
+									<tr><td>C16</td><td>450</td></tr>
+									
+									<tr><td>C23</td><td>450</td></tr>
+									
+									<tr><td>C29</td><td>450</td></tr>
+									
+									<tr><td>C50</td><td>450</td></tr>
+									
+									<tr><td>C164</td><td>450</td></tr>
+									
+									<tr><td>C191</td><td>450</td></tr>
+									
+									<tr><td>C196</td><td>450</td></tr>
+									
+									<tr><td>C11</td><td>400</td></tr>
+									
+									<tr><td>C13</td><td>400</td></tr>
+									
+									<tr><td>C19</td><td>400</td></tr>
+									
+									<tr><td>C26</td><td>400</td></tr>
+									
+									<tr><td>C108</td><td>400</td></tr>
+									
+									<tr><td>C127</td><td>400</td></tr>
+									
+									<tr><td>C134</td><td>400</td></tr>
+									
+									<tr><td>C155</td><td>400</td></tr>
+									
+									<tr><td>C185</td><td>400</td></tr>
+									
+									<tr><td>C68</td><td>350</td></tr>
+									
+									<tr><td>C84</td><td>350</td></tr>
+									
+									<tr><td>C116</td><td>350</td></tr>
+									
+									<tr><td>C125</td><td>350</td></tr>
+									
+									<tr><td>C135</td><td>350</td></tr>
+									
+									<tr><td>C173</td><td>350</td></tr>
+									
+									<tr><td>C15</td><td>315</td></tr>
+									
+									<tr><td>C18</td><td>315</td></tr>
+									
+									<tr><td>C60</td><td>315</td></tr>
+									
+									<tr><td>C73</td><td>315</td></tr>
+									
+									<tr><td>C81</td><td>315</td></tr>
+									
+									<tr><td>C86</td><td>315</td></tr>
+									
+									<tr><td>C88</td><td>315</td></tr>
+									
+									<tr><td>C97</td><td>315</td></tr>
+									
+									<tr><td>C126</td><td>315</td></tr>
+									
+									<tr><td>C145</td><td>315</td></tr>
+									
+									<tr><td>C153</td><td>315</td></tr>
+									
+									<tr><td>C190</td><td>315</td></tr>
+									
+									<tr><td>C201</td><td>315</td></tr>
+									
+									<tr><td>C44</td><td>280</td></tr>
+									
+									<tr><td>C48</td><td>280</td></tr>
+									
+									<tr><td>C55</td><td>280</td></tr>
+									
+									<tr><td>C95</td><td>280</td></tr>
+									
+									<tr><td>C102</td><td>280</td></tr>
+									
+									<tr><td>C111</td><td>280</td></tr>
+									
+									<tr><td>C115</td><td>280</td></tr>
+									
+									<tr><td>C147</td><td>280</td></tr>
+									
+									<tr><td>C197</td><td>280</td></tr>
+									
+									<tr><td>C202</td><td>280</td></tr>
+									
+									<tr><td>C37</td><td>250</td></tr>
+									
+									<tr><td>C66</td><td>250</td></tr>
+									
+									<tr><td>C96</td><td>250</td></tr>
+									
+									<tr><td>C99</td><td>250</td></tr>
+									
+									<tr><td>C113</td><td>250</td></tr>
+									
+									<tr><td>C128</td><td>250</td></tr>
+									
+									<tr><td>C184</td><td>250</td></tr>
+									
+									<tr><td>C75</td><td>225</td></tr>
+									
+									<tr><td>C80</td><td>225</td></tr>
+									
+									<tr><td>C117</td><td>225</td></tr>
+									
+									<tr><td>C132</td><td>225</td></tr>
+									
+									<tr><td>C9</td><td>200</td></tr>
+									
+									<tr><td>C14</td><td>200</td></tr>
+									
+									<tr><td>C17</td><td>200</td></tr>
+									
+									<tr><td>C71</td><td>200</td></tr>
+									
+									<tr><td>C109</td><td>200</td></tr>
+									
+									<tr><td>C119</td><td>200</td></tr>
+									
+									<tr><td>C122</td><td>200</td></tr>
+									
+									<tr><td>C137</td><td>200</td></tr>
+									
+									<tr><td>C171</td><td>200</td></tr>
+									
+									<tr><td>C176</td><td>200</td></tr>
+									
+									<tr><td>C204</td><td>200</td></tr>
+									
+									<tr><td>C49</td><td>180</td></tr>
+									
+									<tr><td>C52</td><td>180</td></tr>
+									
+									<tr><td>C67</td><td>180</td></tr>
+									
+									<tr><td>C74</td><td>180</td></tr>
+									
+									<tr><td>C76</td><td>180</td></tr>
+									
+									<tr><td>C79</td><td>180</td></tr>
+									
+									<tr><td>C104</td><td>180</td></tr>
+									
+									<tr><td>C33</td><td>160</td></tr>
+									
+									<tr><td>C172</td><td>160</td></tr>
+									
+									<tr><td>C180</td><td>160</td></tr>
+									
+									<tr><td>C186</td><td>160</td></tr>
+									
+									<tr><td>C168</td><td>140</td></tr>
+									
+									<tr><td>C198</td><td>140</td></tr>
+									
+									<tr><td>C4</td><td>125</td></tr>
+									
+									<tr><td>C25</td><td>125</td></tr>
+									
+									<tr><td>C40</td><td>125</td></tr>
+									
+									<tr><td>C65</td><td>125</td></tr>
+									
+									<tr><td>C120</td><td>125</td></tr>
+									
+									<tr><td>C136</td><td>125</td></tr>
+									
+									<tr><td>C151</td><td>125</td></tr>
+									
+									<tr><td>C165</td><td>125</td></tr>
+									
+									<tr><td>C38</td><td>110</td></tr>
+									
+									<tr><td>C53</td><td>110</td></tr>
+									
+									<tr><td>C87</td><td>110</td></tr>
+									
+									<tr><td>C107</td><td>110</td></tr>
+									
+									<tr><td>C148</td><td>110</td></tr>
+									
+									<tr><td>C157</td><td>110</td></tr>
+									
+									<tr><td>C199</td><td>110</td></tr>
+									
+									<tr><td>C28</td><td>90</td></tr>
+									
+									<tr><td>C45</td><td>90</td></tr>
+									
+									<tr><td>C54</td><td>90</td></tr>
+									
+									<tr><td>C59</td><td>90</td></tr>
+									
+									<tr><td>C70</td><td>90</td></tr>
+									
+									<tr><td>C131</td><td>90</td></tr>
+									
+									<tr><td>C187</td><td>90</td></tr>
+									
+									<tr><td>C3</td><td>80</td></tr>
+									
+									<tr><td>C5</td><td>80</td></tr>
+									
+									<tr><td>C56</td><td>80</td></tr>
+									
+									<tr><td>C63</td><td>80</td></tr>
+									
+									<tr><td>C93</td><td>80</td></tr>
+									
+									<tr><td>C105</td><td>80</td></tr>
+									
+									<tr><td>C123</td><td>80</td></tr>
+									
+									<tr><td>C141</td><td>80</td></tr>
+									
+									<tr><td>C146</td><td>80</td></tr>
+									
+									<tr><td>C150</td><td>80</td></tr>
+									
+									<tr><td>C158</td><td>80</td></tr>
+									
+									<tr><td>C159</td><td>80</td></tr>
+									
+									<tr><td>C8</td><td>75</td></tr>
+									
+									<tr><td>C24</td><td>75</td></tr>
+									
+									<tr><td>C51</td><td>75</td></tr>
+									
+									<tr><td>C72</td><td>75</td></tr>
+									
+									<tr><td>C2</td><td>65</td></tr>
+									
+									<tr><td>C42</td><td>65</td></tr>
+									
+									<tr><td>C47</td><td>65</td></tr>
+									
+									<tr><td>C83</td><td>65</td></tr>
+									
+									<tr><td>C152</td><td>65</td></tr>
+									
+									<tr><td>C166</td><td>65</td></tr>
+									
+									<tr><td>C179</td><td>65</td></tr>
+									
+									<tr><td>C183</td><td>65</td></tr>
+									
+									<tr><td>C192</td><td>65</td></tr>
+									
+									<tr><td>C91</td><td>50</td></tr>
+									
+									<tr><td>C189</td><td>50</td></tr>
+									
+									<tr><td>C39</td><td>40</td></tr>
+									
+									<tr><td>C43</td><td>40</td></tr>
+									
+									<tr><td>C90</td><td>40</td></tr>
+									
+									<tr><td>C110</td><td>40</td></tr>
+									
+									<tr><td>C121</td><td>40</td></tr>
+									
+									<tr><td>C129</td><td>40</td></tr>
+									
+									<tr><td>C162</td><td>40</td></tr>
+									
+									<tr><td>C174</td><td>40</td></tr>
+									
+									<tr><td>C178</td><td>40</td></tr>
+									
+									<tr><td>C27</td><td>32</td></tr>
+									
+									<tr><td>C61</td><td>32</td></tr>
+									
+									<tr><td>C100</td><td>32</td></tr>
+									
+									<tr><td>C101</td><td>32</td></tr>
+									
+									<tr><td>C112</td><td>32</td></tr>
+									
+									<tr><td>C193</td><td>32</td></tr>
+									
+									<tr><td>C30</td><td>25</td></tr>
+									
+									<tr><td>C34</td><td>25</td></tr>
+									
+									<tr><td>C58</td><td>25</td></tr>
+									
+									<tr><td>C89</td><td>25</td></tr>
+									
+									<tr><td>C130</td><td>25</td></tr>
+									
+									<tr><td>C154</td><td>25</td></tr>
+									
+									<tr><td>C182</td><td>25</td></tr>
+									
+									<tr><td>C188</td><td>25</td></tr>
+									
+									<tr><td>C203</td><td>25</td></tr>
+									
+									<tr><td>C22</td><td>20</td></tr>
+									
+									<tr><td>C31</td><td>20</td></tr>
+									
+									<tr><td>C78</td><td>20</td></tr>
+									
+									<tr><td>C94</td><td>20</td></tr>
+									
+									<tr><td>C106</td><td>20</td></tr>
+									
+									<tr><td>C169</td><td>20</td></tr>
+									
+								</tbody>
+							</table>
+						
+					</div>
+
+					<details class="details">
+						<summary>Données brutes (JSON)</summary>
+						<pre class="pre-json">{
+  "cache_info": {
+    "hit": false
+  },
+  "hydraulics": {
+    "diameters_mm": {
+      "C1": 710,
+      "C10": 900,
+      "C100": 32,
+      "C101": 32,
+      "C102": 280,
+      "C103": 500,
+      "C104": 180,
+      "C105": 80,
+      "C106": 20,
+      "C107": 110,
+      "C108": 400,
+      "C109": 200,
+      "C11": 400,
+      "C110": 40,
+      "C111": 280,
+      "C112": 32,
+      "C113": 250,
+      "C114": 500,
+      "C115": 280,
+      "C116": 350,
+      "C117": 225,
+      "C118": 560,
+      "C119": 200,
+      "C12": 630,
+      "C120": 125,
+      "C121": 40,
+      "C122": 200,
+      "C123": 80,
+      "C124": 500,
+      "C125": 350,
+      "C126": 315,
+      "C127": 400,
+      "C128": 250,
+      "C129": 40,
+      "C13": 400,
+      "C130": 25,
+      "C131": 90,
+      "C132": 225,
+      "C133": 900,
+      "C134": 400,
+      "C135": 350,
+      "C136": 125,
+      "C137": 200,
+      "C138": 630,
+      "C139": 560,
+      "C14": 200,
+      "C140": 560,
+      "C141": 80,
+      "C142": 900,
+      "C143": 900,
+      "C144": 560,
+      "C145": 315,
+      "C146": 80,
+      "C147": 280,
+      "C148": 110,
+      "C149": 500,
+      "C15": 315,
+      "C150": 80,
+      "C151": 125,
+      "C152": 65,
+      "C153": 315,
+      "C154": 25,
+      "C155": 400,
+      "C156": 500,
+      "C157": 110,
+      "C158": 80,
+      "C159": 80,
+      "C16": 450,
+      "C160": 710,
+      "C161": 630,
+      "C162": 40,
+      "C163": 500,
+      "C164": 450,
+      "C165": 125,
+      "C166": 65,
+      "C167": 560,
+      "C168": 140,
+      "C169": 20,
+      "C17": 200,
+      "C170": 900,
+      "C171": 200,
+      "C172": 160,
+      "C173": 350,
+      "C174": 40,
+      "C175": 800,
+      "C176": 200,
+      "C177": 630,
+      "C178": 40,
+      "C179": 65,
+      "C18": 315,
+      "C180": 160,
+      "C181": 900,
+      "C182": 25,
+      "C183": 65,
+      "C184": 250,
+      "C185": 400,
+      "C186": 160,
+      "C187": 90,
+      "C188": 25,
+      "C189": 50,
+      "C19": 400,
+      "C190": 315,
+      "C191": 450,
+      "C192": 65,
+      "C193": 32,
+      "C194": 560,
+      "C195": 560,
+      "C196": 450,
+      "C197": 280,
+      "C198": 140,
+      "C199": 110,
+      "C2": 65,
+      "C20": 500,
+      "C200": 560,
+      "C201": 315,
+      "C202": 280,
+      "C203": 25,
+      "C204": 200,
+      "C205": 800,
+      "C21": 800,
+      "C22": 20,
+      "C23": 450,
+      "C24": 75,
+      "C25": 125,
+      "C26": 400,
+      "C27": 32,
+      "C28": 90,
+      "C29": 450,
+      "C3": 80,
+      "C30": 25,
+      "C31": 20,
+      "C32": 900,
+      "C33": 160,
+      "C34": 25,
+      "C35": 630,
+      "C36": 630,
+      "C37": 250,
+      "C38": 110,
+      "C39": 40,
+      "C4": 125,
+      "C40": 125,
+      "C41": 630,
+      "C42": 65,
+      "C43": 40,
+      "C44": 280,
+      "C45": 90,
+      "C46": 710,
+      "C47": 65,
+      "C48": 280,
+      "C49": 180,
+      "C5": 80,
+      "C50": 450,
+      "C51": 75,
+      "C52": 180,
+      "C53": 110,
+      "C54": 90,
+      "C55": 280,
+      "C56": 80,
+      "C57": 900,
+      "C58": 25,
+      "C59": 90,
+      "C6": 900,
+      "C60": 315,
+      "C61": 32,
+      "C62": 710,
+      "C63": 80,
+      "C64": 710,
+      "C65": 125,
+      "C66": 250,
+      "C67": 180,
+      "C68": 350,
+      "C69": 500,
+      "C7": 800,
+      "C70": 90,
+      "C71": 200,
+      "C72": 75,
+      "C73": 315,
+      "C74": 180,
+      "C75": 225,
+      "C76": 180,
+      "C77": 630,
+      "C78": 20,
+      "C79": 180,
+      "C8": 75,
+      "C80": 225,
+      "C81": 315,
+      "C82": 710,
+      "C83": 65,
+      "C84": 350,
+      "C85": 900,
+      "C86": 315,
+      "C87": 110,
+      "C88": 315,
+      "C89": 25,
+      "C9": 200,
+      "C90": 40,
+      "C91": 50,
+      "C92": 900,
+      "C93": 80,
+      "C94": 20,
+      "C95": 280,
+      "C96": 250,
+      "C97": 315,
+      "C98": 500,
+      "C99": 250
+    },
+    "flows_m3_s": {
+      "N100_N101": -0.003554601687937975,
+      "N101_N102": -0.0022651473991572857,
+      "N102_N103": -0.0015291315503418446,
+      "N103_N104": -0.0010840988252311945,
+      "N104_N105": -0.0006504770717583597,
+      "N105_R1": 0.0,
+      "N106_N107": 0.07620082050561905,
+      "N107_N108": 0.07438074052333832,
+      "N108_N109": 0.07295435667037964,
+      "N109_N110": 0.07062078267335892,
+      "N10_N9": -0.02733893133699894,
+      "N110_N121": 0.068675197660923,
+      "N111_N42": -0.008063600398600101,
+      "N112_N111": -0.006391874048858881,
+      "N113_N112": -0.004634565208107233,
+      "N114_N113": -0.00376161583699286,
+      "N115_N114": -0.0019358403515070677,
+      "N116_N115": -0.0002127644547726959,
+      "N117_N195": 0.0018811721820384264,
+      "N118_N117": 0.0035129592288285494,
+      "N119_N118": 0.005475668236613274,
+      "N11_N10": -0.025216467678546906,
+      "N120_N119": 0.0076723042875528336,
+      "N121_N120": 0.009418202564120293,
+      "N121_N122": 0.05762520059943199,
+      "N122_N123": 0.05611323565244675,
+      "N123_N124": 0.05378536880016327,
+      "N124_N125": 0.05142327398061752,
+      "N125_N126": 0.04822245612740517,
+      "N126_N127": 0.044782012701034546,
+      "N127_N136": 0.03197538107633591,
+      "N128_N127": -0.009080907329916954,
+      "N129_N128": -0.006342243403196335,
+      "N12_N11": -0.022928541526198387,
+      "N130_N129": -0.0042197792790830135,
+      "N131_N130": -0.0033240080811083317,
+      "N132_N131": -0.0022798925638198853,
+      "N133_N132": -0.0008078609826043248,
+      "N134_N133": 0.00035607104655355215,
+      "N135_N134": 0.0011947867460548878,
+      "N136_N137": 0.028654752299189568,
+      "N137_N138": 0.024803506210446358,
+      "N138_N139": 0.021465757861733437,
+      "N139_N140": 0.018898263573646545,
+      "N13_N12": -0.01859232597053051,
+      "N140_N141": 0.016673099249601364,
+      "N141_N142": 0.014904377982020378,
+      "N142_N143": 0.011897553689777851,
+      "N143_N144": 0.00896490179002285,
+      "N144_N145": 0.007812380325049162,
+      "N145_N146": 0.006197710521519184,
+      "N146_N147": 0.0040181903168559074,
+      "N147_N148": 0.0023978142999112606,
+      "N148_N149": -0.012777282856404781,
+      "N148_N166": 0.013680243864655495,
+      "N149_N150": -0.013467654585838318,
+      "N14_N13": -0.01358285266906023,
+      "N150_N151": -0.013838514685630798,
+      "N151_N152": -0.014317781664431095,
+      "N152_N153": -0.015105146914720535,
+      "N153_N154": -0.01605227030813694,
+      "N154_N155": -0.016702700406312943,
+      "N155_N156": -0.017649821937084198,
+      "N156_N157": -0.01887081004679203,
+      "N157_N158": -0.01978369802236557,
+      "N158_N159": -0.02068517357110977,
+      "N159_N160": -0.02163800224661827,
+      "N15_N14": -0.007078527472913265,
+      "N160_N161": -0.022562300786376,
+      "N161_N162": -0.023868869990110397,
+      "N162_N163": -0.02503850869834423,
+      "N163_N164": -0.025546303018927574,
+      "N164_N165": -0.026248084381222725,
+      "N165_N84": -0.027297906577587128,
+      "N166_N167": 0.011791707016527653,
+      "N167_N168": 0.00965212658047676,
+      "N168_N169": 0.008088805712759495,
+      "N169_N170": 0.006759412586688995,
+      "N16_N15": 0.00028733682120218873,
+      "N170_N171": 0.005715297069400549,
+      "N171_N172": 0.004756764508783817,
+      "N172_N173": 0.003741177264600992,
+      "N173_N174": 0.002976633608341217,
+      "N174_N175": 0.0024745450355112553,
+      "N175_N176": 0.0018526404164731503,
+      "N176_N177": 0.0012022077571600676,
+      "N177_N178": 0.00081993592903018,
+      "N178_N179": 0.0003806086606346071,
+      "N179_N180": -0.00042957934783771634,
+      "N17_N16": 0.005479386541992426,
+      "N180_N181": -0.001507928129285574,
+      "N181_N182": -0.0026205102913081646,
+      "N182_N183": -0.003579042386263609,
+      "N183_N184": -0.004497635643929243,
+      "N184_N185": -0.005969667807221413,
+      "N185_N186": -0.00793237704783678,
+      "N186_N187": -0.009860852733254433,
+      "N187_N188": -0.01158963330090046,
+      "N188_N189": -0.01385473646223545,
+      "N189_N190": -0.016821620985865593,
+      "N18_N3": -0.20916438102722168,
+      "N190_N191": -0.019275007769465446,
+      "N191_N192": -0.020530229434370995,
+      "N192_N193": -0.014034963212907314,
+      "N192_N71": -0.03803987056016922,
+      "N193_N194": -0.011068077757954597,
+      "N194_N99": -0.009054018184542656,
+      "N195_N116": 0.000568895717151463,
+      "N196_N28": -0.1985064148902893,
+      "N19_N18": -0.20831423997879028,
+      "N1_N2": 0.33091622591018677,
+      "N20_N19": -0.20765241980552673,
+      "N21_N20": -0.2069278061389923,
+      "N22_N21": -0.20543864369392395,
+      "N23_N22": -0.20390957593917847,
+      "N24_N23": -0.20296244323253632,
+      "N25_N24": -0.20200961828231812,
+      "N26_N25": -0.20114807784557343,
+      "N27_N26": -0.20028084516525269,
+      "N28_N27": -0.19939076900482178,
+      "N29_N196": -0.19768482446670532,
+      "N2_N3": 0.329295814037323,
+      "N30_N29": -0.1968575119972229,
+      "N31_N17": 0.07165162265300751,
+      "N31_N30": -0.194991797208786,
+      "N32_N31": -0.11996819078922272,
+      "N33_N32": -0.11833640187978745,
+      "N34_N33": -0.11697278171777725,
+      "N35_N34": -0.11611124128103256,
+      "N36_N35": -0.11530105769634247,
+      "N37_N36": -0.11442239582538605,
+      "N38_N37": -0.11338399350643158,
+      "N39_N38": -0.11228851974010468,
+      "N3_N4": 0.11761533468961716,
+      "N40_N39": -0.11127293109893799,
+      "N41_N40": -0.10984654724597931,
+      "N41_N42": 0.1084144189953804,
+      "N42_N72": 0.06430715322494507,
+      "N43_N17": -0.06128257140517235,
+      "N44_N43": -0.0580190010368824,
+      "N45_N44": -0.05490947514772415,
+      "N46_N45": -0.05262155085802078,
+      "N47_N46": -0.04993423819541931,
+      "N48_N47": -0.04604305326938629,
+      "N49_N48": -0.04146720468997955,
+      "N4_N5": 0.11582379043102264,
+      "N50_N49": -0.03835196793079376,
+      "N51_N50": -0.03642920404672623,
+      "N52_N42": -0.03351609781384468,
+      "N53_N52": -0.03170744329690933,
+      "N54_N53": -0.030081359669566154,
+      "N55_N54": -0.02855227142572403,
+      "N56_N55": -0.027673617005348206,
+      "N57_N56": -0.026800669729709625,
+      "N58_N57": -0.026161648333072662,
+      "N59_N58": -0.0257736686617136,
+      "N5_N6": 0.11463703960180283,
+      "N60_N59": -0.02514035440981388,
+      "N61_N60": -0.02439863234758377,
+      "N62_N61": -0.023691143840551376,
+      "N63_N62": -0.022943716496229172,
+      "N64_N63": -0.02138039655983448,
+      "N65_N64": -0.019731491804122925,
+      "N66_N65": -0.01894412934780121,
+      "N67_N66": -0.018316518515348434,
+      "N68_N67": -0.01748921349644661,
+      "N69_N51": -0.03427821025252342,
+      "N69_N68": -0.015766136348247528,
+      "N6_N7": 0.11367280036211014,
+      "N70_N69": -0.04685494303703308,
+      "N71_N70": -0.04257578402757645,
+      "N72_N73": 0.06333150714635849,
+      "N73_N74": 0.06237868592143059,
+      "N74_N75": 0.06137450784444809,
+      "N75_N76": 0.06036462262272835,
+      "N76_N77": 0.05942891165614128,
+      "N77_N78": 0.05853884667158127,
+      "N78_N79": 0.05718092620372772,
+      "N7_N106": 0.07928181439638138,
+      "N80_N79": -0.05588006228208542,
+      "N81_N135": 0.002227491233497858,
+      "N81_N80": -0.05502422899007797,
+      "N82_N81": -0.051450226455926895,
+      "N83_N82": -0.050195008516311646,
+      "N84_N83": -0.04889984801411629,
+      "N84_N85": 0.020084265619516373,
+      "N85_N86": 0.01912573352456093,
+      "N86_N87": 0.018269900232553482,
+      "N87_N88": 0.016404185444116592,
+      "N88_N89": 0.014618350192904472,
+      "N89_N90": 0.014024972915649414,
+      "N8_N7": -0.03125864267349243,
+      "N90_N91": 0.012644228525459766,
+      "N91_N92": 0.010761397890746593,
+      "N92_N93": 0.009392065927386284,
+      "N93_N94": 0.008256661705672741,
+      "N94_N95": 0.007332363165915012,
+      "N95_N96": 0.005495175719261169,
+      "N96_N97": 0.00341835618019104,
+      "N97_N98": 0.002026202157139778,
+      "N98_N99": 0.0005085260490886867,
+      "N99_N100": -0.006076454184949398,
+      "N9_N8": -0.02948421984910965,
+      "R2_N41": 0.0,
+      "R3_N1": 0.3321200907230377
+    },
+    "headlosses": {
+      "N100_N101": 0.011792810633778572,
+      "N101_N102": 0.003529124893248081,
+      "N102_N103": 0.0,
+      "N103_N104": 0.0,
+      "N104_N105": 0.014313647523522377,
+      "N105_R1": 0.0,
+      "N106_N107": 0.004721950739622116,
+      "N107_N108": 0.0,
+      "N108_N109": 0.0051743220537900925,
+      "N109_N110": 0.0009896531701087952,
+      "N10_N9": 0.00519905798137188,
+      "N110_N121": 0.009578388184309006,
+      "N111_N42": 0.0,
+      "N112_N111": 0.00880531407892704,
+      "N113_N112": 0.0,
+      "N114_N113": 0.0,
+      "N115_N114": 0.022451594471931458,
+      "N116_N115": 0.0,
+      "N117_N195": 0.021653521806001663,
+      "N118_N117": 0.0,
+      "N119_N118": 0.004849549382925034,
+      "N11_N10": 0.0,
+      "N120_N119": 0.011906948871910572,
+      "N121_N120": 0.007745758630335331,
+      "N121_N122": 0.0,
+      "N122_N123": 0.0053220777772367,
+      "N123_N124": 0.0011937632225453854,
+      "N124_N125": 0.00516079505905509,
+      "N125_N126": 0.002843467053025961,
+      "N126_N127": 0.00320741580799222,
+      "N127_N136": 0.004623955115675926,
+      "N128_N127": 0.0,
+      "N129_N128": 0.0008873310871422291,
+      "N12_N11": 0.003396479180082679,
+      "N130_N129": 0.0,
+      "N131_N130": 0.0,
+      "N132_N131": 0.0,
+      "N133_N132": 0.006853560451418161,
+      "N134_N133": 0.0,
+      "N135_N134": 0.011054120026528835,
+      "N136_N137": 0.0028594403993338346,
+      "N137_N138": 0.0008172561647370458,
+      "N138_N139": 0.0076311673037707806,
+      "N139_N140": 0.00572723476216197,
+      "N13_N12": 0.0019313233206048608,
+      "N140_N141": 0.004893066361546516,
+      "N141_N142": 0.007749149110168219,
+      "N142_N143": 0.0024104418698698282,
+      "N143_N144": 0.0,
+      "N144_N145": 0.0,
+      "N145_N146": 0.006122453138232231,
+      "N146_N147": 0.0012012079823762178,
+      "N147_N148": 0.010973128490149975,
+      "N148_N149": 0.00848404411226511,
+      "N148_N166": 0.0,
+      "N149_N150": 0.0,
+      "N14_N13": 0.002981741912662983,
+      "N150_N151": 0.0,
+      "N151_N152": 0.005265085957944393,
+      "N152_N153": 0.0,
+      "N153_N154": 0.010051047429442406,
+      "N154_N155": 0.0,
+      "N155_N156": 0.0019980212673544884,
+      "N156_N157": 0.009048931300640106,
+      "N157_N158": 0.003440120490267873,
+      "N158_N159": 0.009264593943953514,
+      "N159_N160": 0.012191823683679104,
+      "N15_N14": 0.00032377283787354827,
+      "N160_N161": 0.0033122471068054438,
+      "N161_N162": 0.011957712471485138,
+      "N162_N163": 0.004753697197884321,
+      "N163_N164": 0.022271355614066124,
+      "N164_N165": 0.011639087460935116,
+      "N165_N84": 0.0,
+      "N166_N167": 0.0011178402928635478,
+      "N167_N168": 0.012443345040082932,
+      "N168_N169": 0.007950865663588047,
+      "N169_N170": 0.009867755696177483,
+      "N16_N15": 0.0,
+      "N170_N171": 0.013007101602852345,
+      "N171_N172": 0.0028850792441517115,
+      "N172_N173": 0.01159083191305399,
+      "N173_N174": 0.017048263922333717,
+      "N174_N175": 0.0,
+      "N175_N176": 0.019377276301383972,
+      "N176_N177": 0.016044344753026962,
+      "N177_N178": 0.0,
+      "N178_N179": 0.0,
+      "N179_N180": 0.0,
+      "N17_N16": 0.00745044182986021,
+      "N180_N181": 0.00734578724950552,
+      "N181_N182": 0.0,
+      "N182_N183": 0.0032860238570719957,
+      "N183_N184": 0.009255999699234962,
+      "N184_N185": 0.0058854930102825165,
+      "N185_N186": 0.006087572313845158,
+      "N186_N187": 0.0015211864374578,
+      "N187_N188": 0.0,
+      "N188_N189": 0.003917753230780363,
+      "N189_N190": 0.004010146018117666,
+      "N18_N3": 0.0,
+      "N190_N191": 0.005936306901276112,
+      "N191_N192": 0.01644033007323742,
+      "N192_N193": 0.0029350200202316046,
+      "N192_N71": 0.004886394366621971,
+      "N193_N194": 0.004555579274892807,
+      "N194_N99": 0.0,
+      "N195_N116": 0.0,
+      "N196_N28": 0.0,
+      "N19_N18": 0.0,
+      "N1_N2": 0.0021953124087303877,
+      "N20_N19": 0.0,
+      "N21_N20": 0.011574826203286648,
+      "N22_N21": 0.0,
+      "N23_N22": 0.0,
+      "N24_N23": 0.002793645951896906,
+      "N25_N24": 0.0,
+      "N26_N25": 0.0,
+      "N27_N26": 0.0,
+      "N28_N27": 0.009616587311029434,
+      "N29_N196": 0.0,
+      "N2_N3": 0.0,
+      "N30_N29": 0.0,
+      "N31_N17": 0.0,
+      "N31_N30": 0.0010270137572661042,
+      "N32_N31": 0.0,
+      "N33_N32": 0.004921147599816322,
+      "N34_N33": 0.0,
+      "N35_N34": 0.0,
+      "N36_N35": 0.00350204948335886,
+      "N37_N36": 0.0,
+      "N38_N37": 0.0,
+      "N39_N38": 0.0,
+      "N3_N4": 0.0,
+      "N40_N39": 0.008892247453331947,
+      "N41_N40": 0.0,
+      "N41_N42": 0.0,
+      "N42_N72": 0.002827954478561878,
+      "N43_N17": 0.004428602755069733,
+      "N44_N43": 0.005301509518176317,
+      "N45_N44": 0.005014464259147644,
+      "N46_N45": 0.0013147786958143115,
+      "N47_N46": 0.003743672976270318,
+      "N48_N47": 0.0025268811732530594,
+      "N49_N48": 0.007164341397583485,
+      "N4_N5": 0.0,
+      "N50_N49": 0.0067917718552052975,
+      "N51_N50": 0.005535440519452095,
+      "N52_N42": 0.004613525699824095,
+      "N53_N52": 0.0027303649112582207,
+      "N54_N53": 0.004033172503113747,
+      "N55_N54": 0.0033263787627220154,
+      "N56_N55": 0.0,
+      "N57_N56": 0.0,
+      "N58_N57": 0.021196546033024788,
+      "N59_N58": 0.0079178586602211,
+      "N5_N6": 0.0,
+      "N60_N59": 0.013028738088905811,
+      "N61_N60": 0.0,
+      "N62_N61": 0.01407622080296278,
+      "N63_N62": 0.013283133506774902,
+      "N64_N63": 0.005952121689915657,
+      "N65_N64": 0.010566972196102142,
+      "N66_N65": 0.003974227700382471,
+      "N67_N66": 0.0,
+      "N68_N67": 0.0076933009549975395,
+      "N69_N51": 0.005389369558542967,
+      "N69_N68": 0.00509006017819047,
+      "N6_N7": 0.0,
+      "N70_N69": 0.0015491063240915537,
+      "N71_N70": 0.0070448508486151695,
+      "N72_N73": 0.00965498574078083,
+      "N73_N74": 0.002946634544059634,
+      "N74_N75": 0.00867420807480812,
+      "N75_N76": 0.0,
+      "N76_N77": 0.00337718753144145,
+      "N77_N78": 0.009656719863414764,
+      "N78_N79": 0.0016330004436895251,
+      "N7_N106": 0.0031979610212147236,
+      "N80_N79": 0.010960010811686516,
+      "N81_N135": 0.0029408540576696396,
+      "N81_N80": 0.0,
+      "N82_N81": 0.0037588642444461584,
+      "N83_N82": 0.005061209201812744,
+      "N84_N83": 0.003450158052146435,
+      "N84_N85": 0.008116872981190681,
+      "N85_N86": 0.0035089824814349413,
+      "N86_N87": 0.010013488121330738,
+      "N87_N88": 0.004113056231290102,
+      "N88_N89": 0.0,
+      "N89_N90": 0.00626789266243577,
+      "N8_N7": 0.0057908291928470135,
+      "N90_N91": 0.0038336568977683783,
+      "N91_N92": 0.0,
+      "N92_N93": 0.009263863787055016,
+      "N93_N94": 0.011703548021614552,
+      "N94_N95": 0.003483585314825177,
+      "N95_N96": 0.008293853141367435,
+      "N96_N97": 0.008841457776725292,
+      "N97_N98": 0.022176221013069153,
+      "N98_N99": 0.0,
+      "N99_N100": 0.008014957420527935,
+      "N9_N8": 0.001447402755729854,
+      "R2_N41": 0.0,
+      "R3_N1": 0.0
+    },
+    "headlosses_m": {
+      "N100_N101": 0.011792810633778572,
+      "N101_N102": 0.003529124893248081,
+      "N102_N103": 0.0,
+      "N103_N104": 0.0,
+      "N104_N105": 0.014313647523522377,
+      "N105_R1": 0.0,
+      "N106_N107": 0.004721950739622116,
+      "N107_N108": 0.0,
+      "N108_N109": 0.0051743220537900925,
+      "N109_N110": 0.0009896531701087952,
+      "N10_N9": 0.00519905798137188,
+      "N110_N121": 0.009578388184309006,
+      "N111_N42": 0.0,
+      "N112_N111": 0.00880531407892704,
+      "N113_N112": 0.0,
+      "N114_N113": 0.0,
+      "N115_N114": 0.022451594471931458,
+      "N116_N115": 0.0,
+      "N117_N195": 0.021653521806001663,
+      "N118_N117": 0.0,
+      "N119_N118": 0.004849549382925034,
+      "N11_N10": 0.0,
+      "N120_N119": 0.011906948871910572,
+      "N121_N120": 0.007745758630335331,
+      "N121_N122": 0.0,
+      "N122_N123": 0.0053220777772367,
+      "N123_N124": 0.0011937632225453854,
+      "N124_N125": 0.00516079505905509,
+      "N125_N126": 0.002843467053025961,
+      "N126_N127": 0.00320741580799222,
+      "N127_N136": 0.004623955115675926,
+      "N128_N127": 0.0,
+      "N129_N128": 0.0008873310871422291,
+      "N12_N11": 0.003396479180082679,
+      "N130_N129": 0.0,
+      "N131_N130": 0.0,
+      "N132_N131": 0.0,
+      "N133_N132": 0.006853560451418161,
+      "N134_N133": 0.0,
+      "N135_N134": 0.011054120026528835,
+      "N136_N137": 0.0028594403993338346,
+      "N137_N138": 0.0008172561647370458,
+      "N138_N139": 0.0076311673037707806,
+      "N139_N140": 0.00572723476216197,
+      "N13_N12": 0.0019313233206048608,
+      "N140_N141": 0.004893066361546516,
+      "N141_N142": 0.007749149110168219,
+      "N142_N143": 0.0024104418698698282,
+      "N143_N144": 0.0,
+      "N144_N145": 0.0,
+      "N145_N146": 0.006122453138232231,
+      "N146_N147": 0.0012012079823762178,
+      "N147_N148": 0.010973128490149975,
+      "N148_N149": 0.00848404411226511,
+      "N148_N166": 0.0,
+      "N149_N150": 0.0,
+      "N14_N13": 0.002981741912662983,
+      "N150_N151": 0.0,
+      "N151_N152": 0.005265085957944393,
+      "N152_N153": 0.0,
+      "N153_N154": 0.010051047429442406,
+      "N154_N155": 0.0,
+      "N155_N156": 0.0019980212673544884,
+      "N156_N157": 0.009048931300640106,
+      "N157_N158": 0.003440120490267873,
+      "N158_N159": 0.009264593943953514,
+      "N159_N160": 0.012191823683679104,
+      "N15_N14": 0.00032377283787354827,
+      "N160_N161": 0.0033122471068054438,
+      "N161_N162": 0.011957712471485138,
+      "N162_N163": 0.004753697197884321,
+      "N163_N164": 0.022271355614066124,
+      "N164_N165": 0.011639087460935116,
+      "N165_N84": 0.0,
+      "N166_N167": 0.0011178402928635478,
+      "N167_N168": 0.012443345040082932,
+      "N168_N169": 0.007950865663588047,
+      "N169_N170": 0.009867755696177483,
+      "N16_N15": 0.0,
+      "N170_N171": 0.013007101602852345,
+      "N171_N172": 0.0028850792441517115,
+      "N172_N173": 0.01159083191305399,
+      "N173_N174": 0.017048263922333717,
+      "N174_N175": 0.0,
+      "N175_N176": 0.019377276301383972,
+      "N176_N177": 0.016044344753026962,
+      "N177_N178": 0.0,
+      "N178_N179": 0.0,
+      "N179_N180": 0.0,
+      "N17_N16": 0.00745044182986021,
+      "N180_N181": 0.00734578724950552,
+      "N181_N182": 0.0,
+      "N182_N183": 0.0032860238570719957,
+      "N183_N184": 0.009255999699234962,
+      "N184_N185": 0.0058854930102825165,
+      "N185_N186": 0.006087572313845158,
+      "N186_N187": 0.0015211864374578,
+      "N187_N188": 0.0,
+      "N188_N189": 0.003917753230780363,
+      "N189_N190": 0.004010146018117666,
+      "N18_N3": 0.0,
+      "N190_N191": 0.005936306901276112,
+      "N191_N192": 0.01644033007323742,
+      "N192_N193": 0.0029350200202316046,
+      "N192_N71": 0.004886394366621971,
+      "N193_N194": 0.004555579274892807,
+      "N194_N99": 0.0,
+      "N195_N116": 0.0,
+      "N196_N28": 0.0,
+      "N19_N18": 0.0,
+      "N1_N2": 0.0021953124087303877,
+      "N20_N19": 0.0,
+      "N21_N20": 0.011574826203286648,
+      "N22_N21": 0.0,
+      "N23_N22": 0.0,
+      "N24_N23": 0.002793645951896906,
+      "N25_N24": 0.0,
+      "N26_N25": 0.0,
+      "N27_N26": 0.0,
+      "N28_N27": 0.009616587311029434,
+      "N29_N196": 0.0,
+      "N2_N3": 0.0,
+      "N30_N29": 0.0,
+      "N31_N17": 0.0,
+      "N31_N30": 0.0010270137572661042,
+      "N32_N31": 0.0,
+      "N33_N32": 0.004921147599816322,
+      "N34_N33": 0.0,
+      "N35_N34": 0.0,
+      "N36_N35": 0.00350204948335886,
+      "N37_N36": 0.0,
+      "N38_N37": 0.0,
+      "N39_N38": 0.0,
+      "N3_N4": 0.0,
+      "N40_N39": 0.008892247453331947,
+      "N41_N40": 0.0,
+      "N41_N42": 0.0,
+      "N42_N72": 0.002827954478561878,
+      "N43_N17": 0.004428602755069733,
+      "N44_N43": 0.005301509518176317,
+      "N45_N44": 0.005014464259147644,
+      "N46_N45": 0.0013147786958143115,
+      "N47_N46": 0.003743672976270318,
+      "N48_N47": 0.0025268811732530594,
+      "N49_N48": 0.007164341397583485,
+      "N4_N5": 0.0,
+      "N50_N49": 0.0067917718552052975,
+      "N51_N50": 0.005535440519452095,
+      "N52_N42": 0.004613525699824095,
+      "N53_N52": 0.0027303649112582207,
+      "N54_N53": 0.004033172503113747,
+      "N55_N54": 0.0033263787627220154,
+      "N56_N55": 0.0,
+      "N57_N56": 0.0,
+      "N58_N57": 0.021196546033024788,
+      "N59_N58": 0.0079178586602211,
+      "N5_N6": 0.0,
+      "N60_N59": 0.013028738088905811,
+      "N61_N60": 0.0,
+      "N62_N61": 0.01407622080296278,
+      "N63_N62": 0.013283133506774902,
+      "N64_N63": 0.005952121689915657,
+      "N65_N64": 0.010566972196102142,
+      "N66_N65": 0.003974227700382471,
+      "N67_N66": 0.0,
+      "N68_N67": 0.0076933009549975395,
+      "N69_N51": 0.005389369558542967,
+      "N69_N68": 0.00509006017819047,
+      "N6_N7": 0.0,
+      "N70_N69": 0.0015491063240915537,
+      "N71_N70": 0.0070448508486151695,
+      "N72_N73": 0.00965498574078083,
+      "N73_N74": 0.002946634544059634,
+      "N74_N75": 0.00867420807480812,
+      "N75_N76": 0.0,
+      "N76_N77": 0.00337718753144145,
+      "N77_N78": 0.009656719863414764,
+      "N78_N79": 0.0016330004436895251,
+      "N7_N106": 0.0031979610212147236,
+      "N80_N79": 0.010960010811686516,
+      "N81_N135": 0.0029408540576696396,
+      "N81_N80": 0.0,
+      "N82_N81": 0.0037588642444461584,
+      "N83_N82": 0.005061209201812744,
+      "N84_N83": 0.003450158052146435,
+      "N84_N85": 0.008116872981190681,
+      "N85_N86": 0.0035089824814349413,
+      "N86_N87": 0.010013488121330738,
+      "N87_N88": 0.004113056231290102,
+      "N88_N89": 0.0,
+      "N89_N90": 0.00626789266243577,
+      "N8_N7": 0.0057908291928470135,
+      "N90_N91": 0.0038336568977683783,
+      "N91_N92": 0.0,
+      "N92_N93": 0.009263863787055016,
+      "N93_N94": 0.011703548021614552,
+      "N94_N95": 0.003483585314825177,
+      "N95_N96": 0.008293853141367435,
+      "N96_N97": 0.008841457776725292,
+      "N97_N98": 0.022176221013069153,
+      "N98_N99": 0.0,
+      "N99_N100": 0.008014957420527935,
+      "N9_N8": 0.001447402755729854,
+      "R2_N41": 0.0,
+      "R3_N1": 0.0
+    },
+    "heads": {
+      "N1": 79.3662338256836,
+      "N10": 79.3662109375,
+      "N100": 79.36601257324219,
+      "N101": 79.36599731445312,
+      "N102": 79.36599731445312,
+      "N103": 79.36599731445312,
+      "N104": 79.36599731445312,
+      "N105": 79.3659896850586,
+      "N106": 79.36622619628906,
+      "N107": 79.3662109375,
+      "N108": 79.3662109375,
+      "N109": 79.36620330810547,
+      "N11": 79.3662109375,
+      "N110": 79.36619567871094,
+      "N111": 79.36619567871094,
+      "N112": 79.36618041992188,
+      "N113": 79.36618041992188,
+      "N114": 79.36618041992188,
+      "N115": 79.36613464355469,
+      "N116": 79.36613464355469,
+      "N117": 79.36615753173828,
+      "N118": 79.36615753173828,
+      "N119": 79.36616516113281,
+      "N12": 79.36620330810547,
+      "N120": 79.3661880493164,
+      "N121": 79.36619567871094,
+      "N122": 79.36619567871094,
+      "N123": 79.3661880493164,
+      "N124": 79.36618041992188,
+      "N125": 79.36618041992188,
+      "N126": 79.36616516113281,
+      "N127": 79.36615753173828,
+      "N128": 79.36615753173828,
+      "N129": 79.36614990234375,
+      "N13": 79.36619567871094,
+      "N130": 79.36614990234375,
+      "N131": 79.36614990234375,
+      "N132": 79.36614990234375,
+      "N133": 79.36614990234375,
+      "N134": 79.36614990234375,
+      "N135": 79.36614990234375,
+      "N136": 79.36614990234375,
+      "N137": 79.36613464355469,
+      "N138": 79.36613464355469,
+      "N139": 79.36611938476562,
+      "N14": 79.3661880493164,
+      "N140": 79.36610412597656,
+      "N141": 79.36610412597656,
+      "N142": 79.3660888671875,
+      "N143": 79.36608123779297,
+      "N144": 79.36608123779297,
+      "N145": 79.36608123779297,
+      "N146": 79.36607360839844,
+      "N147": 79.36607360839844,
+      "N148": 79.3660659790039,
+      "N149": 79.36607360839844,
+      "N15": 79.36618041992188,
+      "N150": 79.36607360839844,
+      "N151": 79.36607360839844,
+      "N152": 79.36607360839844,
+      "N153": 79.36607360839844,
+      "N154": 79.36608123779297,
+      "N155": 79.36608123779297,
+      "N156": 79.36608123779297,
+      "N157": 79.3660888671875,
+      "N158": 79.3660888671875,
+      "N159": 79.36610412597656,
+      "N16": 79.36618041992188,
+      "N160": 79.36610412597656,
+      "N161": 79.3661117553711,
+      "N162": 79.36613464355469,
+      "N163": 79.36613464355469,
+      "N164": 79.36613464355469,
+      "N165": 79.36614990234375,
+      "N166": 79.3660659790039,
+      "N167": 79.36605834960938,
+      "N168": 79.36604309082031,
+      "N169": 79.36603546142578,
+      "N17": 79.3662109375,
+      "N170": 79.36602783203125,
+      "N171": 79.36602020263672,
+      "N172": 79.36601257324219,
+      "N173": 79.36601257324219,
+      "N174": 79.36599731445312,
+      "N175": 79.36599731445312,
+      "N176": 79.36598205566406,
+      "N177": 79.36598205566406,
+      "N178": 79.36598205566406,
+      "N179": 79.36598205566406,
+      "N18": 79.36622619628906,
+      "N180": 79.36598205566406,
+      "N181": 79.36598205566406,
+      "N182": 79.36598205566406,
+      "N183": 79.3659896850586,
+      "N184": 79.36599731445312,
+      "N185": 79.36601257324219,
+      "N186": 79.36601257324219,
+      "N187": 79.36602020263672,
+      "N188": 79.36602020263672,
+      "N189": 79.36602783203125,
+      "N19": 79.36622619628906,
+      "N190": 79.36603546142578,
+      "N191": 79.36604309082031,
+      "N192": 79.36605834960938,
+      "N193": 79.36604309082031,
+      "N194": 79.36603546142578,
+      "N195": 79.36613464355469,
+      "N196": 79.3662109375,
+      "N2": 79.36622619628906,
+      "N20": 79.36622619628906,
+      "N21": 79.36622619628906,
+      "N22": 79.36622619628906,
+      "N23": 79.36622619628906,
+      "N24": 79.36622619628906,
+      "N25": 79.36622619628906,
+      "N26": 79.36622619628906,
+      "N27": 79.36622619628906,
+      "N28": 79.3662109375,
+      "N29": 79.3662109375,
+      "N3": 79.36622619628906,
+      "N30": 79.3662109375,
+      "N31": 79.3662109375,
+      "N32": 79.3662109375,
+      "N33": 79.36620330810547,
+      "N34": 79.36620330810547,
+      "N35": 79.36620330810547,
+      "N36": 79.36619567871094,
+      "N37": 79.36619567871094,
+      "N38": 79.36619567871094,
+      "N39": 79.36619567871094,
+      "N4": 79.36622619628906,
+      "N40": 79.36619567871094,
+      "N41": 79.36619567871094,
+      "N42": 79.36619567871094,
+      "N43": 79.36619567871094,
+      "N44": 79.3661880493164,
+      "N45": 79.36618041992188,
+      "N46": 79.36618041992188,
+      "N47": 79.36616516113281,
+      "N48": 79.36614990234375,
+      "N49": 79.36613464355469,
+      "N5": 79.36622619628906,
+      "N50": 79.36611938476562,
+      "N51": 79.3661117553711,
+      "N52": 79.3661880493164,
+      "N53": 79.36618041992188,
+      "N54": 79.36618041992188,
+      "N55": 79.36618041992188,
+      "N56": 79.36618041992188,
+      "N57": 79.36618041992188,
+      "N58": 79.36616516113281,
+      "N59": 79.36616516113281,
+      "N6": 79.36622619628906,
+      "N60": 79.36614990234375,
+      "N61": 79.36614990234375,
+      "N62": 79.36614990234375,
+      "N63": 79.36613464355469,
+      "N64": 79.36613464355469,
+      "N65": 79.36611938476562,
+      "N66": 79.36611938476562,
+      "N67": 79.36611938476562,
+      "N68": 79.3661117553711,
+      "N69": 79.36610412597656,
+      "N7": 79.36622619628906,
+      "N70": 79.36610412597656,
+      "N71": 79.36605834960938,
+      "N72": 79.36619567871094,
+      "N73": 79.3661880493164,
+      "N74": 79.36618041992188,
+      "N75": 79.36618041992188,
+      "N76": 79.36618041992188,
+      "N77": 79.36618041992188,
+      "N78": 79.36616516113281,
+      "N79": 79.36616516113281,
+      "N8": 79.36622619628906,
+      "N80": 79.36615753173828,
+      "N81": 79.36615753173828,
+      "N82": 79.36614990234375,
+      "N83": 79.36614990234375,
+      "N84": 79.36614990234375,
+      "N85": 79.36613464355469,
+      "N86": 79.36613464355469,
+      "N87": 79.36613464355469,
+      "N88": 79.36611938476562,
+      "N89": 79.36611938476562,
+      "N9": 79.36622619628906,
+      "N90": 79.36611938476562,
+      "N91": 79.3661117553711,
+      "N92": 79.3661117553711,
+      "N93": 79.36610412597656,
+      "N94": 79.3660888671875,
+      "N95": 79.3660888671875,
+      "N96": 79.36607360839844,
+      "N97": 79.36605834960938,
+      "N98": 79.36603546142578,
+      "N99": 79.36603546142578,
+      "R1": 31.5,
+      "R2": 37.20000076293945,
+      "R3": 79.3662338256836
+    },
+    "heads_m": {
+      "N1": 79.3662338256836,
+      "N10": 79.3662109375,
+      "N100": 79.36601257324219,
+      "N101": 79.36599731445312,
+      "N102": 79.36599731445312,
+      "N103": 79.36599731445312,
+      "N104": 79.36599731445312,
+      "N105": 79.3659896850586,
+      "N106": 79.36622619628906,
+      "N107": 79.3662109375,
+      "N108": 79.3662109375,
+      "N109": 79.36620330810547,
+      "N11": 79.3662109375,
+      "N110": 79.36619567871094,
+      "N111": 79.36619567871094,
+      "N112": 79.36618041992188,
+      "N113": 79.36618041992188,
+      "N114": 79.36618041992188,
+      "N115": 79.36613464355469,
+      "N116": 79.36613464355469,
+      "N117": 79.36615753173828,
+      "N118": 79.36615753173828,
+      "N119": 79.36616516113281,
+      "N12": 79.36620330810547,
+      "N120": 79.3661880493164,
+      "N121": 79.36619567871094,
+      "N122": 79.36619567871094,
+      "N123": 79.3661880493164,
+      "N124": 79.36618041992188,
+      "N125": 79.36618041992188,
+      "N126": 79.36616516113281,
+      "N127": 79.36615753173828,
+      "N128": 79.36615753173828,
+      "N129": 79.36614990234375,
+      "N13": 79.36619567871094,
+      "N130": 79.36614990234375,
+      "N131": 79.36614990234375,
+      "N132": 79.36614990234375,
+      "N133": 79.36614990234375,
+      "N134": 79.36614990234375,
+      "N135": 79.36614990234375,
+      "N136": 79.36614990234375,
+      "N137": 79.36613464355469,
+      "N138": 79.36613464355469,
+      "N139": 79.36611938476562,
+      "N14": 79.3661880493164,
+      "N140": 79.36610412597656,
+      "N141": 79.36610412597656,
+      "N142": 79.3660888671875,
+      "N143": 79.36608123779297,
+      "N144": 79.36608123779297,
+      "N145": 79.36608123779297,
+      "N146": 79.36607360839844,
+      "N147": 79.36607360839844,
+      "N148": 79.3660659790039,
+      "N149": 79.36607360839844,
+      "N15": 79.36618041992188,
+      "N150": 79.36607360839844,
+      "N151": 79.36607360839844,
+      "N152": 79.36607360839844,
+      "N153": 79.36607360839844,
+      "N154": 79.36608123779297,
+      "N155": 79.36608123779297,
+      "N156": 79.36608123779297,
+      "N157": 79.3660888671875,
+      "N158": 79.3660888671875,
+      "N159": 79.36610412597656,
+      "N16": 79.36618041992188,
+      "N160": 79.36610412597656,
+      "N161": 79.3661117553711,
+      "N162": 79.36613464355469,
+      "N163": 79.36613464355469,
+      "N164": 79.36613464355469,
+      "N165": 79.36614990234375,
+      "N166": 79.3660659790039,
+      "N167": 79.36605834960938,
+      "N168": 79.36604309082031,
+      "N169": 79.36603546142578,
+      "N17": 79.3662109375,
+      "N170": 79.36602783203125,
+      "N171": 79.36602020263672,
+      "N172": 79.36601257324219,
+      "N173": 79.36601257324219,
+      "N174": 79.36599731445312,
+      "N175": 79.36599731445312,
+      "N176": 79.36598205566406,
+      "N177": 79.36598205566406,
+      "N178": 79.36598205566406,
+      "N179": 79.36598205566406,
+      "N18": 79.36622619628906,
+      "N180": 79.36598205566406,
+      "N181": 79.36598205566406,
+      "N182": 79.36598205566406,
+      "N183": 79.3659896850586,
+      "N184": 79.36599731445312,
+      "N185": 79.36601257324219,
+      "N186": 79.36601257324219,
+      "N187": 79.36602020263672,
+      "N188": 79.36602020263672,
+      "N189": 79.36602783203125,
+      "N19": 79.36622619628906,
+      "N190": 79.36603546142578,
+      "N191": 79.36604309082031,
+      "N192": 79.36605834960938,
+      "N193": 79.36604309082031,
+      "N194": 79.36603546142578,
+      "N195": 79.36613464355469,
+      "N196": 79.3662109375,
+      "N2": 79.36622619628906,
+      "N20": 79.36622619628906,
+      "N21": 79.36622619628906,
+      "N22": 79.36622619628906,
+      "N23": 79.36622619628906,
+      "N24": 79.36622619628906,
+      "N25": 79.36622619628906,
+      "N26": 79.36622619628906,
+      "N27": 79.36622619628906,
+      "N28": 79.3662109375,
+      "N29": 79.3662109375,
+      "N3": 79.36622619628906,
+      "N30": 79.3662109375,
+      "N31": 79.3662109375,
+      "N32": 79.3662109375,
+      "N33": 79.36620330810547,
+      "N34": 79.36620330810547,
+      "N35": 79.36620330810547,
+      "N36": 79.36619567871094,
+      "N37": 79.36619567871094,
+      "N38": 79.36619567871094,
+      "N39": 79.36619567871094,
+      "N4": 79.36622619628906,
+      "N40": 79.36619567871094,
+      "N41": 79.36619567871094,
+      "N42": 79.36619567871094,
+      "N43": 79.36619567871094,
+      "N44": 79.3661880493164,
+      "N45": 79.36618041992188,
+      "N46": 79.36618041992188,
+      "N47": 79.36616516113281,
+      "N48": 79.36614990234375,
+      "N49": 79.36613464355469,
+      "N5": 79.36622619628906,
+      "N50": 79.36611938476562,
+      "N51": 79.3661117553711,
+      "N52": 79.3661880493164,
+      "N53": 79.36618041992188,
+      "N54": 79.36618041992188,
+      "N55": 79.36618041992188,
+      "N56": 79.36618041992188,
+      "N57": 79.36618041992188,
+      "N58": 79.36616516113281,
+      "N59": 79.36616516113281,
+      "N6": 79.36622619628906,
+      "N60": 79.36614990234375,
+      "N61": 79.36614990234375,
+      "N62": 79.36614990234375,
+      "N63": 79.36613464355469,
+      "N64": 79.36613464355469,
+      "N65": 79.36611938476562,
+      "N66": 79.36611938476562,
+      "N67": 79.36611938476562,
+      "N68": 79.3661117553711,
+      "N69": 79.36610412597656,
+      "N7": 79.36622619628906,
+      "N70": 79.36610412597656,
+      "N71": 79.36605834960938,
+      "N72": 79.36619567871094,
+      "N73": 79.3661880493164,
+      "N74": 79.36618041992188,
+      "N75": 79.36618041992188,
+      "N76": 79.36618041992188,
+      "N77": 79.36618041992188,
+      "N78": 79.36616516113281,
+      "N79": 79.36616516113281,
+      "N8": 79.36622619628906,
+      "N80": 79.36615753173828,
+      "N81": 79.36615753173828,
+      "N82": 79.36614990234375,
+      "N83": 79.36614990234375,
+      "N84": 79.36614990234375,
+      "N85": 79.36613464355469,
+      "N86": 79.36613464355469,
+      "N87": 79.36613464355469,
+      "N88": 79.36611938476562,
+      "N89": 79.36611938476562,
+      "N9": 79.36622619628906,
+      "N90": 79.36611938476562,
+      "N91": 79.3661117553711,
+      "N92": 79.3661117553711,
+      "N93": 79.36610412597656,
+      "N94": 79.3660888671875,
+      "N95": 79.3660888671875,
+      "N96": 79.36607360839844,
+      "N97": 79.36605834960938,
+      "N98": 79.36603546142578,
+      "N99": 79.36603546142578,
+      "R1": 31.5,
+      "R2": 37.20000076293945,
+      "R3": 79.3662338256836
+    },
+    "pressures": {
+      "N1": 64.73246765136719,
+      "N10": 60.73244094848633,
+      "N100": 63.73224639892578,
+      "N101": 70.73223114013672,
+      "N102": 66.73223114013672,
+      "N103": 62.73222732543945,
+      "N104": 62.73222732543945,
+      "N105": 61.73222351074219,
+      "N106": 62.732452392578125,
+      "N107": 67.7324447631836,
+      "N108": 60.73244094848633,
+      "N109": 60.73243713378906,
+      "N11": 59.73244094848633,
+      "N110": 60.7324333190918,
+      "N111": 60.73242950439453,
+      "N112": 67.73240661621094,
+      "N113": 63.7324104309082,
+      "N114": 67.73240661621094,
+      "N115": 63.732357025146484,
+      "N116": 61.732357025146484,
+      "N117": 68.73239135742188,
+      "N118": 60.732391357421875,
+      "N119": 68.7323989868164,
+      "N12": 62.73243713378906,
+      "N120": 63.732418060302734,
+      "N121": 64.73242950439453,
+      "N122": 68.73242950439453,
+      "N123": 61.732418060302734,
+      "N124": 60.73241424560547,
+      "N125": 62.73240661621094,
+      "N126": 63.73239517211914,
+      "N127": 63.732391357421875,
+      "N128": 65.73239135742188,
+      "N129": 61.73238754272461,
+      "N13": 63.73242950439453,
+      "N130": 66.73238372802734,
+      "N131": 66.73238372802734,
+      "N132": 72.73238372802734,
+      "N133": 63.73237609863281,
+      "N134": 65.73237609863281,
+      "N135": 64.73238372802734,
+      "N136": 71.73238372802734,
+      "N137": 61.73237228393555,
+      "N138": 61.73236846923828,
+      "N139": 58.73234939575195,
+      "N14": 61.732418060302734,
+      "N140": 57.732337951660156,
+      "N141": 59.732330322265625,
+      "N142": 61.73232650756836,
+      "N143": 61.73231506347656,
+      "N144": 61.73231506347656,
+      "N145": 63.73231506347656,
+      "N146": 65.73230743408203,
+      "N147": 61.732303619384766,
+      "N148": 66.7322998046875,
+      "N149": 70.7322998046875,
+      "N15": 67.73241424560547,
+      "N150": 67.7322998046875,
+      "N151": 65.7322998046875,
+      "N152": 66.73230743408203,
+      "N153": 69.73230743408203,
+      "N154": 72.73231506347656,
+      "N155": 65.73231506347656,
+      "N156": 67.73231506347656,
+      "N157": 66.7323226928711,
+      "N158": 65.7323226928711,
+      "N159": 68.73233032226562,
+      "N16": 68.73241424560547,
+      "N160": 64.73233795166016,
+      "N161": 66.73234558105469,
+      "N162": 70.73236083984375,
+      "N163": 69.73236083984375,
+      "N164": 70.73236846923828,
+      "N165": 63.73237609863281,
+      "N166": 67.7322998046875,
+      "N167": 66.73229217529297,
+      "N168": 66.7322769165039,
+      "N169": 65.73226928710938,
+      "N17": 59.73244094848633,
+      "N170": 67.73226165771484,
+      "N171": 63.73225021362305,
+      "N172": 63.73224639892578,
+      "N173": 65.73223876953125,
+      "N174": 68.73223114013672,
+      "N175": 67.73223114013672,
+      "N176": 66.73221588134766,
+      "N177": 62.732215881347656,
+      "N178": 64.73221588134766,
+      "N179": 63.732215881347656,
+      "N18": 64.73246002197266,
+      "N180": 65.73221588134766,
+      "N181": 68.73221588134766,
+      "N182": 67.73221588134766,
+      "N183": 62.73222351074219,
+      "N184": 57.73222732543945,
+      "N185": 65.73223876953125,
+      "N186": 67.73224639892578,
+      "N187": 65.73225402832031,
+      "N188": 70.73225402832031,
+      "N189": 64.73226165771484,
+      "N19": 62.732460021972656,
+      "N190": 72.73226928710938,
+      "N191": 68.7322769165039,
+      "N192": 66.73228454589844,
+      "N193": 66.7322769165039,
+      "N194": 68.73226928710938,
+      "N195": 66.73236083984375,
+      "N196": 63.732444763183594,
+      "N2": 60.732460021972656,
+      "N20": 54.732460021972656,
+      "N21": 63.73245620727539,
+      "N22": 65.73245239257812,
+      "N23": 64.73245239257812,
+      "N24": 58.732452392578125,
+      "N25": 67.73245239257812,
+      "N26": 63.732452392578125,
+      "N27": 56.732452392578125,
+      "N28": 64.7324447631836,
+      "N29": 60.732444763183594,
+      "N3": 63.732460021972656,
+      "N30": 61.732444763183594,
+      "N31": 61.73244094848633,
+      "N32": 58.73244094848633,
+      "N33": 64.73243713378906,
+      "N34": 68.73243713378906,
+      "N35": 63.73243713378906,
+      "N36": 58.7324333190918,
+      "N37": 62.7324333190918,
+      "N38": 61.7324333190918,
+      "N39": 64.73242950439453,
+      "N4": 60.732460021972656,
+      "N40": 66.73242950439453,
+      "N41": 61.73242950439453,
+      "N42": 65.73242950439453,
+      "N43": 65.73242950439453,
+      "N44": 60.732418060302734,
+      "N45": 64.73240661621094,
+      "N46": 65.73240661621094,
+      "N47": 63.73239517211914,
+      "N48": 67.73238372802734,
+      "N49": 66.73236083984375,
+      "N5": 57.732460021972656,
+      "N50": 62.73235321044922,
+      "N51": 67.73234558105469,
+      "N52": 66.732421875,
+      "N53": 61.73241424560547,
+      "N54": 61.7324104309082,
+      "N55": 64.73240661621094,
+      "N56": 63.73240661621094,
+      "N57": 56.73240661621094,
+      "N58": 59.732398986816406,
+      "N59": 60.73239517211914,
+      "N6": 58.732460021972656,
+      "N60": 61.73238754272461,
+      "N61": 68.73238372802734,
+      "N62": 68.73237609863281,
+      "N63": 62.73237228393555,
+      "N64": 66.73236083984375,
+      "N65": 66.73235321044922,
+      "N66": 64.73234558105469,
+      "N67": 67.73234558105469,
+      "N68": 65.73234558105469,
+      "N69": 67.73233795166016,
+      "N7": 60.732460021972656,
+      "N70": 64.73233032226562,
+      "N71": 68.73229217529297,
+      "N72": 71.732421875,
+      "N73": 65.732421875,
+      "N74": 68.73241424560547,
+      "N75": 63.7324104309082,
+      "N76": 66.73240661621094,
+      "N77": 63.73240661621094,
+      "N78": 65.7323989868164,
+      "N79": 61.73239517211914,
+      "N8": 59.73245620727539,
+      "N80": 58.732391357421875,
+      "N81": 60.732391357421875,
+      "N82": 63.73238754272461,
+      "N83": 63.73237991333008,
+      "N84": 62.73237609863281,
+      "N85": 64.73236846923828,
+      "N86": 68.73236846923828,
+      "N87": 62.732364654541016,
+      "N88": 63.73235321044922,
+      "N89": 60.73235321044922,
+      "N9": 61.732452392578125,
+      "N90": 60.73234939575195,
+      "N91": 65.73234558105469,
+      "N92": 67.73234558105469,
+      "N93": 61.73233413696289,
+      "N94": 60.73232650756836,
+      "N95": 63.732322692871094,
+      "N96": 62.732303619384766,
+      "N97": 66.73229217529297,
+      "N98": 64.73226928710938,
+      "N99": 63.732269287109375,
+      "R1": 4.500000476837158,
+      "R2": 5.1999993324279785,
+      "R3": 26.732465744018555
+    },
+    "pressures_m": {
+      "N1": 64.73246765136719,
+      "N10": 60.73244094848633,
+      "N100": 63.73224639892578,
+      "N101": 70.73223114013672,
+      "N102": 66.73223114013672,
+      "N103": 62.73222732543945,
+      "N104": 62.73222732543945,
+      "N105": 61.73222351074219,
+      "N106": 62.732452392578125,
+      "N107": 67.7324447631836,
+      "N108": 60.73244094848633,
+      "N109": 60.73243713378906,
+      "N11": 59.73244094848633,
+      "N110": 60.7324333190918,
+      "N111": 60.73242950439453,
+      "N112": 67.73240661621094,
+      "N113": 63.7324104309082,
+      "N114": 67.73240661621094,
+      "N115": 63.732357025146484,
+      "N116": 61.732357025146484,
+      "N117": 68.73239135742188,
+      "N118": 60.732391357421875,
+      "N119": 68.7323989868164,
+      "N12": 62.73243713378906,
+      "N120": 63.732418060302734,
+      "N121": 64.73242950439453,
+      "N122": 68.73242950439453,
+      "N123": 61.732418060302734,
+      "N124": 60.73241424560547,
+      "N125": 62.73240661621094,
+      "N126": 63.73239517211914,
+      "N127": 63.732391357421875,
+      "N128": 65.73239135742188,
+      "N129": 61.73238754272461,
+      "N13": 63.73242950439453,
+      "N130": 66.73238372802734,
+      "N131": 66.73238372802734,
+      "N132": 72.73238372802734,
+      "N133": 63.73237609863281,
+      "N134": 65.73237609863281,
+      "N135": 64.73238372802734,
+      "N136": 71.73238372802734,
+      "N137": 61.73237228393555,
+      "N138": 61.73236846923828,
+      "N139": 58.73234939575195,
+      "N14": 61.732418060302734,
+      "N140": 57.732337951660156,
+      "N141": 59.732330322265625,
+      "N142": 61.73232650756836,
+      "N143": 61.73231506347656,
+      "N144": 61.73231506347656,
+      "N145": 63.73231506347656,
+      "N146": 65.73230743408203,
+      "N147": 61.732303619384766,
+      "N148": 66.7322998046875,
+      "N149": 70.7322998046875,
+      "N15": 67.73241424560547,
+      "N150": 67.7322998046875,
+      "N151": 65.7322998046875,
+      "N152": 66.73230743408203,
+      "N153": 69.73230743408203,
+      "N154": 72.73231506347656,
+      "N155": 65.73231506347656,
+      "N156": 67.73231506347656,
+      "N157": 66.7323226928711,
+      "N158": 65.7323226928711,
+      "N159": 68.73233032226562,
+      "N16": 68.73241424560547,
+      "N160": 64.73233795166016,
+      "N161": 66.73234558105469,
+      "N162": 70.73236083984375,
+      "N163": 69.73236083984375,
+      "N164": 70.73236846923828,
+      "N165": 63.73237609863281,
+      "N166": 67.7322998046875,
+      "N167": 66.73229217529297,
+      "N168": 66.7322769165039,
+      "N169": 65.73226928710938,
+      "N17": 59.73244094848633,
+      "N170": 67.73226165771484,
+      "N171": 63.73225021362305,
+      "N172": 63.73224639892578,
+      "N173": 65.73223876953125,
+      "N174": 68.73223114013672,
+      "N175": 67.73223114013672,
+      "N176": 66.73221588134766,
+      "N177": 62.732215881347656,
+      "N178": 64.73221588134766,
+      "N179": 63.732215881347656,
+      "N18": 64.73246002197266,
+      "N180": 65.73221588134766,
+      "N181": 68.73221588134766,
+      "N182": 67.73221588134766,
+      "N183": 62.73222351074219,
+      "N184": 57.73222732543945,
+      "N185": 65.73223876953125,
+      "N186": 67.73224639892578,
+      "N187": 65.73225402832031,
+      "N188": 70.73225402832031,
+      "N189": 64.73226165771484,
+      "N19": 62.732460021972656,
+      "N190": 72.73226928710938,
+      "N191": 68.7322769165039,
+      "N192": 66.73228454589844,
+      "N193": 66.7322769165039,
+      "N194": 68.73226928710938,
+      "N195": 66.73236083984375,
+      "N196": 63.732444763183594,
+      "N2": 60.732460021972656,
+      "N20": 54.732460021972656,
+      "N21": 63.73245620727539,
+      "N22": 65.73245239257812,
+      "N23": 64.73245239257812,
+      "N24": 58.732452392578125,
+      "N25": 67.73245239257812,
+      "N26": 63.732452392578125,
+      "N27": 56.732452392578125,
+      "N28": 64.7324447631836,
+      "N29": 60.732444763183594,
+      "N3": 63.732460021972656,
+      "N30": 61.732444763183594,
+      "N31": 61.73244094848633,
+      "N32": 58.73244094848633,
+      "N33": 64.73243713378906,
+      "N34": 68.73243713378906,
+      "N35": 63.73243713378906,
+      "N36": 58.7324333190918,
+      "N37": 62.7324333190918,
+      "N38": 61.7324333190918,
+      "N39": 64.73242950439453,
+      "N4": 60.732460021972656,
+      "N40": 66.73242950439453,
+      "N41": 61.73242950439453,
+      "N42": 65.73242950439453,
+      "N43": 65.73242950439453,
+      "N44": 60.732418060302734,
+      "N45": 64.73240661621094,
+      "N46": 65.73240661621094,
+      "N47": 63.73239517211914,
+      "N48": 67.73238372802734,
+      "N49": 66.73236083984375,
+      "N5": 57.732460021972656,
+      "N50": 62.73235321044922,
+      "N51": 67.73234558105469,
+      "N52": 66.732421875,
+      "N53": 61.73241424560547,
+      "N54": 61.7324104309082,
+      "N55": 64.73240661621094,
+      "N56": 63.73240661621094,
+      "N57": 56.73240661621094,
+      "N58": 59.732398986816406,
+      "N59": 60.73239517211914,
+      "N6": 58.732460021972656,
+      "N60": 61.73238754272461,
+      "N61": 68.73238372802734,
+      "N62": 68.73237609863281,
+      "N63": 62.73237228393555,
+      "N64": 66.73236083984375,
+      "N65": 66.73235321044922,
+      "N66": 64.73234558105469,
+      "N67": 67.73234558105469,
+      "N68": 65.73234558105469,
+      "N69": 67.73233795166016,
+      "N7": 60.732460021972656,
+      "N70": 64.73233032226562,
+      "N71": 68.73229217529297,
+      "N72": 71.732421875,
+      "N73": 65.732421875,
+      "N74": 68.73241424560547,
+      "N75": 63.7324104309082,
+      "N76": 66.73240661621094,
+      "N77": 63.73240661621094,
+      "N78": 65.7323989868164,
+      "N79": 61.73239517211914,
+      "N8": 59.73245620727539,
+      "N80": 58.732391357421875,
+      "N81": 60.732391357421875,
+      "N82": 63.73238754272461,
+      "N83": 63.73237991333008,
+      "N84": 62.73237609863281,
+      "N85": 64.73236846923828,
+      "N86": 68.73236846923828,
+      "N87": 62.732364654541016,
+      "N88": 63.73235321044922,
+      "N89": 60.73235321044922,
+      "N9": 61.732452392578125,
+      "N90": 60.73234939575195,
+      "N91": 65.73234558105469,
+      "N92": 67.73234558105469,
+      "N93": 61.73233413696289,
+      "N94": 60.73232650756836,
+      "N95": 63.732322692871094,
+      "N96": 62.732303619384766,
+      "N97": 66.73229217529297,
+      "N98": 64.73226928710938,
+      "N99": 63.732269287109375,
+      "R1": 4.500000476837158,
+      "R2": 5.1999993324279785,
+      "R3": 26.732465744018555
+    },
+    "velocities": {
+      "N100_N101": 0.7593891620635986,
+      "N101_N102": 0.5441792011260986,
+      "N102_N103": 0.36735889315605164,
+      "N103_N104": 0.5224579572677612,
+      "N104_N105": 0.3134838044643402,
+      "N105_R1": 0.0,
+      "N106_N107": 1.079453945159912,
+      "N107_N108": 1.0536710023880005,
+      "N108_N109": 1.0334649085998535,
+      "N109_N110": 1.0004076957702637,
+      "N10_N9": 0.8347911238670349,
+      "N110_N121": 0.9728466272354126,
+      "N111_N42": 0.41972342133522034,
+      "N112_N111": 0.8138342499732971,
+      "N113_N112": 0.5900879502296448,
+      "N114_N113": 0.4789412021636963,
+      "N115_N114": 0.9329342246055603,
+      "N116_N115": 0.10253699868917465,
+      "N117_N195": 0.9065881371498108,
+      "N118_N117": 0.4472814202308655,
+      "N119_N118": 0.697179913520813,
+      "N11_N10": 0.7699819207191467,
+      "N120_N119": 0.9768628478050232,
+      "N121_N120": 1.0205098390579224,
+      "N121_N122": 1.155364751815796,
+      "N122_N123": 1.12505042552948,
+      "N123_N124": 1.0783774852752686,
+      "N124_N125": 1.0310182571411133,
+      "N125_N126": 0.9668431282043457,
+      "N126_N127": 0.8978633880615234,
+      "N127_N136": 0.9763645529747009,
+      "N128_N127": 0.47267594933509827,
+      "N129_N128": 0.3301240801811218,
+      "N12_N11": 0.7001203894615173,
+      "N130_N129": 0.4572344124317169,
+      "N131_N130": 0.3601731061935425,
+      "N132_N131": 0.3034900426864624,
+      "N133_N132": 0.38933026790618896,
+      "N134_N133": 0.1716003566980362,
+      "N135_N134": 0.575800359249115,
+      "N136_N137": 0.8749695420265198,
+      "N137_N138": 0.7573721408843994,
+      "N138_N139": 1.1173275709152222,
+      "N139_N140": 0.9836851358413696,
+      "N13_N12": 0.567714512348175,
+      "N140_N141": 0.8678617477416992,
+      "N141_N142": 0.7757970094680786,
+      "N142_N143": 0.6192869544029236,
+      "N143_N144": 0.46663764119148254,
+      "N144_N145": 0.40664705634117126,
+      "N145_N146": 0.6715532541275024,
+      "N146_N147": 0.574108898639679,
+      "N147_N148": 0.3425936996936798,
+      "N148_N149": 0.6650782823562622,
+      "N148_N166": 0.712078869342804,
+      "N149_N150": 0.7010132074356079,
+      "N14_N13": 0.707009494304657,
+      "N150_N151": 0.7203171253204346,
+      "N151_N152": 0.7452637553215027,
+      "N152_N153": 0.7862473726272583,
+      "N153_N154": 0.835546612739563,
+      "N154_N155": 0.8694026470184326,
+      "N155_N156": 0.9187018275260925,
+      "N156_N157": 0.9822562336921692,
+      "N157_N158": 1.0297735929489136,
+      "N158_N159": 1.076696753501892,
+      "N159_N160": 1.1262930631637573,
+      "N15_N14": 0.36844879388809204,
+      "N160_N161": 1.174404263496399,
+      "N161_N162": 1.2424134016036987,
+      "N162_N163": 1.3032948970794678,
+      "N163_N164": 1.3297263383865356,
+      "N164_N165": 1.366255283355713,
+      "N165_N84": 0.8335384130477905,
+      "N166_N167": 0.6137774586677551,
+      "N167_N168": 1.0458567142486572,
+      "N168_N169": 0.876462996006012,
+      "N169_N170": 0.9657678008079529,
+      "N16_N15": 0.014956357888877392,
+      "N170_N171": 0.8165872097015381,
+      "N171_N172": 0.6796345710754395,
+      "N172_N173": 0.8987796902656555,
+      "N173_N174": 0.7151059508323669,
+      "N174_N175": 0.594484269618988,
+      "N175_N176": 0.8928380012512207,
+      "N176_N177": 0.579376757144928,
+      "N177_N178": 0.3951495587825775,
+      "N178_N179": 0.18342575430870056,
+      "N179_N180": 0.19180889427661896,
+      "N17_N16": 0.7828809022903442,
+      "N180_N181": 0.36226439476013184,
+      "N181_N182": 0.5598336458206177,
+      "N182_N183": 0.5113645792007446,
+      "N183_N184": 0.6426108479499817,
+      "N184_N185": 0.7600775361061096,
+      "N185_N186": 0.8595131039619446,
+      "N186_N187": 0.5132733583450317,
+      "N187_N188": 0.6032592058181763,
+      "N188_N189": 0.7211614847183228,
+      "N189_N190": 0.8755926489830017,
+      "N18_N3": 1.1119046211242676,
+      "N190_N191": 1.0032954216003418,
+      "N191_N192": 1.068631649017334,
+      "N192_N193": 0.7305426597595215,
+      "N192_N71": 1.1615431308746338,
+      "N193_N194": 0.5761114954948425,
+      "N194_N99": 0.4712764322757721,
+      "N195_N116": 0.27416640520095825,
+      "N196_N28": 1.0552475452423096,
+      "N19_N18": 1.1073853969573975,
+      "N1_N2": 0.8598639369010925,
+      "N20_N19": 1.1038670539855957,
+      "N21_N20": 1.1000151634216309,
+      "N22_N21": 1.0920989513397217,
+      "N23_N22": 1.0839704275131226,
+      "N24_N23": 1.0789355039596558,
+      "N25_N24": 1.0738704204559326,
+      "N26_N25": 1.0692905187606812,
+      "N27_N26": 1.0646803379058838,
+      "N28_N27": 1.0599486827850342,
+      "N29_N196": 1.0508800745010376,
+      "N2_N3": 0.8556534647941589,
+      "N30_N29": 1.0464820861816406,
+      "N31_N17": 0.585894763469696,
+      "N31_N30": 1.0365641117095947,
+      "N32_N31": 0.9809790253639221,
+      "N33_N32": 0.9676358699798584,
+      "N34_N33": 0.9564855098724365,
+      "N35_N34": 0.9494407773017883,
+      "N36_N35": 0.942815899848938,
+      "N37_N36": 0.9356311559677124,
+      "N38_N37": 0.9271399974822998,
+      "N39_N38": 0.9181824326515198,
+      "N3_N4": 0.6252356767654419,
+      "N40_N39": 0.9098779559135437,
+      "N41_N40": 0.8982143998146057,
+      "N41_N42": 0.8865038156509399,
+      "N42_N72": 1.2893356084823608,
+      "N43_N17": 1.2286938428878784,
+      "N44_N43": 1.1632603406906128,
+      "N45_N44": 1.1009154319763184,
+      "N46_N45": 1.0550434589385986,
+      "N47_N46": 1.0011637210845947,
+      "N48_N47": 0.9231468439102173,
+      "N49_N48": 1.2661962509155273,
+      "N4_N5": 0.6157119870185852,
+      "N50_N49": 1.171073079109192,
+      "N51_N50": 1.1123615503311157,
+      "N52_N42": 1.0234102010726929,
+      "N53_N52": 0.9681831002235413,
+      "N54_N53": 0.9185308218002319,
+      "N55_N54": 0.8718403577804565,
+      "N56_N55": 0.8450107574462891,
+      "N57_N56": 0.8183553218841553,
+      "N58_N57": 1.3617562055587769,
+      "N59_N58": 1.3415613174438477,
+      "N5_N6": 0.6094032526016235,
+      "N60_N59": 1.308596134185791,
+      "N61_N60": 1.2699884176254272,
+      "N62_N61": 1.233162522315979,
+      "N63_N62": 1.1942577362060547,
+      "N64_N63": 1.112884283065796,
+      "N65_N64": 1.0270562171936035,
+      "N66_N65": 0.9860725998878479,
+      "N67_N66": 0.953404426574707,
+      "N68_N67": 0.9103419184684753,
+      "N69_N51": 1.04668128490448,
+      "N69_N68": 0.8206530213356018,
+      "N6_N7": 0.6042774319648743,
+      "N70_N69": 0.9394250512123108,
+      "N71_N70": 1.300046682357788,
+      "N72_N73": 1.2697741985321045,
+      "N73_N74": 1.2506704330444336,
+      "N74_N75": 1.2305370569229126,
+      "N75_N76": 1.2102891206741333,
+      "N76_N77": 1.191528558731079,
+      "N77_N78": 1.1736830472946167,
+      "N78_N79": 1.1464571952819824,
+      "N7_N106": 1.1230989694595337,
+      "N80_N79": 1.1203752756118774,
+      "N81_N135": 0.5351320505142212,
+      "N81_N80": 1.1032161712646484,
+      "N82_N81": 1.0315587520599365,
+      "N83_N82": 1.006392002105713,
+      "N84_N83": 1.493151068687439,
+      "N84_N85": 1.045418620109558,
+      "N85_N86": 0.9955254197120667,
+      "N86_N87": 0.9509779214859009,
+      "N87_N88": 0.8538644909858704,
+      "N88_N89": 0.7609087824821472,
+      "N89_N90": 0.7300225496292114,
+      "N8_N7": 0.9544790387153625,
+      "N90_N91": 0.6581525802612305,
+      "N91_N92": 0.5601481795310974,
+      "N92_N93": 1.017677903175354,
+      "N93_N94": 0.8946510553359985,
+      "N94_N95": 0.9760543704032898,
+      "N95_N96": 0.785136878490448,
+      "N96_N97": 0.8212253451347351,
+      "N97_N98": 0.865376889705658,
+      "N98_N99": 0.24507272243499756,
+      "N99_N100": 0.868188738822937,
+      "N9_N8": 0.900297224521637,
+      "R2_N41": 0.0,
+      "R3_N1": 0.8629921078681946
+    },
+    "velocities_m_s": {
+      "N100_N101": 0.7593891620635986,
+      "N101_N102": 0.5441792011260986,
+      "N102_N103": 0.36735889315605164,
+      "N103_N104": 0.5224579572677612,
+      "N104_N105": 0.3134838044643402,
+      "N105_R1": 0.0,
+      "N106_N107": 1.079453945159912,
+      "N107_N108": 1.0536710023880005,
+      "N108_N109": 1.0334649085998535,
+      "N109_N110": 1.0004076957702637,
+      "N10_N9": 0.8347911238670349,
+      "N110_N121": 0.9728466272354126,
+      "N111_N42": 0.41972342133522034,
+      "N112_N111": 0.8138342499732971,
+      "N113_N112": 0.5900879502296448,
+      "N114_N113": 0.4789412021636963,
+      "N115_N114": 0.9329342246055603,
+      "N116_N115": 0.10253699868917465,
+      "N117_N195": 0.9065881371498108,
+      "N118_N117": 0.4472814202308655,
+      "N119_N118": 0.697179913520813,
+      "N11_N10": 0.7699819207191467,
+      "N120_N119": 0.9768628478050232,
+      "N121_N120": 1.0205098390579224,
+      "N121_N122": 1.155364751815796,
+      "N122_N123": 1.12505042552948,
+      "N123_N124": 1.0783774852752686,
+      "N124_N125": 1.0310182571411133,
+      "N125_N126": 0.9668431282043457,
+      "N126_N127": 0.8978633880615234,
+      "N127_N136": 0.9763645529747009,
+      "N128_N127": 0.47267594933509827,
+      "N129_N128": 0.3301240801811218,
+      "N12_N11": 0.7001203894615173,
+      "N130_N129": 0.4572344124317169,
+      "N131_N130": 0.3601731061935425,
+      "N132_N131": 0.3034900426864624,
+      "N133_N132": 0.38933026790618896,
+      "N134_N133": 0.1716003566980362,
+      "N135_N134": 0.575800359249115,
+      "N136_N137": 0.8749695420265198,
+      "N137_N138": 0.7573721408843994,
+      "N138_N139": 1.1173275709152222,
+      "N139_N140": 0.9836851358413696,
+      "N13_N12": 0.567714512348175,
+      "N140_N141": 0.8678617477416992,
+      "N141_N142": 0.7757970094680786,
+      "N142_N143": 0.6192869544029236,
+      "N143_N144": 0.46663764119148254,
+      "N144_N145": 0.40664705634117126,
+      "N145_N146": 0.6715532541275024,
+      "N146_N147": 0.574108898639679,
+      "N147_N148": 0.3425936996936798,
+      "N148_N149": 0.6650782823562622,
+      "N148_N166": 0.712078869342804,
+      "N149_N150": 0.7010132074356079,
+      "N14_N13": 0.707009494304657,
+      "N150_N151": 0.7203171253204346,
+      "N151_N152": 0.7452637553215027,
+      "N152_N153": 0.7862473726272583,
+      "N153_N154": 0.835546612739563,
+      "N154_N155": 0.8694026470184326,
+      "N155_N156": 0.9187018275260925,
+      "N156_N157": 0.9822562336921692,
+      "N157_N158": 1.0297735929489136,
+      "N158_N159": 1.076696753501892,
+      "N159_N160": 1.1262930631637573,
+      "N15_N14": 0.36844879388809204,
+      "N160_N161": 1.174404263496399,
+      "N161_N162": 1.2424134016036987,
+      "N162_N163": 1.3032948970794678,
+      "N163_N164": 1.3297263383865356,
+      "N164_N165": 1.366255283355713,
+      "N165_N84": 0.8335384130477905,
+      "N166_N167": 0.6137774586677551,
+      "N167_N168": 1.0458567142486572,
+      "N168_N169": 0.876462996006012,
+      "N169_N170": 0.9657678008079529,
+      "N16_N15": 0.014956357888877392,
+      "N170_N171": 0.8165872097015381,
+      "N171_N172": 0.6796345710754395,
+      "N172_N173": 0.8987796902656555,
+      "N173_N174": 0.7151059508323669,
+      "N174_N175": 0.594484269618988,
+      "N175_N176": 0.8928380012512207,
+      "N176_N177": 0.579376757144928,
+      "N177_N178": 0.3951495587825775,
+      "N178_N179": 0.18342575430870056,
+      "N179_N180": 0.19180889427661896,
+      "N17_N16": 0.7828809022903442,
+      "N180_N181": 0.36226439476013184,
+      "N181_N182": 0.5598336458206177,
+      "N182_N183": 0.5113645792007446,
+      "N183_N184": 0.6426108479499817,
+      "N184_N185": 0.7600775361061096,
+      "N185_N186": 0.8595131039619446,
+      "N186_N187": 0.5132733583450317,
+      "N187_N188": 0.6032592058181763,
+      "N188_N189": 0.7211614847183228,
+      "N189_N190": 0.8755926489830017,
+      "N18_N3": 1.1119046211242676,
+      "N190_N191": 1.0032954216003418,
+      "N191_N192": 1.068631649017334,
+      "N192_N193": 0.7305426597595215,
+      "N192_N71": 1.1615431308746338,
+      "N193_N194": 0.5761114954948425,
+      "N194_N99": 0.4712764322757721,
+      "N195_N116": 0.27416640520095825,
+      "N196_N28": 1.0552475452423096,
+      "N19_N18": 1.1073853969573975,
+      "N1_N2": 0.8598639369010925,
+      "N20_N19": 1.1038670539855957,
+      "N21_N20": 1.1000151634216309,
+      "N22_N21": 1.0920989513397217,
+      "N23_N22": 1.0839704275131226,
+      "N24_N23": 1.0789355039596558,
+      "N25_N24": 1.0738704204559326,
+      "N26_N25": 1.0692905187606812,
+      "N27_N26": 1.0646803379058838,
+      "N28_N27": 1.0599486827850342,
+      "N29_N196": 1.0508800745010376,
+      "N2_N3": 0.8556534647941589,
+      "N30_N29": 1.0464820861816406,
+      "N31_N17": 0.585894763469696,
+      "N31_N30": 1.0365641117095947,
+      "N32_N31": 0.9809790253639221,
+      "N33_N32": 0.9676358699798584,
+      "N34_N33": 0.9564855098724365,
+      "N35_N34": 0.9494407773017883,
+      "N36_N35": 0.942815899848938,
+      "N37_N36": 0.9356311559677124,
+      "N38_N37": 0.9271399974822998,
+      "N39_N38": 0.9181824326515198,
+      "N3_N4": 0.6252356767654419,
+      "N40_N39": 0.9098779559135437,
+      "N41_N40": 0.8982143998146057,
+      "N41_N42": 0.8865038156509399,
+      "N42_N72": 1.2893356084823608,
+      "N43_N17": 1.2286938428878784,
+      "N44_N43": 1.1632603406906128,
+      "N45_N44": 1.1009154319763184,
+      "N46_N45": 1.0550434589385986,
+      "N47_N46": 1.0011637210845947,
+      "N48_N47": 0.9231468439102173,
+      "N49_N48": 1.2661962509155273,
+      "N4_N5": 0.6157119870185852,
+      "N50_N49": 1.171073079109192,
+      "N51_N50": 1.1123615503311157,
+      "N52_N42": 1.0234102010726929,
+      "N53_N52": 0.9681831002235413,
+      "N54_N53": 0.9185308218002319,
+      "N55_N54": 0.8718403577804565,
+      "N56_N55": 0.8450107574462891,
+      "N57_N56": 0.8183553218841553,
+      "N58_N57": 1.3617562055587769,
+      "N59_N58": 1.3415613174438477,
+      "N5_N6": 0.6094032526016235,
+      "N60_N59": 1.308596134185791,
+      "N61_N60": 1.2699884176254272,
+      "N62_N61": 1.233162522315979,
+      "N63_N62": 1.1942577362060547,
+      "N64_N63": 1.112884283065796,
+      "N65_N64": 1.0270562171936035,
+      "N66_N65": 0.9860725998878479,
+      "N67_N66": 0.953404426574707,
+      "N68_N67": 0.9103419184684753,
+      "N69_N51": 1.04668128490448,
+      "N69_N68": 0.8206530213356018,
+      "N6_N7": 0.6042774319648743,
+      "N70_N69": 0.9394250512123108,
+      "N71_N70": 1.300046682357788,
+      "N72_N73": 1.2697741985321045,
+      "N73_N74": 1.2506704330444336,
+      "N74_N75": 1.2305370569229126,
+      "N75_N76": 1.2102891206741333,
+      "N76_N77": 1.191528558731079,
+      "N77_N78": 1.1736830472946167,
+      "N78_N79": 1.1464571952819824,
+      "N7_N106": 1.1230989694595337,
+      "N80_N79": 1.1203752756118774,
+      "N81_N135": 0.5351320505142212,
+      "N81_N80": 1.1032161712646484,
+      "N82_N81": 1.0315587520599365,
+      "N83_N82": 1.006392002105713,
+      "N84_N83": 1.493151068687439,
+      "N84_N85": 1.045418620109558,
+      "N85_N86": 0.9955254197120667,
+      "N86_N87": 0.9509779214859009,
+      "N87_N88": 0.8538644909858704,
+      "N88_N89": 0.7609087824821472,
+      "N89_N90": 0.7300225496292114,
+      "N8_N7": 0.9544790387153625,
+      "N90_N91": 0.6581525802612305,
+      "N91_N92": 0.5601481795310974,
+      "N92_N93": 1.017677903175354,
+      "N93_N94": 0.8946510553359985,
+      "N94_N95": 0.9760543704032898,
+      "N95_N96": 0.785136878490448,
+      "N96_N97": 0.8212253451347351,
+      "N97_N98": 0.865376889705658,
+      "N98_N99": 0.24507272243499756,
+      "N99_N100": 0.868188738822937,
+      "N9_N8": 0.900297224521637,
+      "R2_N41": 0.0,
+      "R3_N1": 0.8629921078681946
+    }
+  },
+  "integrity": {
+    "algorithm": "HMAC-SHA256",
+    "checksum": "a5b89658742c1ea12418ecadf47d7ef16e1e3040f80c6cceb04116c82893d2b4",
+    "signature": "4fe181d52951906d4cc30b464bb3eee5acc89cb9588a84faaa37f6d3af7df5c2",
+    "signature_valid": true,
+    "signed_at": "2025-08-19T17:38:16.608679",
+    "timestamp": 1755625096.6086786
+  },
+  "meta": {
+    "constraints": {
+      "pressure_min_m": 12.0,
+      "velocity_max_m_s": 2.0,
+      "velocity_min_m_s": 0.3
+    },
+    "method": "genetic",
+    "solver": "epanet",
+    "source_meta": {
+      "converted_at": 1755625095.8852394,
+      "file": "src\\lcpi\\aep\\PROTOTYPE\\INP\\bismark-Administrator.inp",
+      "source": "inp"
+    }
+  },
+  "metrics": {},
+  "pareto": [],
+  "proposals": [
+    {
+      "CAPEX": 88758876.23162842,
+      "H_tank_m": null,
+      "OPEX_NPV": null,
+      "constraints_ok": false,
+      "constraints_violations": [
+        "Min pressure = 4.500m \u003c min 12.000m"
+      ],
+      "diameters_mm": {
+        "C1": 710,
+        "C10": 900,
+        "C100": 32,
+        "C101": 32,
+        "C102": 280,
+        "C103": 500,
+        "C104": 180,
+        "C105": 80,
+        "C106": 20,
+        "C107": 110,
+        "C108": 400,
+        "C109": 200,
+        "C11": 400,
+        "C110": 40,
+        "C111": 280,
+        "C112": 32,
+        "C113": 250,
+        "C114": 500,
+        "C115": 280,
+        "C116": 350,
+        "C117": 225,
+        "C118": 560,
+        "C119": 200,
+        "C12": 630,
+        "C120": 125,
+        "C121": 40,
+        "C122": 200,
+        "C123": 80,
+        "C124": 500,
+        "C125": 350,
+        "C126": 315,
+        "C127": 400,
+        "C128": 250,
+        "C129": 40,
+        "C13": 400,
+        "C130": 25,
+        "C131": 90,
+        "C132": 225,
+        "C133": 900,
+        "C134": 400,
+        "C135": 350,
+        "C136": 125,
+        "C137": 200,
+        "C138": 630,
+        "C139": 560,
+        "C14": 200,
+        "C140": 560,
+        "C141": 80,
+        "C142": 900,
+        "C143": 900,
+        "C144": 560,
+        "C145": 315,
+        "C146": 80,
+        "C147": 280,
+        "C148": 110,
+        "C149": 500,
+        "C15": 315,
+        "C150": 80,
+        "C151": 125,
+        "C152": 65,
+        "C153": 315,
+        "C154": 25,
+        "C155": 400,
+        "C156": 500,
+        "C157": 110,
+        "C158": 80,
+        "C159": 80,
+        "C16": 450,
+        "C160": 710,
+        "C161": 630,
+        "C162": 40,
+        "C163": 500,
+        "C164": 450,
+        "C165": 125,
+        "C166": 65,
+        "C167": 560,
+        "C168": 140,
+        "C169": 20,
+        "C17": 200,
+        "C170": 900,
+        "C171": 200,
+        "C172": 160,
+        "C173": 350,
+        "C174": 40,
+        "C175": 800,
+        "C176": 200,
+        "C177": 630,
+        "C178": 40,
+        "C179": 65,
+        "C18": 315,
+        "C180": 160,
+        "C181": 900,
+        "C182": 25,
+        "C183": 65,
+        "C184": 250,
+        "C185": 400,
+        "C186": 160,
+        "C187": 90,
+        "C188": 25,
+        "C189": 50,
+        "C19": 400,
+        "C190": 315,
+        "C191": 450,
+        "C192": 65,
+        "C193": 32,
+        "C194": 560,
+        "C195": 560,
+        "C196": 450,
+        "C197": 280,
+        "C198": 140,
+        "C199": 110,
+        "C2": 65,
+        "C20": 500,
+        "C200": 560,
+        "C201": 315,
+        "C202": 280,
+        "C203": 25,
+        "C204": 200,
+        "C205": 800,
+        "C21": 800,
+        "C22": 20,
+        "C23": 450,
+        "C24": 75,
+        "C25": 125,
+        "C26": 400,
+        "C27": 32,
+        "C28": 90,
+        "C29": 450,
+        "C3": 80,
+        "C30": 25,
+        "C31": 20,
+        "C32": 900,
+        "C33": 160,
+        "C34": 25,
+        "C35": 630,
+        "C36": 630,
+        "C37": 250,
+        "C38": 110,
+        "C39": 40,
+        "C4": 125,
+        "C40": 125,
+        "C41": 630,
+        "C42": 65,
+        "C43": 40,
+        "C44": 280,
+        "C45": 90,
+        "C46": 710,
+        "C47": 65,
+        "C48": 280,
+        "C49": 180,
+        "C5": 80,
+        "C50": 450,
+        "C51": 75,
+        "C52": 180,
+        "C53": 110,
+        "C54": 90,
+        "C55": 280,
+        "C56": 80,
+        "C57": 900,
+        "C58": 25,
+        "C59": 90,
+        "C6": 900,
+        "C60": 315,
+        "C61": 32,
+        "C62": 710,
+        "C63": 80,
+        "C64": 710,
+        "C65": 125,
+        "C66": 250,
+        "C67": 180,
+        "C68": 350,
+        "C69": 500,
+        "C7": 800,
+        "C70": 90,
+        "C71": 200,
+        "C72": 75,
+        "C73": 315,
+        "C74": 180,
+        "C75": 225,
+        "C76": 180,
+        "C77": 630,
+        "C78": 20,
+        "C79": 180,
+        "C8": 75,
+        "C80": 225,
+        "C81": 315,
+        "C82": 710,
+        "C83": 65,
+        "C84": 350,
+        "C85": 900,
+        "C86": 315,
+        "C87": 110,
+        "C88": 315,
+        "C89": 25,
+        "C9": 200,
+        "C90": 40,
+        "C91": 50,
+        "C92": 900,
+        "C93": 80,
+        "C94": 20,
+        "C95": 280,
+        "C96": 250,
+        "C97": 315,
+        "C98": 500,
+        "C99": 250
+      },
+      "id": "genetic_best",
+      "max_velocity_m_s": 1.493151068687439,
+      "metrics": {
+        "max_velocity_m_s": 1.493151068687439,
+        "min_pressure_m": 4.500000476837158,
+        "performance_hydraulique": 0.5404878048780486
+      },
+      "min_pressure_m": 4.500000476837158
+    }
+  ],
+  "report_payload": {
+    "metadata": {
+      "constraints": {
+        "pressure_min_m": 12.0,
+        "velocity_max_m_s": 2.0,
+        "velocity_min_m_s": 0.3
+      },
+      "method": "genetic",
+      "network_file": "src\\lcpi\\aep\\PROTOTYPE\\INP\\bismark-Administrator.inp",
+      "price_db_info": null,
+      "solver": "epanet"
+    },
+    "pareto_front": [],
+    "proposals": [
+      {
+        "costs": {
+          "capex": 88758876.23162842,
+          "opex_npv": null
+        },
+        "diameters_mm": {
+          "C1": 710,
+          "C10": 900,
+          "C100": 32,
+          "C101": 32,
+          "C102": 280,
+          "C103": 500,
+          "C104": 180,
+          "C105": 80,
+          "C106": 20,
+          "C107": 110,
+          "C108": 400,
+          "C109": 200,
+          "C11": 400,
+          "C110": 40,
+          "C111": 280,
+          "C112": 32,
+          "C113": 250,
+          "C114": 500,
+          "C115": 280,
+          "C116": 350,
+          "C117": 225,
+          "C118": 560,
+          "C119": 200,
+          "C12": 630,
+          "C120": 125,
+          "C121": 40,
+          "C122": 200,
+          "C123": 80,
+          "C124": 500,
+          "C125": 350,
+          "C126": 315,
+          "C127": 400,
+          "C128": 250,
+          "C129": 40,
+          "C13": 400,
+          "C130": 25,
+          "C131": 90,
+          "C132": 225,
+          "C133": 900,
+          "C134": 400,
+          "C135": 350,
+          "C136": 125,
+          "C137": 200,
+          "C138": 630,
+          "C139": 560,
+          "C14": 200,
+          "C140": 560,
+          "C141": 80,
+          "C142": 900,
+          "C143": 900,
+          "C144": 560,
+          "C145": 315,
+          "C146": 80,
+          "C147": 280,
+          "C148": 110,
+          "C149": 500,
+          "C15": 315,
+          "C150": 80,
+          "C151": 125,
+          "C152": 65,
+          "C153": 315,
+          "C154": 25,
+          "C155": 400,
+          "C156": 500,
+          "C157": 110,
+          "C158": 80,
+          "C159": 80,
+          "C16": 450,
+          "C160": 710,
+          "C161": 630,
+          "C162": 40,
+          "C163": 500,
+          "C164": 450,
+          "C165": 125,
+          "C166": 65,
+          "C167": 560,
+          "C168": 140,
+          "C169": 20,
+          "C17": 200,
+          "C170": 900,
+          "C171": 200,
+          "C172": 160,
+          "C173": 350,
+          "C174": 40,
+          "C175": 800,
+          "C176": 200,
+          "C177": 630,
+          "C178": 40,
+          "C179": 65,
+          "C18": 315,
+          "C180": 160,
+          "C181": 900,
+          "C182": 25,
+          "C183": 65,
+          "C184": 250,
+          "C185": 400,
+          "C186": 160,
+          "C187": 90,
+          "C188": 25,
+          "C189": 50,
+          "C19": 400,
+          "C190": 315,
+          "C191": 450,
+          "C192": 65,
+          "C193": 32,
+          "C194": 560,
+          "C195": 560,
+          "C196": 450,
+          "C197": 280,
+          "C198": 140,
+          "C199": 110,
+          "C2": 65,
+          "C20": 500,
+          "C200": 560,
+          "C201": 315,
+          "C202": 280,
+          "C203": 25,
+          "C204": 200,
+          "C205": 800,
+          "C21": 800,
+          "C22": 20,
+          "C23": 450,
+          "C24": 75,
+          "C25": 125,
+          "C26": 400,
+          "C27": 32,
+          "C28": 90,
+          "C29": 450,
+          "C3": 80,
+          "C30": 25,
+          "C31": 20,
+          "C32": 900,
+          "C33": 160,
+          "C34": 25,
+          "C35": 630,
+          "C36": 630,
+          "C37": 250,
+          "C38": 110,
+          "C39": 40,
+          "C4": 125,
+          "C40": 125,
+          "C41": 630,
+          "C42": 65,
+          "C43": 40,
+          "C44": 280,
+          "C45": 90,
+          "C46": 710,
+          "C47": 65,
+          "C48": 280,
+          "C49": 180,
+          "C5": 80,
+          "C50": 450,
+          "C51": 75,
+          "C52": 180,
+          "C53": 110,
+          "C54": 90,
+          "C55": 280,
+          "C56": 80,
+          "C57": 900,
+          "C58": 25,
+          "C59": 90,
+          "C6": 900,
+          "C60": 315,
+          "C61": 32,
+          "C62": 710,
+          "C63": 80,
+          "C64": 710,
+          "C65": 125,
+          "C66": 250,
+          "C67": 180,
+          "C68": 350,
+          "C69": 500,
+          "C7": 800,
+          "C70": 90,
+          "C71": 200,
+          "C72": 75,
+          "C73": 315,
+          "C74": 180,
+          "C75": 225,
+          "C76": 180,
+          "C77": 630,
+          "C78": 20,
+          "C79": 180,
+          "C8": 75,
+          "C80": 225,
+          "C81": 315,
+          "C82": 710,
+          "C83": 65,
+          "C84": 350,
+          "C85": 900,
+          "C86": 315,
+          "C87": 110,
+          "C88": 315,
+          "C89": 25,
+          "C9": 200,
+          "C90": 40,
+          "C91": 50,
+          "C92": 900,
+          "C93": 80,
+          "C94": 20,
+          "C95": 280,
+          "C96": 250,
+          "C97": 315,
+          "C98": 500,
+          "C99": 250
+        },
+        "is_feasible": false,
+        "name": "genetic_best",
+        "tanks": []
+      }
+    ]
+  }
+}</pre>
+					</details>
+				</section>
+			
+		</main>
+
+		<footer class="page-footer">
+			Rapport généré le 2025-08-19 — LCPI v2.1.0
+		</footer>
+	</div>
+</body>
+</html>
+

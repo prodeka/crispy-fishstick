@@ -1,0 +1,12 @@
+{
+  "meta": {
+    "solvers": [
+      "epanet",
+      "lcpi"
+    ]
+  },
+  "results": {
+    "epanet": "results\\out_multi_epanet.json",
+    "lcpi": "results\\out_multi_lcpi.json"
+  }
+}

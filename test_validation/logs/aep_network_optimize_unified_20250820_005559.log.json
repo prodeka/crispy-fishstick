@@ -1,0 +1,80 @@
+{
+  "meta": {
+    "method": "nested",
+    "solver": "epanet",
+    "source": "test_curves_orphelines.inp",
+    "constraints": {
+      "pressure_min_m": 10.0,
+      "velocity_min_m_s": 0.3,
+      "velocity_max_m_s": 2.0
+    },
+    "source_meta": {
+      "source": "inp",
+      "format": "inp",
+      "checksum": "e395c3e06aea4b221cb3405422be0d2246fc9994b23c347cd13f22924cdce6fc",
+      "links_parsed": 1,
+      "file_path": "test_curves_orphelines.inp"
+    }
+  },
+  "proposals": [
+    {
+      "id": "nested_greedy_solution",
+      "H_tank_m": 25.039,
+      "diameters_mm": {
+        "P1": 100
+      },
+      "CAPEX": 673900.0,
+      "OPEX_NPV": 0.0,
+      "constraints_ok": true,
+      "constraints_violations": []
+    }
+  ],
+  "pareto": null,
+  "metrics": {},
+  "cache_info": {
+    "hit": false
+  },
+  "hydraulics": {
+    "error": "Chargement INP échoué: could not convert string to float: 'OPEN'"
+  },
+  "report_payload": {
+    "metadata": {
+      "network_file": "test_curves_orphelines.inp",
+      "method": "nested",
+      "solver": "epanet",
+      "constraints": {
+        "pressure_min_m": 10.0,
+        "velocity_min_m_s": 0.3,
+        "velocity_max_m_s": 2.0
+      },
+      "price_db_info": null
+    },
+    "proposals": [
+      {
+        "name": "nested_greedy_solution",
+        "is_feasible": true,
+        "costs": {
+          "capex": 673900.0,
+          "opex_npv": 0.0
+        },
+        "tanks": [
+          {
+            "H_m": 25.039
+          }
+        ],
+        "diameters_mm": {
+          "P1": 100
+        }
+      }
+    ],
+    "pareto_front": []
+  },
+  "integrity": {
+    "checksum": "c9099c86fdf9a9afabb053acef32507e300503c92f0ab34d00c423682b74f06b",
+    "signature": "4748dd30e21657154de3165b3aa65adf4d55c4b0c0d9b5bc18d919e3f96dd400",
+    "signature_valid": true,
+    "algorithm": "HMAC-SHA256",
+    "timestamp": 1755651359.8112407,
+    "signed_at": "2025-08-20T00:55:59.811241"
+  }
+}

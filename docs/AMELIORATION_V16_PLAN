@@ -1,0 +1,37 @@
+### Plan d’action V16 (exécutif)
+
+- **Sprint A (≈2,5 j) — Stabilisation & contraintes**
+  - Implémenter `constraints_handler.py` + unit tests.
+  - Activer pénalités par défaut et ajouter le flag `--hard-vel`.
+  - Ajouter la provenance PriceDB (`price_db_info`: path + checksum + version) + tests.
+  - Mettre en place la CI: job pytest + quick e2e (solveur mock).
+  - Normaliser l’aide CLI: supprimer caractères Unicode problématiques.
+
+- **Sprint B (≈2,5 j) — Hybridation & perfs**
+  - Ajouter le hook `on_generation_callback` dans `GeneticOptimizer` et adapter le contrôleur.
+  - Écrire des tests ciblés pour le refiner hybride (mock).
+  - Valider le cache et exposer des métriques de cache dans les logs.
+  - Lancer un e2e complet (WNTR si dispo en CI) et corriger.
+
+- **Critères d’acceptation (DoD)**
+  - `lcpi aep network-optimize-unified` accepte `.inp` et `.yml`.
+  - Flags `--pression-min`, `--vitesse-min`, `--vitesse-max`, `--method`, `--hybrid-refiner` opérationnels et documentés.
+  - `constraints_handler` utilisé par au moins `nested` et `genetic` (soft par défaut; hard via flag).
+  - Hook GA actif; le wrapper hybride montre une amélioration mesurable.
+  - `price_db_info` présent dans `meta`.
+  - Logs signés; vérification d’intégrité valide.
+  - CI verte (unit + quick e2e).
+  - Le template `optimisation_tank.jinja2` génère le rapport à partir du JSON V16.
+
+- **Charge estimée**
+  - ≈ 5 jours ouvrés.
+
+- **Priorités immédiates**
+  - Centraliser la gestion des contraintes (implémentation + intégration).
+  - Mettre en place/passer la CI (unit + e2e mock).
+  - Ajouter le hook GA pour l’hybridation propre.
+
+- **Références**
+  - Détails dans `docs/AUDIT_V16_cursor.md` (sections 6–8).
+
+- Plan en 2 sprints (~5 jours): priorités contraintes/CI/hook GA; DoD inclut support `.inp/.yml`, flags, PriceDB, logs signés et report OK.

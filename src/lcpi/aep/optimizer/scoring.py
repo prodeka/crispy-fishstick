@@ -102,6 +102,105 @@ class CostScorer:
             
         return float(total_cost)
 
+    def compute_capex_with_breakdown(self, network: Any, diameters: Dict[str, int]) -> Dict[str, Any]:
+        """Retourne un détail par conduite (tuyau + accessoires) et le total CAPEX.
+
+        Structure:
+        {
+          "total_capex": float,
+          "items": [
+            {
+              "link_id": str,
+              "length_m": float,
+              "dn_mm": int,
+              "unit_cost_per_m": float,
+              "pipe_cost": float,
+              "accessories": [ {"code": str, "dn_mm": int, "qty": float, "unit_fcfa": float, "cost": float} ],
+              "accessories_cost": float,
+              "total": float
+            }, ...
+          ]
+        }
+        """
+        links = getattr(network, "links", None)
+        if links is None and isinstance(network, dict):
+            links = network.get("links", {})
+
+        items = []
+        total_capex = 0.0
+        for link_id, link_data in (links or {}).items():
+            length = float(link_data.get("length_m", 0.0))
+            dn_val = diameters.get(link_id, link_data.get("diameter_mm"))
+            if dn_val is None:
+                continue
+            # prix par mètre
+            unit = self.diameter_costs.get(int(dn_val)) if self.diameter_costs else None
+            if (unit is None or float(unit) == 0.0) and prices_dao is not None:
+                try:
+                    db_price = prices_dao.get_diameter_price(int(dn_val), "PVC-U")
+                    if db_price is None:
+                        avail = prices_dao.get_available_diameters("PVC-U") or []
+                        dn_list = sorted(int(x.get("d_mm")) for x in avail if x.get("d_mm") is not None)
+                        chosen = next((dn for dn in dn_list if dn >= int(dn_val)), (dn_list[-1] if dn_list else None))
+                        if chosen is not None:
+                            db_price = prices_dao.get_diameter_price(int(chosen), "PVC-U")
+                    unit = float(db_price) if db_price is not None else 0.0
+                except Exception:
+                    unit = 0.0
+            unit = float(unit or 0.0)
+            pipe_cost = unit * length
+
+            # accessoires
+            accessories_total = 0.0
+            accessories_out = []
+            try:
+                accessories_list = link_data.get("accessories") or []
+                if isinstance(accessories_list, list):
+                    for acc in accessories_list:
+                        if not isinstance(acc, dict):
+                            continue
+                        code = acc.get("accessory_code") or acc.get("code")
+                        dn_acc = acc.get("dn_mm") or int(dn_val)
+                        qty = acc.get("qty") or acc.get("quantity") or 1
+                        unit_price = acc.get("unit_fcfa")
+                        if unit_price is None and prices_dao is not None and code:
+                            try:
+                                p = prices_dao.get_accessory_price(str(code), int(dn_acc))
+                                unit_price = float(p) if p is not None else 0.0
+                            except Exception:
+                                unit_price = 0.0
+                        unit_price = float(unit_price or 0.0)
+                        try:
+                            qty_val = float(qty)
+                        except Exception:
+                            qty_val = 1.0
+                        cost = qty_val * unit_price
+                        accessories_total += cost
+                        accessories_out.append({
+                            "code": code,
+                            "dn_mm": int(dn_acc),
+                            "qty": qty_val,
+                            "unit_fcfa": unit_price,
+                            "cost": cost,
+                        })
+            except Exception:
+                accessories_total = accessories_total
+
+            total_item = pipe_cost + accessories_total
+            total_capex += total_item
+            items.append({
+                "link_id": link_id,
+                "length_m": length,
+                "dn_mm": int(dn_val),
+                "unit_cost_per_m": unit,
+                "pipe_cost": pipe_cost,
+                "accessories": accessories_out,
+                "accessories_cost": accessories_total,
+                "total": total_item,
+            })
+
+        return {"total_capex": float(total_capex), "items": items}
+
     def compute_total_cost(self, network: Any, diameters: Dict[str, int], sim_results: Optional[Dict[str, Any]] = None, lambda_opex: float = 1.0) -> float:
         """Calcule le coût total pondéré (CAPEX + λ*OPEX)."""
         capex = self.compute_capex(network, diameters)

@@ -1,0 +1,26 @@
+{
+  "meta": {
+    "solvers": [
+      "epanet",
+      "lcpi"
+    ],
+    "method": "genetic",
+    "input_file": "src/lcpi/aep/PROTOTYPE/INP/bismark-Administrator.inp",
+    "constraints": {
+      "min_pressure_m": 12.0,
+      "max_velocity_ms": 2.0
+    },
+    "generation_date": "2025-08-19T23:20:45.373237",
+    "comparison_metrics": [
+      "CAPEX",
+      "min_pressure_m",
+      "max_pressure_m",
+      "max_velocity_ms",
+      "efficiency_score"
+    ]
+  },
+  "results": {
+    "epanet": "results/out_multi_epanet_realistic.json",
+    "lcpi": "results/out_multi_lcpi_realistic.json"
+  }
+}

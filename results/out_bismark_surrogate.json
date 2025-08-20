@@ -1,0 +1,32 @@
+{
+  "proposals": [],
+  "pareto_front": null,
+  "metadata": {
+    "method": "surrogate_optimization",
+    "error": "Aucun point faisable trouvé par le surrogate",
+    "dataset_size": 25,
+    "feasible": false
+  },
+  "meta": {
+    "method": "surrogate",
+    "solver": "lcpi",
+    "constraints": {
+      "pressure_min_m": 12.0,
+      "velocity_min_m_s": 0.3,
+      "velocity_max_m_s": 2.0
+    },
+    "source_meta": {
+      "source": "inp",
+      "file": "C:\\PROJET_DIMENTIONEMENT_2\\src\\lcpi\\aep\\PROTOTYPE\\INP\\bismark-Administrator.inp",
+      "converted_at": 1755614585.4768405
+    }
+  },
+  "integrity": {
+    "checksum": "debafd95c9e3b2c1bea7f1d15b0bf8d1bdaf8184f911bf4a2c05b10d8ba780a1",
+    "signature": "5ed0671999943cceda50f7c5039ca592d6c20bf8d538d112eae49f14667784da",
+    "signature_valid": true,
+    "algorithm": "HMAC-SHA256",
+    "timestamp": 1755614586.0226786,
+    "signed_at": "2025-08-19T14:43:06.022679"
+  }
+}

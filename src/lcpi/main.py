@@ -93,6 +93,56 @@ def main_callback(json_output: bool = typer.Option(False, "--json", help="Active
     logging.getLogger('matplotlib').setLevel(logging.WARNING)
     logging.getLogger('lcpi').setLevel(logging.WARNING)
 
+    # Assurer un contexte projet/sandbox uniforme pour toutes les commandes métier
+    try:
+        import sys as _sys
+        from .core.context import project_context as _pc
+        from .core.context import handle_sandbox_logic as _sb, ensure_project_structure as _ensure
+        args = _sys.argv[1:]
+        metier_plugins = {"aep", "cm", "bois", "beton", "hydro"}
+        if args and args[0] in metier_plugins:
+            if not _pc.is_project_active():
+                sb_path = _sb()
+                try:
+                    # Proposer sandbox si aucun projet actif
+                    if not typer.confirm(f"Aucun projet actif. Exécuter en sandbox à {sb_path} ?", default=True):
+                        console.print("Opération annulée.")
+                        raise typer.Exit(1)
+                except Exception:
+                    pass
+                _ensure(sb_path)
+                console.print(f"🏖️  Mode sandbox actif: {sb_path}")
+    except Exception:
+        # Ne pas bloquer l'exécution si le contexte global échoue
+        pass
+
+@app.command(name="help")
+def show_root_help():
+    """Affiche l'aide principale incluant les sous-commandes plugins."""
+    try:
+        console.print("\n[bold]Commandes principales LCPI[/bold]")
+        subapps = [
+            ("aep", "Commandes AEP (Alimentation en Eau Potable)"),
+            ("cm", "Commandes Construction Métallique"),
+            ("bois", "Commandes Bois"),
+            ("beton", "Commandes Béton Armé"),
+            ("hydro", "Commandes Hydro/Assainissement"),
+            ("rapport", "Génération de rapports"),
+            ("project", "Gestion des projets"),
+            ("shell", "Mode interactif"),
+            ("logs", "Gestion des logs"),
+        ]
+        table = Table(title="Sous-commandes plugins")
+        table.add_column("Commande", style="cyan")
+        table.add_column("Description", style="green")
+        for name, desc in subapps:
+            table.add_row(name, desc)
+        console.print(table)
+        console.print("\n💡 Utilisez 'lcpi <plugin> --help' pour l'aide détaillée.")
+    except Exception:
+        # Fallback: laisser Typer générer l'aide par défaut
+        pass
+
 # -----------------------------------------------------------------------------
 # Configuration des chemins pour le développement
 # -----------------------------------------------------------------------------

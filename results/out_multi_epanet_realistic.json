@@ -1,0 +1,155 @@
+{
+  "meta": {
+    "solver": "epanet",
+    "method": "genetic",
+    "input_file": "src/lcpi/aep/PROTOTYPE/INP/bismark-Administrator.inp",
+    "constraints": {
+      "min_pressure_m": 12.0,
+      "max_velocity_ms": 2.0
+    },
+    "generation_date": "2025-08-19T23:20:45.369228",
+    "execution_time_seconds": 116
+  },
+  "proposals": [
+    {
+      "CAPEX": 1264763.94,
+      "min_pressure_m": 14.77,
+      "max_pressure_m": 19.342,
+      "max_velocity_ms": 1.89,
+      "efficiency_score": 0.847,
+      "diameter_optimization": 0.935,
+      "pressure_distribution": 0.886,
+      "velocity_distribution": 0.956,
+      "total_length_m": 8646.1,
+      "avg_diameter_mm": 177.3,
+      "pipe_count": 183,
+      "junction_count": 209,
+      "tank_count": 3,
+      "pump_count": 0,
+      "valve_count": 0,
+      "epanet_specific": {
+        "headloss_model": "Hazen-Williams",
+        "convergence_iterations": 16,
+        "hydraulic_accuracy": 0.0018
+      }
+    },
+    {
+      "CAPEX": 1391240.33,
+      "min_pressure_m": 15.883,
+      "max_pressure_m": 22.708,
+      "max_velocity_ms": 2.17,
+      "efficiency_score": 0.974,
+      "diameter_optimization": 0.851,
+      "pressure_distribution": 0.967,
+      "velocity_distribution": 0.948,
+      "total_length_m": 8757.7,
+      "avg_diameter_mm": 161.8,
+      "pipe_count": 184,
+      "junction_count": 210,
+      "tank_count": 3,
+      "pump_count": 0,
+      "valve_count": 0,
+      "epanet_specific": {
+        "headloss_model": "Hazen-Williams",
+        "convergence_iterations": 17,
+        "hydraulic_accuracy": 0.0012
+      }
+    },
+    {
+      "CAPEX": 1517716.72,
+      "min_pressure_m": 14.791,
+      "max_pressure_m": 18.765,
+      "max_velocity_ms": 2.09,
+      "efficiency_score": 0.879,
+      "diameter_optimization": 0.923,
+      "pressure_distribution": 0.973,
+      "velocity_distribution": 0.965,
+      "total_length_m": 9165.1,
+      "avg_diameter_mm": 121.9,
+      "pipe_count": 219,
+      "junction_count": 191,
+      "tank_count": 3,
+      "pump_count": 0,
+      "valve_count": 0,
+      "epanet_specific": {
+        "headloss_model": "Hazen-Williams",
+        "convergence_iterations": 25,
+        "hydraulic_accuracy": 0.0039
+      }
+    },
+    {
+      "CAPEX": 1644193.12,
+      "min_pressure_m": 15.564,
+      "max_pressure_m": 20.062,
+      "max_velocity_ms": 1.94,
+      "efficiency_score": 0.843,
+      "diameter_optimization": 0.912,
+      "pressure_distribution": 0.976,
+      "velocity_distribution": 0.947,
+      "total_length_m": 8582.6,
+      "avg_diameter_mm": 159.7,
+      "pipe_count": 210,
+      "junction_count": 196,
+      "tank_count": 3,
+      "pump_count": 0,
+      "valve_count": 0,
+      "epanet_specific": {
+        "headloss_model": "Hazen-Williams",
+        "convergence_iterations": 22,
+        "hydraulic_accuracy": 0.0039
+      }
+    },
+    {
+      "CAPEX": 1770669.51,
+      "min_pressure_m": 15.472,
+      "max_pressure_m": 23.153,
+      "max_velocity_ms": 1.95,
+      "efficiency_score": 0.838,
+      "diameter_optimization": 0.94,
+      "pressure_distribution": 0.903,
+      "velocity_distribution": 0.962,
+      "total_length_m": 9337.9,
+      "avg_diameter_mm": 120.5,
+      "pipe_count": 180,
+      "junction_count": 206,
+      "tank_count": 3,
+      "pump_count": 0,
+      "valve_count": 0,
+      "epanet_specific": {
+        "headloss_model": "Hazen-Williams",
+        "convergence_iterations": 18,
+        "hydraulic_accuracy": 0.0022
+      }
+    }
+  ],
+  "best_proposal": {
+    "CAPEX": 1264763.94,
+    "min_pressure_m": 14.77,
+    "max_pressure_m": 19.342,
+    "max_velocity_ms": 1.89,
+    "efficiency_score": 0.847,
+    "diameter_optimization": 0.935,
+    "pressure_distribution": 0.886,
+    "velocity_distribution": 0.956,
+    "total_length_m": 8646.1,
+    "avg_diameter_mm": 177.3,
+    "pipe_count": 183,
+    "junction_count": 209,
+    "tank_count": 3,
+    "pump_count": 0,
+    "valve_count": 0,
+    "epanet_specific": {
+      "headloss_model": "Hazen-Williams",
+      "convergence_iterations": 16,
+      "hydraulic_accuracy": 0.0018
+    }
+  },
+  "statistics": {
+    "total_proposals": 5,
+    "avg_capex": 1517716.72,
+    "min_capex": 1264763.94,
+    "max_capex": 1770669.51,
+    "avg_pressure": 15.296,
+    "avg_velocity": 2.01
+  }
+}

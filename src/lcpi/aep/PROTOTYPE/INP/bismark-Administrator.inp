@@ -430,10 +430,7 @@ N41_N42 N41 N42 0.0006301617786627313 394.6 0.009 0.0 OPEN
 
 [CURVES] ; created by QWater
 ;ID              	X-Value     	Y-Value
-;PUMP:  Pompe de surpression destinée à augmenter la pression et assurer une desserte adéquate pour la Zone Ouest du réseau. Elle est typiquement installée pour compenser les pertes de charge importantes ou pour alimenter des secteurs topographiquement plus élevés non atteignables avec la pression du réseau principal
- PmpSO	0.0	95.0
- PmpSO	101.0	80.0
- PmpSO	131.0	65.0
+; Note: Aucune courbe de pompe définie car le réseau ne contient pas de pompes
 [CONTROLS]
 
 [RULES]

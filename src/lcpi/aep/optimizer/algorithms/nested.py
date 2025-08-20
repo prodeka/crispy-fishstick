@@ -13,6 +13,7 @@ from ..solvers.lcpi_optimizer import LCPIOptimizer
 from ..scoring import CostScorer
 from ..db_dao import get_candidate_diameters
 from ..models import OptimizationResult, Proposal, TankDecision
+from ...utils.warnings_filter import suppress_warnings_decorator
 
 
 @dataclass
@@ -30,6 +31,7 @@ class NestedGreedyOptimizer:
 		self.network = network_model
 		self.solver_choice = solver
 
+	@suppress_warnings_decorator
 	def optimize_nested(
 		self,
 		H_bounds: Tuple[float, float],
@@ -98,16 +100,19 @@ class NestedGreedyOptimizer:
 					break
 			current[lid] = feasible_choice
 
-		# Scoring CAPEX relié à la DB de prix
+		# Mesurer les métriques hydrauliques finales avec la solution trouvée
+		p_min_final, v_max_final, _pressures, _velocities = simulate_with(H_opt, current)
+
+		# Scoring CAPEX relié à la DB de prix, avec détail tuyaux + accessoires
 		scorer = CostScorer(diameter_cost_db=None)
-		total_cost = scorer.compute_total_cost(nm, current, None)
-		
-		# Calcul des coûts détaillés
-		capex = scorer.compute_capex(nm, current)
+		breakdown = scorer.compute_capex_with_breakdown(nm, current)
+		capex = breakdown.get("total_capex", 0.0)
+		# total = CAPEX (pas d'OPEX ici)
 		costs = {
 			"CAPEX": capex,
-			"OPEX": 0.0,  # Pas de simulation pour l'OPEX
-			"total": total_cost
+			"OPEX": 0.0,
+			"total": capex,
+			"CAPEX_breakdown": breakdown,
 		}
 
 		# Créer la proposition au format V11
@@ -123,8 +128,8 @@ class NestedGreedyOptimizer:
 			diameters_mm=current,
 			costs=costs,
 			metrics={
-				"min_pressure_m": float(pressure_min_m),
-				"max_velocity_m_s": float(vmax) if vmax != float("inf") else 0.0,
+				"min_pressure_m": float(p_min_final),
+				"max_velocity_m_s": float(v_max_final),
 				"binary_iterations": bres.get("iterations")
 			}
 		)

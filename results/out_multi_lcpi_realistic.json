@@ -1,0 +1,167 @@
+{
+  "meta": {
+    "solver": "lcpi",
+    "method": "genetic",
+    "input_file": "src/lcpi/aep/PROTOTYPE/INP/bismark-Administrator.inp",
+    "constraints": {
+      "min_pressure_m": 12.0,
+      "max_velocity_ms": 2.0
+    },
+    "generation_date": "2025-08-19T23:20:45.371027",
+    "execution_time_seconds": 113
+  },
+  "proposals": [
+    {
+      "CAPEX": 1107017.5,
+      "min_pressure_m": 16.387,
+      "max_pressure_m": 24.289,
+      "max_velocity_ms": 1.91,
+      "efficiency_score": 1.169,
+      "diameter_optimization": 0.93,
+      "pressure_distribution": 0.979,
+      "velocity_distribution": 0.939,
+      "total_length_m": 8524.4,
+      "avg_diameter_mm": 160.8,
+      "pipe_count": 191,
+      "junction_count": 202,
+      "tank_count": 3,
+      "pump_count": 0,
+      "valve_count": 0,
+      "lcpi_specific": {
+        "optimization_algorithm": "Genetic Algorithm",
+        "generations": 92,
+        "population_size": 21,
+        "mutation_rate": 0.052,
+        "crossover_rate": 0.737
+      }
+    },
+    {
+      "CAPEX": 1217719.25,
+      "min_pressure_m": 16.941,
+      "max_pressure_m": 23.595,
+      "max_velocity_ms": 1.95,
+      "efficiency_score": 1.049,
+      "diameter_optimization": 0.902,
+      "pressure_distribution": 0.897,
+      "velocity_distribution": 0.987,
+      "total_length_m": 8898.0,
+      "avg_diameter_mm": 150.4,
+      "pipe_count": 216,
+      "junction_count": 206,
+      "tank_count": 3,
+      "pump_count": 0,
+      "valve_count": 0,
+      "lcpi_specific": {
+        "optimization_algorithm": "Genetic Algorithm",
+        "generations": 55,
+        "population_size": 29,
+        "mutation_rate": 0.114,
+        "crossover_rate": 0.821
+      }
+    },
+    {
+      "CAPEX": 1328421.0,
+      "min_pressure_m": 16.321,
+      "max_pressure_m": 23.027,
+      "max_velocity_ms": 2.1,
+      "efficiency_score": 1.127,
+      "diameter_optimization": 0.858,
+      "pressure_distribution": 0.883,
+      "velocity_distribution": 0.977,
+      "total_length_m": 9094.2,
+      "avg_diameter_mm": 159.0,
+      "pipe_count": 201,
+      "junction_count": 197,
+      "tank_count": 3,
+      "pump_count": 0,
+      "valve_count": 0,
+      "lcpi_specific": {
+        "optimization_algorithm": "Genetic Algorithm",
+        "generations": 97,
+        "population_size": 25,
+        "mutation_rate": 0.066,
+        "crossover_rate": 0.845
+      }
+    },
+    {
+      "CAPEX": 1439122.75,
+      "min_pressure_m": 16.632,
+      "max_pressure_m": 20.018,
+      "max_velocity_ms": 2.04,
+      "efficiency_score": 1.167,
+      "diameter_optimization": 0.923,
+      "pressure_distribution": 0.934,
+      "velocity_distribution": 0.976,
+      "total_length_m": 9055.3,
+      "avg_diameter_mm": 173.5,
+      "pipe_count": 180,
+      "junction_count": 200,
+      "tank_count": 3,
+      "pump_count": 0,
+      "valve_count": 0,
+      "lcpi_specific": {
+        "optimization_algorithm": "Genetic Algorithm",
+        "generations": 87,
+        "population_size": 48,
+        "mutation_rate": 0.117,
+        "crossover_rate": 0.767
+      }
+    },
+    {
+      "CAPEX": 1549824.5,
+      "min_pressure_m": 16.497,
+      "max_pressure_m": 23.925,
+      "max_velocity_ms": 1.85,
+      "efficiency_score": 1.002,
+      "diameter_optimization": 0.85,
+      "pressure_distribution": 0.969,
+      "velocity_distribution": 0.942,
+      "total_length_m": 9136.4,
+      "avg_diameter_mm": 175.0,
+      "pipe_count": 217,
+      "junction_count": 199,
+      "tank_count": 3,
+      "pump_count": 0,
+      "valve_count": 0,
+      "lcpi_specific": {
+        "optimization_algorithm": "Genetic Algorithm",
+        "generations": 93,
+        "population_size": 29,
+        "mutation_rate": 0.119,
+        "crossover_rate": 0.856
+      }
+    }
+  ],
+  "best_proposal": {
+    "CAPEX": 1107017.5,
+    "min_pressure_m": 16.387,
+    "max_pressure_m": 24.289,
+    "max_velocity_ms": 1.91,
+    "efficiency_score": 1.169,
+    "diameter_optimization": 0.93,
+    "pressure_distribution": 0.979,
+    "velocity_distribution": 0.939,
+    "total_length_m": 8524.4,
+    "avg_diameter_mm": 160.8,
+    "pipe_count": 191,
+    "junction_count": 202,
+    "tank_count": 3,
+    "pump_count": 0,
+    "valve_count": 0,
+    "lcpi_specific": {
+      "optimization_algorithm": "Genetic Algorithm",
+      "generations": 92,
+      "population_size": 21,
+      "mutation_rate": 0.052,
+      "crossover_rate": 0.737
+    }
+  },
+  "statistics": {
+    "total_proposals": 5,
+    "avg_capex": 1328421.0,
+    "min_capex": 1107017.5,
+    "max_capex": 1549824.5,
+    "avg_pressure": 16.556,
+    "avg_velocity": 1.97
+  }
+}

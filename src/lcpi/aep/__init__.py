@@ -27,6 +27,7 @@ except ImportError:
 # Import des commandes
 try:
     from .commands import network_optimize
+    from .commands import network_optimize_unified
     COMMANDS_AVAILABLE = True
 except ImportError:
     COMMANDS_AVAILABLE = False

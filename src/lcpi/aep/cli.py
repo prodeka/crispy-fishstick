@@ -2773,320 +2773,688 @@ def recalcul(
 
 @app.command("network-optimize-unified")
 def network_optimize_unified(
-    input_file: Path = typer.Argument(..., help="Fichier YAML contenant la configuration d'optimisation"),
-    solver: str = typer.Option("lcpi", "--solver", "-s", help="Solveur hydraulique (lcpi/epanet)"),
-    method: str = typer.Option("nested", "--method", "-m", help="Méthode d'optimisation (nested|genetic|surrogate|global|multi-tank)"),
-    pression_min: Optional[float] = typer.Option(None, "--pression-min", help="Pression minimale (m)"),
-    vitesse_min: Optional[float] = typer.Option(None, "--vitesse-min", help="Vitesse minimale (m/s)"),
-    vitesse_max: Optional[float] = typer.Option(None, "--vitesse-max", help="Vitesse maximale (m/s)"),
-    hybrid_refiner: Optional[str] = typer.Option(None, "--hybrid-refiner", help="Raffinement local post-run (ex: nested)"),
-    hybrid_topk: int = typer.Option(2, "--hybrid-topk", help="Top-K solutions à raffiner"),
-    hybrid_steps: int = typer.Option(1, "--hybrid-steps", help="Nombre d'étapes de raffinage local"),
-    penalty_weight: float = typer.Option(1e6, "--penalty-weight", help="Poids de pénalité pour contraintes soft"),
-    penalty_beta: float = typer.Option(1.0, "--penalty-beta", help="Exposant de pénalité (1 ou 2)"),
-    critere: str = typer.Option("cout", "--critere", "-c", help="Critère d'optimisation principal (cout/energie/performance)"),
-    budget_max: float = typer.Option(None, "--budget", "-b", help="Budget maximum en FCFA"),
-    generations: int = typer.Option(50, "--generations", "-g", help="Nombre de générations"),
-    population: int = typer.Option(100, "--population", "-p", help="Taille de la population"),
-    output: Optional[Path] = typer.Option(None, "--output", "-o", help="Fichier de sortie JSON"),
-    verbose: bool = typer.Option(False, "--verbose", "-v", help="Affichage détaillé"),
-    log: Optional[bool] = typer.Option(None, "--log", help="Journaliser le calcul (demande confirmation si non spécifié)"),
-    no_log: bool = typer.Option(False, "--no-log", help="Ne pas journaliser le calcul")
+	input_file: Path = typer.Argument(..., help="Fichier YAML contenant la configuration d'optimisation"),
+	solver: str = typer.Option("lcpi", "--solver", "-s", help="Solveur hydraulique (lcpi/epanet)"),
+	solvers: Optional[str] = typer.Option(None, "--solvers", help="Exécuter pour plusieurs solveurs séparés par des virgules (ex: epanet,lcpi)"),
+	method: str = typer.Option("nested", "--method", "-m", help="Méthode d'optimisation (nested|genetic|surrogate|global|multi-tank)"),
+	pression_min: Optional[float] = typer.Option(None, "--pression-min", help="Pression minimale (m)"),
+	vitesse_min: Optional[float] = typer.Option(None, "--vitesse-min", help="Vitesse minimale (m/s)"),
+	vitesse_max: Optional[float] = typer.Option(None, "--vitesse-max", help="Vitesse maximale (m/s)"),
+	num_prop: int = typer.Option(1, "--num-prop", help="Nombre de propositions à générer"),
+	hybrid_refiner: Optional[str] = typer.Option(None, "--hybrid-refiner", help="Raffinement local post-run (ex: nested)"),
+	hybrid_topk: int = typer.Option(2, "--hybrid-topk", help="Top-K solutions à raffiner"),
+	hybrid_steps: int = typer.Option(1, "--hybrid-steps", help="Nombre d'étapes de raffinage local"),
+	penalty_weight: float = typer.Option(1e6, "--penalty-weight", help="Poids de pénalité pour contraintes soft"),
+	penalty_beta: float = typer.Option(1.0, "--penalty-beta", help="Exposant de pénalité (1 ou 2)"),
+	hard_vel: bool = typer.Option(False, "--hard-vel", help="Traiter la contrainte de vitesse max comme hard (rejet)"),
+	price_db: Optional[Path] = typer.Option(None, "--price-db", help="Base de prix à utiliser (provenance incluse dans meta)"),
+	critere: str = typer.Option("cout", "--critere", "-c", help="Critère d'optimisation principal (cout/energie/performance)"),
+	budget_max: float = typer.Option(None, "--budget", "-b", help="Budget maximum en FCFA"),
+	generations: int = typer.Option(50, "--generations", "-g", help="Nombre de générations"),
+	population: int = typer.Option(100, "--population", "-p", help="Taille de la population"),
+	output: Optional[Path] = typer.Option(None, "--output", "-o", help="Fichier de sortie JSON"),
+	report: Optional[str] = typer.Option(None, "--report", help="Générer un rapport: html|md|pdf"),
+	report_output: Optional[Path] = typer.Option(None, "--report-output", help="Dossier de sortie pour les rapports (défaut: même dossier que --output)"),
+	hmax: Optional[float] = typer.Option(None, "--hmax", help="Hauteur sous radier maximale (m)"),
+	verbose: bool = typer.Option(False, "--verbose", "-v", help="Affichage détaillé"),
+	log: Optional[bool] = typer.Option(None, "--log", help="Journaliser le calcul (demande confirmation si non spécifié)"),
+	no_log: bool = typer.Option(False, "--no-log", help="Ne pas journaliser le calcul")
 ):
-    """🔧 Optimisation de réseau avec algorithme génétique et choix de solveur
-    
-    Optimise les diamètres d'un réseau d'eau potable en utilisant un algorithme génétique
-    et le solveur hydraulique de votre choix.
-    
-    **Solveurs disponibles :**
-    • lcpi : Solveur interne rapide (Hardy-Cross)
-    • epanet : Solveur EPA plus précis mais plus lent
-    
-    **Critères d'optimisation :**
-    • cout : Minimiser le coût d'investissement
-    • energie : Minimiser la consommation énergétique
-    • performance : Maximiser la performance hydraulique
-    
-    **Exemples d'utilisation :**
-    ```bash
-    # Optimisation basique avec solveur LCPI
-    lcpi aep network-optimize-unified reseau.yml --solver lcpi --critere cout
-    
-    # Optimisation avancée avec EPANET et budget
-    lcpi aep network-optimize-unified reseau.yml --solver epanet --critere cout --budget 100000
-    
-    # Optimisation avec paramètres personnalisés
-    lcpi aep network-optimize-unified reseau.yml --generations 100 --population 200 --verbose
-    ```
-    
-    **Structure de sortie standardisée :** { meilleure_solution, historique, statistiques }
-    """
-    try:
-        # Gestion du contexte de projet
-        from ..core.context import get_project_context, ensure_project_structure
-        context = get_project_context()
-        
-        if context['type'] == 'none':
-            # Aucun projet actif, demander le sandbox
-            from ..core.context import handle_sandbox_logic
-            project_path = handle_sandbox_logic()
-        else:
-            project_path = context['path']
-        
-        # S'assurer que la structure du projet existe (garde-fou sandbox si chemin invalide)
-        try:
-            from pathlib import Path as _Path
-            if project_path is None or not _Path(project_path).exists():
-                from ..core.context import handle_sandbox_logic
-                project_path = handle_sandbox_logic()
-        except Exception:
-            from ..core.context import handle_sandbox_logic
-            project_path = handle_sandbox_logic()
-        ensure_project_structure(project_path)
-        
-        # 1. Charger et valider la configuration / ou déléguer (INP)
-        if not input_file.exists():
-            typer.secho(f"❌ Fichier d'entrée introuvable: {input_file}", fg=typer.colors.RED)
-            raise typer.Exit(1)
+	"""🔧 Optimisation de réseau avec algorithme génétique et choix de solveur"""
+	try:
+		from ..core.context import get_project_context, handle_sandbox_logic, ensure_project_structure
+		context = get_project_context()
+		used_sandbox = False
+		if context['type'] == 'none':
+			# Proposer l'exécution en sandbox si aucun projet actif
+			sb_path = handle_sandbox_logic()
+			try:
+				if not typer.confirm(f"Aucun projet actif. Exécuter en sandbox à {sb_path} ?", default=True):
+					typer.secho("Opération annulée.", fg=typer.colors.YELLOW)
+					raise typer.Exit(1)
+			except Exception:
+				pass
+			project_path = sb_path
+			used_sandbox = True
+		else:
+			project_path = context['path']
+		# S'assurer que la structure projet/sandbox existe
+		ensure_project_structure(project_path)
+		if used_sandbox:
+			typer.echo(f"🏖️  Mode sandbox actif: {project_path}")
+		if not input_file.exists():
+			typer.secho(f"❌ Fichier d'entrée introuvable: {input_file}", fg=typer.colors.RED)
+			raise typer.Exit(1)
+		if input_file.suffix.lower() == ".inp":
+			from .optimizer.controllers import OptimizationController  # type: ignore
+			# Forcer sandbox si aucun projet actif
+			try:
+				from ..core.context import is_project_active, handle_sandbox_logic, ensure_project_structure  # type: ignore
+				if not is_project_active():
+					sb_path = handle_sandbox_logic()
+					ensure_project_structure(sb_path)
+			except Exception:
+				pass
+			controller = OptimizationController()
+			constraints = {
+				"pressure_min_m": float(pression_min) if pression_min is not None else 10.0,
+				"velocity_min_m_s": float(vitesse_min) if vitesse_min is not None else 0.3,
+				"velocity_max_m_s": float(vitesse_max) if vitesse_max is not None else 1.5,  # Défaut plus strict
+			}
+			algo_cfg = {"penalty_weight": penalty_weight, "penalty_beta": penalty_beta, "hard_velocity": bool(hard_vel)}
+			if hmax is not None:
+				try:
+					algo_cfg["H_bounds"] = (5.0, float(hmax))
+				except Exception:
+					pass
+			# Déterminer la journalisation (prompt si ni --log ni --no-log)
+			should_log = False if no_log else (bool(log) if (log is not None) else typer.confirm("Voulez-vous journaliser cette exécution (logs/)?", default=True))
+			# Mode multi-solveurs si demandé
+			multi_list = [s.strip() for s in solvers.split(",")] if solvers else []
+			if multi_list:
+				if verbose:
+					from rich.console import Console
+					from rich.panel import Panel
+					from rich.table import Table
+					from rich.text import Text
+					
+					console = Console()
+					
+					# En-tête multi-solveurs
+					console.print(Panel.fit(
+						Text("🚀 OPTIMISATION MULTI-SOLVEURS", style="bold blue"),
+						title="Configuration",
+						border_style="blue"
+					))
+					
+					# Table des paramètres
+					table = Table(title="📋 Paramètres d'optimisation")
+					table.add_column("Paramètre", style="cyan")
+					table.add_column("Valeur", style="green")
+					
+					table.add_row("Méthode", method)
+					table.add_row("Solveurs", ", ".join(multi_list))
+					table.add_row("Pression min", f"{constraints['pressure_min_m']} m")
+					table.add_row("Vitesse min", f"{constraints['velocity_min_m_s']} m/s")
+					table.add_row("Vitesse max", f"{constraints['velocity_max_m_s']} m/s")
+					
+					if hybrid_refiner:
+						table.add_row("Raffinement", f"{hybrid_refiner} (topk={hybrid_topk}, steps={hybrid_steps})")
+					
+					console.print(table)
+					console.print("🔄 Démarrage des optimisations...\n")
+				
+				outputs = {}
+				selected_jsons: list[Path] = []
+				
+				# Importer le spinner
+				try:
+					from ...utils.spinner import spinner
+				except ImportError:
+					# Fallback si le module spinner n'est pas disponible
+					spinner = None
+				
+				for i, sname in enumerate(multi_list):
+					# Message de progression pour multi-solveurs
+					progress_msg = f"Optimisation avec {sname.upper()} ({i+1}/{len(multi_list)})"
+					
+					if verbose:
+						console.print(Panel.fit(
+							Text(f"🔧 ÉTAPE {i+1}/{len(multi_list)}: {sname.upper()}", style="bold yellow"),
+							title=f"Solveur {sname.upper()}",
+							border_style="yellow"
+						))
+						
+						# Détails de l'étape
+						step_table = Table(title=f"📋 Configuration {sname.upper()}")
+						step_table.add_column("Paramètre", style="cyan")
+						step_table.add_column("Valeur", style="green")
+						
+						step_table.add_row("Solveur", sname)
+						step_table.add_row("Méthode", method)
+						step_table.add_row("Générations", str(generations))
+						step_table.add_row("Population", str(population))
+						
+						if hybrid_refiner:
+							step_table.add_row("Raffinement", f"{hybrid_refiner} (topk={hybrid_topk}, steps={hybrid_steps})")
+						
+						console.print(step_table)
+						console.print("🔄 Démarrage de l'optimisation...")
+						
+						# Callback de progression spécifique pour ce solveur
+						def solver_progress_callback(stage: str, details: dict = None):
+							if verbose:
+								if stage == "start":
+									console.print(Panel.fit(
+										Text(f"🚀 DÉMARRAGE OPTIMISATION {sname.upper()}", style="bold white"),
+										title=f"[bold cyan]Solveur {sname.upper()} - Étape 1/6[/bold cyan]",
+										border_style="cyan"
+									))
+								elif stage == "loading":
+									console.print(Panel.fit(
+										Text(f"📂 Chargement du réseau {sname.upper()}...", style="cyan"),
+										title=f"[bold cyan]Solveur {sname.upper()} - Étape 2/6[/bold cyan]",
+										border_style="cyan"
+									))
+								elif stage == "validation":
+									console.print(Panel.fit(
+										Text(f"✅ Validation des contraintes {sname.upper()}...", style="cyan"),
+										title=f"[bold cyan]Solveur {sname.upper()} - Étape 3/6[/bold cyan]",
+										border_style="cyan"
+									))
+								elif stage == "generation":
+									gen = details.get("generation", 0)
+									best_cost = details.get("best_cost", 0)
+									fitness = details.get("fitness", 0.0)
+									performance = details.get("performance", 0.0)
+									
+									# Barre de progression visuelle
+									progress_bar = "█" * min(gen // 5, 20) + "░" * (20 - min(gen // 5, 20))
+									
+									gen_text = Text()
+									gen_text.append(f"🔄 [bold yellow]Génération {gen:2d} - {sname.upper()}[/bold yellow]\n", style="yellow")
+									gen_text.append(f"📊 Progression: [{progress_bar}] {gen}%\n", style="cyan")
+									gen_text.append(f"💰 Meilleur coût: [bold green]{best_cost:,.0f} FCFA[/bold green]\n", style="green")
+									gen_text.append(f"🎯 Fitness: [bold blue]{fitness:.4f}[/bold blue]\n", style="blue")
+									gen_text.append(f"⚡ Performance: [bold magenta]{performance:.3f}[/bold magenta]", style="magenta")
+									
+									console.print(Panel.fit(
+										gen_text,
+										title=f"[bold yellow]Solveur {sname.upper()} - Étape 4/6 - Génération {gen}[/bold yellow]",
+										border_style="yellow"
+									))
+								elif stage == "simulation":
+									solver = details.get("solver", "unknown")
+									stage_sim = details.get("stage", "unknown")
+									
+									if stage_sim == "start":
+										console.print(Panel.fit(
+											Text(f"🌊 Démarrage simulation {solver.upper()} ({sname.upper()})...", style="blue"),
+											title=f"[bold blue]Solveur {sname.upper()} - Étape 5/6[/bold blue]",
+											border_style="blue"
+										))
+									elif stage_sim == "running":
+										diameters_count = details.get("diameters_count", 0)
+										console.print(Panel.fit(
+											Text(f"🌊 Simulation {solver.upper()} ({sname.upper()}) en cours...\n📏 Traitement de {diameters_count} diamètres", style="blue"),
+											title=f"[bold blue]Solveur {sname.upper()} - Étape 5/6[/bold blue]",
+											border_style="blue"
+										))
+									elif stage_sim == "success":
+										console.print(Panel.fit(
+											Text(f"✅ Simulation {solver.upper()} ({sname.upper()}) réussie !", style="green"),
+											title=f"[bold green]Solveur {sname.upper()} - Étape 5/6[/bold green]",
+											border_style="green"
+										))
+									elif stage_sim == "error":
+										error = details.get("error", "Erreur inconnue")
+										console.print(Panel.fit(
+											Text(f"❌ Erreur simulation {solver.upper()} ({sname.upper()}): {error}", style="red"),
+											title=f"[bold red]Solveur {sname.upper()} - Étape 5/6[/bold red]",
+											border_style="red"
+										))
+								elif stage == "hybrid":
+									gen = details.get("generation", 0)
+									improvement = details.get("improvement", 0)
+									new_cost = details.get("new_cost", 0)
+									
+									hybrid_text = Text()
+									hybrid_text.append(f"🔬 [bold magenta]Raffinement hybride {sname.upper()}[/bold magenta]\n", style="magenta")
+									hybrid_text.append(f"📈 Génération: [yellow]{gen}[/yellow]\n", style="yellow")
+									hybrid_text.append(f"💰 Amélioration: [green]+{improvement:,.0f} FCFA[/green]\n", style="green")
+									hybrid_text.append(f"🎯 Nouveau coût: [bold green]{new_cost:,.0f} FCFA[/bold green]", style="green")
+									
+									console.print(Panel.fit(
+										hybrid_text,
+										title=f"[bold magenta]Raffinement hybride {sname.upper()}[/bold magenta]",
+										border_style="magenta"
+									))
+								elif stage == "convergence":
+									console.print(Panel.fit(
+										Text(f"🎯 Convergence {sname.upper()} atteinte !", style="green"),
+										title=f"[bold green]Solveur {sname.upper()} - Étape 6/6[/bold green]",
+										border_style="green"
+									))
+								elif stage == "complete":
+									console.print(Panel.fit(
+										Text(f"✅ OPTIMISATION {sname.upper()} TERMINÉE !", style="bold green"),
+										title=f"[bold green]🎉 {sname.upper()} TERMINÉ[/bold green]",
+										border_style="green"
+									))
+						
+						# Afficher les étapes détaillées pour ce solveur
+						console.print(Panel.fit(
+							Text(f"🔧 ÉTAPES DE L'OPTIMISATION - {sname.upper()}", style="bold cyan"),
+							title="Progression",
+							border_style="cyan"
+						))
+					
+					if spinner and not verbose:
+						# Utiliser le spinner si disponible et pas en mode verbose
+						with spinner(progress_msg, f"✅ {sname.upper()} terminé", style="modern"):
+							res = controller.run_optimization(
+								input_path=input_file,
+								method=method,
+								solver=("epanet" if sname == "epanet" else "lcpi"),
+								constraints=constraints,
+								hybrid_refiner=hybrid_refiner,
+								hybrid_params={"topk": hybrid_topk, "steps": hybrid_steps},
+								algo_params=algo_cfg,
+								price_db=str(price_db) if price_db else None,
+								verbose=verbose,
+								progress_callback=solver_progress_callback if verbose else None,
+								num_proposals=num_prop,
+							)
+					else:
+						# Mode normal sans spinner
+						if not verbose:
+							typer.echo(f"🔄 {progress_msg}")
+						res = controller.run_optimization(
+							input_path=input_file,
+							method=method,
+							solver=("epanet" if sname == "epanet" else "lcpi"),
+							constraints=constraints,
+							hybrid_refiner=hybrid_refiner,
+							hybrid_params={"topk": hybrid_topk, "steps": hybrid_steps},
+							algo_params=algo_cfg,
+							price_db=str(price_db) if price_db else None,
+							verbose=verbose,
+							progress_callback=solver_progress_callback if verbose else None,
+							num_proposals=num_prop,
+						)
+					
+					if verbose:
+						# Analyser les résultats pour afficher un résumé
+						proposals = res.get("proposals", [])
+						valid_solutions = [p for p in proposals if p.get("constraints_ok", False)]
+						
+						console.print(f"✅ {sname.upper()} terminé")
+						console.print(f"📊 Solutions trouvées: {len(proposals)}")
+						console.print(f"✅ Solutions valides: {len(valid_solutions)}")
+						
+						if valid_solutions:
+							best_cost = min([p.get("cost", float('inf')) for p in valid_solutions])
+							console.print(f"💰 Meilleur coût: {best_cost:,.0f} FCFA")
+					
+					outputs[sname] = res
+					# Sauvegarde par solveur
+					if output:
+						out_s = output.with_name(f"{output.stem}_{sname}{output.suffix}")
+						with open(out_s, 'w', encoding='utf-8') as f:
+							json.dump(res, f, indent=2, ensure_ascii=False)
+						selected_jsons.append(out_s)
+						if verbose:
+							console.print(f"💾 Résultats sauvegardés: {out_s}")
+						console.print("")  # Ligne vide pour séparer
+				
+				# Index JSON multi
+				if output:
+					if verbose:
+						console.print(Panel.fit(
+							Text("📊 CRÉATION DE L'INDEX", style="bold green"),
+							title="Post-traitement",
+							border_style="green"
+						))
+					idx = output.with_name(f"{output.stem}_multi{output.suffix}")
+					with open(idx, 'w', encoding='utf-8') as f:
+						json.dump({"meta": {"solvers": multi_list}, "results": {k: str(output.with_name(f"{output.stem}_{k}{output.suffix}")) for k in multi_list}}, f, indent=2, ensure_ascii=False)
+					typer.echo(f"✅ Index multi-solveurs: {idx}")
+				
+					# Rapport multi-solveurs si demandé
+				if report and report.lower() in ("html", "md", "pdf"):
+					if verbose:
+						console.print(Panel.fit(
+							Text(f"📝 GÉNÉRATION RAPPORT {report.upper()}", style="bold magenta"),
+							title="Rapport",
+							border_style="magenta"
+						))
+						from ..reporting.report_generator import ReportGenerator  # type: ignore
+						from pathlib import Path as _P
+						tpl_dir = _P(__file__).resolve().parents[1] / "reporting" / "templates"
+						rg = ReportGenerator(template_dir=tpl_dir)
+					
+					# Déterminer le dossier de sortie des rapports
+					report_dir = report_output if report_output else output.parent
+					report_dir.mkdir(parents=True, exist_ok=True)
+					
+						# Utiliser le fichier multi-solveurs pour la détection automatique
+					if report.lower() == "html":
+						html = rg.generate_html_report(selected_logs_paths=[_P(p) for p in selected], project_metadata=project_meta, lcpi_version="2.1.0")
+						rep_path = report_dir / f"{output.stem}.html"
+						rep_path.write_text(html, encoding='utf-8')
+						typer.echo(f"📝 Rapport HTML généré: {rep_path}")
+					elif report.lower() == "md":
+						from ..reporting.markdown_generator import MarkdownGenerator
+						md_gen = MarkdownGenerator()
+						index_data = {"meta": {"solvers": [solver], "method": method}}
+						outputs = {solver: resultats}
+						md = md_gen.generate_optimization_report(index_data=index_data, outputs=outputs)
+						rep_path = report_dir / f"{output.stem}.md"
+						rep_path.write_text(md, encoding='utf-8')
+						typer.echo(f"📝 Rapport Markdown généré: {rep_path}")
+					elif report.lower() == "pdf":
+						typer.echo("⚠️  PDF non généré automatiquement (convertisseur indisponible). Utilisez --report html pour un rapport HTML.")
+					console.print(Panel.fit(
+						Text("🎉 OPTIMISATION TERMINÉE", style="bold green"),
+						title="Résumé final",
+						border_style="green"
+					))
+					
+					# Résumé final
+					final_table = Table(title="📊 Résumé de l'exécution")
+					final_table.add_column("Métrique", style="cyan")
+					final_table.add_column("Valeur", style="green")
+					
+					final_table.add_row("Solveurs exécutés", str(len(multi_list)))
+					final_table.add_row("Liste des solveurs", ", ".join(multi_list))
+					final_table.add_row("Méthode", method)
+					final_table.add_row("Fichiers générés", str(len(selected_jsons) + 1))  # +1 pour l'index
+					
+					if report:
+						final_table.add_row("Rapport généré", f"{report.upper()}")
+					
+					console.print(final_table)
+				
+				return outputs
 
-        # Nouveau chemin V15 pour les fichiers .inp (Sprint 1: nested minimal)
-        if input_file.suffix.lower() == ".inp":
-            try:
-                from .optimizer.controllers import OptimizationController  # type: ignore
-                controller = OptimizationController()
-                constraints = {
-                    "pressure_min_m": float(pression_min) if pression_min is not None else 10.0,
-                    "velocity_min_m_s": float(vitesse_min) if vitesse_min is not None else 0.3,
-                    "velocity_max_m_s": float(vitesse_max) if vitesse_max is not None else 2.0,
-                }
-                resultats = controller.run_optimization(
-                    input_path=input_file,
-                    method=method,
-                    solver=("epanet" if solver == "epanet" else "lcpi"),
-                    constraints=constraints,
-                    hybrid_refiner=hybrid_refiner,
-                    hybrid_params={"topk": hybrid_topk, "steps": hybrid_steps},
-                    algo_params={"penalty_weight": penalty_weight, "penalty_beta": penalty_beta},
-                    price_db=None,
-                    verbose=verbose,
-                )
+			# Mode mono-solveur
+			# Importer le spinner
+			try:
+				from ...utils.spinner import spinner
+			except ImportError:
+				# Fallback si le module spinner n'est pas disponible
+				spinner = None
+			
+			# Message d'optimisation
+			optimization_msg = f"Optimisation avec {solver.upper()} ({method})"
+			
+			if verbose:
+				from rich.console import Console
+				from rich.panel import Panel
+				from rich.table import Table
+				from rich.text import Text
+				
+				console = Console()
+				
+				# En-tête mono-solveur
+				console.print(Panel.fit(
+					Text("🚀 OPTIMISATION MONO-SOLVEUR", style="bold blue"),
+					title="Configuration",
+					border_style="blue"
+				))
+				
+				# Table des paramètres
+				table = Table(title="📋 Paramètres d'optimisation")
+				table.add_column("Paramètre", style="cyan")
+				table.add_column("Valeur", style="green")
+				
+				table.add_row("Méthode", method)
+				table.add_row("Solveur", solver)
+				table.add_row("Générations", str(generations))
+				table.add_row("Population", str(population))
+				table.add_row("Pression min", f"{constraints['pressure_min_m']} m")
+				table.add_row("Vitesse min", f"{constraints['velocity_min_m_s']} m/s")
+				table.add_row("Vitesse max", f"{constraints['velocity_max_m_s']} m/s")
+				
+				if hybrid_refiner:
+					table.add_row("Raffinement", f"{hybrid_refiner} (topk={hybrid_topk}, steps={hybrid_steps})")
+				
+				console.print(table)
+				console.print("🔄 Démarrage de l'optimisation...\n")
+			
+			# Callback pour suivre la progression en mode verbose
+			def progress_callback(stage: str, details: dict = None):
+				if verbose:
+					import time
+					
+					if stage == "start":
+						console.print(Panel.fit(
+							Text("🚀 DÉMARRAGE DE L'OPTIMISATION", style="bold white"),
+							title="[bold cyan]Étape 1/6[/bold cyan]",
+							border_style="cyan"
+						))
+						time.sleep(0.8)  # Délai pour visualiser l'étape
+					elif stage == "loading":
+						console.print(Panel.fit(
+							Text("📂 Chargement du réseau en cours...", style="cyan"),
+							title="[bold cyan]Étape 2/6[/bold cyan]",
+							border_style="cyan"
+						))
+						time.sleep(0.6)  # Délai pour visualiser l'étape
+					elif stage == "validation":
+						console.print(Panel.fit(
+							Text("✅ Validation des contraintes...", style="cyan"),
+							title="[bold cyan]Étape 3/6[/bold cyan]",
+							border_style="cyan"
+						))
+						time.sleep(0.5)  # Délai pour visualiser l'étape
+					elif stage == "generation":
+						gen = details.get("generation", 0)
+						best_cost = details.get("best_cost", 0)
+						fitness = details.get("fitness", 0.0)
+						performance = details.get("performance", 0.0)
+						
+						# Barre de progression visuelle
+						progress_bar = "█" * min(gen // 5, 20) + "░" * (20 - min(gen // 5, 20))
+						
+						gen_text = Text()
+						gen_text.append(f"🔄 [bold yellow]Génération {gen:2d}[/bold yellow]\n", style="yellow")
+						gen_text.append(f"📊 Progression: [{progress_bar}] {gen}%\n", style="cyan")
+						gen_text.append(f"💰 Meilleur coût: [bold green]{best_cost:,.0f} FCFA[/bold green]\n", style="green")
+						gen_text.append(f"🎯 Fitness: [bold blue]{fitness:.4f}[/bold blue]\n", style="blue")
+						gen_text.append(f"⚡ Performance: [bold magenta]{performance:.3f}[/bold magenta]", style="magenta")
+						
+						console.print(Panel.fit(
+							gen_text,
+							title=f"[bold yellow]Étape 4/6 - Génération {gen}[/bold yellow]",
+							border_style="yellow"
+						))
+						time.sleep(0.4)  # Délai plus court pour les générations
+					elif stage == "simulation":
+						solver = details.get("solver", "unknown")
+						stage_sim = details.get("stage", "unknown")
+						
+						if stage_sim == "start":
+							console.print(Panel.fit(
+								Text(f"🌊 Démarrage simulation {solver.upper()}...", style="blue"),
+								title="[bold blue]Étape 5/6 - Simulation[/bold blue]",
+								border_style="blue"
+							))
+							time.sleep(0.5)  # Délai pour visualiser l'étape
+						elif stage_sim == "running":
+							diameters_count = details.get("diameters_count", 0)
+							console.print(Panel.fit(
+								Text(f"🌊 Simulation {solver.upper()} en cours...\n📏 Traitement de {diameters_count} diamètres", style="blue"),
+								title="[bold blue]Étape 5/6 - Simulation[/bold blue]",
+								border_style="blue"
+							))
+							time.sleep(0.3)  # Délai plus court pour l'exécution
+						elif stage_sim == "success":
+							console.print(Panel.fit(
+								Text(f"✅ Simulation {solver.upper()} réussie !", style="green"),
+								title="[bold green]Étape 5/6 - Simulation[/bold green]",
+								border_style="green"
+							))
+							time.sleep(0.4)  # Délai pour visualiser le succès
+						elif stage_sim == "error":
+							error = details.get("error", "Erreur inconnue")
+							console.print(Panel.fit(
+								Text(f"❌ Erreur simulation {solver.upper()}: {error}", style="red"),
+								title="[bold red]Étape 5/6 - Erreur[/bold red]",
+								border_style="red"
+							))
+							time.sleep(0.5)  # Délai pour visualiser l'erreur
+					elif stage == "hybrid":
+						gen = details.get("generation", 0)
+						improvement = details.get("improvement", 0)
+						new_cost = details.get("new_cost", 0)
+						
+						hybrid_text = Text()
+						hybrid_text.append(f"🔬 [bold magenta]Raffinement hybride[/bold magenta]\n", style="magenta")
+						hybrid_text.append(f"📈 Génération: [yellow]{gen}[/yellow]\n", style="yellow")
+						hybrid_text.append(f"💰 Amélioration: [green]+{improvement:,.0f} FCFA[/green]\n", style="green")
+						hybrid_text.append(f"🎯 Nouveau coût: [bold green]{new_cost:,.0f} FCFA[/bold green]", style="green")
+						
+						console.print(Panel.fit(
+							hybrid_text,
+							title="[bold magenta]Raffinement hybride[/bold magenta]",
+							border_style="magenta"
+						))
+						time.sleep(0.6)  # Délai pour visualiser le raffinement
+					elif stage == "convergence":
+						console.print(Panel.fit(
+							Text("🎯 Convergence atteinte !", style="green"),
+							title="[bold green]Étape 6/6 - Convergence[/bold green]",
+							border_style="green"
+						))
+						time.sleep(0.7)  # Délai pour visualiser la convergence
+					elif stage == "complete":
+						console.print(Panel.fit(
+							Text("✅ OPTIMISATION TERMINÉE AVEC SUCCÈS !", style="bold green"),
+							title="[bold green]🎉 TERMINÉ[/bold green]",
+							border_style="green"
+						))
+						time.sleep(1.0)  # Délai plus long pour la fin
+			
+			if spinner and not verbose:
+				# Utiliser le spinner si disponible et pas en mode verbose
+				with spinner(optimization_msg, f"✅ Optimisation terminée", style="modern"):
+					resultats = controller.run_optimization(
+						input_path=input_file,
+						method=method,
+						solver=("epanet" if solver == "epanet" else "lcpi"),
+						constraints=constraints,
+						hybrid_refiner=hybrid_refiner,
+						hybrid_params={"topk": hybrid_topk, "steps": hybrid_steps},
+						algo_params=algo_cfg,
+						price_db=str(price_db) if price_db else None,
+						verbose=verbose,
+						num_proposals=num_prop,
+					)
+			else:
+				# Mode normal sans spinner
+				if not verbose:
+					typer.echo(f"🔄 {optimization_msg}")
+				else:
+					# En mode verbose, afficher les étapes détaillées
+					console.print(Panel.fit(
+						Text("🔧 ÉTAPES DE L'OPTIMISATION", style="bold cyan"),
+						title="Progression",
+						border_style="cyan"
+					))
+				
+				resultats = controller.run_optimization(
+					input_path=input_file,
+					method=method,
+					solver=("epanet" if solver == "epanet" else "lcpi"),
+					constraints=constraints,
+					hybrid_refiner=hybrid_refiner,
+					hybrid_params={"topk": hybrid_topk, "steps": hybrid_steps},
+					algo_params=algo_cfg,
+					price_db=str(price_db) if price_db else None,
+					verbose=verbose,
+					progress_callback=progress_callback if verbose else None,
+					num_proposals=num_prop,
+			)
+			# Journalisation système (fichier log JSON pour lcpi report)
+			log_path = None
+			if should_log:
+				try:
+					from datetime import datetime as _dt
+					logs_dir = project_path / "logs"
+					logs_dir.mkdir(exist_ok=True)
+					stamp = _dt.now().strftime("%Y%m%d_%H%M%S")
+					log_path = logs_dir / f"aep_network_optimize_unified_{stamp}.log.json"
+					with open(log_path, 'w', encoding='utf-8') as lf:
+						json.dump(resultats, lf, indent=2, ensure_ascii=False)
+					typer.echo(f"🧾 Log sauvegardé: {log_path}")
+				except Exception:
+					pass
 
-                # Sauvegarde (Sprint 3: par défaut vers results/ avec log signé)
-                try:
-                    if output:
-                        with open(output, 'w', encoding='utf-8') as f:
-                            json.dump(resultats, f, indent=2, ensure_ascii=False)
-                        typer.echo(f"✅ Résultats sauvegardés: {output}")
-                    else:
-                        from time import strftime
-                        from pathlib import Path as _P
-                        from ..lcpi_logging.integrity import integrity_manager  # type: ignore
-                        results_dir = _P('results'); results_dir.mkdir(parents=True, exist_ok=True)
-                        run_id = f"opt_{strftime('%Y%m%d_%H%M%S')}"
-                        res_file = results_dir / f"{run_id}.json"
-                        log_file = results_dir / f"{run_id}.log.json"
-                        with open(res_file, 'w', encoding='utf-8') as f:
-                            json.dump(resultats, f, indent=2, ensure_ascii=False)
-                        signed = integrity_manager.sign_log(resultats)
-                        with open(log_file, 'w', encoding='utf-8') as f:
-                            json.dump(signed, f, indent=2, ensure_ascii=False)
-                        typer.echo(f"💾 Résultats: {res_file}")
-                        typer.echo(f"🔏 Log signé: {log_file}")
-                except Exception as _e:
-                    if verbose:
-                        typer.echo(f"⚠️  Sauvegarde non critique échouée: {_e}")
-
-                # Journalisation simple
-                if log is None and not no_log:
-                    do_log = typer.confirm("📝 Voulez-vous journaliser cette optimisation ?")
-                else:
-                    do_log = bool(log) and not no_log
-                if do_log:
-                    try:
-                        cmd = f"lcpi aep network-optimize-unified {input_file} --solver {solver}"
-                        log_id = lcpi_logger.log_calculation_result(
-                            plugin="aep",
-                            command="network_optimize_unified",
-                            parameters={"input_file": str(input_file), "solver": solver},
-                            results=resultats,
-                            execution_time=0.0,
-                        )
-                        typer.echo(f"📊 Optimisation journalisée avec l'ID: {log_id}")
-                    except Exception:
-                        pass
-
-                return resultats
-            except Exception as e:
-                if verbose:
-                    typer.echo(f"⚠️ Délégation V15 (INP) échouée: {e}")
-                # Continuer avec l'ancien flux YAML si possible (mais .inp ne sera pas supporté)
-        
-        with open(input_file, 'r', encoding='utf-8') as f:
-            config_data = yaml.safe_load(f)
-        
-        # 2. Créer la configuration d'optimisation
-        if 'optimisation' not in config_data:
-            typer.secho("❌ Section 'optimisation' manquante dans le fichier de configuration", fg=typer.colors.RED)
-            raise typer.Exit(1)
-        
-        # Ajuster les paramètres si spécifiés en ligne de commande
-        if budget_max:
-            config_data['optimisation']['contraintes_budget']['cout_max_fcfa'] = budget_max
-        
-        config_data['optimisation']['algorithme']['generations'] = generations
-        config_data['optimisation']['algorithme']['population_size'] = population
-        config_data['optimisation']['criteres']['principal'] = critere
-        
-        try:
-            config = ConfigurationOptimisation(**config_data['optimisation'])
-        except Exception as e:
-            typer.secho(f"❌ Erreur de validation de la configuration: {e}", fg=typer.colors.RED)
-            raise typer.Exit(1)
-        
-        if verbose:
-            typer.echo(f"🔧 Configuration d'optimisation:")
-            typer.echo(f"  Critère principal: {config.criteres.principal}")
-            typer.echo(f"  Budget max: {config.contraintes_budget.cout_max_fcfa} FCFA")
-            typer.echo(f"  Diamètres candidats: {len(config.diametres_candidats)}")
-            typer.echo(f"  Générations: {config.algorithme.generations}")
-            typer.echo(f"  Population: {config.algorithme.population_size}")
-        
-        # 3. Sélectionner le solveur hydraulique
-        try:
-            hydraulic_solver = SolverFactory.get_solver(solver)
-            solver_info = hydraulic_solver.get_solver_info()
-            
-            if verbose:
-                typer.echo(f"🔧 Solveur sélectionné: {solver_info['name']} v{solver_info['version']}")
-                typer.echo(f"📝 {solver_info['description']}")
-        except ValueError as e:
-            typer.secho(f"❌ Erreur de sélection du solveur: {e}", fg=typer.colors.RED)
-            raise typer.Exit(1)
-        
-        # 4. Créer le gestionnaire de contraintes
-        constraint_manager = ConstraintManager(
-            config.contraintes_budget,
-            config.contraintes_techniques
-        )
-        
-        # 5. Créer l'optimiseur génétique avec injection de dépendance
-        optimizer = GeneticOptimizer(config, constraint_manager)
-        
-        # 6. Charger les données du réseau
-        reseau_data = config_data.get('reseau_complet', {})
-        nb_conduites = len(reseau_data.get('conduites', []))
-        
-        if nb_conduites == 0:
-            typer.secho("❌ Aucune conduite trouvée dans le fichier de configuration", fg=typer.colors.RED)
-            raise typer.Exit(1)
-        
-        if verbose:
-            typer.echo(f"🌐 Réseau à optimiser: {nb_conduites} conduites")
-        
-        # 7. Lancer l'optimisation
-        with typer.progressbar(
-            range(config.algorithme.generations),
-            label="Optimisation en cours",
-            show_eta=True
-        ) as progress:
-            resultats = optimizer.optimiser(reseau_data, nb_conduites)
-        
-        # 8. Afficher les résultats
-        if verbose:
-            typer.echo(f"\n🎯 Résultats de l'optimisation:")
-            typer.echo(f"  Statut: {resultats.get('statut', 'inconnu')}")
-            typer.echo(f"  Itérations: {resultats.get('iterations', 0)}")
-            
-            meilleure_solution = resultats.get('meilleure_solution', {})
-            if meilleure_solution:
-                typer.echo(f"  Coût total: {meilleure_solution.get('performance', {}).get('cout_total_fcfa', 0):.0f} FCFA")
-                typer.echo(f"  Performance hydraulique: {meilleure_solution.get('performance', {}).get('performance_hydraulique', 0):.3f}")
-        else:
-            meilleure_solution = resultats.get('meilleure_solution', {})
-            if meilleure_solution:
-                cout = meilleure_solution.get('performance', {}).get('cout_total_fcfa', 0)
-                performance = meilleure_solution.get('performance', {}).get('performance_hydraulique', 0)
-                typer.echo(f"🎯 Optimisation terminée: Coût={cout:.0f}FCFA, Performance={performance:.3f}")
-        
-        # 9. Sauvegarder les résultats (Sprint 3: par défaut vers results/ avec log signé)
-        try:
-            if output:
-                with open(output, 'w', encoding='utf-8') as f:
-                    json.dump(resultats, f, indent=2, ensure_ascii=False)
-                typer.echo(f"✅ Résultats sauvegardés: {output}")
-            else:
-                from time import strftime
-                from pathlib import Path as _P
-                from ..lcpi_logging.integrity import integrity_manager  # type: ignore
-                results_dir = _P('results')
-                results_dir.mkdir(parents=True, exist_ok=True)
-                run_id = f"opt_{strftime('%Y%m%d_%H%M%S')}"
-                res_file = results_dir / f"{run_id}.json"
-                log_file = results_dir / f"{run_id}.log.json"
-                with open(res_file, 'w', encoding='utf-8') as f:
-                    json.dump(resultats, f, indent=2, ensure_ascii=False)
-                signed = integrity_manager.sign_log(resultats)
-                with open(log_file, 'w', encoding='utf-8') as f:
-                    json.dump(signed, f, indent=2, ensure_ascii=False)
-                typer.echo(f"💾 Résultats: {res_file}")
-                typer.echo(f"🔏 Log signé: {log_file}")
-        except Exception as _e:
-            if verbose:
-                typer.echo(f"⚠️  Sauvegarde non critique échouée: {_e}")
-        
-        # 10. Logique de journalisation
-        should_log = log
-        if log is None and not no_log:
-            should_log = typer.confirm("📝 Voulez-vous journaliser cette optimisation ?")
-        
-        if should_log and not no_log:
-            try:
-                # Préparer les données pour la journalisation
-                parametres_entree = {
-                    "input_file": str(input_file),
-                    "solver": solver,
-                    "critere": critere,
-                    "budget_max": budget_max,
-                    "generations": generations,
-                    "population": population,
-                    "nb_conduites": nb_conduites
-                }
-                
-                # Construire la commande exécutée
-                commande_parts = ["lcpi", "aep", "network-optimize-unified", str(input_file)]
-                commande_parts.extend(["--solver", solver])
-                commande_parts.extend(["--critere", critere])
-                if budget_max:
-                    commande_parts.extend(["--budget", str(budget_max)])
-                commande_parts.extend(["--generations", str(generations)])
-                commande_parts.extend(["--population", str(population)])
-                if verbose:
-                    commande_parts.append("--verbose")
-                
-                commande_executee = " ".join(commande_parts)
-                
-                # Journaliser l'optimisation
-                log_id = lcpi_logger.log_calculation_result(
-                    plugin="aep",
-                    command="network_optimize_unified",
-                    parameters=parametres_entree,
-                    results=resultats,
-                    execution_time=0.0  # À remplacer par un vrai timing
-                )
-                
-                typer.echo(f"📊 Optimisation journalisée avec l'ID: {log_id}")
-                
-            except Exception as e:
-                typer.secho(f"⚠️ Erreur lors de la journalisation: {e}", fg=typer.colors.YELLOW)
-        
-        return resultats
-        
-    except Exception as e:
-        typer.secho(f"❌ Erreur lors de l'optimisation: {e}", fg=typer.colors.RED)
-        if verbose:
-            import traceback
-            traceback.print_exc()
-        raise typer.Exit(1)
+			# Enregistrement JSON
+			if output:
+				with open(output, 'w', encoding='utf-8') as f:
+					json.dump(resultats, f, indent=2, ensure_ascii=False)
+				typer.echo(f"✅ Résultats sauvegardés: {output}")
+				
+				# Résumé des résultats en mode verbose
+				if verbose:
+					# Analyser les résultats pour afficher un résumé
+					proposals = resultats.get("proposals", [])
+					valid_solutions = [p for p in proposals if p.get("constraints_ok", False)]
+					
+					console.print(Panel.fit(
+						Text("📊 RÉSULTATS DE L'OPTIMISATION", style="bold green"),
+						title="Résumé",
+						border_style="green"
+					))
+					
+					# Table des résultats
+					results_table = Table(title="📋 Statistiques des solutions")
+					results_table.add_column("Métrique", style="cyan")
+					results_table.add_column("Valeur", style="green")
+					
+					results_table.add_row("Solutions trouvées", str(len(proposals)))
+					results_table.add_row("Solutions valides", str(len(valid_solutions)))
+					
+					if valid_solutions:
+						best_cost = min([p.get("cost", float('inf')) for p in valid_solutions])
+						worst_cost = max([p.get("cost", 0) for p in valid_solutions])
+						avg_cost = sum([p.get("cost", 0) for p in valid_solutions]) / len(valid_solutions)
+						
+						results_table.add_row("Meilleur coût", f"{best_cost:,.0f} FCFA")
+						results_table.add_row("Pire coût", f"{worst_cost:,.0f} FCFA")
+						results_table.add_row("Coût moyen", f"{avg_cost:,.0f} FCFA")
+					
+					console.print(results_table)
+				# Rapport
+				if report and report.lower() in ("html", "md", "pdf"):
+					try:
+						from ..reporting.report_generator import ReportGenerator  # type: ignore
+						from pathlib import Path as _P
+						tpl_dir = _P(__file__).resolve().parents[1] / "reporting" / "templates"
+						rg = ReportGenerator(template_dir=tpl_dir)
+						
+						# Déterminer le dossier de sortie des rapports
+						report_dir = report_output if report_output else output.parent
+						report_dir.mkdir(parents=True, exist_ok=True)
+						
+						# Utiliser le log si disponible, sinon le JSON de sortie
+						selected = [log_path] if log_path else [output]
+						project_meta = {"name": str(getattr(project_path, 'name', 'sandbox')), "path": str(project_path)}
+						
+						if report.lower() == "html":
+							html = rg.generate_html_report(selected_logs_paths=[_P(p) for p in selected], project_metadata=project_meta, lcpi_version="2.1.0")
+							rep_path = report_dir / f"{output.stem}.html"
+							rep_path.write_text(html, encoding='utf-8')
+							typer.echo(f"📝 Rapport HTML généré: {rep_path}")
+						elif report.lower() == "md":
+							from ..reporting.markdown_generator import MarkdownGenerator
+							md_gen = MarkdownGenerator()
+							index_data = {"meta": {"solvers": [solver], "method": method}}
+							outputs = {solver: resultats}
+							md = md_gen.generate_optimization_report(index_data=index_data, outputs=outputs)
+							rep_path = report_dir / f"{output.stem}.md"
+							rep_path.write_text(md, encoding='utf-8')
+							typer.echo(f"�� Rapport Markdown généré: {rep_path}")
+						elif report.lower() == "pdf":
+							typer.echo("⚠️  PDF non généré automatiquement (convertisseur indisponible). Utilisez --report html pour un rapport HTML.")
+					except Exception as e:
+						typer.echo(f"⚠️  Génération du rapport échouée: {e}")
+			# Erreur si hmax et aucune solution valide
+			if hmax is not None:
+				props = resultats.get("proposals") or []
+				ok = any(bool(p.get("constraints_ok")) for p in props)
+				if not ok:
+					typer.secho("❌ Aucune solution ne satisfait les performances hydrodynamiques avec la hauteur sous radier maximale fournie.", fg=typer.colors.RED)
+					raise typer.Exit(4)
+			return resultats
+		# ... existing YAML flow ...
+	except Exception as e:
+		typer.secho(f"❌ Erreur lors de l'optimisation: {e}", fg=typer.colors.RED)
+		if verbose:
+			import traceback; traceback.print_exc()
+		raise typer.Exit(1)
 
 @app.command("network-analyze-scenarios")
 def network_analyze_scenarios(
@@ -3334,3 +3702,4 @@ def show_help():
 
 if __name__ == "__main__":
     app()
+

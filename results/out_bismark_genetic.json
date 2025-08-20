@@ -1,0 +1,26 @@
+{
+  "meta": {
+    "method": "genetic",
+    "warning": "Genetic non supporté pour INP direct; utilisez 'global' ou 'surrogate'",
+    "solver": "lcpi",
+    "constraints": {
+      "pressure_min_m": 12.0,
+      "velocity_min_m_s": 0.3,
+      "velocity_max_m_s": 2.0
+    },
+    "source_meta": {
+      "source": "inp",
+      "file": "C:\\PROJET_DIMENTIONEMENT_2\\src\\lcpi\\aep\\PROTOTYPE\\INP\\bismark-Administrator.inp",
+      "converted_at": 1755614669.0910988
+    }
+  },
+  "proposals": [],
+  "integrity": {
+    "checksum": "50be13918a49a37c36769b117722124c4a2f4393d8278e43c3f494078c668177",
+    "signature": "1b55b1d356b09a534ccf7c6795c55619d373248f040aca81fa245b2a6ffcc401",
+    "signature_valid": true,
+    "algorithm": "HMAC-SHA256",
+    "timestamp": 1755614669.0913575,
+    "signed_at": "2025-08-19T14:44:29.091357"
+  }
+}

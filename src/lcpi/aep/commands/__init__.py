@@ -4,6 +4,7 @@ Module des commandes CLI pour LCPI-AEP.
 
 # Import des commandes existantes
 from . import network_optimize
+from . import network_optimize_unified
 
 # Import des nouvelles commandes créées
 try:
@@ -20,6 +21,7 @@ except ImportError:
 
 __all__ = [
     'network_optimize',
+    'network_optimize_unified',
     'SOLVERS_AVAILABLE',
     'DATA_MANAGEMENT_AVAILABLE', 
     'PROJECT_MANAGEMENT_AVAILABLE'

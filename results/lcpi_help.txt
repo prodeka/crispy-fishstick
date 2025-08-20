@@ -1,0 +1,44 @@
+                                                                               
+ Usage: lcpi.py [OPTIONS] COMMAND [ARGS]...                                    
+                                                                               
+ LCPI-CLI: Plateforme de Calcul Polyvalent pour l'IngÚnierie.                  
+                                                                               
+                                                                               
++- Options -------------------------------------------------------------------+
+| --json                        Activer la sortie JSON pour les rÚsultats.    |
+| --install-completion          Install completion for the current shell.     |
+| --show-completion             Show completion for the current shell, to     |
+|                               copy it or customize the installation.        |
+| --help                        Show this message and exit.                   |
++-----------------------------------------------------------------------------+
++- Commands ------------------------------------------------------------------+
+| plugins              GÞre l'activation et la dÚsactivation des plugins      |
+|                      locaux.                                                |
+| config               GÞre la configuration de LCPI (get|set|list).          |
+| doctor               VÚrifie l'installation, les dÚpendances et la          |
+|                      compatibilitÚ des plugins.                             |
+| completion           GÚnÚrer les scripts de complÚtion shell pour LCPI-CLI. |
+| report               Analyse un projet LCPI, collecte les rÚsultats et      |
+|                      gÚnÞre un rapport de synthÞse.                         |
+| validate             Valide un fichier de donnÚes selon les schÚmas LCPI.   |
+| schemas              Affiche la liste des schÚmas de validation             |
+|                      disponibles.                                           |
+| lock                 Verrouille un projet pour Úviter les conflits          |
+|                      multi-processus.                                       |
+| unlock               DÚverrouille un projet.                                |
+| plugin-info          Affiche les informations de version et de              |
+|                      compatibilitÚ d'un plugin.                             |
+| plugin-api-version   Affiche les informations de version d'API des plugins. |
+| export-repro         Exporte un environnement reproductible complet du      |
+|                      projet.                                                |
+| tips                 Affiche des astuces utiles pour LCPI-CLI.              |
+| guide                Affiche un guide interactif pour LCPI-CLI.             |
+| examples             Affiche des exemples d'utilisation de LCPI-CLI.        |
+| welcome              Affiche le message de bienvenue et les informations de |
+|                      dÚmarrage.                                             |
+| session              GÞre les sessions LCPI pour optimiser                  |
+|                      l'initialisation.                                      |
+| shell                InterprÚteur de commandes interactif                   |
+| logs                 Gestion des logs avec signature et intÚgritÚ           |
++-----------------------------------------------------------------------------+
+

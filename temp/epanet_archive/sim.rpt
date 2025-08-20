@@ -1,4 +1,4 @@
-  Page 1                                    Tue Aug 19 09:05:08 2025
+  Page 1                                    Wed Aug 20 03:11:02 2025
 
   ******************************************************************
   *                           E P A N E T                          *
@@ -33,42 +33,40 @@
          No Nodes
          No Links
    
-  Analysis begun Tue Aug 19 09:05:08 2025
+  Analysis begun Wed Aug 20 03:11:02 2025
 
    
   Hydraulic Status:
   -----------------------------------------------------------------------
-     0:00:00: Balanced after 16 trials
+     0:00:00: Balanced after 23 trials
      0:00:00: Tank R1 is closed at 4.50 m
      0:00:00: Tank R2 is closed at 5.20 m
      0:00:00: Tank R3 is emptying at 32.00 m
      0:00:00: Pipe N105_R1 temporarily closed
      0:00:00: Pipe R2_N41 temporarily closed
    
-     0:05:00: Balanced after 2 trials
-     0:05:00: Tank R2 is emptying at 5.20 m
-     0:05:00: Pipe R2_N41 changed from temporarily closed to open
+     0:05:00: Balanced after 1 trials
    
-     0:10:00: Balanced after 2 trials
+     0:10:00: Balanced after 1 trials
    
-     0:15:00: Balanced after 2 trials
+     0:15:00: Balanced after 1 trials
    
-     0:20:00: Balanced after 2 trials
+     0:20:00: Balanced after 1 trials
    
-     0:25:00: Balanced after 2 trials
+     0:25:00: Balanced after 1 trials
    
-     0:30:00: Balanced after 2 trials
+     0:30:00: Balanced after 1 trials
    
-     0:35:00: Balanced after 2 trials
+     0:35:00: Balanced after 1 trials
    
-     0:40:00: Balanced after 2 trials
+     0:40:00: Balanced after 1 trials
    
-     0:45:00: Balanced after 2 trials
+     0:45:00: Balanced after 1 trials
    
-     0:50:00: Balanced after 2 trials
+     0:50:00: Balanced after 1 trials
    
-     0:55:00: Balanced after 2 trials
+     0:55:00: Balanced after 1 trials
    
-     1:00:00: Balanced after 2 trials
+     1:00:00: Balanced after 1 trials
    
-  Analysis ended Tue Aug 19 09:05:08 2025
+  Analysis ended Wed Aug 20 03:11:02 2025

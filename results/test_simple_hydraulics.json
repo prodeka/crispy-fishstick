@@ -1,0 +1,51 @@
+{
+  "meta": {
+    "method": "nested",
+    "solver": "epanet",
+    "source": "test_simple_network.inp",
+    "constraints": {
+      "pressure_min_m": 10.0,
+      "velocity_min_m_s": 0.3,
+      "velocity_max_m_s": 2.0
+    },
+    "source_meta": {
+      "source": "inp",
+      "format": "inp",
+      "checksum": "6e392f7e48a0907e8cee007cde16b465f3f3994dbdf2d9fa3c57fe5f7ddfdd73",
+      "links_parsed": 3,
+      "file_path": "test_simple_network.inp"
+    }
+  },
+  "proposals": [],
+  "pareto": null,
+  "metrics": {},
+  "cache_info": {
+    "hit": false
+  },
+  "hydraulics": {
+    "error": "Chargement INP échoué: test_simple_network.inp:29: Invalid section \"[WATERQUALITY]\""
+  },
+  "report_payload": {
+    "metadata": {
+      "network_file": "test_simple_network.inp",
+      "method": "nested",
+      "solver": "epanet",
+      "constraints": {
+        "pressure_min_m": 10.0,
+        "velocity_min_m_s": 0.3,
+        "velocity_max_m_s": 2.0
+      },
+      "price_db_info": null
+    },
+    "proposals": [],
+    "pareto_front": []
+  },
+  "integrity": {
+    "checksum": "8c7811fae647c59c6b8d3396dbeed02a55368e647e6961f9cf05056ce5a990d9",
+    "signature": "d1e028418c3f53b3adcdc92f7ad1e1cc535cca07bae273346106567b0de03d5d",
+    "signature_valid": true,
+    "algorithm": "HMAC-SHA256",
+    "timestamp": 1755651911.126284,
+    "signed_at": "2025-08-20T01:05:11.126284"
+  }
+}

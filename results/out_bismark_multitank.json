@@ -1,0 +1,31 @@
+{
+  "proposals": [],
+  "pareto_front": null,
+  "metadata": {
+    "method": "multi_tank",
+    "error": "h_bounds_m non défini pour les réservoirs",
+    "feasible": false
+  },
+  "meta": {
+    "method": "multi-tank",
+    "solver": "lcpi",
+    "constraints": {
+      "pressure_min_m": 12.0,
+      "velocity_min_m_s": 0.3,
+      "velocity_max_m_s": 2.0
+    },
+    "source_meta": {
+      "source": "inp",
+      "file": "C:\\PROJET_DIMENTIONEMENT_2\\src\\lcpi\\aep\\PROTOTYPE\\INP\\bismark-Administrator.inp",
+      "converted_at": 1755614651.0719104
+    }
+  },
+  "integrity": {
+    "checksum": "2363c0a543f81bb34bd6ffdf5d1b34020a9d290350eb91f077d9e78962b3513d",
+    "signature": "8a8ff60b48efc4ccf35fd4a066240de1c398df28d2674639d8c2968270b3aa63",
+    "signature_valid": true,
+    "algorithm": "HMAC-SHA256",
+    "timestamp": 1755614651.0721576,
+    "signed_at": "2025-08-19T14:44:11.072158"
+  }
+}

@@ -4,7 +4,7 @@ Algorithme génétique pour l'optimisation des diamètres de conduites.
 
 import random
 import numpy as np
-from typing import List, Dict, Tuple, Optional
+from typing import List, Dict, Tuple, Optional, Callable
 from dataclasses import dataclass
 from .models import ConfigurationOptimisation, DiametreCommercial
 from .constraints import ConstraintManager
@@ -21,6 +21,11 @@ class GeneticOptimizer:
         self.population: List[Individu] = []
         self.best_solution: Optional[Individu] = None
         self.history: List[Dict] = []
+        self.on_generation_callback: Optional[Callable[[List[Individu], int], None]] = None
+
+    def set_on_generation_callback(self, callback: Optional[Callable[[List[Individu], int], None]]) -> None:
+        """Register a callback called after each generation with (population, generation)."""
+        self.on_generation_callback = callback
         
     def initialiser_population(self, nb_conduites: int) -> None:
         """Initialise la population avec des solutions aléatoires."""
@@ -203,11 +208,37 @@ class GeneticOptimizer:
             })
             
             # Affichage de progression
-            if generation % 10 == 0:
-                print(f"   Génération {generation:3d}: Fitness={self.population[0].fitness:.4f}, "
-                      f"Cout={self.population[0].cout_total:.0f} FCFA, "
-                      f"Perf={self.population[0].performance_hydraulique:.3f}")
+            # Utiliser le callback de progression si disponible
+            try:
+                if self.on_generation_callback is not None:
+                    # N'afficher que les générations importantes pour éviter le spam
+                    if (generation == 0 or 
+                        generation == self.config.algorithme.generations - 1 or 
+                        generation % 10 == 0 or
+                        generation % 5 == 0):  # Plus fréquent pour une meilleure UX
+                        self.on_generation_callback(self.population, generation)
+                else:
+                    # Fallback vers l'affichage classique (tous les 10)
+                    if generation % 10 == 0:
+                        print(f"   Génération {generation:3d}: Fitness={self.population[0].fitness:.4f}, "
+                              f"Cout={self.population[0].cout_total:.0f} FCFA, "
+                              f"Perf={self.population[0].performance_hydraulique:.3f}")
+            except Exception as e:
+                # Fallback vers l'affichage classique (tous les 10)
+                if generation % 10 == 0:
+                    print(f"   Génération {generation:3d}: Fitness={self.population[0].fitness:.4f}, "
+                          f"Cout={self.population[0].cout_total:.0f} FCFA, "
+                          f"Perf={self.population[0].performance_hydraulique:.3f}")
             
+            # Hook d'observation/raffinement (optionnel)
+            try:
+                if self.on_generation_callback is not None:
+                    # Passer une vue de la population courante
+                    self.on_generation_callback(self.population, generation)
+            except Exception:
+                # Ne jamais interrompre l'algorithme en cas d'erreur de callback
+                pass
+
             # Créer la nouvelle génération
             nouvelle_population = []
             
@@ -245,9 +276,10 @@ class GeneticOptimizer:
     
     def _generer_resultats(self) -> Dict:
         """Génère le contrat de sortie JSON canonique."""
+        algo_type = getattr(getattr(self.config, "algorithme", None), "type", "genetic")
         return {
             "optimisation": {
-                "algorithme": self.config.algorithme.type,
+                "algorithme": algo_type,
                 "convergence": {
                     "iterations": self.config.algorithme.generations,
                     "fitness_finale": self.best_solution.fitness,
