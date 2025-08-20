@@ -1,0 +1,12 @@
+{
+  "meta": {
+    "solvers": [
+      "epanet",
+      "lcpi"
+    ]
+  },
+  "results": {
+    "epanet": "results\\genetic_end2end_epanet.json",
+    "lcpi": "results\\genetic_end2end_lcpi.json"
+  }
+}

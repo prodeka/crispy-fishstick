@@ -202,9 +202,9 @@ class GeneticOptimizer:
         - Mode réseau jouet: fournir reseau_data et nb_conduites
         - Mode EPANET: fournir pipe_ids via __init__ (nb_conduites sera déduit)
         """
-        print(f"🚀 Démarrage de l'optimisation génétique...")
-        print(f"   Population: {self.config.algorithme.population_size}")
-        print(f"   Générations: {self.config.algorithme.generations}")
+        print(f"🚀 Démarrage de l'optimisation génétique...", flush=True)
+        print(f"   Population: {self.config.algorithme.population_size}", flush=True)
+        print(f"   Générations: {self.config.algorithme.generations}", flush=True)
         if nb_conduites is None and self.pipe_ids is not None:
             nb_conduites = len(self.pipe_ids)
         print(f"   Conduites à optimiser: {nb_conduites}")
@@ -257,13 +257,13 @@ class GeneticOptimizer:
                     if generation % 10 == 0:
                         print(f"   Génération {generation:3d}: Fitness={self.population[0].fitness:.4f}, "
                               f"Cout={self.population[0].cout_total:.0f} FCFA, "
-                              f"Perf={self.population[0].performance_hydraulique:.3f}")
+                              f"Perf={self.population[0].performance_hydraulique:.3f}", flush=True)
             except Exception as e:
                 # Fallback vers l'affichage classique (tous les 10)
                 if generation % 10 == 0:
                     print(f"   Génération {generation:3d}: Fitness={self.population[0].fitness:.4f}, "
                           f"Cout={self.population[0].cout_total:.0f} FCFA, "
-                          f"Perf={self.population[0].performance_hydraulique:.3f}")
+                          f"Perf={self.population[0].performance_hydraulique:.3f}", flush=True)
             
             # Hook d'observation/raffinement (optionnel)
             try:
@@ -300,12 +300,12 @@ class GeneticOptimizer:
             self.population = nouvelle_population[:self.config.algorithme.population_size]
         
         # Résultats finaux
-        print(f"✅ Optimisation terminée!")
-        print(f"   Meilleure solution trouvée:")
-        print(f"   - Diamètres: {self.best_solution.diametres}")
-        print(f"   - Coût total: {self.best_solution.cout_total:.0f} FCFA")
-        print(f"   - Performance: {self.best_solution.performance_hydraulique:.3f}")
-        print(f"   - Fitness finale: {self.best_solution.fitness:.4f}")
+        print(f"✅ Optimisation terminée!", flush=True)
+        print(f"   Meilleure solution trouvée:", flush=True)
+        print(f"   - Diamètres: {self.best_solution.diametres}", flush=True)
+        print(f"   - Coût total: {self.best_solution.cout_total:.0f} FCFA", flush=True)
+        print(f"   - Performance: {self.best_solution.performance_hydraulique:.3f}", flush=True)
+        print(f"   - Fitness finale: {self.best_solution.fitness:.4f}", flush=True)
         
         return self._generer_resultats()
     

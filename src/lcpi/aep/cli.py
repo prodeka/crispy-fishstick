@@ -3061,6 +3061,9 @@ def network_optimize_unified(
 						# Mode normal sans spinner
 						if not verbose:
 							typer.echo(f"🔄 {progress_msg}")
+							# Log explicite pour LCPI afin de visualiser le démarrage du GA
+							if sname == "lcpi":
+								typer.echo("➡️  Démarrage GA (LCPI) — exécution consciente hydraulique")
 						# Sélection dynamique de la méthode si 'auto'
 						selected_method = method
 						if method == "auto":
@@ -3095,7 +3098,13 @@ def network_optimize_unified(
 						if valid_solutions:
 							best_cost = min([p.get("cost", float('inf')) for p in valid_solutions])
 							console.print(f"💰 Meilleur coût: {best_cost:,.0f} FCFA")
-					
+					# Forcer meta.solver correct côté sortie
+					try:
+						res.setdefault("meta", {})["solver"] = sname
+						res.setdefault("meta", {}).setdefault("solver_details", {})["family"] = sname.lower()
+					except Exception:
+						pass
+
 					outputs[sname] = res
 					# Sauvegarde par solveur
 					if output:

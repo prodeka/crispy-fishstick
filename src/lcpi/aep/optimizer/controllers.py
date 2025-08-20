@@ -786,6 +786,14 @@ class OptimizationController:
         except Exception:
             pass
 
+        # Renforcement spécifique: pour la méthode génétique sur INP, appliquer la réparation quoiqu'il arrive
+        # (permet d'obtenir au moins une solution faisable même si des contraintes utilisateur sont fournies)
+        try:
+            if str(method).lower() == "genetic" and Path(input_path).suffix.lower() == ".inp":
+                result = self._ensure_at_least_one_feasible(result, constraints, Path(input_path), solver, verbose, progress_callback)
+        except Exception:
+            pass
+
         # Compléter le nombre de propositions demandé après réparation éventuelle
         try:
             if num_proposals and int(num_proposals) > 1:
@@ -949,7 +957,8 @@ class OptimizationController:
                 bigger = [x for x in candidate_diams if x >= d]
                 return bigger[0] if bigger else candidate_diams[-1]
 
-        max_iters = 8
+        # Agressivité accrue
+        max_iters = 20
         for _ in range(max_iters):
             if epo is None:
                 break
@@ -970,12 +979,14 @@ class OptimizationController:
                 # Retrier
                 result["proposals"] = self._sort_proposals_by_quality(result["proposals"])
                 return result
-            # Sinon augmenter des conduites candidates (heuristique: augmenter 10% des conduites les plus petites)
+            # Sinon augmenter des conduites candidates (heuristique agressive: augmenter 20% des conduites les plus petites, saut de 2 crans)
             try:
                 sorted_small = sorted(diams.items(), key=lambda kv: kv[1])
-                k = max(1, int(0.1 * len(sorted_small)))
+                k = max(1, int(0.2 * len(sorted_small)))
                 for key, val in sorted_small[:k]:
-                    diams[key] = bump(int(val))
+                    v1 = bump(int(val))
+                    v2 = bump(int(v1))
+                    diams[key] = v2
             except Exception:
                 break
         # Si on arrive ici: réparation non concluante; renvoyer l'original

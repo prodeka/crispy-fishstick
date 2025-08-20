@@ -1,0 +1,10 @@
+{
+  "meta": {
+    "solvers": [
+      "lcpi"
+    ]
+  },
+  "results": {
+    "lcpi": "results\\genetic_end2end_lcpi_only_lcpi.json"
+  }
+}
