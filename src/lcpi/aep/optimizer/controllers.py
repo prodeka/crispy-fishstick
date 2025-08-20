@@ -662,7 +662,16 @@ class OptimizationController:
                 
                 # Combiner les propositions originales avec les variations
                 all_proposals = original_proposals + additional_proposals[:num_proposals - 1]
-                
+
+                # Appliquer un plafond sur le ratio de coût des variations par rapport à la meilleure solution
+                all_proposals = self._enforce_cost_ratio_limit(all_proposals, max_ratio=float(algo_params.get("max_cost_ratio", 5.0)))
+
+                # Validation des variations (pour .inp: simulation rapide EPANET sur quelques variations)
+                try:
+                    all_proposals = self._validate_variations(all_proposals, constraints, Path(input_path), solver, progress_callback)
+                except Exception:
+                    pass
+
                 result["proposals"] = all_proposals
                 
                 if progress_callback and verbose:
@@ -671,6 +680,12 @@ class OptimizationController:
             # Même sans variations, trier les propositions originales
             if result.get("proposals"):
                 result["proposals"] = self._sort_proposals_by_quality(result["proposals"])
+
+        # Ajouter des métriques de diversité (entre propositions et vs meilleure solution)
+        try:
+            result = self._attach_diversity_metrics(result)
+        except Exception:
+            pass
         
         if progress_callback:
             progress_callback("complete", {"result": result})
@@ -767,7 +782,16 @@ class OptimizationController:
                     meta["price_db_info"] = {"path": str(p), "checksum": sha256_of_file(p)}
             except Exception:
                 pass
-        meta.update({"method": method, "solver": solver, "constraints": constraints, "source_meta": model_dict.get("meta", {})})
+        meta.update({
+            "method": method,
+            "solver": solver,
+            "constraints": constraints,
+            "source_meta": model_dict.get("meta", {}),
+            # Détails solveur/engine pour une meilleure différenciation
+            "solver_details": {
+                "family": ("epanet" if str(solver).lower() == "epanet" else "lcpi"),
+            },
+        })
         result["meta"] = meta
         # Construire un report_payload conforme aux templates V11/V16
         try:
@@ -841,6 +865,133 @@ class OptimizationController:
             return (int(constraints_ok) * 1000000, cost)
         
         return sorted(proposals, key=quality_score, reverse=True)
+
+    def _enforce_cost_ratio_limit(self, proposals: List[Dict[str, Any]], max_ratio: float = 5.0) -> List[Dict[str, Any]]:
+        """Filtre/annote les propositions pour limiter l'explosion des coûts (ex: 5x la meilleure).
+
+        - Conserve les propositions dont CAPEX <= best_cost * max_ratio
+        - Annote chaque proposition avec 'cost_ratio_to_best'
+        """
+        if not proposals:
+            return proposals
+        # Trouver meilleur coût (non nul si possible)
+        costs = [float(p.get("CAPEX", float("inf")) or float("inf")) for p in proposals]
+        best_cost = min([c for c in costs if c > 0.0] or [min(costs)])
+        if best_cost <= 0.0 or best_cost == float("inf"):
+            # Rien à faire si coût non défini
+            return proposals
+        filtered: List[Dict[str, Any]] = []
+        for p in proposals:
+            capex = float(p.get("CAPEX", float("inf")) or float("inf"))
+            ratio = (capex / best_cost) if capex not in (0.0, float("inf")) else float("inf")
+            try:
+                p.setdefault("metrics", {})["cost_ratio_to_best"] = ratio
+            except Exception:
+                pass
+            if ratio <= max_ratio:
+                filtered.append(p)
+        # Si tout a été filtré (pathologique), revenir à la liste originale
+        return filtered or proposals
+
+    def _attach_diversity_metrics(self, result: Dict[str, Any]) -> Dict[str, Any]:
+        """Calcule des métriques de diversité entre propositions basées sur les diamètres.
+
+        - diversity_to_best (par proposition): proportion de conduites dont le diamètre diffère du meilleur
+        - diversity_mean (globale): moyenne des distances pairwise (approx vs meilleur)
+        """
+        props = result.get("proposals", []) or []
+        if not props:
+            return result
+        best = props[0]
+        best_d = best.get("diameters_mm", {}) or {}
+        def distance(a: Dict[str, Any], b: Dict[str, Any]) -> float:
+            ka = set(a.keys())
+            kb = set(b.keys())
+            keys = ka | kb
+            if not keys:
+                return 0.0
+            diff = 0
+            for k in keys:
+                if a.get(k) != b.get(k):
+                    diff += 1
+            return diff / float(len(keys))
+        diversities: List[float] = []
+        for i, p in enumerate(props):
+            d = p.get("diameters_mm", {}) or {}
+            div = distance(d, best_d)
+            try:
+                p.setdefault("metrics", {})["diversity_to_best"] = div
+            except Exception:
+                pass
+            if i > 0:
+                diversities.append(div)
+        if diversities:
+            result.setdefault("metrics", {})["diversity_mean"] = sum(diversities) / len(diversities)
+        return result
+
+    def _validate_variations(self, proposals: List[Dict[str, Any]], constraints: Dict[str, Any], input_path: Path, solver: str, progress_callback: Optional[callable]) -> List[Dict[str, Any]]:
+        """Valide les variations: simule (si .inp) et filtre celles qui violent les contraintes.
+
+        - Pour les fichiers .inp: simuler rapidement une poignée de variations (top 5) via EPANET
+        - Met à jour min_pressure_m, max_velocity_m_s, constraints_ok
+        - Filtre les propositions non conformes si des contraintes strictes sont définies
+        """
+        if not proposals:
+            return proposals
+        # Uniquement pertinent pour INP (sinon on renvoie inchangé)
+        if input_path.suffix.lower() != ".inp":
+            return proposals
+        try:
+            from ..core.epanet_wrapper import EPANETOptimizer as _EPO  # type: ignore
+        except Exception:
+            return proposals
+        # Ne simuler que les N premières variations (pour temps raisonnable)
+        N = 5
+        checked = 0
+        epo = _EPO()
+        best = proposals[0]
+        best_diams = best.get("diameters_mm", {}) if isinstance(best, dict) else {}
+        out: List[Dict[str, Any]] = []
+        for idx, p in enumerate(proposals):
+            if idx == 0:
+                out.append(p)
+                continue
+            if checked >= N:
+                out.append(p)
+                continue
+            diams = p.get("diameters_mm", {})
+            if not diams:
+                out.append(p)
+                continue
+            # Simulation
+            try:
+                if progress_callback:
+                    progress_callback("simulation", {"solver": solver, "stage": "variation", "index": idx})
+                sim = epo.simulate(str(input_path), H_tank_map={}, diameters_map=diams, duration_h=1, timestep_min=5)
+                checked += 1
+                if sim.get("success"):
+                    min_p = float(sim.get("min_pressure_m", 0.0))
+                    max_v = float(sim.get("max_velocity_m_s", 0.0))
+                    p.setdefault("metrics", {})["min_pressure_m"] = min_p
+                    p.setdefault("metrics", {})["max_velocity_m_s"] = max_v
+                    # Vérifier contraintes
+                    ok = True
+                    if constraints.get("pressure_min_m") is not None and min_p < float(constraints.get("pressure_min_m")):
+                        ok = False
+                    if constraints.get("velocity_max_m_s") is not None and max_v > float(constraints.get("velocity_max_m_s")):
+                        ok = False
+                    p["constraints_ok"] = ok
+                    if ok:
+                        out.append(p)
+                    else:
+                        # Conserver en mode soft si aucune contrainte fournie
+                        if not constraints:
+                            out.append(p)
+                else:
+                    out.append(p)
+            except Exception:
+                out.append(p)
+        return out
 
     def _create_proposal_variation(self, base_proposal: Dict[str, Any], variation_index: int, constraints: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """Crée une variation de proposition basée sur la meilleure solution."""

@@ -2841,7 +2841,8 @@ def network_optimize_unified(
 				"velocity_min_m_s": float(vitesse_min) if vitesse_min is not None else 0.3,
 				"velocity_max_m_s": float(vitesse_max) if vitesse_max is not None else 1.5,  # Défaut plus strict
 			}
-			algo_cfg = {"penalty_weight": penalty_weight, "penalty_beta": penalty_beta, "hard_velocity": bool(hard_vel)}
+			# Configuration de l'algorithme
+			algo_cfg = {"objective": critere, "penalty_weight": penalty_weight, "penalty_beta": penalty_beta, "hard_velocity": bool(hard_vel), "max_cost_ratio": 5.0}
 			if hmax is not None:
 				try:
 					algo_cfg["H_bounds"] = (5.0, float(hmax))
@@ -3032,9 +3033,17 @@ def network_optimize_unified(
 					if spinner and not verbose:
 						# Utiliser le spinner si disponible et pas en mode verbose
 						with spinner(progress_msg, f"✅ {sname.upper()} terminé", style="modern"):
+							# Sélection dynamique de la méthode si 'auto'
+							selected_method = method
+							if method == "auto":
+								inp_ext = str(input_file).lower().endswith('.inp')
+								if sname == "epanet":
+									selected_method = "global" if inp_ext else "nested"
+								else:
+									selected_method = "genetic" if (str(input_file).lower().endswith(('.yml', '.yaml'))) else "nested"
 							res = controller.run_optimization(
 								input_path=input_file,
-								method=method,
+								method=selected_method,
 								solver=("epanet" if sname == "epanet" else "lcpi"),
 								constraints=constraints,
 								hybrid_refiner=hybrid_refiner,
@@ -3049,9 +3058,17 @@ def network_optimize_unified(
 						# Mode normal sans spinner
 						if not verbose:
 							typer.echo(f"🔄 {progress_msg}")
+						# Sélection dynamique de la méthode si 'auto'
+						selected_method = method
+						if method == "auto":
+							inp_ext = str(input_file).lower().endswith('.inp')
+							if sname == "epanet":
+								selected_method = "global" if inp_ext else "nested"
+							else:
+								selected_method = "genetic" if (str(input_file).lower().endswith(('.yml', '.yaml'))) else "nested"
 						res = controller.run_optimization(
 							input_path=input_file,
-							method=method,
+							method=selected_method,
 							solver=("epanet" if sname == "epanet" else "lcpi"),
 							constraints=constraints,
 							hybrid_refiner=hybrid_refiner,
@@ -3319,9 +3336,17 @@ def network_optimize_unified(
 			if spinner and not verbose:
 				# Utiliser le spinner si disponible et pas en mode verbose
 				with spinner(optimization_msg, f"✅ Optimisation terminée", style="modern"):
+					# Sélection dynamique de la méthode si 'auto'
+					selected_method = method
+					if method == "auto":
+						inp_ext = str(input_file).lower().endswith('.inp')
+						if solver == "epanet":
+							selected_method = "global" if inp_ext else "nested"
+						else:
+							selected_method = "genetic" if (str(input_file).lower().endswith(('.yml', '.yaml'))) else "nested"
 					resultats = controller.run_optimization(
 						input_path=input_file,
-						method=method,
+						method=selected_method,
 						solver=("epanet" if solver == "epanet" else "lcpi"),
 						constraints=constraints,
 						hybrid_refiner=hybrid_refiner,
@@ -3343,9 +3368,17 @@ def network_optimize_unified(
 						border_style="cyan"
 					))
 				
+				# Sélection dynamique de la méthode si 'auto'
+				selected_method = method
+				if method == "auto":
+					inp_ext = str(input_file).lower().endswith('.inp')
+					if solver == "epanet":
+						selected_method = "global" if inp_ext else "nested"
+					else:
+						selected_method = "genetic" if (str(input_file).lower().endswith(('.yml', '.yaml'))) else "nested"
 				resultats = controller.run_optimization(
 					input_path=input_file,
-					method=method,
+					method=selected_method,
 					solver=("epanet" if solver == "epanet" else "lcpi"),
 					constraints=constraints,
 					hybrid_refiner=hybrid_refiner,
