@@ -3047,7 +3047,7 @@ def network_optimize_unified(
 							res = controller.run_optimization(
 								input_path=input_file,
 								method=selected_method,
-								solver=("epanet" if sname == "epanet" else "lcpi"),
+								solver=sname,
 								constraints=constraints,
 								hybrid_refiner=hybrid_refiner,
 								hybrid_params={"topk": hybrid_topk, "steps": hybrid_steps},
@@ -3072,7 +3072,7 @@ def network_optimize_unified(
 						res = controller.run_optimization(
 							input_path=input_file,
 							method=selected_method,
-							solver=("epanet" if sname == "epanet" else "lcpi"),
+							solver=sname,
 							constraints=constraints,
 							hybrid_refiner=hybrid_refiner,
 							hybrid_params={"topk": hybrid_topk, "steps": hybrid_steps},

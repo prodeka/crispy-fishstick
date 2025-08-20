@@ -11,7 +11,7 @@
     "source_meta": {
       "source": "inp",
       "file": "src\\lcpi\\aep\\PROTOTYPE\\INP\\bismark-Administrator.inp",
-      "converted_at": 1755686348.5963254
+      "converted_at": 1755686547.255559
     },
     "solver_details": {
       "family": "epanet"
@@ -1900,11 +1900,11 @@
     "pareto_front": []
   },
   "integrity": {
-    "checksum": "133a326832043e46a4683198ee703b2449c2421717a3784201f2fe40bb9e4e93",
-    "signature": "a2fcbb2f5943df4a774363f10eae60ed00c1fca888e3da00940c5f6229496c1c",
+    "checksum": "d800b483c84a32d25cc66e535d3fbbc6f9afe44e7cfaf7023cdd5326d11c6287",
+    "signature": "6bf4a4566c8c78a741de2c6902e5f3e173c7ba8142479ad828c53ad84e06565b",
     "signature_valid": true,
     "algorithm": "HMAC-SHA256",
-    "timestamp": 1755686359.6052854,
-    "signed_at": "2025-08-20T10:39:19.605285"
+    "timestamp": 1755686558.9573686,
+    "signed_at": "2025-08-20T10:42:38.957369"
   }
 }

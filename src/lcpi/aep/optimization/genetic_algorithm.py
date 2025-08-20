@@ -9,15 +9,21 @@ from dataclasses import dataclass
 from .models import ConfigurationOptimisation, DiametreCommercial
 from .constraints import ConstraintManager
 from .individual import Individu
+from ..core.epanet_wrapper import EPANETOptimizer  # type: ignore
 
 class GeneticOptimizer:
     """
     Optimiseur génétique pour la sélection des diamètres de conduites.
     """
     
-    def __init__(self, config: ConfigurationOptimisation, constraint_manager: ConstraintManager):
+    def __init__(self, config: ConfigurationOptimisation, constraint_manager: ConstraintManager, network_path: Optional[str] = None, solver: Optional[EPANETOptimizer] = None, pipe_ids: Optional[List[str]] = None):
         self.config = config
         self.constraint_manager = constraint_manager
+        # Conscience hydraulique (optionnelle)
+        self.network_path: Optional[str] = network_path
+        self.solver: Optional[EPANETOptimizer] = solver
+        # Ordre stable des conduites pour mapper liste -> dict {pipe_id: diam}
+        self.pipe_ids: Optional[List[str]] = pipe_ids
         self.population: List[Individu] = []
         self.best_solution: Optional[Individu] = None
         self.history: List[Dict] = []
@@ -42,22 +48,47 @@ class GeneticOptimizer:
             self.population.append(individu)
     
     def evaluer_fitness(self, individu: Individu, reseau_data: Dict) -> float:
-        """Évalue la fitness d'un individu selon les critères définis."""
-        # Calculer les métriques
+        """Évalue la fitness d'un individu.
+        - Si network_path/solver/pipe_ids fournis: simulation EPANET et pénalités (conscience hydraulique)
+        - Sinon: ancien mode basé sur approximations
+        """
+        if self.network_path and self.solver and self.pipe_ids:
+            # Construire le mapping {pipe_id: diam}
+            try:
+                diameters_map = {self.pipe_ids[i]: d for i, d in enumerate(individu.diametres) if i < len(self.pipe_ids)}
+            except Exception:
+                diameters_map = {}
+            sim = {}
+            try:
+                sim = self.solver.simulate(self.network_path, H_tank_map={}, diameters_map=diameters_map, duration_h=1, timestep_min=5)
+            except Exception:
+                sim = {"success": False}
+            # Coût (inchangé)
+            cout_total = self._calculer_cout_total(individu.diametres)
+            penalite = 0.0
+            if not sim.get("success"):
+                penalite = 1e12
+            else:
+                p_min_actuelle = float(sim.get("min_pressure_m", 0.0) or 0.0)
+                p_req = float(getattr(getattr(self.constraint_manager, 'contraintes_techniques', None), 'pression_min_mce', 10.0))
+                if p_min_actuelle < p_req:
+                    penalite += 1e9 * (p_req - p_min_actuelle) ** 2
+            # Renseigner quelques métriques pour traçabilité
+            individu.cout_total = cout_total
+            individu.energie_totale = 0.0
+            individu.performance_hydraulique = 0.0
+            # Fitness: minimiser (coût + pénalité)
+            val = cout_total + penalite + 1e-6
+            return 1.0 / val
+        # Ancien mode
         cout_total = self._calculer_cout_total(individu.diametres)
         energie_totale = self._calculer_energie_totale(individu.diametres, reseau_data)
         performance = self._calculer_performance_hydraulique(individu.diametres, reseau_data)
-        
-        # Stocker les métriques
         individu.cout_total = cout_total
         individu.energie_totale = energie_totale
         individu.performance_hydraulique = performance
-        
-        # Vérifier les contraintes
         if not self.constraint_manager.verifier_contraintes(individu, reseau_data):
-            return 0.0  # Solution invalide
-        
-        # Calculer la fitness pondérée
+            return 0.0
         fitness = 0.0
         if self.config.criteres.principal == "cout":
             fitness += self.config.criteres.poids[0] * (1.0 / (1.0 + cout_total / 100000))
@@ -65,8 +96,6 @@ class GeneticOptimizer:
             fitness += self.config.criteres.poids[0] * (1.0 / (1.0 + energie_totale / 10000))
         elif self.config.criteres.principal == "performance":
             fitness += self.config.criteres.poids[0] * performance
-        
-        # Ajouter les critères secondaires
         for i, critere in enumerate(self.config.criteres.secondaires):
             if critere == "cout":
                 fitness += self.config.criteres.poids[i + 1] * (1.0 / (1.0 + cout_total / 100000))
@@ -74,7 +103,6 @@ class GeneticOptimizer:
                 fitness += self.config.criteres.poids[i + 1] * (1.0 / (1.0 + energie_totale / 10000))
             elif critere == "performance":
                 fitness += self.config.criteres.poids[i + 1] * performance
-        
         return fitness
     
     def _calculer_cout_total(self, diametres: List[int]) -> float:
@@ -169,15 +197,22 @@ class GeneticOptimizer:
             nouveau_diametre = random.choice(self.config.diametres_candidats).diametre_mm
             individu.diametres[idx] = nouveau_diametre
     
-    def optimiser(self, reseau_data: Dict, nb_conduites: int) -> Dict:
-        """Exécute l'optimisation génétique."""
+    def optimiser(self, reseau_data: Optional[Dict] = None, nb_conduites: Optional[int] = None) -> Dict:
+        """Exécute l'optimisation génétique.
+        - Mode réseau jouet: fournir reseau_data et nb_conduites
+        - Mode EPANET: fournir pipe_ids via __init__ (nb_conduites sera déduit)
+        """
         print(f"🚀 Démarrage de l'optimisation génétique...")
         print(f"   Population: {self.config.algorithme.population_size}")
         print(f"   Générations: {self.config.algorithme.generations}")
+        if nb_conduites is None and self.pipe_ids is not None:
+            nb_conduites = len(self.pipe_ids)
         print(f"   Conduites à optimiser: {nb_conduites}")
         
         # Initialiser la population
-        self.initialiser_population(nb_conduites)
+        if nb_conduites is None:
+            raise ValueError("nb_conduites non spécifié et pipe_ids indisponible")
+        self.initialiser_population(int(nb_conduites))
         
         # Boucle principale
         for generation in range(self.config.algorithme.generations):
@@ -277,6 +312,14 @@ class GeneticOptimizer:
     def _generer_resultats(self) -> Dict:
         """Génère le contrat de sortie JSON canonique."""
         algo_type = getattr(getattr(self.config, "algorithme", None), "type", "genetic")
+        # Construire la map des diamètres
+        if self.best_solution is not None:
+            if self.pipe_ids and len(self.best_solution.diametres) == len(self.pipe_ids):
+                diam_map = {self.pipe_ids[i]: d for i, d in enumerate(self.best_solution.diametres)}
+            else:
+                diam_map = {f"C{i+1}": d for i, d in enumerate(self.best_solution.diametres)}
+        else:
+            diam_map = {}
         return {
             "optimisation": {
                 "algorithme": algo_type,
@@ -286,7 +329,7 @@ class GeneticOptimizer:
                     "temps_calcul_s": 0.0  # À implémenter avec time.time()
                 },
                 "meilleure_solution": {
-                    "diametres": {f"C{i+1}": d for i, d in enumerate(self.best_solution.diametres)},
+                    "diametres": diam_map,
                     "performance": {
                         "cout_total_fcfa": self.best_solution.cout_total,
                         "energie_totale_kwh": self.best_solution.energie_totale / 3600,  # Conversion W→kWh

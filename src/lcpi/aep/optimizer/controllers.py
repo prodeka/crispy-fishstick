@@ -403,7 +403,14 @@ class OptimizationController:
                         )
                         # Instancier explicitement le gestionnaire de contraintes (comme pour le flux YAML)
                         cm = _CM(cfg.contraintes_budget, cfg.contraintes_techniques)
-                        ga = _GA(cfg, cm)
+                        
+                        # Construire un ordre stable des conduites à partir du modèle
+                        pipe_ids = list((nm.links or {}).keys())
+                        # Créer le simulateur EPANET
+                        from ..core.epanet_wrapper import EPANETOptimizer as _EPO
+                        simulator = _EPO()
+                        # Nouvel optimiseur conscient hydraulique
+                        ga = _GA(cfg, cm, network_path=str(self.network_model), solver=simulator, pipe_ids=pipe_ids)
                         
                         # Connecter le callback de progression
                         try:
@@ -411,20 +418,8 @@ class OptimizationController:
                                 ga.set_on_generation_callback(self._on_generation_callback)
                         except Exception:
                             pass
-                        
-                        # Utiliser une graine basée sur le solveur pour générer des résultats différents
-                        import random
-                        if self.solver == "lcpi":
-                            random.seed(42)  # Graine fixe pour LCPI
-                        else:
-                            random.seed(123)  # Graine différente pour EPANET
-                        
-                        # Construire un réseau jouet pour GA (liste de conduites)
-                        reseau_data = {"conduites": [{"id": lid, "longueur_m": float(ld.get("length_m", 100.0))} for lid, ld in (nm.links or {}).items()]}
-                        out = ga.optimiser(reseau_data, len(reseau_data["conduites"]))
-                        
-                        # Réinitialiser la graine aléatoire
-                        random.seed()
+                        # Exécuter en mode EPANET (l'optimiseur se base sur pipe_ids et network_path)
+                        out = ga.optimiser()
                         
                         best = (out or {}).get("optimisation", {}).get("meilleure_solution", {})
                         diam_map = {k: v for k, v in best.get("diametres", {}).items()}
