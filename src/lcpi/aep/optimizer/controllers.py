@@ -470,7 +470,10 @@ class OptimizationController:
 
         # Callback de progression
         if progress_callback:
-            progress_callback("start", {"method": method, "solver": solver})
+            try:
+                progress_callback("start", {"method": method, "solver": solver})
+            except Exception:
+                pass
         
         # Charger modèle (dict) pour métadonnées et compat YAML
         if progress_callback:

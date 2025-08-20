@@ -27,11 +27,29 @@ class GeneticOptimizer:
         self.population: List[Individu] = []
         self.best_solution: Optional[Individu] = None
         self.history: List[Dict] = []
+        # callback unifié (evt, data) et fallback historique (population, generation)
         self.on_generation_callback: Optional[Callable[[List[Individu], int], None]] = None
+        self._progress_cb: Optional[Callable[[str, dict], None]] = None
 
     def set_on_generation_callback(self, callback: Optional[Callable[[List[Individu], int], None]]) -> None:
         """Register a callback called after each generation with (population, generation)."""
         self.on_generation_callback = callback
+        # Permettre également un cb (evt, data)
+        try:
+            if callback and callback.__code__.co_argcount == 2:
+                # suppose signature (evt, data)
+                self._progress_cb = callback  # type: ignore
+        except Exception:
+            pass
+
+    def _emit(self, evt: str, data: dict) -> None:
+        cb = self._progress_cb
+        if cb is None:
+            return
+        try:
+            cb(evt, data)
+        except Exception:
+            pass
         
     def initialiser_population(self, nb_conduites: int) -> None:
         """Initialise la population avec des solutions aléatoires."""
@@ -215,10 +233,19 @@ class GeneticOptimizer:
         self.initialiser_population(int(nb_conduites))
         
         # Boucle principale
-        for generation in range(self.config.algorithme.generations):
+        total_gen = int(self.config.algorithme.generations)
+        pop_size = int(self.config.algorithme.population_size)
+        for generation in range(total_gen):
+            # emit generation_start
+            self._emit("generation_start", {"generation": generation, "total_generations": total_gen, "population_size": pop_size})
             # Évaluer la fitness de tous les individus
-            for individu in self.population:
+            for idx, individu in enumerate(self.population, start=1):
+                self._emit("individual_start", {"generation": generation, "index": idx, "population_size": pop_size, "worker": "main"})
                 individu.fitness = self.evaluer_fitness(individu, reseau_data)
+                try:
+                    self._emit("individual_end", {"generation": generation, "index": idx, "candidate_id": getattr(individu, 'id', idx), "cost": getattr(individu, 'cout_total', None), "feasible": bool(getattr(individu, 'constraints_ok', True))})
+                except Exception:
+                    pass
             
             # Trier par fitness
             self.population.sort(key=lambda x: x.fitness, reverse=True)
@@ -241,6 +268,11 @@ class GeneticOptimizer:
                 'meilleur_cout': self.population[0].cout_total,
                 'meilleur_performance': self.population[0].performance_hydraulique
             })
+            # emit generation_end
+            try:
+                self._emit("generation_end", {"generation": generation, "best_cost": float(self.population[0].cout_total) if hasattr(self.population[0], 'cout_total') else None, "best_id": getattr(self.population[0], 'id', None), "population_size": pop_size})
+            except Exception:
+                pass
             
             # Affichage de progression
             # Utiliser le callback de progression si disponible
