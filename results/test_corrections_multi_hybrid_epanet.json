@@ -10,7 +10,7 @@
     "source_meta": {
       "source": "inp",
       "file": "src\\lcpi\\aep\\PROTOTYPE\\INP\\bismark-Administrator.inp",
-      "converted_at": 1755684686.2813828
+      "converted_at": 1755684859.033243
     },
     "solver_details": {
       "family": "epanet"
@@ -232,7 +232,7 @@
       "constraints_ok": false,
       "metrics": {
         "performance_hydraulique": 0.508780487804878,
-        "cost_ratio_to_best": 1.0103133482348183,
+        "cost_ratio_to_best": 3.8487290598663026,
         "diversity_to_best": 0.0,
         "min_pressure_m": 4.500000476837158,
         "max_velocity_m_s": 1.493151068687439
@@ -245,7 +245,10 @@
     }
   ],
   "pareto": [],
-  "metrics": {},
+  "metrics": {
+    "hybrid_improved_count": 0,
+    "ga_hook_calls": 49
+  },
   "cache_info": {
     "hit": false
   },
@@ -2530,11 +2533,11 @@
     "pareto_front": []
   },
   "integrity": {
-    "checksum": "cc1ffdd0f7d1b279b03b80ecc8918ae79df0e6385cc4b560882226b79e88d488",
-    "signature": "df5ef44109a2e2cdb1d1f2aaec136463efad056f0667668cf2c76fb25b47ee0e",
+    "checksum": "195545d06dc20ff30e0e4a940517bb83591ce9672b22fa5079315078162d695f",
+    "signature": "78a1b31c37022e727ac05f769fa4c5f211014caeff97ecee57ce7dd7587d6150",
     "signature_valid": true,
     "algorithm": "HMAC-SHA256",
-    "timestamp": 1755684687.177266,
-    "signed_at": "2025-08-20T10:11:27.177266"
+    "timestamp": 1755684860.0016608,
+    "signed_at": "2025-08-20T10:14:20.001661"
   }
 }

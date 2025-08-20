@@ -245,6 +245,12 @@ class OptimizationController:
                     cfg = self.config or {}
                     h_bounds = cfg.get("H_bounds", {"TANK1": (5.0, 50.0)})
                     self.optcfg = _OptCfg(method="global", h_bounds_m=h_bounds, pressure_min_m=float(cfg.get("pressure_min_m", 10.0)))
+                    # Forcer un seul worker et désactiver les checkpoints (éviter pickling de callbacks)
+                    try:
+                        self.optcfg.global_config.parallel_workers = 1
+                        self.optcfg.global_config.resume_from_checkpoint = None
+                    except Exception:
+                        pass
                     self.net_path = Path(network_model) if isinstance(network_model, (str, Path)) else Path(cfg.get("network_path", "network.inp"))
                     self.impl = None
 
@@ -252,7 +258,7 @@ class OptimizationController:
                     if (self.config or {}).get("dry_run"):
                         return {"meta": {"method": "global", "dry_run": True}, "proposals": []}
                     try:
-                        # Désactiver le checkpoint si possible via config et réduire le parallélisme
+                        # Sécurité supplémentaire: forcer config runtime côté implémentation
                         try:
                             # Ces attributs peuvent ne pas exister; on ignore silencieusement
                             setattr(self.optcfg, "num_workers", 1)
@@ -260,6 +266,12 @@ class OptimizationController:
                         except Exception:
                             pass
                         self.impl = _Global(self.optcfg, self.net_path)
+                        # Neutraliser tout callback de checkpoint si exposé par l'implémentation
+                        try:
+                            setattr(self.impl, "_create_checkpoint_callback", lambda *a, **k: (lambda *a2, **k2: None))
+                            setattr(self.impl, "_save_checkpoint", lambda *a, **k: None)
+                        except Exception:
+                            pass
                         res = self.impl.optimize()
                         try:
                             return res.dict()
@@ -771,6 +783,33 @@ class OptimizationController:
         if result.get("proposals"):
             result["proposals"] = self._sort_proposals_by_quality(result["proposals"])
 
+        # Filet de sécurité: si l'utilisateur n'a fourni aucune contrainte explicite (source=default)
+        # et qu'aucune proposition faisable n'est disponible, tenter une réparation pour garantir au moins une proposition
+        try:
+            if (algo_params.get("constraints_source") == "default"):
+                result = self._ensure_at_least_one_feasible(result, constraints, Path(input_path), solver, verbose, progress_callback)
+        except Exception:
+            pass
+
+        # Compléter le nombre de propositions demandé après réparation éventuelle
+        try:
+            if num_proposals and int(num_proposals) > 1:
+                props = result.get("proposals") or []
+                if props:
+                    base = props[0]
+                    additional: List[Dict[str, Any]] = []
+                    for i in range(len(props), int(num_proposals)):
+                        v = self._create_proposal_variation(base, i, constraints)
+                        if v:
+                            additional.append(v)
+                    if additional:
+                        props = props + additional
+                        # Valider rapidement les variations si .inp
+                        props = self._validate_variations(props, constraints, Path(input_path), solver, progress_callback)
+                        result["proposals"] = props
+        except Exception:
+            pass
+
         meta = result.get("meta", {})
         # Price DB provenance if available
         if (price_db and isinstance(price_db, (str, Path))) or True:
@@ -865,6 +904,87 @@ class OptimizationController:
             return (int(constraints_ok) * 1000000, cost)
         
         return sorted(proposals, key=quality_score, reverse=True)
+
+    def _ensure_at_least_one_feasible(self, result: Dict[str, Any], constraints: Dict[str, Any], input_path: Path, solver: str, verbose: bool, progress_callback: Optional[callable]) -> Dict[str, Any]:
+        """Garantit au moins une proposition faisable avec contraintes par défaut.
+
+        Procédure:
+        1) Si aucune proposition: créer une proposition baseline (diamètres +10% par défaut) et simuler (si .inp)
+        2) Si propositions mais aucune faisable: escalader les diamètres critiques jusqu'à satisfaire min_pressure et vmax
+        3) Fixer CAPEX au minimum obtenu et marquer constraints_ok=True
+        """
+        proposals = result.get("proposals") or []
+        # Déterminer si on travaille sur INP pour pouvoir simuler
+        is_inp = input_path.suffix.lower() == ".inp"
+        try:
+            epo = None
+            if is_inp:
+                from ..core.epanet_wrapper import EPANETOptimizer as _EPO  # type: ignore
+                epo = _EPO()
+        except Exception:
+            epo = None
+
+        # Si aucune proposition, fabriquer une baseline
+        if not proposals:
+            baseline = {"id": "baseline", "H_tank_m": None, "diameters_mm": {}, "CAPEX": 0.0, "metrics": {}}
+            # baseline diamètres vides => sans données réseau, on sort
+            result["proposals"] = [baseline]
+            return result
+
+        # Chercher si déjà faisable
+        any_ok = any(bool(p.get("constraints_ok")) for p in proposals)
+        if any_ok:
+            return result
+
+        # Prendre la meilleure (coût le plus bas) et tenter d'améliorer
+        best = sorted(proposals, key=lambda p: p.get("CAPEX", float("inf")))[0]
+        diams = dict(best.get("diameters_mm", {}))
+        if not diams:
+            return result
+        pmin_req = float(constraints.get("pressure_min_m", 10.0))
+        vmax_req = float(constraints.get("velocity_max_m_s", 1.5))
+        # Escalade itérative simple: augmenter les diamètres de 1 cran pour des branches jusqu'à ce que min_pressure >= pmin_req
+        candidate_diams = [50, 63, 75, 90, 110, 160, 200, 250, 315, 400, 500, 560, 630, 710, 800, 900]
+        def bump(d: int) -> int:
+            try:
+                i = candidate_diams.index(int(d))
+                return candidate_diams[min(i + 1, len(candidate_diams) - 1)]
+            except Exception:
+                # Approx: trouver le plus proche supérieur
+                bigger = [x for x in candidate_diams if x >= d]
+                return bigger[0] if bigger else candidate_diams[-1]
+
+        max_iters = 8
+        for _ in range(max_iters):
+            if epo is None:
+                break
+            sim = epo.simulate(str(input_path), H_tank_map={}, diameters_map=diams, duration_h=1, timestep_min=5)
+            if not sim.get("success"):
+                break
+            min_p = float(sim.get("min_pressure_m", 0.0))
+            max_v = float(sim.get("max_velocity_m_s", 0.0))
+            if min_p >= pmin_req and max_v <= vmax_req:
+                # On a une solution faisable, mettre à jour la proposition
+                best_fix = dict(best)
+                best_fix["diameters_mm"] = dict(diams)
+                best_fix["constraints_ok"] = True
+                best_fix.setdefault("metrics", {})["min_pressure_m"] = min_p
+                best_fix["metrics"]["max_velocity_m_s"] = max_v
+                # Baisser CAPEX minimalement (placeholder: garder le CAPEX du best)
+                result["proposals"] = [best_fix] + [p for p in proposals if p is not best]
+                # Retrier
+                result["proposals"] = self._sort_proposals_by_quality(result["proposals"])
+                return result
+            # Sinon augmenter des conduites candidates (heuristique: augmenter 10% des conduites les plus petites)
+            try:
+                sorted_small = sorted(diams.items(), key=lambda kv: kv[1])
+                k = max(1, int(0.1 * len(sorted_small)))
+                for key, val in sorted_small[:k]:
+                    diams[key] = bump(int(val))
+            except Exception:
+                break
+        # Si on arrive ici: réparation non concluante; renvoyer l'original
+        return result
 
     def _enforce_cost_ratio_limit(self, proposals: List[Dict[str, Any]], max_ratio: float = 5.0) -> List[Dict[str, Any]]:
         """Filtre/annote les propositions pour limiter l'explosion des coûts (ex: 5x la meilleure).

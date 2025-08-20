@@ -1,0 +1,12 @@
+{
+  "meta": {
+    "solvers": [
+      "epanet",
+      "lcpi"
+    ]
+  },
+  "results": {
+    "epanet": "results\\bismark_auto_epanet.json",
+    "lcpi": "results\\bismark_auto_lcpi.json"
+  }
+}

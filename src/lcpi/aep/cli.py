@@ -2842,7 +2842,8 @@ def network_optimize_unified(
 				"velocity_max_m_s": float(vitesse_max) if vitesse_max is not None else 1.5,  # Défaut plus strict
 			}
 			# Configuration de l'algorithme
-			algo_cfg = {"objective": critere, "penalty_weight": penalty_weight, "penalty_beta": penalty_beta, "hard_velocity": bool(hard_vel), "max_cost_ratio": 5.0}
+			_constraints_from_user = not (pression_min is None and vitesse_min is None and vitesse_max is None)
+			algo_cfg = {"objective": critere, "penalty_weight": penalty_weight, "penalty_beta": penalty_beta, "hard_velocity": bool(hard_vel), "max_cost_ratio": 5.0, "constraints_source": ("user" if _constraints_from_user else "default")}
 			if hmax is not None:
 				try:
 					algo_cfg["H_bounds"] = (5.0, float(hmax))
@@ -2862,11 +2863,12 @@ def network_optimize_unified(
 					console = Console()
 					
 					# En-tête multi-solveurs
-					console.print(Panel.fit(
-						Text("🚀 OPTIMISATION MULTI-SOLVEURS", style="bold blue"),
-						title="Configuration",
-						border_style="blue"
-					))
+					if verbose:
+						console.print(Panel.fit(
+							Text("🚀 OPTIMISATION MULTI-SOLVEURS", style="bold blue"),
+							title="Configuration",
+							border_style="blue"
+						))
 					
 					# Table des paramètres
 					table = Table(title="📋 Paramètres d'optimisation")
@@ -2882,8 +2884,9 @@ def network_optimize_unified(
 					if hybrid_refiner:
 						table.add_row("Raffinement", f"{hybrid_refiner} (topk={hybrid_topk}, steps={hybrid_steps})")
 					
-					console.print(table)
-					console.print("🔄 Démarrage des optimisations...\n")
+					if verbose:
+						console.print(table)
+						console.print("🔄 Démarrage des optimisations...\n")
 				
 				outputs = {}
 				selected_jsons: list[Path] = []
@@ -3102,7 +3105,8 @@ def network_optimize_unified(
 						selected_jsons.append(out_s)
 						if verbose:
 							console.print(f"💾 Résultats sauvegardés: {out_s}")
-						console.print("")  # Ligne vide pour séparer
+						if verbose:
+							console.print("")  # Ligne vide pour séparer
 				
 				# Index JSON multi
 				if output:
@@ -3151,26 +3155,27 @@ def network_optimize_unified(
 						typer.echo(f"📝 Rapport Markdown généré: {rep_path}")
 					elif report.lower() == "pdf":
 						typer.echo("⚠️  PDF non généré automatiquement (convertisseur indisponible). Utilisez --report html pour un rapport HTML.")
-					console.print(Panel.fit(
-						Text("🎉 OPTIMISATION TERMINÉE", style="bold green"),
-						title="Résumé final",
-						border_style="green"
-					))
-					
-					# Résumé final
-					final_table = Table(title="📊 Résumé de l'exécution")
-					final_table.add_column("Métrique", style="cyan")
-					final_table.add_column("Valeur", style="green")
-					
-					final_table.add_row("Solveurs exécutés", str(len(multi_list)))
-					final_table.add_row("Liste des solveurs", ", ".join(multi_list))
-					final_table.add_row("Méthode", method)
-					final_table.add_row("Fichiers générés", str(len(selected_jsons) + 1))  # +1 pour l'index
-					
-					if report:
-						final_table.add_row("Rapport généré", f"{report.upper()}")
-					
-					console.print(final_table)
+					if verbose:
+						console.print(Panel.fit(
+							Text("🎉 OPTIMISATION TERMINÉE", style="bold green"),
+							title="Résumé final",
+							border_style="green"
+						))
+						
+						# Résumé final
+						final_table = Table(title="📊 Résumé de l'exécution")
+						final_table.add_column("Métrique", style="cyan")
+						final_table.add_column("Valeur", style="green")
+						
+						final_table.add_row("Solveurs exécutés", str(len(multi_list)))
+						final_table.add_row("Liste des solveurs", ", ".join(multi_list))
+						final_table.add_row("Méthode", method)
+						final_table.add_row("Fichiers générés", str(len(selected_jsons) + 1))  # +1 pour l'index
+						
+						if report:
+							final_table.add_row("Rapport généré", f"{report.upper()}")
+						
+						console.print(final_table)
 				
 				return outputs
 

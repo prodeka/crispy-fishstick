@@ -10,7 +10,7 @@
     "source_meta": {
       "source": "inp",
       "file": "src\\lcpi\\aep\\PROTOTYPE\\INP\\bismark-Administrator.inp",
-      "converted_at": 1755684686.2813828
+      "converted_at": 1755685730.0602455
     },
     "solver_details": {
       "family": "epanet"
@@ -232,7 +232,7 @@
       "constraints_ok": false,
       "metrics": {
         "performance_hydraulique": 0.508780487804878,
-        "cost_ratio_to_best": 1.0103133482348183,
+        "cost_ratio_to_best": 1.0,
         "diversity_to_best": 0.0,
         "min_pressure_m": 4.500000476837158,
         "max_velocity_m_s": 1.493151068687439
@@ -245,9 +245,12 @@
     }
   ],
   "pareto": [],
-  "metrics": {},
+  "metrics": {
+    "hybrid_improved_count": 0,
+    "cache_hit": true
+  },
   "cache_info": {
-    "hit": false
+    "hit": true
   },
   "hydraulics": {
     "pressures": {
@@ -2528,13 +2531,5 @@
       }
     ],
     "pareto_front": []
-  },
-  "integrity": {
-    "checksum": "cc1ffdd0f7d1b279b03b80ecc8918ae79df0e6385cc4b560882226b79e88d488",
-    "signature": "df5ef44109a2e2cdb1d1f2aaec136463efad056f0667668cf2c76fb25b47ee0e",
-    "signature_valid": true,
-    "algorithm": "HMAC-SHA256",
-    "timestamp": 1755684687.177266,
-    "signed_at": "2025-08-20T10:11:27.177266"
   }
 }

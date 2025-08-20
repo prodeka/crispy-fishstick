@@ -1105,6 +1105,13 @@ class EPANETOptimizer:
             heads_m = heads
             headlosses_m = headlosses
 
+            # Calcul de la pression minimale uniquement sur les jonctions (exclure réservoirs/cuves)
+            try:
+                junction_ids = set(model.junction_name_list) if hasattr(model, 'junction_name_list') else set(model.nodes.keys())
+            except Exception:
+                junction_ids = set(model.nodes.keys()) if hasattr(model, 'nodes') else set()
+            pressures_junctions = {nid: p for nid, p in pressures.items() if nid in junction_ids}
+
             return {
                 "success": True,
                 # Clés historiques
@@ -1119,8 +1126,8 @@ class EPANETOptimizer:
                 "headlosses_m": headlosses_m,
                 # Débits déjà en m3/s
                 "flows_m3_s": flows,
-                # Agrégats
-                "min_pressure_m": min(pressures.values()) if pressures else 0.0,
+                # Agrégats (pression minimale filtrée sur JUNCTIONS)
+                "min_pressure_m": min(pressures_junctions.values()) if pressures_junctions else (min(pressures.values()) if pressures else 0.0),
                 "max_velocity_m_s": max(velocities.values()) if velocities else 0.0,
                 "archive_path": str(archive_dir)
             }
