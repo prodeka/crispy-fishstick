@@ -1,0 +1,134 @@
+{# templates/report_base.html #}
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Rapport - {{ project.title | default('Projet') }}</title>
+
+  <!-- Bootstrap + DataTables CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/datatables.net-dt@1.13.6/css/jquery.dataTables.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/datatables.net-buttons-dt@2.4.1/css/buttons.dataTables.min.css" rel="stylesheet">
+
+  <!-- Custom print styles -->
+  <link href="report_print.css" rel="stylesheet" media="print">
+  <style>
+    body { background:#f6f8fa; color:#111827; font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; padding: 18px; }
+    .page { max-width:1200px; margin:0 auto; }
+    .report-hero { background: linear-gradient(135deg,#0ea5e9,#7c3aed); color:white; padding:20px; border-radius:8px; margin-bottom:18px; }
+    .section-title { margin-top:18px; margin-bottom:12px; }
+    .lcpi-table th, .lcpi-table td { font-size:0.85rem; padding:8px; }
+    .small-muted { font-size:.85rem; color:#6b7280; }
+    @media print { .no-print { display:none!important } .page { margin: 0; } }
+  </style>
+</head>
+<body>
+  {% import 'macros_tables.html' as tables %}
+  <div class="page">
+    <div class="report-hero d-flex justify-content-between align-items-center">
+      <div>
+        <h1 class="h3 mb-0">Rapport d'Optimisation — {{ project.title | default('Projet') }}</h1>
+        <div class="small-muted">Généré: {{ generation_date }} — Méthode: {{ meta.method | default('N/A') }}</div>
+      </div>
+      <div class="text-end">
+        <div class="small-muted">Meilleur coût</div>
+        <div class="h5 fw-bold text-white">{{ meta.best_cost | default('N/A') }}</div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-8">
+        <!-- Tables section -->
+        {{ tables.enumeration_troncons(project.tables.enumeration_troncons | default([])) }}
+        {{ tables.dimensionnement_troncons(project.tables.dimensionnement_troncons | default([])) }}
+        {{ tables.dimensionnement_noeuds(project.tables.dimensionnement_noeuds | default([])) }}
+
+        {{ tables.recap_reservoir(project.tables.recap_reservoir | default({})) }}
+
+        <h4 class="section-title">Comparatifs & Validation</h4>
+        {{ tables.comparatif_diametres_debits(project.tables.comparatif_diametres_debits | default([])) }}
+        {{ tables.comparatif_vitesses_pertes(project.tables.comparatif_vitesses_pertes | default([])) }}
+        {{ tables.comparatif_pressions(project.tables.comparatif_pressions | default([])) }}
+
+        {{ tables.recap_diametres_conduites(project.tables.recap_diametres_conduites | default([])) }}
+      </div>
+
+      <div class="col-md-4">
+        <div class="card mb-3">
+          <div class="card-header"><strong>Résumé Exécutif</strong></div>
+          <div class="card-body">
+            <p><strong>Projet:</strong> {{ project.title }}</p>
+            <p><strong>Source:</strong> {{ meta.source_meta.file if meta.source_meta is defined else '—' }}</p>
+            <p><strong>Constraints:</strong></p>
+            <ul>
+              <li>Pression min: {{ meta.constraints.pressure_min_m | default('N/A') }} m</li>
+              <li>Vitesse: {{ meta.constraints.velocity_min_m_s | default('N/A') }} — {{ meta.constraints.velocity_max_m_s | default('N/A') }} m/s</li>
+            </ul>
+            <hr>
+            <h6>Économie</h6>
+            {{ tables.devis_estimatif(project.tables.devis_estimatif | default([])) }}
+          </div>
+        </div>
+
+        <div class="card mb-3">
+          <div class="card-header"><strong>Export</strong></div>
+          <div class="card-body">
+            <button id="btnPrint" class="btn btn-sm btn-outline-primary mb-2 w-100 no-print">Imprimer / PDF</button>
+            <button id="btnExportJson" class="btn btn-sm btn-outline-secondary w-100 no-print">Télécharger JSON</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <footer class="text-center small-muted mt-4 no-print">
+      <div>Rapport généré par LCPI — {{ meta.version | default('') }}</div>
+    </footer>
+  </div>
+
+  <!-- Scripts -->
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/datatables.net@1.13.6/js/jquery.dataTables.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/datatables.net-buttons@2.4.1/js/dataTables.buttons.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/datatables.net-buttons@2.4.1/js/buttons.html5.min.js"></script>
+
+  <script>
+    // Initialize DataTables on every lcpi-table
+    $(document).ready(function(){
+      $('table.lcpi-table').each(function(){
+        const id = $(this).attr('id') || '';
+        $(this).DataTable({
+          paging: true,
+          pageLength: 12,
+          lengthChange: false,
+          ordering: true,
+          order: [],
+          searching: true,
+          dom: 'Bfrtip',
+          buttons: [
+            { extend: 'csvHtml5', text: 'CSV', titleAttr: 'Exporter CSV' },
+            { extend: 'excelHtml5', text: 'XLSX', titleAttr: 'Exporter XLSX' }
+          ],
+          columnDefs: [{ targets: '_all', defaultContent: '' }]
+        });
+      });
+
+      $('#btnPrint').on('click', function(){ window.print(); });
+      $('#btnExportJson').on('click', function(){
+        const payload = window.__REPORT_PAYLOAD__ || {};
+        const blob = new Blob([JSON.stringify(payload, null, 2)], {type:'application/json'});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a'); a.href = url; a.download = 'report.json'; a.click();
+        URL.revokeObjectURL(url);
+      });
+    });
+
+    // Inject JSON payload for download (if passed from server)
+    (function(){
+      try{
+        window.__REPORT_PAYLOAD__ = {{ report_payload | tojson | safe }};
+      }catch(e){ window.__REPORT_PAYLOAD__ = {} }
+    })();
+  </script>
+</body>
+</html>

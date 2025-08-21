@@ -13,7 +13,10 @@ import ctypes
 import tempfile
 import warnings
 from pathlib import Path
-from typing import Dict, Any, Optional, List, Tuple, Union
+import time
+from typing import Dict, Any, Optional, List, Tuple, Union, Callable
+import threading as _thr
+import os as _os
 import json
 import yaml
 from concurrent.futures import ThreadPoolExecutor, TimeoutError
@@ -742,14 +745,43 @@ class EpanetSimulator:
             print(f"❌ Erreur EPANET {error_code}: DLL non chargée")
 
 
+"""
+Compteurs globaux de simulation pour diagnostic et traçabilité.
+"""
+_SIM_CALLS: int = 0
+_SIM_TIME_SECONDS: float = 0.0
+
+def _record_simulation_stats(duration_s: float) -> None:
+    global _SIM_CALLS, _SIM_TIME_SECONDS
+    try:
+        _SIM_CALLS += 1
+        _SIM_TIME_SECONDS += float(duration_s or 0.0)
+    except Exception:
+        pass
+
+def reset_simulation_stats() -> None:
+    global _SIM_CALLS, _SIM_TIME_SECONDS
+    _SIM_CALLS = 0
+    _SIM_TIME_SECONDS = 0.0
+
+def get_simulation_stats() -> Dict[str, Any]:
+    return {"calls": _SIM_CALLS, "time_seconds": _SIM_TIME_SECONDS}
+
+
 class EPANETOptimizer:
-    """Wrapper EPANET unifié basé sur wntr, avec retries et archivage pour l'optimisation."""
+    """Wrapper EPANET unifié basé sur wntr, avec retries et archivage pour l'optimisation.
+
+    backend:
+        - 'wntr' (défaut): utilise WNTR (EpanetSimulator/EPANETSimulator/WNTRSimulator)
+        - 'dll' : applique les modifications via wntr puis exécute la DLL EPANET (ctypes)
+    """
     
-    def __init__(self, wntr_lib: Optional[Any] = None):
+    def __init__(self, wntr_lib: Optional[Any] = None, backend: str = "wntr"):
         if not WNTR_AVAILABLE:
             raise ImportError("La librairie `wntr` est requise. Veuillez l'installer avec `pip install wntr`.")
         
         self.wntr = wntr_lib or wntr
+        self.backend = (backend or "wntr").lower()
         
     def simulate(
         self,
@@ -761,6 +793,7 @@ class EPANETOptimizer:
         timeout_s: int = 60,
         num_retries: int = 2,
         output_dir: Optional[Path] = None,
+        progress_callback: Optional[Callable[[str, Dict[str, Any]], None]] = None,
     ) -> Dict[str, Any]:
         """
         Simule un fichier INP avec modifications, retries, et archivage.
@@ -814,23 +847,123 @@ class EPANETOptimizer:
             retry=retry_if_exception_type((TimeoutError, IOError)),
         )
         def _run_simulation_with_retry():
-            # Choisir le simulateur disponible (EpanetSimulator ou WNTRSimulator)
-            SimClass = getattr(self.wntr.sim, 'EpanetSimulator', None)
-            if SimClass is None:
-                SimClass = getattr(self.wntr.sim, 'EPANETSimulator', None)
-            if SimClass is None:
-                SimClass = getattr(self.wntr.sim, 'WNTRSimulator', None)
-            if SimClass is None:
-                raise RuntimeError('Aucun simulateur wntr disponible (EpanetSimulator/WNTRSimulator)')
+            # backend DLL : écrire l'INP modifié puis exécuter via EpanetSimulator
+            if self.backend == "dll":
+                try:
+                    modified_inp_path = archive_dir / f"{network_path.stem}_modified_for_dll.inp"
+                    # Toujours ré-écrire le modèle avec les modifs
+                    try:
+                        if hasattr(model, 'write_inpfile'):
+                            model.write_inpfile(str(modified_inp_path))
+                        else:
+                            from wntr.epanet.io import InpFile
+                            InpFile().write(model, str(modified_inp_path))
+                    except Exception:
+                        # Si écriture impossible, lever pour retry
+                        raise IOError("Ecriture INP modifié échouée")
 
-            sim = SimClass(model)
-            # Le préfixe de fichier pour les résultats est important pour l'archivage
-            try:
-                results = sim.run_sim(file_prefix=str(archive_dir / "sim"))
-            except TypeError:
-                # Anciennes signatures sans file_prefix
-                results = sim.run_sim()
-            return self._extract_results(model, results, archive_dir)
+                    from .epanet_wrapper import EpanetSimulator as _DllSim  # self module
+                    dll = _DllSim()
+                    t0 = time.time()
+                    if not dll.open_project(str(modified_inp_path)):
+                        raise IOError("Ouverture projet DLL échouée")
+                    try:
+                        if not dll.solve_hydraulics():
+                            raise IOError("Simulation hydraulique DLL échouée")
+                        # Extraire pression/débits pour composer un payload comparable
+                        pressures = dll.get_node_pressures()
+                        flows = dll.get_link_flows()
+                    finally:
+                        dll.close_project()
+                    dt = time.time() - t0
+
+                    # Construire un payload minimal similaire
+                    # Vitesse/charges/pertes non disponibles directement via DLL wrapper simplifié
+                    # On renvoie au moins pressions et quelques agrégats
+                    min_p = min(pressures.values()) if pressures else 0.0
+                    extracted = {
+                        "success": True,
+                        "pressures": pressures,
+                        "pressures_m": pressures,
+                        "flows_m3_s": flows,
+                        "min_pressure_m": float(min_p),
+                        "max_velocity_m_s": 0.0,
+                        "archive_path": str(archive_dir),
+                        "simulator": "EpanetDLL",
+                        "sim_time_seconds": round(float(dt), 6),
+                    }
+                    _record_simulation_stats(dt)
+                    return extracted
+                except Exception as e:
+                    return {"success": False, "error": f"DLL backend failed: {e}", "archive_path": str(archive_dir)}
+
+            # backend WNTR (défaut)
+            else:
+                # Choisir le simulateur disponible (EpanetSimulator ou WNTRSimulator)
+                SimClass = getattr(self.wntr.sim, 'EpanetSimulator', None)
+                if SimClass is None:
+                    SimClass = getattr(self.wntr.sim, 'EPANETSimulator', None)
+                if SimClass is None:
+                    SimClass = getattr(self.wntr.sim, 'WNTRSimulator', None)
+                if SimClass is None:
+                    raise RuntimeError('Aucun simulateur wntr disponible (EpanetSimulator/WNTRSimulator)')
+
+                simulator_name = getattr(SimClass, "__name__", str(SimClass))
+                sim = SimClass(model)
+                # Le préfixe de fichier pour les résultats est important pour l'archivage
+                t0 = time.time()
+                # event sim_start (best-effort)
+                try:
+                    from ..core.progress_ui import console as _c  # type: ignore
+                    _ = _c  # silence linter
+                except Exception:
+                    pass
+                # event sim_start (best-effort)
+                try:
+                    if callable(progress_callback):
+                        sim_id = f"{int(time.time()*1000)}"
+                        diam_hash = str(abs(hash(tuple(sorted(diameters_map.items()))))) if diameters_map else "0"
+                        progress_callback(
+                            "sim_start",
+                            {
+                                "sim_id": sim_id,
+                                "worker": f"{_os.getpid()}:{_thr.get_ident()}",
+                                "inp_path": str(network_path),
+                                "diameter_map_hash": diam_hash,
+                            },
+                        )
+                except Exception:
+                    pass
+                try:
+                    results = sim.run_sim(file_prefix=str(archive_dir / "sim"))
+                except TypeError:
+                    # Anciennes signatures sans file_prefix
+                    results = sim.run_sim()
+                dt = time.time() - t0
+                extracted = self._extract_results(model, results, archive_dir)
+                try:
+                    extracted["simulator"] = simulator_name
+                    extracted["sim_time_seconds"] = round(float(dt), 6)
+                except Exception:
+                    pass
+                _record_simulation_stats(dt)
+                # event sim_done
+                try:
+                    if callable(progress_callback):
+                        progress_callback(
+                            "sim_done",
+                            {
+                                "sim_id": sim_id if 'sim_id' in locals() else "",
+                                "worker": f"{_os.getpid()}:{_thr.get_ident()}",
+                                "duration_s": float(dt),
+                                "success": bool(extracted.get("success", True)),
+                                "min_pressure": float(extracted.get("min_pressure_m", 0.0)),
+                                "max_velocity": float(extracted.get("max_velocity_m_s", 0.0)),
+                            },
+                        )
+                except Exception:
+                    pass
+                return extracted
 
         with ThreadPoolExecutor(max_workers=1) as ex:
             fut = ex.submit(_run_simulation_with_retry)
@@ -847,7 +980,8 @@ class EPANETOptimizer:
         self, 
         network_model: Union[Dict, Any], 
         H_tank: float, 
-        diameters: Dict[str, int]
+        diameters: Dict[str, int],
+        progress_callback: Optional[Callable[[str, Dict[str, Any]], None]] = None,
     ) -> Dict[str, Any]:
         """
         Méthode de compatibilité avec l'ancien code d'optimisation.
@@ -875,7 +1009,8 @@ class EPANETOptimizer:
             diameters_map=diameters,
             duration_h=1,  # Simulation courte pour l'optimisation
             timestep_min=5,
-            timeout_s=30
+            timeout_s=30,
+            progress_callback=progress_callback,
         )
         
         if results.get("success"):
@@ -1112,6 +1247,30 @@ class EPANETOptimizer:
                 junction_ids = set(model.nodes.keys()) if hasattr(model, 'nodes') else set()
             pressures_junctions = {nid: p for nid, p in pressures.items() if nid in junction_ids}
 
+            # Détection du modèle de pertes (heuristique)
+            headloss_model = "unknown"
+            try:
+                hyd_opt = getattr(getattr(model, 'options', None), 'hydraulic', None)
+                if hyd_opt is not None:
+                    hl = getattr(hyd_opt, 'headloss', None)
+                    if hl:
+                        headloss_model = str(hl).lower()
+                if headloss_model == "unknown":
+                    has_hw = False
+                    has_dw = False
+                    for pid in getattr(model, 'pipe_name_list', []):
+                        try:
+                            p = model.get_link(pid)
+                            if hasattr(p, 'roughness') and p.roughness is not None:
+                                has_dw = True
+                            if hasattr(p, 'coeff') and p.coeff is not None:
+                                has_hw = True
+                        except Exception:
+                            continue
+                    headloss_model = 'hazen-williams' if has_hw else ('darcy-weisbach' if has_dw else headloss_model)
+            except Exception:
+                pass
+
             return {
                 "success": True,
                 # Clés historiques
@@ -1129,7 +1288,9 @@ class EPANETOptimizer:
                 # Agrégats (pression minimale filtrée sur JUNCTIONS)
                 "min_pressure_m": min(pressures_junctions.values()) if pressures_junctions else (min(pressures.values()) if pressures else 0.0),
                 "max_velocity_m_s": max(velocities.values()) if velocities else 0.0,
-                "archive_path": str(archive_dir)
+                "min_velocity_m_s": min(velocities.values()) if velocities else 0.0,
+                "archive_path": str(archive_dir),
+                "headloss_model": headloss_model,
             }
         except Exception as e:
             return {

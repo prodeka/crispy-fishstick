@@ -1,0 +1,136 @@
+{
+  "meta": {
+    "method": "genetic",
+    "solver": "epanet",
+    "price_db_info": {
+      "path": "C:\\PROJET_DIMENTIONEMENT_2\\src\\lcpi\\db\\aep_prices.db",
+      "checksum": "7d0a554448756f4e33dc32e856f7a74693b824c1e611ab021f1813b98254cf99"
+    },
+    "constraints": {
+      "pressure_min_m": 10.0,
+      "velocity_min_m_s": 0.3,
+      "velocity_max_m_s": 1.5
+    },
+    "source_meta": {
+      "source": "inp",
+      "file": "examples\\test_network.inp",
+      "converted_at": 1755696837.825703
+    },
+    "solver_details": {
+      "family": "epanet"
+    }
+  },
+  "proposals": [
+    {
+      "id": "genetic_best",
+      "H_tank_m": null,
+      "diameters_mm": {
+        "PIPE1": 20,
+        "PIPE2": 20
+      },
+      "CAPEX": 3500.0,
+      "OPEX_NPV": null,
+      "constraints_ok": true,
+      "metrics": {
+        "performance_hydraulique": 0.0,
+        "diversity_to_best": 0.0,
+        "min_pressure_m": 49.99882507324219,
+        "max_velocity_m_s": 0.009549245238304138
+      },
+      "min_pressure_m": 49.99882507324219,
+      "max_velocity_m_s": 0.009549245238304138,
+      "constraints_violations": []
+    }
+  ],
+  "pareto": [],
+  "metrics": {},
+  "cache_info": {
+    "hit": false
+  },
+  "hydraulics": {
+    "pressures": {
+      "N1": 49.99882507324219,
+      "N2": 54.997711181640625,
+      "TANK1": -1.56249996052793e-06
+    },
+    "heads": {
+      "N1": 99.99882507324219,
+      "N2": 99.99771118164062,
+      "TANK1": 100.0
+    },
+    "velocities": {
+      "PIPE1": 0.0063661630265414715,
+      "PIPE2": 0.009549245238304138
+    },
+    "headlosses": {
+      "PIPE1": 1.1162109331053216e-05,
+      "PIPE2": 2.3440430595655926e-05
+    },
+    "flows_m3_s": {
+      "PIPE1": 2.000000222324161e-06,
+      "PIPE2": 3.000000106112566e-06
+    },
+    "pressures_m": {
+      "N1": 49.99882507324219,
+      "N2": 54.997711181640625,
+      "TANK1": -1.56249996052793e-06
+    },
+    "velocities_m_s": {
+      "PIPE1": 0.0063661630265414715,
+      "PIPE2": 0.009549245238304138
+    },
+    "heads_m": {
+      "N1": 99.99882507324219,
+      "N2": 99.99771118164062,
+      "TANK1": 100.0
+    },
+    "headlosses_m": {
+      "PIPE1": 1.1162109331053216e-05,
+      "PIPE2": 2.3440430595655926e-05
+    },
+    "diameters_mm": {
+      "PIPE1": 20,
+      "PIPE2": 20
+    }
+  },
+  "report_payload": {
+    "metadata": {
+      "network_file": "examples\\test_network.inp",
+      "method": "genetic",
+      "solver": "epanet",
+      "constraints": {
+        "pressure_min_m": 10.0,
+        "velocity_min_m_s": 0.3,
+        "velocity_max_m_s": 1.5
+      },
+      "price_db_info": {
+        "path": "C:\\PROJET_DIMENTIONEMENT_2\\src\\lcpi\\db\\aep_prices.db",
+        "checksum": "7d0a554448756f4e33dc32e856f7a74693b824c1e611ab021f1813b98254cf99"
+      }
+    },
+    "proposals": [
+      {
+        "name": "genetic_best",
+        "is_feasible": true,
+        "costs": {
+          "capex": 3500.0,
+          "opex_npv": null
+        },
+        "tanks": [],
+        "diameters_mm": {
+          "PIPE1": 20,
+          "PIPE2": 20
+        }
+      }
+    ],
+    "pareto_front": []
+  },
+  "integrity": {
+    "checksum": "3545a43a82ba51f51dc352092c0b60bfb587b110ba2112a2d267187ab1c14eb9",
+    "signature": "ee577df7f9dd639217686cad567798eaccdadb98cc869804931e37dff4b8ab51",
+    "signature_valid": true,
+    "algorithm": "HMAC-SHA256",
+    "timestamp": 1755696914.0749636,
+    "signed_at": "2025-08-20T13:35:14.074964"
+  }
+}

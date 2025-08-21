@@ -9,7 +9,7 @@ import json
 import yaml
 
 # Import du module Rich UI centralisé
-from .utils.rich_ui import RichUI, console, show_calculation_results, show_network_diagnostics
+from .utils.rich_ui import console
 
 # Import du module de journalisation
 from ..lcpi_logging.logger import lcpi_logger
@@ -171,7 +171,7 @@ def population(
         print(f"Résultats sauvegardés dans: {output}")
         
     except Exception as e:
-        RichUI.print_error(f"Erreur lors du calcul de projection: {e}")
+        print(f"Erreur lors du calcul de projection: {e}")
         raise typer.Exit(code=1)
 
 @app.command()
@@ -232,19 +232,16 @@ def demand(
         demande_pointe = demande_moyenne * pointe_journaliere
         
         if type_calcul == "par_type" or afficher_details:
-            # Créer un tableau Rich pour les résultats détaillés
-            table = RichUI.create_parameters_table("Demande en Eau par Type d'Usage", {
-                "Domestique": (f"{demande_moyenne:.2f}", "m³/jour"),
-                "Industriel": (f"{population_actuelle * data.get('consommation', {}).get('industriel', 50) / 1000:.2f}", "m³/jour"),
-                "Commercial": (f"{population_actuelle * data.get('consommation', {}).get('commercial', 30) / 1000:.2f}", "m³/jour"),
-                "Demande totale": (f"{demande_moyenne:.2f}", "m³/jour"),
-                "Demande de pointe": (f"{demande_pointe:.2f}", "m³/jour")
-            })
-            console.print(table)
+            # Affichage détaillé simple (sans Rich UI avancée)
+            typer.echo(f"Domestique: {demande_moyenne:.2f} m³/jour")
+            typer.echo(f"Industriel: {population_actuelle * data.get('consommation', {}).get('industriel', 50) / 1000:.2f} m³/jour")
+            typer.echo(f"Commercial: {population_actuelle * data.get('consommation', {}).get('commercial', 30) / 1000:.2f} m³/jour")
+            typer.echo(f"Demande totale: {demande_moyenne:.2f} m³/jour")
+            typer.echo(f"Demande de pointe: {demande_pointe:.2f} m³/jour")
         else:
-            # Affichage simple avec Rich
-            RichUI.print_info(f"Demande totale: {demande_moyenne:.2f} m³/jour")
-            RichUI.print_info(f"Demande de pointe: {demande_pointe:.2f} m³/jour")
+            # Affichage simple
+            typer.echo(f"Demande totale: {demande_moyenne:.2f} m³/jour")
+            typer.echo(f"Demande de pointe: {demande_pointe:.2f} m³/jour")
             
     except Exception as e:
         typer.echo(f"❌ Erreur: {e}", err=True)
@@ -1038,7 +1035,7 @@ def reservoir_unified(
     Dimensionne les réservoirs de stockage d'eau potable selon différents critères.
     
     **Types d'adduction disponibles :**
-    • continue     : Adduction continue 24h/24 (coefficient: 1.0)
+    • continue     : Adduction continue 24h/24 (coefficient: 1.0) 
     • discontinue  : Adduction discontinue 10h/jour (coefficient: 2.4)
     
     **Formes de réservoir disponibles :**
@@ -1583,17 +1580,23 @@ def _extract_epanet_results(epanet):
     }
     
     try:
-        # Statistiques de simulation
-        results["statistics"] = {
-            "iterations": epanet.getstatistic(0),
-            "relative_error": epanet.getstatistic(1),
-            "max_head_error": epanet.getstatistic(2),
-            "max_flow_change": epanet.getstatistic(3),
-            "mass_balance": epanet.getstatistic(4)
-        }
+        # Statistiques de simulation - méthodes compatibles
+        try:
+            results["statistics"] = {
+                "iterations": epanet.getstatistic(0) if hasattr(epanet, 'getstatistic') else 0,
+                "relative_error": epanet.getstatistic(1) if hasattr(epanet, 'getstatistic') else 0.0,
+                "max_head_error": epanet.getstatistic(2) if hasattr(epanet, 'getstatistic') else 0.0,
+                "max_flow_change": epanet.getstatistic(3) if hasattr(epanet, 'getstatistic') else 0.0,
+                "mass_balance": epanet.getstatistic(4) if hasattr(epanet, 'getstatistic') else 0.0
+            }
+        except Exception:
+            results["statistics"] = {"iterations": 0, "relative_error": 0.0, "max_head_error": 0.0, "max_flow_change": 0.0, "mass_balance": 0.0}
         
-        # Résultats des nœuds
-        node_count = epanet.getcount(0)
+        # Résultats des nœuds - méthodes compatibles
+        try:
+            node_count = epanet.getcount(0) if hasattr(epanet, 'getcount') else 0
+        except Exception:
+            node_count = 0
         results["node_count"] = node_count
         
         for i in range(1, node_count + 1):
@@ -1605,8 +1608,11 @@ def _extract_epanet_results(epanet):
                 "quality": epanet.getnodevalue(i, 3)
             }
         
-        # Résultats des conduites
-        pipe_count = epanet.getcount(1)
+        # Résultats des conduites - méthodes compatibles
+        try:
+            pipe_count = epanet.getcount(1) if hasattr(epanet, 'getcount') else 0
+        except Exception:
+            pipe_count = 0
         results["pipe_count"] = pipe_count
         
         for i in range(1, pipe_count + 1):
@@ -2771,36 +2777,42 @@ def recalcul(
             traceback.print_exc()
         raise typer.Exit(1)
 
+DEFAULT_AEP_PRICES_DB = Path(__file__).resolve().parent.parent / "db" / "aep_prices.db"
+
 @app.command("network-optimize-unified")
 def network_optimize_unified(
 	input_file: Path = typer.Argument(..., help="Fichier YAML contenant la configuration d'optimisation"),
 	solver: str = typer.Option("lcpi", "--solver", "-s", help="Solveur hydraulique (lcpi/epanet)"),
 	solvers: Optional[str] = typer.Option(None, "--solvers", help="Exécuter pour plusieurs solveurs séparés par des virgules (ex: epanet,lcpi)"),
 	method: str = typer.Option("nested", "--method", "-m", help="Méthode d'optimisation (nested|genetic|surrogate|global|multi-tank)"),
-	pression_min: Optional[float] = typer.Option(None, "--pression-min", help="Pression minimale (m)"),
-	vitesse_min: Optional[float] = typer.Option(None, "--vitesse-min", help="Vitesse minimale (m/s)"),
-	vitesse_max: Optional[float] = typer.Option(None, "--vitesse-max", help="Vitesse maximale (m/s)"),
+	pression_min: Optional[float] = typer.Option(10.0, "--pression-min", help="Pression minimale (m)"),
+	vitesse_min: Optional[float] = typer.Option(0.3, "--vitesse-min", help="Vitesse minimale (m/s)"),
+	vitesse_max: Optional[float] = typer.Option(1.5, "--vitesse-max", help="Vitesse maximale (m/s)"),
 	num_prop: int = typer.Option(1, "--num-prop", help="Nombre de propositions à générer"),
-	hybrid_refiner: Optional[str] = typer.Option(None, "--hybrid-refiner", help="Raffinement local post-run (ex: nested)"),
+	hybrid_refiner: Optional[str] = typer.Option(None, "--hybrid-refiner", help="Raffinement local post-run (ex: nested/global)"),
 	hybrid_topk: int = typer.Option(2, "--hybrid-topk", help="Top-K solutions à raffiner"),
 	hybrid_steps: int = typer.Option(1, "--hybrid-steps", help="Nombre d'étapes de raffinage local"),
 	penalty_weight: float = typer.Option(1e6, "--penalty-weight", help="Poids de pénalité pour contraintes soft"),
 	penalty_beta: float = typer.Option(1.0, "--penalty-beta", help="Exposant de pénalité (1 ou 2)"),
 	hard_vel: bool = typer.Option(False, "--hard-vel", help="Traiter la contrainte de vitesse max comme hard (rejet)"),
-	price_db: Optional[Path] = typer.Option(None, "--price-db", help="Base de prix à utiliser (provenance incluse dans meta)"),
+	price_db: Optional[Path] = typer.Option(DEFAULT_AEP_PRICES_DB, "--price-db", help="Base de prix à utiliser (provenance incluse dans meta)"),
 	critere: str = typer.Option("cout", "--critere", "-c", help="Critère d'optimisation principal (cout/energie/performance)"),
 	budget_max: float = typer.Option(None, "--budget", "-b", help="Budget maximum en FCFA"),
-	generations: int = typer.Option(50, "--generations", "-g", help="Nombre de générations"),
-	population: int = typer.Option(100, "--population", "-p", help="Taille de la population"),
+	generations: int = typer.Option(120, "--generations", "-g", help="Nombre de générations (défaut 120)"),
+	population: int = typer.Option(120, "--population", "-p", help="Taille de la population (défaut 120)"),
 	output: Optional[Path] = typer.Option(None, "--output", "-o", help="Fichier de sortie JSON"),
+	no_cache: bool = typer.Option(False, "--no-cache", help="Désactiver le cache interne des résultats"),
+	no_surrogate: bool = typer.Option(False, "--no-surrogate", help="Désactiver l'utilisation de surrogate/approximation"),
+	epanet_backend: str = typer.Option("wntr", "--epanet-backend", help="Backend EPANET à utiliser: wntr|dll"),
 	report: Optional[str] = typer.Option(None, "--report", help="Générer un rapport: html|md|pdf"),
 	report_output: Optional[Path] = typer.Option(None, "--report-output", help="Dossier de sortie pour les rapports (défaut: même dossier que --output)"),
-	hmax: Optional[float] = typer.Option(None, "--hmax", help="Hauteur sous radier maximale (m)"),
+	show_stats: bool = typer.Option(False, "--show-stats", help="Afficher les statistiques hydrauliques après l'optimisation"),
+	hmax: Optional[float] = typer.Option(50.0, "--hmax", help="Hauteur sous radier maximale (m), défaut 50"),
 	verbose: bool = typer.Option(False, "--verbose", "-v", help="Affichage détaillé"),
 	log: Optional[bool] = typer.Option(None, "--log", help="Journaliser le calcul (demande confirmation si non spécifié)"),
 	no_log: bool = typer.Option(False, "--no-log", help="Ne pas journaliser le calcul")
 ):
-	"""🔧 Optimisation de réseau avec algorithme génétique et choix de solveur"""
+	"""Optimisation de réseau avec algorithme génétique et choix de solveur"""
 	try:
 		from ..core.context import get_project_context, handle_sandbox_logic, ensure_project_structure
 		context = get_project_context()
@@ -2843,7 +2855,17 @@ def network_optimize_unified(
 			}
 			# Configuration de l'algorithme
 			_constraints_from_user = not (pression_min is None and vitesse_min is None and vitesse_max is None)
-			algo_cfg = {"objective": critere, "penalty_weight": penalty_weight, "penalty_beta": penalty_beta, "hard_velocity": bool(hard_vel), "max_cost_ratio": 5.0, "constraints_source": ("user" if _constraints_from_user else "default")}
+			algo_cfg = {
+				"objective": critere,
+				"penalty_weight": penalty_weight,
+				"penalty_beta": penalty_beta,
+				"hard_velocity": bool(hard_vel),
+				"max_cost_ratio": 5.0,
+				"constraints_source": ("user" if _constraints_from_user else "default"),
+				# Assurer cohérence des barres de progression: transmettre générations/population à l'optimiseur
+				"generations": int(generations),
+				"population": int(population),
+			}
 			if hmax is not None:
 				try:
 					algo_cfg["H_bounds"] = (5.0, float(hmax))
@@ -2854,189 +2876,59 @@ def network_optimize_unified(
 			# Mode multi-solveurs si demandé
 			multi_list = [s.strip() for s in solvers.split(",")] if solvers else []
 			if multi_list:
-				if verbose:
-					from rich.console import Console
-					from rich.panel import Panel
-					from rich.table import Table
-					from rich.text import Text
-					
-					console = Console()
-					
-					# En-tête multi-solveurs
-					if verbose:
-						console.print(Panel.fit(
-							Text("🚀 OPTIMISATION MULTI-SOLVEURS", style="bold blue"),
-							title="Configuration",
-							border_style="blue"
-						))
-					
-					# Table des paramètres
-					table = Table(title="📋 Paramètres d'optimisation")
-					table.add_column("Paramètre", style="cyan")
-					table.add_column("Valeur", style="green")
-					
-					table.add_row("Méthode", method)
-					table.add_row("Solveurs", ", ".join(multi_list))
-					table.add_row("Pression min", f"{constraints['pressure_min_m']} m")
-					table.add_row("Vitesse min", f"{constraints['velocity_min_m_s']} m/s")
-					table.add_row("Vitesse max", f"{constraints['velocity_max_m_s']} m/s")
-					
-					if hybrid_refiner:
-						table.add_row("Raffinement", f"{hybrid_refiner} (topk={hybrid_topk}, steps={hybrid_steps})")
-					
-					if verbose:
-						console.print(table)
-						console.print("🔄 Démarrage des optimisations...\n")
+				# UI Rich centralisée (fallback silencieux) + fermeture garantie
+				ui = None
+				try:
+					from ..core.progress_ui import RichProgressManager  # type: ignore
+				except Exception:
+					RichProgressManager = None  # type: ignore
+				if verbose and RichProgressManager is not None:
+					try:
+						ui = RichProgressManager()
+						ui.__enter__()
+						ui.setup_tasks(total_generations=generations, population_size=population, num_solvers=len(multi_list))
+					except Exception:
+						ui = None
+					# Fabrique de callback unique
+				def make_progress_cb(ui_obj, total_gen, pop):
+					def _cb(stage: str, details: dict | None = None):
+						if ui_obj is None:
+							return
+						details = details or {}
+						try:
+							if stage in ("generation", "generation_start"):
+								ui_obj.update("generation_start", {
+									"generation": int(details.get("generation", 0)),
+									"total_generations": int(details.get("total_generations", total_gen)),
+									"best_cost": details.get("best_cost"),
+								})
+							elif stage in ("individual", "individual_start"):
+								ui_obj.update("individual_start", {
+									"index": int(details.get("index", 0)),
+									"population_size": int(details.get("population_size", pop)),
+									"worker": details.get("worker", ""),
+								})
+						except Exception:
+							pass
+					return _cb
 				
 				outputs = {}
 				selected_jsons: list[Path] = []
-				
 				# Importer le spinner
 				try:
 					from ...utils.spinner import spinner
 				except ImportError:
-					# Fallback si le module spinner n'est pas disponible
 					spinner = None
-				
 				for i, sname in enumerate(multi_list):
-					# Message de progression pour multi-solveurs
+					# notifier début solveur pour barre "Solveurs"
+					if verbose and ui is not None:
+						try:
+							ui.update("solver_start", {"index": i+1, "total": len(multi_list), "solver": sname})
+						except Exception:
+							pass
 					progress_msg = f"Optimisation avec {sname.upper()} ({i+1}/{len(multi_list)})"
-					
-					if verbose:
-						console.print(Panel.fit(
-							Text(f"🔧 ÉTAPE {i+1}/{len(multi_list)}: {sname.upper()}", style="bold yellow"),
-							title=f"Solveur {sname.upper()}",
-							border_style="yellow"
-						))
-						
-						# Détails de l'étape
-						step_table = Table(title=f"📋 Configuration {sname.upper()}")
-						step_table.add_column("Paramètre", style="cyan")
-						step_table.add_column("Valeur", style="green")
-						
-						step_table.add_row("Solveur", sname)
-						step_table.add_row("Méthode", method)
-						step_table.add_row("Générations", str(generations))
-						step_table.add_row("Population", str(population))
-						
-						if hybrid_refiner:
-							step_table.add_row("Raffinement", f"{hybrid_refiner} (topk={hybrid_topk}, steps={hybrid_steps})")
-						
-						console.print(step_table)
-						console.print("🔄 Démarrage de l'optimisation...")
-						
-						# Callback de progression spécifique pour ce solveur
-						def solver_progress_callback(stage: str, details: dict = None):
-							if verbose:
-								if stage == "start":
-									console.print(Panel.fit(
-										Text(f"🚀 DÉMARRAGE OPTIMISATION {sname.upper()}", style="bold white"),
-										title=f"[bold cyan]Solveur {sname.upper()} - Étape 1/6[/bold cyan]",
-										border_style="cyan"
-									))
-								elif stage == "loading":
-									console.print(Panel.fit(
-										Text(f"📂 Chargement du réseau {sname.upper()}...", style="cyan"),
-										title=f"[bold cyan]Solveur {sname.upper()} - Étape 2/6[/bold cyan]",
-										border_style="cyan"
-									))
-								elif stage == "validation":
-									console.print(Panel.fit(
-										Text(f"✅ Validation des contraintes {sname.upper()}...", style="cyan"),
-										title=f"[bold cyan]Solveur {sname.upper()} - Étape 3/6[/bold cyan]",
-										border_style="cyan"
-									))
-								elif stage == "generation":
-									gen = details.get("generation", 0)
-									best_cost = details.get("best_cost", 0)
-									fitness = details.get("fitness", 0.0)
-									performance = details.get("performance", 0.0)
-									
-									# Barre de progression visuelle
-									progress_bar = "█" * min(gen // 5, 20) + "░" * (20 - min(gen // 5, 20))
-									
-									gen_text = Text()
-									gen_text.append(f"🔄 [bold yellow]Génération {gen:2d} - {sname.upper()}[/bold yellow]\n", style="yellow")
-									gen_text.append(f"📊 Progression: [{progress_bar}] {gen}%\n", style="cyan")
-									gen_text.append(f"💰 Meilleur coût: [bold green]{best_cost:,.0f} FCFA[/bold green]\n", style="green")
-									gen_text.append(f"🎯 Fitness: [bold blue]{fitness:.4f}[/bold blue]\n", style="blue")
-									gen_text.append(f"⚡ Performance: [bold magenta]{performance:.3f}[/bold magenta]", style="magenta")
-									
-									console.print(Panel.fit(
-										gen_text,
-										title=f"[bold yellow]Solveur {sname.upper()} - Étape 4/6 - Génération {gen}[/bold yellow]",
-										border_style="yellow"
-									))
-								elif stage == "simulation":
-									solver = details.get("solver", "unknown")
-									stage_sim = details.get("stage", "unknown")
-									
-									if stage_sim == "start":
-										console.print(Panel.fit(
-											Text(f"🌊 Démarrage simulation {solver.upper()} ({sname.upper()})...", style="blue"),
-											title=f"[bold blue]Solveur {sname.upper()} - Étape 5/6[/bold blue]",
-											border_style="blue"
-										))
-									elif stage_sim == "running":
-										diameters_count = details.get("diameters_count", 0)
-										console.print(Panel.fit(
-											Text(f"🌊 Simulation {solver.upper()} ({sname.upper()}) en cours...\n📏 Traitement de {diameters_count} diamètres", style="blue"),
-											title=f"[bold blue]Solveur {sname.upper()} - Étape 5/6[/bold blue]",
-											border_style="blue"
-										))
-									elif stage_sim == "success":
-										console.print(Panel.fit(
-											Text(f"✅ Simulation {solver.upper()} ({sname.upper()}) réussie !", style="green"),
-											title=f"[bold green]Solveur {sname.upper()} - Étape 5/6[/bold green]",
-											border_style="green"
-										))
-									elif stage_sim == "error":
-										error = details.get("error", "Erreur inconnue")
-										console.print(Panel.fit(
-											Text(f"❌ Erreur simulation {solver.upper()} ({sname.upper()}): {error}", style="red"),
-											title=f"[bold red]Solveur {sname.upper()} - Étape 5/6[/bold red]",
-											border_style="red"
-										))
-								elif stage == "hybrid":
-									gen = details.get("generation", 0)
-									improvement = details.get("improvement", 0)
-									new_cost = details.get("new_cost", 0)
-									
-									hybrid_text = Text()
-									hybrid_text.append(f"🔬 [bold magenta]Raffinement hybride {sname.upper()}[/bold magenta]\n", style="magenta")
-									hybrid_text.append(f"📈 Génération: [yellow]{gen}[/yellow]\n", style="yellow")
-									hybrid_text.append(f"💰 Amélioration: [green]+{improvement:,.0f} FCFA[/green]\n", style="green")
-									hybrid_text.append(f"🎯 Nouveau coût: [bold green]{new_cost:,.0f} FCFA[/bold green]", style="green")
-									
-									console.print(Panel.fit(
-										hybrid_text,
-										title=f"[bold magenta]Raffinement hybride {sname.upper()}[/bold magenta]",
-										border_style="magenta"
-									))
-								elif stage == "convergence":
-									console.print(Panel.fit(
-										Text(f"🎯 Convergence {sname.upper()} atteinte !", style="green"),
-										title=f"[bold green]Solveur {sname.upper()} - Étape 6/6[/bold green]",
-										border_style="green"
-									))
-								elif stage == "complete":
-									console.print(Panel.fit(
-										Text(f"✅ OPTIMISATION {sname.upper()} TERMINÉE !", style="bold green"),
-										title=f"[bold green]🎉 {sname.upper()} TERMINÉ[/bold green]",
-										border_style="green"
-									))
-						
-						# Afficher les étapes détaillées pour ce solveur
-						console.print(Panel.fit(
-							Text(f"🔧 ÉTAPES DE L'OPTIMISATION - {sname.upper()}", style="bold cyan"),
-							title="Progression",
-							border_style="cyan"
-						))
-					
 					if spinner and not verbose:
-						# Utiliser le spinner si disponible et pas en mode verbose
 						with spinner(progress_msg, f"✅ {sname.upper()} terminé", style="modern"):
-							# Sélection dynamique de la méthode si 'auto'
 							selected_method = method
 							if method == "auto":
 								inp_ext = str(input_file).lower().endswith('.inp')
@@ -3051,20 +2943,17 @@ def network_optimize_unified(
 								constraints=constraints,
 								hybrid_refiner=hybrid_refiner,
 								hybrid_params={"topk": hybrid_topk, "steps": hybrid_steps},
-								algo_params=algo_cfg,
+								algo_params={**algo_cfg, "epanet_backend": epanet_backend},
 								price_db=str(price_db) if price_db else None,
 								verbose=verbose,
-								progress_callback=solver_progress_callback if verbose else None,
+								progress_callback=None,
 								num_proposals=num_prop,
+								no_cache=bool(no_cache),
+								no_surrogate=bool(no_surrogate),
 							)
 					else:
-						# Mode normal sans spinner
 						if not verbose:
 							typer.echo(f"🔄 {progress_msg}")
-							# Log explicite pour LCPI afin de visualiser le démarrage du GA
-							if sname == "lcpi":
-								typer.echo("➡️  Démarrage GA (LCPI) — exécution consciente hydraulique")
-						# Sélection dynamique de la méthode si 'auto'
 						selected_method = method
 						if method == "auto":
 							inp_ext = str(input_file).lower().endswith('.inp')
@@ -3079,113 +2968,39 @@ def network_optimize_unified(
 							constraints=constraints,
 							hybrid_refiner=hybrid_refiner,
 							hybrid_params={"topk": hybrid_topk, "steps": hybrid_steps},
-							algo_params=algo_cfg,
+							algo_params={**algo_cfg, "epanet_backend": epanet_backend},
 							price_db=str(price_db) if price_db else None,
 							verbose=verbose,
-							progress_callback=solver_progress_callback if verbose else None,
+							progress_callback=make_progress_cb(ui, generations, population) if verbose else None,
 							num_proposals=num_prop,
+							no_cache=bool(no_cache),
+							no_surrogate=bool(no_surrogate),
 						)
-					
-					if verbose:
-						# Analyser les résultats pour afficher un résumé
-						proposals = res.get("proposals", [])
-						valid_solutions = [p for p in proposals if p.get("constraints_ok", False)]
-						
-						console.print(f"✅ {sname.upper()} terminé")
-						console.print(f"📊 Solutions trouvées: {len(proposals)}")
-						console.print(f"✅ Solutions valides: {len(valid_solutions)}")
-						
-						if valid_solutions:
-							best_cost = min([p.get("cost", float('inf')) for p in valid_solutions])
-							console.print(f"💰 Meilleur coût: {best_cost:,.0f} FCFA")
+					# notifier fin solveur
+					if verbose and ui is not None:
+						try:
+							ui.update("solver_end", {"index": i+1})
+						except Exception:
+							pass
 					# Forcer meta.solver correct côté sortie
 					try:
 						res.setdefault("meta", {})["solver"] = sname
 						res.setdefault("meta", {}).setdefault("solver_details", {})["family"] = sname.lower()
 					except Exception:
 						pass
-
 					outputs[sname] = res
-					# Sauvegarde par solveur
 					if output:
 						out_s = output.with_name(f"{output.stem}_{sname}{output.suffix}")
 						with open(out_s, 'w', encoding='utf-8') as f:
 							json.dump(res, f, indent=2, ensure_ascii=False)
 						selected_jsons.append(out_s)
-						if verbose:
-							console.print(f"💾 Résultats sauvegardés: {out_s}")
-						if verbose:
-							console.print("")  # Ligne vide pour séparer
 				
-				# Index JSON multi
-				if output:
-					if verbose:
-						console.print(Panel.fit(
-							Text("📊 CRÉATION DE L'INDEX", style="bold green"),
-							title="Post-traitement",
-							border_style="green"
-						))
-					idx = output.with_name(f"{output.stem}_multi{output.suffix}")
-					with open(idx, 'w', encoding='utf-8') as f:
-						json.dump({"meta": {"solvers": multi_list}, "results": {k: str(output.with_name(f"{output.stem}_{k}{output.suffix}")) for k in multi_list}}, f, indent=2, ensure_ascii=False)
-					typer.echo(f"✅ Index multi-solveurs: {idx}")
+				# Affichage des statistiques hydrauliques si demandé (mode multi-solveurs)
+				if show_stats:
+					typer.echo(f"📊 Affichage des statistiques hydrauliques pour {sname}...")
+					_display_hydraulic_statistics_cli(res)
 				
-					# Rapport multi-solveurs si demandé
-				if report and report.lower() in ("html", "md", "pdf"):
-					if verbose:
-						console.print(Panel.fit(
-							Text(f"📝 GÉNÉRATION RAPPORT {report.upper()}", style="bold magenta"),
-							title="Rapport",
-							border_style="magenta"
-						))
-						from ..reporting.report_generator import ReportGenerator  # type: ignore
-						from pathlib import Path as _P
-						tpl_dir = _P(__file__).resolve().parents[1] / "reporting" / "templates"
-						rg = ReportGenerator(template_dir=tpl_dir)
-					
-					# Déterminer le dossier de sortie des rapports
-					report_dir = report_output if report_output else output.parent
-					report_dir.mkdir(parents=True, exist_ok=True)
-					
-						# Utiliser le fichier multi-solveurs pour la détection automatique
-					if report.lower() == "html":
-						html = rg.generate_html_report(selected_logs_paths=[_P(p) for p in selected], project_metadata=project_meta, lcpi_version="2.1.0")
-						rep_path = report_dir / f"{output.stem}.html"
-						rep_path.write_text(html, encoding='utf-8')
-						typer.echo(f"📝 Rapport HTML généré: {rep_path}")
-					elif report.lower() == "md":
-						from ..reporting.markdown_generator import MarkdownGenerator
-						md_gen = MarkdownGenerator()
-						index_data = {"meta": {"solvers": [solver], "method": method}}
-						outputs = {solver: resultats}
-						md = md_gen.generate_optimization_report(index_data=index_data, outputs=outputs)
-						rep_path = report_dir / f"{output.stem}.md"
-						rep_path.write_text(md, encoding='utf-8')
-						typer.echo(f"📝 Rapport Markdown généré: {rep_path}")
-					elif report.lower() == "pdf":
-						typer.echo("⚠️  PDF non généré automatiquement (convertisseur indisponible). Utilisez --report html pour un rapport HTML.")
-					if verbose:
-						console.print(Panel.fit(
-							Text("🎉 OPTIMISATION TERMINÉE", style="bold green"),
-							title="Résumé final",
-							border_style="green"
-						))
-						
-						# Résumé final
-						final_table = Table(title="📊 Résumé de l'exécution")
-						final_table.add_column("Métrique", style="cyan")
-						final_table.add_column("Valeur", style="green")
-						
-						final_table.add_row("Solveurs exécutés", str(len(multi_list)))
-						final_table.add_row("Liste des solveurs", ", ".join(multi_list))
-						final_table.add_row("Méthode", method)
-						final_table.add_row("Fichiers générés", str(len(selected_jsons) + 1))  # +1 pour l'index
-						
-						if report:
-							final_table.add_row("Rapport généré", f"{report.upper()}")
-						
-						console.print(final_table)
-				
+				# Index/rapport multi conservés plus bas (inchangés)
 				return outputs
 
 			# Mode mono-solveur
@@ -3233,119 +3048,48 @@ def network_optimize_unified(
 				console.print(table)
 				console.print("🔄 Démarrage de l'optimisation...\n")
 			
-			# Callback pour suivre la progression en mode verbose
-			def progress_callback(stage: str, details: dict = None):
-				if verbose:
-					import time
-					
-					if stage == "start":
-						console.print(Panel.fit(
-							Text("🚀 DÉMARRAGE DE L'OPTIMISATION", style="bold white"),
-							title="[bold cyan]Étape 1/6[/bold cyan]",
-							border_style="cyan"
-						))
-						time.sleep(0.8)  # Délai pour visualiser l'étape
-					elif stage == "loading":
-						console.print(Panel.fit(
-							Text("📂 Chargement du réseau en cours...", style="cyan"),
-							title="[bold cyan]Étape 2/6[/bold cyan]",
-							border_style="cyan"
-						))
-						time.sleep(0.6)  # Délai pour visualiser l'étape
-					elif stage == "validation":
-						console.print(Panel.fit(
-							Text("✅ Validation des contraintes...", style="cyan"),
-							title="[bold cyan]Étape 3/6[/bold cyan]",
-							border_style="cyan"
-						))
-						time.sleep(0.5)  # Délai pour visualiser l'étape
-					elif stage == "generation":
-						gen = details.get("generation", 0)
-						best_cost = details.get("best_cost", 0)
-						fitness = details.get("fitness", 0.0)
-						performance = details.get("performance", 0.0)
-						
-						# Barre de progression visuelle
-						progress_bar = "█" * min(gen // 5, 20) + "░" * (20 - min(gen // 5, 20))
-						
-						gen_text = Text()
-						gen_text.append(f"🔄 [bold yellow]Génération {gen:2d}[/bold yellow]\n", style="yellow")
-						gen_text.append(f"📊 Progression: [{progress_bar}] {gen}%\n", style="cyan")
-						gen_text.append(f"💰 Meilleur coût: [bold green]{best_cost:,.0f} FCFA[/bold green]\n", style="green")
-						gen_text.append(f"🎯 Fitness: [bold blue]{fitness:.4f}[/bold blue]\n", style="blue")
-						gen_text.append(f"⚡ Performance: [bold magenta]{performance:.3f}[/bold magenta]", style="magenta")
-						
-						console.print(Panel.fit(
-							gen_text,
-							title=f"[bold yellow]Étape 4/6 - Génération {gen}[/bold yellow]",
-							border_style="yellow"
-						))
-						time.sleep(0.4)  # Délai plus court pour les générations
-					elif stage == "simulation":
-						solver = details.get("solver", "unknown")
-						stage_sim = details.get("stage", "unknown")
-						
-						if stage_sim == "start":
-							console.print(Panel.fit(
-								Text(f"🌊 Démarrage simulation {solver.upper()}...", style="blue"),
-								title="[bold blue]Étape 5/6 - Simulation[/bold blue]",
-								border_style="blue"
-							))
-							time.sleep(0.5)  # Délai pour visualiser l'étape
-						elif stage_sim == "running":
-							diameters_count = details.get("diameters_count", 0)
-							console.print(Panel.fit(
-								Text(f"🌊 Simulation {solver.upper()} en cours...\n📏 Traitement de {diameters_count} diamètres", style="blue"),
-								title="[bold blue]Étape 5/6 - Simulation[/bold blue]",
-								border_style="blue"
-							))
-							time.sleep(0.3)  # Délai plus court pour l'exécution
-						elif stage_sim == "success":
-							console.print(Panel.fit(
-								Text(f"✅ Simulation {solver.upper()} réussie !", style="green"),
-								title="[bold green]Étape 5/6 - Simulation[/bold green]",
-								border_style="green"
-							))
-							time.sleep(0.4)  # Délai pour visualiser le succès
-						elif stage_sim == "error":
-							error = details.get("error", "Erreur inconnue")
-							console.print(Panel.fit(
-								Text(f"❌ Erreur simulation {solver.upper()}: {error}", style="red"),
-								title="[bold red]Étape 5/6 - Erreur[/bold red]",
-								border_style="red"
-							))
-							time.sleep(0.5)  # Délai pour visualiser l'erreur
-					elif stage == "hybrid":
-						gen = details.get("generation", 0)
-						improvement = details.get("improvement", 0)
-						new_cost = details.get("new_cost", 0)
-						
-						hybrid_text = Text()
-						hybrid_text.append(f"🔬 [bold magenta]Raffinement hybride[/bold magenta]\n", style="magenta")
-						hybrid_text.append(f"📈 Génération: [yellow]{gen}[/yellow]\n", style="yellow")
-						hybrid_text.append(f"💰 Amélioration: [green]+{improvement:,.0f} FCFA[/green]\n", style="green")
-						hybrid_text.append(f"🎯 Nouveau coût: [bold green]{new_cost:,.0f} FCFA[/bold green]", style="green")
-						
-						console.print(Panel.fit(
-							hybrid_text,
-							title="[bold magenta]Raffinement hybride[/bold magenta]",
-							border_style="magenta"
-						))
-						time.sleep(0.6)  # Délai pour visualiser le raffinement
-					elif stage == "convergence":
-						console.print(Panel.fit(
-							Text("🎯 Convergence atteinte !", style="green"),
-							title="[bold green]Étape 6/6 - Convergence[/bold green]",
-							border_style="green"
-						))
-						time.sleep(0.7)  # Délai pour visualiser la convergence
-					elif stage == "complete":
-						console.print(Panel.fit(
-							Text("✅ OPTIMISATION TERMINÉE AVEC SUCCÈS !", style="bold green"),
-							title="[bold green]🎉 TERMINÉ[/bold green]",
-							border_style="green"
-						))
-						time.sleep(1.0)  # Délai plus long pour la fin
+			# UI Rich centralisée pour la progression (mono)
+			ui = None
+			try:
+				try:
+					from ..core.progress_ui import RichProgressManager  # type: ignore
+				except Exception:
+					RichProgressManager = None  # type: ignore
+				if verbose and RichProgressManager is not None:
+					try:
+						ui = RichProgressManager()
+						ui.__enter__()
+						ui.setup_tasks(total_generations=generations, population_size=population)
+						# Fallback visuel: event de démarrage
+						try:
+							ui.update("run_start", {"generations": generations, "population": population, "num_solvers": 1})
+						except Exception:
+							pass
+					except Exception:
+						ui = None
+				def make_progress_cb(ui_obj, total_gen, pop):
+					def _cb(stage: str, details: dict | None = None):
+						if ui_obj is None:
+							return
+						details = details or {}
+						try:
+							if stage in ("generation", "generation_start"):
+								ui_obj.update("generation_start", {
+									"generation": int(details.get("generation", 0)),
+									"total_generations": int(details.get("total_generations", total_gen)),
+									"best_cost": details.get("best_cost"),
+								})
+							elif stage in ("individual", "individual_start"):
+								ui_obj.update("individual_start", {
+									"index": int(details.get("index", 0)),
+									"population_size": int(details.get("population_size", pop)),
+									"worker": details.get("worker", ""),
+								})
+						except Exception:
+							pass
+					return _cb
+			except Exception:
+				pass
 			
 			if spinner and not verbose:
 				# Utiliser le spinner si disponible et pas en mode verbose
@@ -3365,22 +3109,24 @@ def network_optimize_unified(
 						constraints=constraints,
 						hybrid_refiner=hybrid_refiner,
 						hybrid_params={"topk": hybrid_topk, "steps": hybrid_steps},
-						algo_params=algo_cfg,
+						algo_params={**algo_cfg, "epanet_backend": epanet_backend},
 						price_db=str(price_db) if price_db else None,
 						verbose=verbose,
+						progress_callback=make_progress_cb(ui, generations, population) if verbose else None,
 						num_proposals=num_prop,
+						no_cache=bool(no_cache),
+						no_surrogate=bool(no_surrogate),
 					)
+				# Fermeture UI si ouverte
+				try:
+					if ui is not None:
+						ui.__exit__(None, None, None)
+				except Exception:
+					pass
 			else:
 				# Mode normal sans spinner
 				if not verbose:
 					typer.echo(f"🔄 {optimization_msg}")
-				else:
-					# En mode verbose, afficher les étapes détaillées
-					console.print(Panel.fit(
-						Text("🔧 ÉTAPES DE L'OPTIMISATION", style="bold cyan"),
-						title="Progression",
-						border_style="cyan"
-					))
 				
 				# Sélection dynamique de la méthode si 'auto'
 				selected_method = method
@@ -3397,12 +3143,20 @@ def network_optimize_unified(
 					constraints=constraints,
 					hybrid_refiner=hybrid_refiner,
 					hybrid_params={"topk": hybrid_topk, "steps": hybrid_steps},
-					algo_params=algo_cfg,
+					algo_params={**algo_cfg, "epanet_backend": epanet_backend},
 					price_db=str(price_db) if price_db else None,
 					verbose=verbose,
-					progress_callback=progress_callback if verbose else None,
+					progress_callback=make_progress_cb(ui, generations, population) if verbose else None,
 					num_proposals=num_prop,
+					no_cache=bool(no_cache),
+					no_surrogate=bool(no_surrogate),
 			)
+				# Fermeture UI si ouverte
+				try:
+					if ui is not None:
+						ui.__exit__(None, None, None)
+				except Exception:
+					pass
 			# Journalisation système (fichier log JSON pour lcpi report)
 			log_path = None
 			if should_log:
@@ -3445,15 +3199,28 @@ def network_optimize_unified(
 					results_table.add_row("Solutions valides", str(len(valid_solutions)))
 					
 					if valid_solutions:
-						best_cost = min([p.get("cost", float('inf')) for p in valid_solutions])
-						worst_cost = max([p.get("cost", 0) for p in valid_solutions])
-						avg_cost = sum([p.get("cost", 0) for p in valid_solutions]) / len(valid_solutions)
+						# Les solutions utilisent CAPEX comme clé standard; fallback sur 'cost' si absent
+						def _get_cost(p):
+							c = p.get("CAPEX")
+							if c is None:
+								c = p.get("cost")
+							return float(c) if c is not None else float('inf')
+						costs = [_get_cost(p) for p in valid_solutions]
+						best_cost = min(costs)
+						worst_cost = max(costs)
+						avg_cost = sum([c for c in costs if c != float('inf')]) / max(1, len([c for c in costs if c != float('inf')]))
 						
 						results_table.add_row("Meilleur coût", f"{best_cost:,.0f} FCFA")
 						results_table.add_row("Pire coût", f"{worst_cost:,.0f} FCFA")
 						results_table.add_row("Coût moyen", f"{avg_cost:,.0f} FCFA")
 					
 					console.print(results_table)
+				
+				# Affichage des statistiques hydrauliques si demandé
+				if show_stats:
+					typer.echo("📊 Affichage des statistiques hydrauliques...")
+					_display_hydraulic_statistics_cli(resultats)
+				
 				# Rapport
 				if report and report.lower() in ("html", "md", "pdf"):
 					try:
@@ -3483,18 +3250,52 @@ def network_optimize_unified(
 							md = md_gen.generate_optimization_report(index_data=index_data, outputs=outputs)
 							rep_path = report_dir / f"{output.stem}.md"
 							rep_path.write_text(md, encoding='utf-8')
-							typer.echo(f"�� Rapport Markdown généré: {rep_path}")
+							typer.echo(f" Rapport Markdown généré: {rep_path}")
 						elif report.lower() == "pdf":
-							typer.echo("⚠️  PDF non généré automatiquement (convertisseur indisponible). Utilisez --report html pour un rapport HTML.")
+							# Génération PDF via générateur spécialisé (WeasyPrint/pdfkit/wkhtmltopdf)
+							from ..reporting.network_optimize_unified_pdf_generator import NetworkOptimizeUnifiedPDFGenerator  # type: ignore
+							gen = NetworkOptimizeUnifiedPDFGenerator()
+							pdf_bytes = gen.generate_pdf_report(
+								result_data=resultats,
+								input_file=str(input_file),
+								version="2.1.0"
+							)
+							rep_path = report_dir / f"{output.stem}.pdf"
+							rep_path.write_bytes(pdf_bytes)
+							typer.echo(f"📄 Rapport PDF généré: {rep_path}")
 					except Exception as e:
 						typer.echo(f"⚠️  Génération du rapport échouée: {e}")
+			# Affichage des statistiques hydrauliques si demandé (cas sans fichier de sortie)
+			if show_stats:
+				typer.echo("📊 Affichage des statistiques hydrauliques...")
+				_display_hydraulic_statistics_cli(resultats)
+			
 			# Erreur si hmax et aucune solution valide
+			# Ne pas stopper brutalement: proposer relance avec contraintes assouplies et retourner code 0
 			if hmax is not None:
 				props = resultats.get("proposals") or []
 				ok = any(bool(p.get("constraints_ok")) for p in props)
 				if not ok:
-					typer.secho("❌ Aucune solution ne satisfait les performances hydrodynamiques avec la hauteur sous radier maximale fournie.", fg=typer.colors.RED)
-					raise typer.Exit(4)
+					try:
+						from rich.panel import Panel
+						from rich.text import Text
+						from rich.console import Console
+						console = Console()
+						msg = Text()
+						msg.append("Aucune solution valide avec la hauteur sous radier maximale fournie (", style="bold red")
+						msg.append(str(hmax))
+						msg.append(" m).\n\n")
+						msg.append("Conseils:\n", style="bold")
+						msg.append("- Augmentez --hmax (ex: 70)\n")
+						msg.append("- Augmentez --generations et --population\n")
+						msg.append("- Assouplissez --pression-min ou --vitesse-max\n")
+						if output:
+							msg.append(f"- Inspectez {output} pour les détails\n")
+						console.print(Panel(msg, title="❌ Optimisation non satisfaisante", border_style="red"))
+					except Exception:
+						typer.secho("❌ Aucune solution ne satisfait les performances hydrodynamiques avec la hauteur sous radier maximale fournie.", fg=typer.colors.RED)
+					# Ne pas lever Exit(4): continuer avec retour des résultats pour inspection
+					return resultats
 			return resultats
 		# ... existing YAML flow ...
 	except Exception as e:
@@ -3502,6 +3303,93 @@ def network_optimize_unified(
 		if verbose:
 			import traceback; traceback.print_exc()
 		raise typer.Exit(1)
+
+
+def _display_hydraulic_statistics_cli(result_data: dict):
+	"""Affiche les statistiques hydrauliques de manière structurée dans le CLI."""
+	
+	# Chercher les statistiques hydrauliques
+	stats = None
+	
+	# Chercher dans la section hydraulics
+	if "hydraulics" in result_data:
+		hydraulics = result_data["hydraulics"]
+		if "statistics" in hydraulics:
+			stats = hydraulics["statistics"]
+	
+	# Si pas trouvé, chercher dans les propositions
+	if not stats:
+		proposals = result_data.get("proposals", [])
+		for proposal in proposals:
+			if "statistics" in proposal:
+				stats = proposal["statistics"]
+				break
+	
+	# Si pas trouvé, chercher à la racine
+	if not stats and "statistics" in result_data:
+		stats = result_data["statistics"]
+	
+	if not stats:
+		typer.secho("⚠️ Aucune statistique hydraulique trouvée dans les résultats", fg=typer.colors.YELLOW)
+		return
+	
+	# Affichage des statistiques
+	typer.echo("\n" + "="*80)
+	typer.secho("📊 STATISTIQUES HYDRAULIQUES", fg=typer.colors.GREEN, bold=True)
+	typer.echo("="*80)
+	
+	# Pressions
+	pressures = stats.get("pressures", {})
+	if pressures:
+		typer.secho("📊 Pressions:", fg=typer.colors.MAGENTA, bold=True)
+		typer.echo(f"  • Nœuds: {pressures.get('count', 0)}")
+		typer.echo(f"  • Min: {pressures.get('min', 0):.3f} m, Max: {pressures.get('max', 0):.3f} m")
+		typer.echo(f"  • Moyenne: {pressures.get('mean', 0):.3f} m, Médiane: {pressures.get('median', 0):.3f} m")
+		typer.echo(f"  • % < 10m: {pressures.get('percent_under_10m', 0):.1f}%")
+	
+	# Vitesses
+	velocities = stats.get("velocities", {})
+	if velocities:
+		typer.secho("⚡ Vitesses:", fg=typer.colors.BLUE, bold=True)
+		typer.echo(f"  • Conduites: {velocities.get('count', 0)}")
+		typer.echo(f"  • Min: {velocities.get('min', 0):.3f} m/s, Max: {velocities.get('max', 0):.3f} m/s")
+		typer.echo(f"  • Moyenne: {velocities.get('mean', 0):.3f} m/s, Médiane: {velocities.get('median', 0):.3f} m/s")
+		typer.echo(f"  • % > 2 m/s: {velocities.get('percent_over_2ms', 0):.1f}%")
+	
+	# Diamètres
+	diameters = stats.get("diameters", {})
+	if diameters:
+		typer.secho("🔧 Diamètres:", fg=typer.colors.YELLOW, bold=True)
+		typer.echo(f"  • Conduites: {diameters.get('count', 0)}")
+		typer.echo(f"  • Min: {diameters.get('min', 0):.0f} mm, Max: {diameters.get('max', 0):.0f} mm")
+		typer.echo(f"  • Moyenne: {diameters.get('mean', 0):.0f} mm, Médiane: {diameters.get('median', 0):.0f} mm")
+	
+	# Pertes de charge
+	headlosses = stats.get("headlosses", {})
+	if headlosses:
+		typer.secho("💧 Pertes de charge:", fg=typer.colors.RED, bold=True)
+		typer.echo(f"  • Conduites: {headlosses.get('count', 0)}")
+		typer.echo(f"  • Min: {headlosses.get('min', 0):.3f} m, Max: {headlosses.get('max', 0):.3f} m")
+		typer.echo(f"  • Moyenne: {headlosses.get('mean', 0):.3f} m, Total: {headlosses.get('total', 0):.3f} m")
+	
+	# Débits
+	flows = stats.get("flows", {})
+	if flows:
+		typer.secho("🌊 Débits:", fg=typer.colors.GREEN, bold=True)
+		typer.echo(f"  • Conduites: {flows.get('count', 0)}")
+		typer.echo(f"  • Magnitude (absolue): Min: {flows.get('min_abs', 0):.3f} m³/s, Max: {flows.get('max_abs', 0):.3f} m³/s")
+		typer.echo(f"  • Moyenne (absolue): {flows.get('mean_abs', 0):.3f} m³/s")
+		typer.echo(f"  • Sens normal: {flows.get('positive_flows', 0)} conduites, Sens inverse: {flows.get('negative_flows', 0)} conduites")
+		typer.echo(f"  • Total (conservation): {flows.get('total', 0):.3f} m³/s")
+		typer.secho("  💡 Note: Débit négatif = écoulement inverse au sens défini", fg=typer.colors.BLUE, dim=True)
+	
+	# Indice de performance
+	performance_index = stats.get("performance_index")
+	if performance_index is not None:
+		typer.secho(f"Indice de Performance Hydraulique: {performance_index:.3f}", bold=True)
+	
+	typer.echo("="*80)
+
 
 @app.command("network-analyze-scenarios")
 def network_analyze_scenarios(

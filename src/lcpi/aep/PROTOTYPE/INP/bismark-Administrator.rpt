@@ -1,0 +1,58 @@
+  Page 1                                    Wed Aug 20 15:58:52 2025
+
+  ******************************************************************
+  *                           E P A N E T                          *
+  *                   Hydraulic and Water Quality                  *
+  *                   Analysis for Pipe Networks                   *
+  *                          Version 2.3.01                        *
+  ******************************************************************
+  
+   
+      Input Data File ................... src\lcpi\aep\PROTOTYPE\INP\bismark-Administrator.inp
+      Number of Junctions................ 196
+      Number of Reservoirs............... 0
+      Number of Tanks ................... 3
+      Number of Pipes ................... 205
+      Number of Pumps ................... 0
+      Number of Valves .................. 0
+      Headloss Formula .................. Chezy-Manning
+      Nodal Demand Model ................ DDA
+      Hydraulic Timestep ................ 1.00 hrs
+      Hydraulic Accuracy ................ 0.001000
+      Status Check Frequency ............ 2
+      Maximum Trials Checked ............ 10
+      Damping Limit Threshold ........... 0.000000
+      Maximum Trials .................... 40
+      Quality Analysis .................. None
+      Specific Gravity .................. 1.00
+      Relative Kinematic Viscosity ...... 1.00
+      Relative Chemical Diffusivity ..... 1.00
+      Demand Multiplier ................. 1.00
+      Total Duration .................... 0.00 hrs
+      Reporting Criteria:
+         No Nodes
+         No Links
+   
+  Analysis begun Wed Aug 20 15:58:52 2025
+
+   
+  Hydraulic Status:
+  -----------------------------------------------------------------------
+     0:00:00: Balanced after 23 trials
+     0:00:00: Tank R1 is closed at 4.50 m
+     0:00:00: Tank R2 is closed at 5.20 m
+     0:00:00: Tank R3 is emptying at 32.00 m
+     0:00:00: Pipe N105_R1 temporarily closed
+     0:00:00: Pipe R2_N41 temporarily closed
+   
+  Hydraulic Flow Balance (L/s)
+  ================================
+  Total Inflow:             0.000
+  Consumer Demand:        332.120
+  Demand Deficit:           0.000
+  Emitter Flow:             0.000
+  Leakage Flow:             0.000
+  Total Outflow:          332.120
+  Storage Flow:          -332.120
+  Flow Ratio:               1.000
+  ================================

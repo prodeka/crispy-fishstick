@@ -1,0 +1,1505 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rapport d'Optimisation Réseau - {{ meta.method|default('N/A') }}</title>
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --secondary-color: #7c3aed;
+            --success-color: #059669;
+            --warning-color: #d97706;
+            --error-color: #dc2626;
+            --info-color: #0891b2;
+            --dark-color: #1f2937;
+            --light-color: #f8fafc;
+            --border-color: #e2e8f0;
+            --text-primary: #1f2937;
+            --text-secondary: #6b7280;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+            --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: var(--text-primary);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            box-shadow: var(--shadow-xl);
+            min-height: 100vh;
+            position: relative;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+            padding: 3rem 2rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="50" cy="50" r="1" fill="white" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+            opacity: 0.3;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .header .subtitle {
+            font-size: 1.25rem;
+            opacity: 0.9;
+            position: relative;
+            z-index: 1;
+        }
+
+        .header .meta-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .meta-card {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 1.5rem;
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .meta-card .label {
+            font-size: 0.875rem;
+            opacity: 0.8;
+            margin-bottom: 0.5rem;
+        }
+
+        .meta-card .value {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        /* Logo Section */
+        .logo-section {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 2rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .logo-icon {
+            font-size: 4rem;
+            margin-right: 1.5rem;
+            filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+            animation: logo-bounce 2s ease-in-out infinite;
+        }
+
+        .logo-text {
+            text-align: left;
+        }
+
+        .logo-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin: 0 0 0.5rem 0;
+            background: linear-gradient(45deg, #ffffff, #f0f9ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .logo-subtitle {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            margin: 0;
+            font-weight: 400;
+        }
+
+        .report-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        @keyframes logo-bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        /* Navigation */
+        .nav-tabs {
+            background: white;
+            border-bottom: 1px solid var(--border-color);
+            padding: 0 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .nav-tabs ul {
+            list-style: none;
+            display: flex;
+            gap: 0;
+            margin: 0;
+        }
+
+        .nav-tabs li {
+            margin: 0;
+        }
+
+        .nav-tabs a {
+            display: block;
+            padding: 1rem 1.5rem;
+            color: var(--text-secondary);
+            text-decoration: none;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .nav-tabs a:hover,
+        .nav-tabs a.active {
+            color: var(--primary-color);
+            border-bottom-color: var(--primary-color);
+            background: var(--light-color);
+        }
+
+        /* Content */
+        .content {
+            padding: 2rem;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .section {
+            margin-bottom: 3rem;
+            background: white;
+            border-radius: 12px;
+            box-shadow: var(--shadow-md);
+            overflow: hidden;
+        }
+
+        .section-header {
+            background: linear-gradient(135deg, var(--light-color) 0%, #e2e8f0 100%);
+            padding: 1.5rem 2rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .section-header h2 {
+            color: var(--dark-color);
+            font-size: 1.5rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .section-header h2 i {
+            color: var(--primary-color);
+        }
+
+        .section-body {
+            padding: 2rem;
+        }
+
+        /* Tables */
+        .table-container {
+            overflow-x: auto;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.875rem;
+        }
+
+        .data-table th {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+        }
+
+        .data-table td {
+            padding: 0.875rem 1rem;
+            border-bottom: 1px solid var(--border-color);
+            vertical-align: top;
+        }
+
+        .data-table tr:nth-child(even) {
+            background: var(--light-color);
+        }
+
+        .data-table tr:hover {
+            background: #e0e7ff;
+            transition: background 0.2s ease;
+        }
+
+        /* Statistics Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: var(--shadow-md);
+            border-left: 4px solid var(--primary-color);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .stat-card .stat-title {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-card .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-card .stat-description {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        /* Proposals */
+        .proposals-grid {
+            display: grid;
+            gap: 1.5rem;
+        }
+
+        .proposal-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .proposal-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .proposal-header {
+            background: linear-gradient(135deg, var(--success-color) 0%, #10b981 100%);
+            color: white;
+            padding: 1.5rem;
+        }
+
+        .proposal-header h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .proposal-meta {
+            display: flex;
+            gap: 2rem;
+            font-size: 0.875rem;
+            opacity: 0.9;
+        }
+
+        .proposal-body {
+            padding: 1.5rem;
+        }
+
+        .proposal-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .detail-item {
+            background: var(--light-color);
+            padding: 1rem;
+            border-radius: 8px;
+        }
+
+        .detail-label {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.25rem;
+        }
+
+        .detail-value {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        /* Footer */
+        .footer {
+            background: var(--dark-color);
+            color: white;
+            text-align: center;
+            padding: 2rem;
+            margin-top: 3rem;
+        }
+
+        .footer .version {
+            opacity: 0.7;
+            font-size: 0.875rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .content {
+                padding: 1rem;
+            }
+
+            .nav-tabs ul {
+                flex-direction: column;
+            }
+
+            .nav-tabs a {
+                border-bottom: none;
+                border-right: 3px solid transparent;
+            }
+
+            .nav-tabs a.active {
+                border-right-color: var(--primary-color);
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .proposal-meta {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+        }
+
+        /* Print styles */
+        @media print {
+            body {
+                background: white;
+            }
+
+            .container {
+                box-shadow: none;
+            }
+
+            .nav-tabs {
+                display: none;
+            }
+
+            .tab-content {
+                display: block !important;
+            }
+
+            .section {
+                break-inside: avoid;
+                box-shadow: none;
+                border: 1px solid #ccc;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="logo-section">
+                <span class="logo-icon">🏗️</span>
+                <div class="logo-text">
+                    <h1 class="logo-title">LCPI Engineering</h1>
+                    <p class="logo-subtitle">Analyse et Dimensionnement Hydraulique</p>
+                </div>
+            </div>
+            
+            <h1 class="report-title"><i class="fas fa-network-wired"></i> Rapport d'Optimisation Réseau</h1>
+            <div class="subtitle">
+                {{ meta.method|default('Méthode') }} - {{ meta.solver|default('Solveur') }} | {{ generation_date }}
+            </div>
+            
+            <div class="meta-grid">
+                <div class="meta-card">
+                    <div class="label">Fichier source</div>
+                    <div class="value">{{ input_file }}</div>
+                </div>
+                <div class="meta-card">
+                    <div class="label">Méthode</div>
+                    <div class="value">{{ meta.method|default('N/A') }}</div>
+                </div>
+                <div class="meta-card">
+                    <div class="label">Solveur</div>
+                    <div class="value">{{ meta.solver|default('N/A') }}</div>
+                </div>
+                <div class="meta-card">
+                    <div class="label">Générations</div>
+                    <div class="value">{{ meta.generations|default('N/A') }}</div>
+                </div>
+                <div class="meta-card">
+                    <div class="label">Population</div>
+                    <div class="value">{{ meta.population|default('N/A') }}</div>
+                </div>
+                <div class="meta-card">
+                    <div class="label">Durée</div>
+                    <div class="value">{{ meta.duration_seconds|default(0)|round(1) }}s</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Navigation -->
+        <div class="nav-tabs">
+            <ul>
+                <li><a href="#overview" class="nav-link active" data-tab="overview">Vue d'ensemble</a></li>
+                <li><a href="#proposals" class="nav-link" data-tab="proposals">Propositions</a></li>
+                <li><a href="#hydraulics" class="nav-link" data-tab="hydraulics">Statistiques Hydrauliques</a></li>
+                <li><a href="#network" class="nav-link" data-tab="network">Réseau</a></li>
+                <li><a href="#comparison" class="nav-link" data-tab="comparison">Comparaisons</a></li>
+                <li><a href="#financial" class="nav-link" data-tab="financial">Financier</a></li>
+            </ul>
+        </div>
+
+        <!-- Content -->
+        <div class="content">
+            <!-- Overview Tab -->
+            <div id="overview" class="tab-content active">
+                <div class="section">
+                    <div class="section-header">
+                        <h2><i class="fas fa-chart-line"></i> Résumé de l'Optimisation</h2>
+                    </div>
+                    <div class="section-body">
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <div class="stat-title">Coût Optimal</div>
+                                <div class="stat-value">
+                                    {% if proposals %}
+                                        {{ proposals[0].CAPEX|default(0)|round(0)|int }} FCFA
+                                    {% else %}
+                                        N/A
+                                    {% endif %}
+                                </div>
+                                <div class="stat-description">Solution la moins chère</div>
+                            </div>
+                            
+                            <div class="stat-card">
+                                <div class="stat-title">Contraintes Respectées</div>
+                                <div class="stat-value">
+                                    {% if proposals %}
+                                        {% if proposals[0].constraints_ok %}✅{% else %}❌{% endif %}
+                                    {% else %}
+                                        N/A
+                                    {% endif %}
+                                </div>
+                                <div class="stat-description">Validation des contraintes</div>
+                            </div>
+                            
+                            <div class="stat-card">
+                                <div class="stat-title">Appels Simulateur</div>
+                                <div class="stat-value">{{ meta.solver_calls|default(0) }}</div>
+                                <div class="stat-description">Nombre total de simulations</div>
+                            </div>
+                            
+                            <div class="stat-card">
+                                <div class="stat-title">Durée d'Exécution</div>
+                                <div class="stat-value">{{ meta.duration_seconds|default(0)|round(1) }}s</div>
+                                <div class="stat-description">Temps total d'optimisation</div>
+                            </div>
+                        </div>
+
+                        {% if constraints %}
+                        <div class="section">
+                            <div class="section-header">
+                                <h2><i class="fas fa-sliders-h"></i> Contraintes d'Optimisation</h2>
+                            </div>
+                            <div class="section-body">
+                                <div class="stats-grid">
+                                    {% if constraints.pressure_min_m %}
+                                    <div class="stat-card">
+                                        <div class="stat-title">Pression Minimale</div>
+                                        <div class="stat-value">{{ constraints.pressure_min_m }} m</div>
+                                        <div class="stat-description">Pression minimale autorisée</div>
+                                    </div>
+                                    {% endif %}
+                                    
+                                    {% if constraints.velocity_max_m_s %}
+                                    <div class="stat-card">
+                                        <div class="stat-title">Vitesse Maximale</div>
+                                        <div class="stat-value">{{ constraints.velocity_max_m_s }} m/s</div>
+                                        <div class="stat-description">Vitesse maximale autorisée</div>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Proposals Tab -->
+            <div id="proposals" class="tab-content">
+                <div class="section">
+                    <div class="section-header">
+                        <h2><i class="fas fa-trophy"></i> Propositions d'Optimisation</h2>
+                    </div>
+                    <div class="section-body">
+                        <div class="proposals-grid">
+                            {% for proposal in proposals %}
+                            <div class="proposal-card">
+                                <div class="proposal-header">
+                                    <h3>Proposition {{ loop.index }}</h3>
+                                    <div class="proposal-meta">
+                                        <span><i class="fas fa-id-card"></i> {{ proposal.id|default('N/A') }}</span>
+                                        <span><i class="fas fa-check-circle"></i> 
+                                            {% if proposal.constraints_ok %}Contraintes OK{% else %}Contraintes Violées{% endif %}
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="proposal-body">
+                                    <div class="proposal-details">
+                                        <div class="detail-item">
+                                            <div class="detail-label">CAPEX</div>
+                                            <div class="detail-value">{{ proposal.CAPEX|default(0)|round(0)|int }} FCFA</div>
+                                        </div>
+                                        
+                                        {% if proposal.H_tank_m %}
+                                        <div class="detail-item">
+                                            <div class="detail-label">Hauteur Réservoir</div>
+                                            <div class="detail-value">{{ proposal.H_tank_m|round(2) }} m</div>
+                                        </div>
+                                        {% endif %}
+                                        
+                                        {% if proposal.performance_index %}
+                                        <div class="detail-item">
+                                            <div class="detail-label">Indice Performance</div>
+                                            <div class="detail-value">{{ proposal.performance_index|round(3) }}</div>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                    
+                                    {% if proposal.diameters_mm %}
+                                    <div style="margin-top: 1.5rem;">
+                                        <h4 style="margin-bottom: 1rem; color: var(--text-secondary);">
+                                            <i class="fas fa-circle"></i> Diamètres des Conduites
+                                        </h4>
+                                        <div class="table-container">
+                                            <table class="data-table">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Conduite</th>
+                                                        <th>Diamètre (mm)</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {% for pipe, diameter in proposal.diameters_mm.items() %}
+                                                    <tr>
+                                                        <td>{{ pipe }}</td>
+                                                        <td>{{ diameter }}</td>
+                                                    </tr>
+                                                    {% endfor %}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Hydraulics Tab -->
+            <div id="hydraulics" class="tab-content">
+                <div class="section">
+                    <div class="section-header">
+                        <h2><i class="fas fa-tint"></i> Statistiques Hydrauliques</h2>
+                    </div>
+                    <div class="section-body">
+                        {% if hydraulics and hydraulics.statistics %}
+                        {% set stats = hydraulics.statistics %}
+                        
+                        <!-- Pressions -->
+                        {% if stats.pressures %}
+                        <div class="section" style="margin-bottom: 2rem;">
+                            <h3 style="color: var(--primary-color); margin-bottom: 1rem;">
+                                <i class="fas fa-tachometer-alt"></i> Statistiques des Pressions
+                            </h3>
+                            <div class="stats-grid">
+                                <div class="stat-card">
+                                    <div class="stat-title">Nombre de Nœuds</div>
+                                    <div class="stat-value">{{ stats.pressures.count|default(0) }}</div>
+                                    <div class="stat-description">Total des nœuds analysés</div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-title">Pression Min</div>
+                                    <div class="stat-value">{{ stats.pressures.min|default(0)|round(2) }} m</div>
+                                    <div class="stat-description">Pression minimale</div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-title">Pression Max</div>
+                                    <div class="stat-value">{{ stats.pressures.max|default(0)|round(2) }} m</div>
+                                    <div class="stat-description">Pression maximale</div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-title">Pression Moyenne</div>
+                                    <div class="stat-value">{{ stats.pressures.mean|default(0)|round(2) }} m</div>
+                                    <div class="stat-description">Pression moyenne</div>
+                                </div>
+                            </div>
+                            
+                            <div class="table-container">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Paramètre</th>
+                                            <th>Valeur</th>
+                                            <th>Description</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>Médiane</td>
+                                            <td>{{ stats.pressures.median|default(0)|round(2) }} m</td>
+                                            <td>Pression médiane</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Écart-type</td>
+                                            <td>{{ stats.pressures.std|default(0)|round(2) }} m</td>
+                                            <td>Variabilité des pressions</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Q25</td>
+                                            <td>{{ stats.pressures.q25|default(0)|round(2) }} m</td>
+                                            <td>Premier quartile</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Q75</td>
+                                            <td>{{ stats.pressures.q75|default(0)|round(2) }} m</td>
+                                            <td>Troisième quartile</td>
+                                        </tr>
+                                        <tr>
+                                            <td>% < 10m</td>
+                                            <td>{{ stats.pressures.pct_lt_10m|default(0)|round(1) }}%</td>
+                                            <td>Pourcentage sous 10m</td>
+                                        </tr>
+                                        <tr>
+                                            <td>% < 15m</td>
+                                            <td>{{ stats.pressures.pct_lt_15m|default(0)|round(1) }}%</td>
+                                            <td>Pourcentage sous 15m</td>
+                                        </tr>
+                                        <tr>
+                                            <td>% < 20m</td>
+                                            <td>{{ stats.pressures.pct_lt_20m|default(0)|round(1) }}%</td>
+                                            <td>Pourcentage sous 20m</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <!-- Vitesses -->
+                        {% if stats.velocities %}
+                        <div class="section" style="margin-bottom: 2rem;">
+                            <h3 style="color: var(--primary-color); margin-bottom: 1rem;">
+                                <i class="fas fa-running"></i> Statistiques des Vitesses
+                            </h3>
+                            <div class="stats-grid">
+                                <div class="stat-card">
+                                    <div class="stat-title">Nombre de Conduites</div>
+                                    <div class="stat-value">{{ stats.velocities.count|default(0) }}</div>
+                                    <div class="stat-description">Total des conduites analysées</div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-title">Vitesse Min</div>
+                                    <div class="stat-value">{{ stats.velocities.min|default(0)|round(3) }} m/s</div>
+                                    <div class="stat-description">Vitesse minimale</div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-title">Vitesse Max</div>
+                                    <div class="stat-value">{{ stats.velocities.max|default(0)|round(3) }} m/s</div>
+                                    <div class="stat-description">Vitesse maximale</div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-title">Vitesse Moyenne</div>
+                                    <div class="stat-value">{{ stats.velocities.mean|default(0)|round(3) }} m/s</div>
+                                    <div class="stat-description">Vitesse moyenne</div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <!-- Débits -->
+                        {% if stats.flows %}
+                        <div class="section" style="margin-bottom: 2rem;">
+                            <h3 style="color: var(--primary-color); margin-bottom: 1rem;">
+                                <i class="fas fa-water"></i> Statistiques des Débits
+                            </h3>
+                            <div class="stats-grid">
+                                <div class="stat-card">
+                                    <div class="stat-title">Total Conduites</div>
+                                    <div class="stat-value">{{ stats.flows.count|default(0) }}</div>
+                                    <div class="stat-description">Conduites analysées</div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-title">Sens Normal</div>
+                                    <div class="stat-value">{{ stats.flows.positive_flows|default(0) }}</div>
+                                    <div class="stat-description">Conduites en sens normal</div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-title">Sens Inverse</div>
+                                    <div class="stat-value">{{ stats.flows.negative_flows|default(0) }}</div>
+                                    <div class="stat-description">Conduites en sens inverse</div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-title">Débit Absolu Moyen</div>
+                                    <div class="stat-value">{{ stats.flows.mean_abs|default(0)|round(3) }} m³/s</div>
+                                    <div class="stat-description">Débit moyen en valeur absolue</div>
+                                </div>
+                            </div>
+                            
+                            <div style="background: #f0f9ff; border: 1px solid #0ea5e9; border-radius: 8px; padding: 1rem; margin: 1rem 0;">
+                                <p style="margin: 0; color: #0369a1; font-size: 0.875rem;">
+                                    <i class="fas fa-info-circle"></i> 
+                                    <strong>Note sur les débits :</strong> Un débit négatif indique que le sens réel de l'écoulement 
+                                    est opposé à la direction définie dans le fichier d'entrée. Par exemple, si la conduite N21_N22 
+                                    a un débit de -0.23 m³/s, cela signifie que l'eau circule réellement de N22 vers N21.
+                                </p>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <!-- Diamètres -->
+                        {% if stats.diameters %}
+                        <div class="section" style="margin-bottom: 2rem;">
+                            <h3 style="color: var(--primary-color); margin-bottom: 1rem;">
+                                <i class="fas fa-circle"></i> Statistiques des Diamètres
+                            </h3>
+                            <div class="stats-grid">
+                                <div class="stat-card">
+                                    <div class="stat-title">Nombre de Conduites</div>
+                                    <div class="stat-value">{{ stats.diameters.count|default(0) }}</div>
+                                    <div class="stat-description">Conduites dimensionnées</div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-title">Diamètre Min</div>
+                                    <div class="stat-value">{{ stats.diameters.min|default(0) }} mm</div>
+                                    <div class="stat-description">Diamètre minimal</div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-title">Diamètre Max</div>
+                                    <div class="stat-value">{{ stats.diameters.max|default(0) }} mm</div>
+                                    <div class="stat-description">Diamètre maximal</div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-title">Diamètre Moyen</div>
+                                    <div class="stat-value">{{ stats.diameters.mean|default(0)|round(1) }} mm</div>
+                                    <div class="stat-description">Diamètre moyen</div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <!-- Pertes de charge -->
+                        {% if stats.headlosses %}
+                        <div class="section" style="margin-bottom: 2rem;">
+                            <h3 style="color: var(--primary-color); margin-bottom: 1rem;">
+                                <i class="fas fa-arrow-down"></i> Statistiques des Pertes de Charge
+                            </h3>
+                            <div class="stats-grid">
+                                <div class="stat-card">
+                                    <div class="stat-title">Nombre de Conduites</div>
+                                    <div class="stat-value">{{ stats.headlosses.count|default(0) }}</div>
+                                    <div class="stat-description">Conduites analysées</div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-title">Perte Min</div>
+                                    <div class="stat-value">{{ stats.headlosses.min|default(0)|round(3) }} m</div>
+                                    <div class="stat-description">Perte minimale</div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-title">Perte Max</div>
+                                    <div class="stat-value">{{ stats.headlosses.max|default(0)|round(3) }} m</div>
+                                    <div class="stat-description">Perte maximale</div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-title">Perte Moyenne</div>
+                                    <div class="stat-value">{{ stats.headlosses.mean|default(0)|round(3) }} m</div>
+                                    <div class="stat-description">Perte moyenne</div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <!-- Indice de performance -->
+                        {% if stats.performance_index %}
+                        <div class="section">
+                            <h3 style="color: var(--primary-color); margin-bottom: 1rem;">
+                                <i class="fas fa-chart-bar"></i> Indice de Performance
+                            </h3>
+                            <div class="stats-grid">
+                                <div class="stat-card">
+                                    <div class="stat-title">Valeur</div>
+                                    <div class="stat-value">{{ stats.performance_index|round(3) }}</div>
+                                    <div class="stat-description">Indice global de performance</div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                        
+                        {% else %}
+                        <div style="text-align: center; padding: 3rem; color: var(--text-secondary);">
+                            <i class="fas fa-exclamation-triangle" style="font-size: 3rem; margin-bottom: 1rem;"></i>
+                            <h3>Aucune statistique hydraulique disponible</h3>
+                            <p>Les données hydrauliques n'ont pas été calculées ou ne sont pas accessibles.</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Network Tab -->
+            <div id="network" class="tab-content">
+                <div class="section">
+                    <div class="section-header">
+                        <h2><i class="fas fa-project-diagram"></i> Structure du Réseau</h2>
+                    </div>
+                    <div class="section-body">
+                        <!-- Énumération des Tronçons -->
+                        <div class="section" style="margin-bottom: 2rem;">
+                            <h3 style="color: var(--primary-color); margin-bottom: 1rem;">
+                                <i class="fas fa-list"></i> Énumération des Tronçons
+                            </h3>
+                            <div class="table-container">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>DC_ID</th>
+                                            <th>Longueur (m)</th>
+                                            <th>NODE1</th>
+                                            <th>NODE2</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% if proposals and proposals[0].diameters_mm %}
+                                            {% for pipe, diameter in proposals[0].diameters_mm.items() %}
+                                            <tr>
+                                                <td>{{ pipe }}</td>
+                                                <td>--</td>
+                                                <td>--</td>
+                                                <td>--</td>
+                                            </tr>
+                                            {% endfor %}
+                                        {% else %}
+                                        <tr>
+                                            <td colspan="4" style="text-align: center; color: var(--text-secondary);">
+                                                Aucune donnée de tronçon disponible
+                                            </td>
+                                        </tr>
+                                        {% endif %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Dimensionnement des Tronçons -->
+                        <div class="section" style="margin-bottom: 2rem;">
+                            <h3 style="color: var(--primary-color); margin-bottom: 1rem;">
+                                <i class="fas fa-ruler"></i> Dimensionnement des Tronçons
+                            </h3>
+                            <div class="table-container">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>DC_ID</th>
+                                            <th>Longueur (m)</th>
+                                            <th>Qd (m³/s)</th>
+                                            <th>DN (mm)</th>
+                                            <th>V (m/s)</th>
+                                            <th>ΔH (m)</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% if proposals and proposals[0].diameters_mm %}
+                                            {% for pipe, diameter in proposals[0].diameters_mm.items() %}
+                                            <tr>
+                                                <td>{{ pipe }}</td>
+                                                <td>--</td>
+                                                <td>--</td>
+                                                <td>{{ diameter }}</td>
+                                                <td>--</td>
+                                                <td>--</td>
+                                            </tr>
+                                            {% endfor %}
+                                        {% else %}
+                                        <tr>
+                                            <td colspan="6" style="text-align: center; color: var(--text-secondary);">
+                                                Aucune donnée de dimensionnement disponible
+                                            </td>
+                                        </tr>
+                                        {% endif %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Dimensionnement des Nœuds -->
+                        <div class="section" style="margin-bottom: 2rem;">
+                            <h3 style="color: var(--primary-color); margin-bottom: 1rem;">
+                                <i class="fas fa-map-marker-alt"></i> Dimensionnement des Nœuds
+                            </h3>
+                            <div class="table-container">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>JUNCTIONS</th>
+                                            <th>X</th>
+                                            <th>Y</th>
+                                            <th>Z (m)</th>
+                                            <th>P_réel (m)</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% if hydraulics and hydraulics.statistics and hydraulics.statistics.pressures %}
+                                            {% for i in range(hydraulics.statistics.pressures.count|default(0)) %}
+                                            <tr>
+                                                <td>N{{ i + 1 }}</td>
+                                                <td>--</td>
+                                                <td>--</td>
+                                                <td>--</td>
+                                                <td>--</td>
+                                            </tr>
+                                            {% endfor %}
+                                        {% else %}
+                                        <tr>
+                                            <td colspan="5" style="text-align: center; color: var(--text-secondary);">
+                                                Aucune donnée de nœud disponible
+                                            </td>
+                                        </tr>
+                                        {% endif %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Récapitulatif du Réservoir -->
+                        <div class="section">
+                            <h3 style="color: var(--primary-color); margin-bottom: 1rem;">
+                                <i class="fas fa-water-tower"></i> Récapitulatif du Réservoir
+                            </h3>
+                            <div class="table-container">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Paramètre</th>
+                                            <th>Valeur</th>
+                                            <th>Description</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>Type</td>
+                                            <td>Réservoir surélevé</td>
+                                            <td>Type de réservoir</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Hauteur (m)</td>
+                                            <td>
+                                                {% if proposals and proposals[0].H_tank_m %}
+                                                    {{ proposals[0].H_tank_m|round(2) }}
+                                                {% else %}
+                                                    --
+                                                {% endif %}
+                                            </td>
+                                            <td>Hauteur du réservoir</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Volume utile (m³)</td>
+                                            <td>--</td>
+                                            <td>Volume utile calculé</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Volume max (m³)</td>
+                                            <td>--</td>
+                                            <td>Volume maximum</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Volume min (m³)</td>
+                                            <td>--</td>
+                                            <td>Volume minimum</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Comparison Tab -->
+            <div id="comparison" class="tab-content">
+                <div class="section">
+                    <div class="section-header">
+                        <h2><i class="fas fa-balance-scale"></i> Comparaisons et Validation</h2>
+                    </div>
+                    <div class="section-body">
+                        <!-- Comparatif Diamètres et Débits -->
+                        <div class="section" style="margin-bottom: 2rem;">
+                            <h3 style="color: var(--primary-color); margin-bottom: 1rem;">
+                                <i class="fas fa-exchange-alt"></i> Comparatif Diamètres et Débits
+                            </h3>
+                            <div class="table-container">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>TRONCONS</th>
+                                            <th>D_CALCULE (mm)</th>
+                                            <th>D_EPANET (mm)</th>
+                                            <th>DN_CALCULE (mm)</th>
+                                            <th>DN_EPANET (mm)</th>
+                                            <th>Q_CALCULER (m³/s)</th>
+                                            <th>Q_EPANET (m³/s)</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% if proposals and proposals[0].diameters_mm %}
+                                            {% for pipe, diameter in proposals[0].diameters_mm.items() %}
+                                            <tr>
+                                                <td>{{ pipe }}</td>
+                                                <td>{{ diameter }}</td>
+                                                <td>{{ diameter }}</td>
+                                                <td>{{ diameter }}</td>
+                                                <td>{{ diameter }}</td>
+                                                <td>--</td>
+                                                <td>--</td>
+                                            </tr>
+                                            {% endfor %}
+                                        {% else %}
+                                        <tr>
+                                            <td colspan="7" style="text-align: center; color: var(--text-secondary);">
+                                                Aucune donnée de comparaison disponible
+                                            </td>
+                                        </tr>
+                                        {% endif %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Comparatif Vitesses et Pertes de Charges -->
+                        <div class="section" style="margin-bottom: 2rem;">
+                            <h3 style="color: var(--primary-color); margin-bottom: 1rem;">
+                                <i class="fas fa-tachometer-alt"></i> Comparatif Vitesses et Pertes de Charges
+                            </h3>
+                            <div class="table-container">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>TRONCONS</th>
+                                            <th>V_CALCULE (m/s)</th>
+                                            <th>V_EPANET (m/s)</th>
+                                            <th>ΔH_i_CALCULER (m)</th>
+                                            <th>ΔH_i_EPANET (m)</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% if proposals and proposals[0].diameters_mm %}
+                                            {% for pipe, diameter in proposals[0].diameters_mm.items() %}
+                                            <tr>
+                                                <td>{{ pipe }}</td>
+                                                <td>--</td>
+                                                <td>--</td>
+                                                <td>--</td>
+                                                <td>--</td>
+                                            </tr>
+                                            {% endfor %}
+                                        {% else %}
+                                        <tr>
+                                            <td colspan="5" style="text-align: center; color: var(--text-secondary);">
+                                                Aucune donnée de comparaison disponible
+                                            </td>
+                                        </tr>
+                                        {% endif %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Comparatif des Pressions -->
+                        <div class="section" style="margin-bottom: 2rem;">
+                            <h3 style="color: var(--primary-color); margin-bottom: 1rem;">
+                                <i class="fas fa-compress-arrows-alt"></i> Comparatif des Pressions
+                            </h3>
+                            <div class="table-container">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>JUNCTIONS</th>
+                                            <th>P_CALCULE (m)</th>
+                                            <th>P_EPANET (m)</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% if hydraulics and hydraulics.statistics and hydraulics.statistics.pressures %}
+                                            {% for i in range(hydraulics.statistics.pressures.count|default(0)) %}
+                                            <tr>
+                                                <td>N{{ i + 1 }}</td>
+                                                <td>--</td>
+                                                <td>--</td>
+                                            </tr>
+                                            {% endfor %}
+                                        {% else %}
+                                        <tr>
+                                            <td colspan="3" style="text-align: center; color: var(--text-secondary);">
+                                                Aucune donnée de pression disponible
+                                            </td>
+                                        </tr>
+                                        {% endif %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Récapitulatif des Diamètres des Conduites -->
+                        <div class="section">
+                            <h3 style="color: var(--primary-color); margin-bottom: 1rem;">
+                                <i class="fas fa-chart-pie"></i> Récapitulatif des Diamètres des Conduites
+                            </h3>
+                            <div class="table-container">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Diamètre nominal (mm)</th>
+                                            <th>Longueur Distribution</th>
+                                            <th>Longueur refoulement</th>
+                                            <th>Longueurs totales</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% if proposals and proposals[0].diameters_mm %}
+                                            {% set diameters = proposals[0].diameters_mm.values()|list %}
+                                            {% for diameter in diameters|unique %}
+                                            <tr>
+                                                <td>{{ diameter }}</td>
+                                                <td>--</td>
+                                                <td>--</td>
+                                                <td>--</td>
+                                            </tr>
+                                            {% endfor %}
+                                        {% else %}
+                                        <tr>
+                                            <td colspan="4" style="text-align: center; color: var(--text-secondary);">
+                                                Aucune donnée de diamètre disponible
+                                            </td>
+                                        </tr>
+                                        {% endif %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Financial Tab -->
+            <div id="financial" class="tab-content">
+                <div class="section">
+                    <div class="section-header">
+                        <h2><i class="fas fa-coins"></i> Analyse Financière</h2>
+                    </div>
+                    <div class="section-body">
+                        <!-- Devis Estimatif et Quantitatif -->
+                        <div class="section">
+                            <h3 style="color: var(--primary-color); margin-bottom: 1rem;">
+                                <i class="fas fa-file-invoice-dollar"></i> Devis Estimatif et Quantitatif
+                            </h3>
+                            <div class="table-container">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>N°</th>
+                                            <th>Désignations</th>
+                                            <th>Unité</th>
+                                            <th>Quantité</th>
+                                            <th>Prix Unitaire</th>
+                                            <th>MONTANT</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>1</td>
+                                            <td>Conduites principales</td>
+                                            <td>ml</td>
+                                            <td>--</td>
+                                            <td>--</td>
+                                            <td>--</td>
+                                        </tr>
+                                        <tr>
+                                            <td>2</td>
+                                            <td>Réservoir surélevé</td>
+                                            <td>u</td>
+                                            <td>1</td>
+                                            <td>--</td>
+                                            <td>--</td>
+                                        </tr>
+                                        <tr>
+                                            <td>3</td>
+                                            <td>Vannes et robinets</td>
+                                            <td>u</td>
+                                            <td>--</td>
+                                            <td>--</td>
+                                            <td>--</td>
+                                        </tr>
+                                        <tr>
+                                            <td>4</td>
+                                            <td>Installation électrique</td>
+                                            <td>lot</td>
+                                            <td>1</td>
+                                            <td>--</td>
+                                            <td>--</td>
+                                        </tr>
+                                        <tr>
+                                            <td colspan="5" style="text-align: right; font-weight: bold;">TOTAL</td>
+                                            <td style="font-weight: bold; color: var(--primary-color);">
+                                                {% if proposals %}
+                                                    {{ proposals[0].CAPEX|default(0)|round(0)|int }} FCFA
+                                                {% else %}
+                                                    --
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p>Rapport généré automatiquement par LCPI | Version {{ version }}</p>
+            <p class="version">Date de génération : {{ generation_date }}</p>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script>
+        // Tab navigation
+        document.addEventListener('DOMContentLoaded', function() {
+            const navLinks = document.querySelectorAll('.nav-link');
+            const tabContents = document.querySelectorAll('.tab-content');
+
+            navLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    
+                    // Remove active class from all links and tabs
+                    navLinks.forEach(l => l.classList.remove('active'));
+                    tabContents.forEach(t => t.classList.remove('active'));
+                    
+                    // Add active class to clicked link
+                    this.classList.add('active');
+                    
+                    // Show corresponding tab
+                    const targetTab = this.getAttribute('data-tab');
+                    document.getElementById(targetTab).classList.add('active');
+                });
+            });
+
+            // Smooth scrolling for anchor links
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    const target = document.querySelector(this.getAttribute('href'));
+                    if (target) {
+                        target.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'start'
+                        });
+                    }
+                });
+            });
+
+            // Add hover effects to tables
+            const tables = document.querySelectorAll('.data-table');
+            tables.forEach(table => {
+                const rows = table.querySelectorAll('tbody tr');
+                rows.forEach(row => {
+                    row.addEventListener('mouseenter', function() {
+                        this.style.transform = 'scale(1.01)';
+                        this.style.transition = 'transform 0.2s ease';
+                    });
+                    
+                    row.addEventListener('mouseleave', function() {
+                        this.style.transform = 'scale(1)';
+                    });
+                });
+            });
+
+            // Add loading animation for stats cards
+            const statCards = document.querySelectorAll('.stat-card');
+            statCards.forEach((card, index) => {
+                setTimeout(() => {
+                    card.style.opacity = '0';
+                    card.style.transform = 'translateY(20px)';
+                    card.style.transition = 'all 0.5s ease';
+                    
+                    setTimeout(() => {
+                        card.style.opacity = '1';
+                        card.style.transform = 'translateY(0)';
+                    }, 100);
+                }, index * 100);
+            });
+
+            // Print functionality
+            window.addEventListener('keydown', function(e) {
+                if (e.ctrlKey && e.key === 'p') {
+                    e.preventDefault();
+                    window.print();
+                }
+            });
+
+            // Add export functionality
+            function exportToPDF() {
+                // Implementation for PDF export
+                alert('Export PDF - Fonctionnalité à implémenter');
+            }
+
+            function exportToCSV() {
+                // Implementation for CSV export
+                alert('Export CSV - Fonctionnalité à implémenter');
+            }
+
+            // Add export buttons to header
+            const header = document.querySelector('.header');
+            const exportDiv = document.createElement('div');
+            exportDiv.style.position = 'absolute';
+            exportDiv.style.top = '1rem';
+            exportDiv.style.right = '1rem';
+            exportDiv.innerHTML = `
+                <button onclick="exportToPDF()" style="background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 0.5rem 1rem; border-radius: 6px; margin-left: 0.5rem; cursor: pointer; backdrop-filter: blur(10px);">
+                    <i class="fas fa-file-pdf"></i> PDF
+                </button>
+                <button onclick="exportToCSV()" style="background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 0.5rem 1rem; border-radius: 6px; margin-left: 0.5rem; cursor: pointer; backdrop-filter: blur(10px);">
+                    <i class="fas fa-file-csv"></i> CSV
+                </button>
+            `;
+            header.appendChild(exportDiv);
+        });
+
+        // Add smooth animations
+        function animateValue(element, start, end, duration) {
+            const startTime = performance.now();
+            const startValue = parseFloat(start);
+            const endValue = parseFloat(end);
+            
+            function updateValue(currentTime) {
+                const elapsed = currentTime - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                
+                const currentValue = startValue + (endValue - startValue) * progress;
+                element.textContent = currentValue.toFixed(2);
+                
+                if (progress < 1) {
+                    requestAnimationFrame(updateValue);
+                }
+            }
+            
+            requestAnimationFrame(updateValue);
+        }
+
+        // Initialize animations for stat values
+        document.addEventListener('DOMContentLoaded', function() {
+            const statValues = document.querySelectorAll('.stat-value');
+            statValues.forEach(stat => {
+                const text = stat.textContent;
+                const number = parseFloat(text.replace(/[^\d.-]/g, ''));
+                if (!isNaN(number)) {
+                    stat.textContent = '0';
+                    setTimeout(() => {
+                        animateValue(stat, 0, number, 1000);
+                    }, 500);
+                }
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rapport d'Optimisation Réseau - {{ meta.solver|upper }}</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 2cm;
+            @top-center {
+                content: "Rapport d'Optimisation Réseau - {{ meta.solver|upper }}";
+                font-size: 10pt;
+                font-family: Arial, sans-serif;
+            }
+            @bottom-center {
+                content: "Page " counter(page) " sur " counter(pages);
+                font-size: 10pt;
+                font-family: Arial, sans-serif;
+            }
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 11pt;
+            line-height: 1.4;
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 2em;
+            border-bottom: 3px solid #2c5aa0;
+            padding-bottom: 1em;
+        }
+        
+        .header h1 {
+            color: #2c5aa0;
+            font-size: 24pt;
+            margin: 0 0 0.5em 0;
+        }
+        
+        .header .subtitle {
+            font-size: 14pt;
+            color: #666;
+            margin: 0;
+        }
+        
+        .header .date {
+            font-size: 12pt;
+            color: #888;
+            margin-top: 1em;
+        }
+        
+        .section {
+            margin-bottom: 2em;
+            page-break-inside: avoid;
+        }
+        
+        .section h2 {
+            color: #2c5aa0;
+            font-size: 16pt;
+            border-bottom: 2px solid #e0e0e0;
+            padding-bottom: 0.5em;
+            margin-bottom: 1em;
+        }
+        
+        .section h3 {
+            color: #444;
+            font-size: 14pt;
+            margin: 1.5em 0 0.5em 0;
+        }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1em;
+            margin-bottom: 1.5em;
+        }
+        
+        .info-item {
+            background: #f8f9fa;
+            padding: 0.8em;
+            border-radius: 5px;
+            border-left: 4px solid #2c5aa0;
+        }
+        
+        .info-label {
+            font-weight: bold;
+            color: #2c5aa0;
+            margin-bottom: 0.3em;
+        }
+        
+        .info-value {
+            color: #333;
+        }
+        
+        .table-container {
+            margin: 1.5em 0;
+            page-break-inside: avoid;
+        }
+        
+        .table-title {
+            font-size: 13pt;
+            font-weight: bold;
+            color: #2c5aa0;
+            margin-bottom: 0.8em;
+            text-align: center;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 1em;
+            font-size: 10pt;
+        }
+        
+        th {
+            background-color: #2c5aa0;
+            color: white;
+            padding: 0.6em;
+            text-align: left;
+            font-weight: bold;
+        }
+        
+        td {
+            padding: 0.5em;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5em;
+            margin: 1.5em 0;
+        }
+        
+        .stats-card {
+            background: #f8f9fa;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 1em;
+        }
+        
+        .stats-card h4 {
+            color: #2c5aa0;
+            margin: 0 0 0.8em 0;
+            font-size: 12pt;
+            text-align: center;
+            border-bottom: 1px solid #2c5aa0;
+            padding-bottom: 0.3em;
+        }
+        
+        .stats-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.4em;
+            padding: 0.2em 0;
+        }
+        
+        .stats-label {
+            font-weight: bold;
+            color: #555;
+        }
+        
+        .stats-value {
+            color: #333;
+        }
+        
+        .performance-indicator {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            padding: 1em;
+            border-radius: 8px;
+            text-align: center;
+            margin: 1.5em 0;
+        }
+        
+        .performance-indicator h3 {
+            margin: 0 0 0.5em 0;
+            font-size: 16pt;
+        }
+        
+        .performance-value {
+            font-size: 24pt;
+            font-weight: bold;
+        }
+        
+        .note {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 5px;
+            padding: 1em;
+            margin: 1.5em 0;
+            font-style: italic;
+        }
+        
+        .note strong {
+            color: #856404;
+        }
+        
+        .footer {
+            margin-top: 3em;
+            text-align: center;
+            font-size: 10pt;
+            color: #666;
+            border-top: 1px solid #e0e0e0;
+            padding-top: 1em;
+        }
+        
+        @media print {
+            .page-break {
+                page-break-before: always;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>📊 Rapport d'Optimisation Réseau</h1>
+        <div class="subtitle">{{ meta.solver|upper }} - {{ meta.method|title }}</div>
+        <div class="date">Généré le {{ generation_date }}</div>
+    </div>
+
+    <div class="section">
+        <h2>🎯 Informations Générales</h2>
+        <div class="info-grid">
+            <div class="info-item">
+                <div class="info-label">Méthode d'optimisation</div>
+                <div class="info-value">{{ meta.method|title }}</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Solveur hydraulique</div>
+                <div class="info-value">{{ meta.solver|upper }}</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Nombre de générations</div>
+                <div class="info-value">{{ meta.generations|default('N/A') }}</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Taille de population</div>
+                <div class="info-value">{{ meta.population|default('N/A') }}</div>
+            </div>
+        </div>
+        
+        {% if constraints %}
+        <h3>📋 Contraintes d'optimisation</h3>
+        <div class="info-grid">
+            {% if constraints.pressure_min_m %}
+            <div class="info-item">
+                <div class="info-label">Pression minimale</div>
+                <div class="info-value">{{ constraints.pressure_min_m }} m</div>
+            </div>
+            {% endif %}
+            {% if constraints.velocity_min_m_s %}
+            <div class="info-item">
+                <div class="info-label">Vitesse minimale</div>
+                <div class="info-value">{{ constraints.velocity_min_m_s }} m/s</div>
+            </div>
+            {% endif %}
+            {% if constraints.velocity_max_m_s %}
+            <div class="info-item">
+                <div class="info-label">Vitesse maximale</div>
+                <div class="info-value">{{ constraints.velocity_max_m_s }} m/s</div>
+            </div>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+
+    {% if proposals %}
+    <div class="section">
+        <h2>🏆 Résultats de l'Optimisation</h2>
+        
+        <div class="table-container">
+            <div class="table-title">Propositions d'optimisation</div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Rang</th>
+                        <th>Coût CAPEX (FCFA)</th>
+                        <th>Contraintes respectées</th>
+                        <th>Performance</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for proposal in proposals %}
+                    <tr>
+                        <td>{{ loop.index }}</td>
+                        <td>{{ "{:,.0f}".format(proposal.CAPEX|default(0)) }}</td>
+                        <td>{{ "✅ Oui" if proposal.constraints_ok else "❌ Non" }}</td>
+                        <td>{{ "{:.3f}".format(proposal.performance|default(0)) }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        {% if proposals[0] %}
+        <div class="performance-indicator">
+            <h3>🎯 Solution Optimale</h3>
+            <div class="performance-value">{{ "{:,.0f}".format(proposals[0].CAPEX|default(0)) }} FCFA</div>
+            <div>Contraintes respectées: {{ "✅ Oui" if proposals[0].constraints_ok else "❌ Non" }}</div>
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    {% if hydraulics and hydraulics.statistics %}
+    <div class="section">
+        <h2>📊 Statistiques Hydrauliques</h2>
+        
+        {% set stats = hydraulics.statistics %}
+        
+        <div class="stats-grid">
+            {% if stats.pressures %}
+            <div class="stats-card">
+                <h4>📊 Pressions</h4>
+                <div class="stats-row">
+                    <span class="stats-label">Nœuds:</span>
+                    <span class="stats-value">{{ stats.pressures.count|default(0) }}</span>
+                </div>
+                <div class="stats-row">
+                    <span class="stats-label">Min:</span>
+                    <span class="stats-value">{{ "{:.3f}".format(stats.pressures.min|default(0)) }} m</span>
+                </div>
+                <div class="stats-row">
+                    <span class="stats-label">Max:</span>
+                    <span class="stats-value">{{ "{:.3f}".format(stats.pressures.max|default(0)) }} m</span>
+                </div>
+                <div class="stats-row">
+                    <span class="stats-label">Moyenne:</span>
+                    <span class="stats-value">{{ "{:.3f}".format(stats.pressures.mean|default(0)) }} m</span>
+                </div>
+                <div class="stats-row">
+                    <span class="stats-label">% < 10m:</span>
+                    <span class="stats-value">{{ "{:.1f}".format(stats.pressures.percent_under_10m|default(0)) }}%</span>
+                </div>
+            </div>
+            {% endif %}
+
+            {% if stats.velocities %}
+            <div class="stats-card">
+                <h4>⚡ Vitesses</h4>
+                <div class="stats-row">
+                    <span class="stats-label">Conduites:</span>
+                    <span class="stats-value">{{ stats.velocities.count|default(0) }}</span>
+                </div>
+                <div class="stats-row">
+                    <span class="stats-label">Min:</span>
+                    <span class="stats-value">{{ "{:.3f}".format(stats.velocities.min|default(0)) }} m/s</span>
+                </div>
+                <div class="stats-row">
+                    <span class="stats-label">Max:</span>
+                    <span class="stats-value">{{ "{:.3f}".format(stats.velocities.max|default(0)) }} m/s</span>
+                </div>
+                <div class="stats-row">
+                    <span class="stats-label">Moyenne:</span>
+                    <span class="stats-value">{{ "{:.3f}".format(stats.velocities.mean|default(0)) }} m/s</span>
+                </div>
+                <div class="stats-row">
+                    <span class="stats-label">% > 2 m/s:</span>
+                    <span class="stats-value">{{ "{:.1f}".format(stats.velocities.percent_over_2ms|default(0)) }}%</span>
+                </div>
+            </div>
+            {% endif %}
+
+            {% if stats.diameters %}
+            <div class="stats-card">
+                <h4>🔧 Diamètres</h4>
+                <div class="stats-row">
+                    <span class="stats-label">Conduites:</span>
+                    <span class="stats-value">{{ stats.diameters.count|default(0) }}</span>
+                </div>
+                <div class="stats-row">
+                    <span class="stats-label">Min:</span>
+                    <span class="stats-value">{{ "{:.0f}".format(stats.diameters.min|default(0)) }} mm</span>
+                </div>
+                <div class="stats-row">
+                    <span class="stats-label">Max:</span>
+                    <span class="stats-value">{{ "{:.0f}".format(stats.diameters.max|default(0)) }} mm</span>
+                </div>
+                <div class="stats-row">
+                    <span class="stats-label">Moyenne:</span>
+                    <span class="stats-value">{{ "{:.0f}".format(stats.diameters.mean|default(0)) }} mm</span>
+                </div>
+                <div class="stats-row">
+                    <span class="stats-label">Médiane:</span>
+                    <span class="stats-value">{{ "{:.0f}".format(stats.diameters.median|default(0)) }} mm</span>
+                </div>
+            </div>
+            {% endif %}
+
+            {% if stats.flows %}
+            <div class="stats-card">
+                <h4>🌊 Débits</h4>
+                <div class="stats-row">
+                    <span class="stats-label">Conduites:</span>
+                    <span class="stats-value">{{ stats.flows.count|default(0) }}</span>
+                </div>
+                <div class="stats-row">
+                    <span class="stats-label">Min (absolu):</span>
+                    <span class="stats-value">{{ "{:.3f}".format(stats.flows.min_abs|default(0)) }} m³/s</span>
+                </div>
+                <div class="stats-row">
+                    <span class="stats-label">Max (absolu):</span>
+                    <span class="stats-value">{{ "{:.3f}".format(stats.flows.max_abs|default(0)) }} m³/s</span>
+                </div>
+                <div class="stats-row">
+                    <span class="stats-label">Moyenne (absolu):</span>
+                    <span class="stats-value">{{ "{:.3f}".format(stats.flows.mean_abs|default(0)) }} m³/s</span>
+                </div>
+                <div class="stats-row">
+                    <span class="stats-label">Sens normal:</span>
+                    <span class="stats-value">{{ stats.flows.positive_flows|default(0) }} conduites</span>
+                </div>
+                <div class="stats-row">
+                    <span class="stats-label">Sens inverse:</span>
+                    <span class="stats-value">{{ stats.flows.negative_flows|default(0) }} conduites</span>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        {% if stats.performance_index %}
+        <div class="performance-indicator">
+            <h3>📈 Indice de Performance Hydraulique</h3>
+            <div class="performance-value">{{ "{:.3f}".format(stats.performance_index) }}</div>
+        </div>
+        {% endif %}
+
+        <div class="note">
+            <strong>💡 Note sur les débits:</strong> Un débit négatif indique que l'écoulement réel est dans le sens inverse à celui défini dans le fichier INP/YML. Les valeurs absolues représentent la magnitude réelle de l'écoulement.
+        </div>
+    </div>
+    {% endif %}
+
+    {% if meta.duration_seconds or meta.solver_calls %}
+    <div class="section">
+        <h2>⏱️ Métriques de Performance</h2>
+        <div class="info-grid">
+            {% if meta.duration_seconds %}
+            <div class="info-item">
+                <div class="info-label">Durée totale d'exécution</div>
+                <div class="info-value">{{ "{:.1f}".format(meta.duration_seconds) }} secondes</div>
+            </div>
+            {% endif %}
+            {% if meta.solver_calls %}
+            <div class="info-item">
+                <div class="info-label">Nombre d'appels simulateur</div>
+                <div class="info-value">{{ meta.solver_calls }}</div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="footer">
+        <p>Rapport généré automatiquement par LCPI AEP - Module d'optimisation réseau</p>
+        <p>Fichier source: {{ input_file|default('N/A') }}</p>
+        <p>Version: {{ version|default('1.0.0') }}</p>
+    </div>
+</body>
+</html>

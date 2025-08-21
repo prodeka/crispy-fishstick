@@ -1,7 +1,11 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, Dict, Optional, Tuple, List
+from typing import Any, Dict, Optional, Tuple, List, Union
+import hashlib
+import logging
+import math
+import statistics
 
 from .io import load_yaml_or_inp
 from .validators import NetworkValidator
@@ -11,6 +15,269 @@ from .constraints_handler import apply_constraints_to_result
 import json
 import time
 
+
+logger = logging.getLogger(__name__)
+
+def _make_progress_adapter(user_cb):
+    """Adaptateur qui normalise les événements et maintient des compteurs sim/eval.
+
+    - Agrège les variantes: sim_start/simulation_start, sim_done/simulation_done, etc.
+    - Expose un événement unifié "simulation" avec payload {stage,busy,done,...}
+    - Propage les événements inconnus tels quels.
+    """
+    counters = {"sim_busy": 0, "sim_done": 0, "eval_done": 0, "eval_total": 0}
+
+    def adapter(evt: str, data: dict):
+        ev = (evt or "").lower() if evt else ""
+        data = data or {}
+        # Event processing
+
+        # Simulation start variants
+        if ev in ("sim_start", "simulation_start", "simulation_running", "sim_running"):
+            counters["sim_busy"] += 1
+            payload = {"stage": "running", "busy": counters["sim_busy"], "done": counters["sim_done"]}
+            try:
+                user_cb("simulation", payload)
+            except Exception:
+                pass
+            return
+
+        # Simulation done variants
+        if ev in ("sim_done", "simulation_done", "simulation_end", "sim_end"):
+            # a sim done reduces busy and increments done
+            counters["sim_busy"] = max(0, counters["sim_busy"] - 1)
+            counters["sim_done"] += 1
+            payload = {"stage": "success", "busy": counters["sim_busy"], "done": counters["sim_done"]}
+            payload.update({"generation": data.get("generation"), "index": data.get("index")})
+            try:
+                user_cb("simulation", payload)
+            except Exception:
+                pass
+            return
+
+        # Simulation error
+        if ev in ("sim_error", "simulation_error"):
+            counters["sim_busy"] = max(0, counters["sim_busy"] - 1)
+            payload = {"stage": "error", "busy": counters["sim_busy"], "done": counters["sim_done"]}
+            payload.update({"error": data.get("error")})
+            try:
+                user_cb("simulation", payload)
+            except Exception:
+                pass
+            return
+
+        # Evaluation events
+        if ev in ("eval_start", "evaluation_start"):
+            counters["eval_total"] += 1
+            try:
+                user_cb("evaluation", {"stage": "start", "total": counters["eval_total"]})
+            except Exception:
+                pass
+            return
+
+        if ev in ("eval_done", "evaluation_done"):
+            counters["eval_done"] += 1
+            try:
+                user_cb("evaluation", {"stage": "done", "done": counters["eval_done"], "total": counters["eval_total"]})
+            except Exception:
+                pass
+            return
+
+        # Generation events (pass through)
+        if ev in ("generation_start", "generation_end", "individual_start", "individual_end"):
+            try:
+                user_cb(evt, data)
+            except Exception:
+                pass
+            return
+
+        # Hybrid events (pass through)
+        if ev in ("hybrid_start", "hybrid_end", "refinement_start", "refinement_end"):
+            try:
+                user_cb(evt, data)
+            except Exception:
+                pass
+            return
+
+        # Other events (pass through unchanged)
+        try:
+            user_cb(evt, data)
+        except Exception:
+            pass
+
+    return adapter
+
+
+def _calculate_hydraulic_statistics(hydraulics_data: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Calcule les statistiques hydrauliques détaillées à partir des résultats de simulation.
+    
+    Args:
+        hydraulics_data: Données hydrauliques de la simulation
+        
+    Returns:
+        Dict contenant toutes les statistiques hydrauliques
+    """
+    stats = {}
+    
+    try:
+        # Extraction des données
+        pressures = hydraulics_data.get("pressures_m", hydraulics_data.get("pressures", {}))
+        velocities = hydraulics_data.get("velocities_m_s", hydraulics_data.get("velocities", {}))
+        heads = hydraulics_data.get("heads_m", hydraulics_data.get("heads", {}))
+        headlosses = hydraulics_data.get("headlosses_m", hydraulics_data.get("headlosses", {}))
+        flows = hydraulics_data.get("flows_m3_s", {})
+        diameters = hydraulics_data.get("diameters_mm", {})
+        
+        # Conversion en listes de valeurs numériques
+        pressure_values = [float(v) for v in pressures.values() if v is not None and not math.isnan(v)]
+        velocity_values = [float(v) for v in velocities.values() if v is not None and not math.isnan(v)]
+        head_values = [float(v) for v in heads.values() if v is not None and not math.isnan(v)]
+        headloss_values = [float(v) for v in headlosses.values() if v is not None and not math.isnan(v)]
+        flow_values = [float(v) for v in flows.values() if v is not None and not math.isnan(v)]
+        diameter_values = [float(v) for v in diameters.values() if v is not None and not math.isnan(v)]
+        
+        # Statistiques des pressions
+        if pressure_values:
+            stats["pressures"] = {
+                "count": len(pressure_values),
+                "min": round(min(pressure_values), 3),
+                "max": round(max(pressure_values), 3),
+                "mean": round(statistics.mean(pressure_values), 3),
+                "median": round(statistics.median(pressure_values), 3),
+                "std": round(statistics.stdev(pressure_values), 3) if len(pressure_values) > 1 else 0.0,
+                "q25": round(statistics.quantiles(pressure_values, n=4)[0], 3) if len(pressure_values) > 1 else pressure_values[0],
+                "q75": round(statistics.quantiles(pressure_values, n=4)[2], 3) if len(pressure_values) > 1 else pressure_values[0],
+            }
+            
+            # Pourcentages sous seuils de pression
+            p_min_10 = len([p for p in pressure_values if p < 10.0]) / len(pressure_values) * 100
+            p_min_15 = len([p for p in pressure_values if p < 15.0]) / len(pressure_values) * 100
+            p_min_20 = len([p for p in pressure_values if p < 20.0]) / len(pressure_values) * 100
+            
+            stats["pressures"]["percent_under_10m"] = round(p_min_10, 1)
+            stats["pressures"]["percent_under_15m"] = round(p_min_15, 1)
+            stats["pressures"]["percent_under_20m"] = round(p_min_20, 1)
+        
+        # Statistiques des vitesses
+        if velocity_values:
+            stats["velocities"] = {
+                "count": len(velocity_values),
+                "min": round(min(velocity_values), 3),
+                "max": round(max(velocity_values), 3),
+                "mean": round(statistics.mean(velocity_values), 3),
+                "median": round(statistics.median(velocity_values), 3),
+                "std": round(statistics.stdev(velocity_values), 3) if len(velocity_values) > 1 else 0.0,
+                "q25": round(statistics.quantiles(velocity_values, n=4)[0], 3) if len(velocity_values) > 1 else velocity_values[0],
+                "q75": round(statistics.quantiles(velocity_values, n=4)[2], 3) if len(velocity_values) > 1 else velocity_values[0],
+            }
+            
+            # Pourcentages au-dessus des seuils de vitesse
+            v_max_1 = len([v for v in velocity_values if v > 1.0]) / len(velocity_values) * 100
+            v_max_2 = len([v for v in velocity_values if v > 2.0]) / len(velocity_values) * 100
+            v_max_3 = len([v for v in velocity_values if v > 3.0]) / len(velocity_values) * 100
+            
+            stats["velocities"]["percent_over_1ms"] = round(v_max_1, 1)
+            stats["velocities"]["percent_over_2ms"] = round(v_max_2, 1)
+            stats["velocities"]["percent_over_3ms"] = round(v_max_3, 1)
+        
+        # Statistiques des charges hydrauliques (heads)
+        if head_values:
+            stats["heads"] = {
+                "count": len(head_values),
+                "min": round(min(head_values), 3),
+                "max": round(max(head_values), 3),
+                "mean": round(statistics.mean(head_values), 3),
+                "median": round(statistics.median(head_values), 3),
+                "std": round(statistics.stdev(head_values), 3) if len(head_values) > 1 else 0.0,
+            }
+        
+        # Statistiques des pertes de charge
+        if headloss_values:
+            stats["headlosses"] = {
+                "count": len(headloss_values),
+                "min": round(min(headloss_values), 3),
+                "max": round(max(headloss_values), 3),
+                "mean": round(statistics.mean(headloss_values), 3),
+                "median": round(statistics.median(headloss_values), 3),
+                "std": round(statistics.stdev(headloss_values), 3) if len(headloss_values) > 1 else 0.0,
+                "total": round(sum(headloss_values), 3),
+            }
+        
+        # Statistiques des débits
+        if flow_values:
+            # Compter les débits positifs et négatifs (sens d'écoulement)
+            positive_flows = len([f for f in flow_values if f > 0])
+            negative_flows = len([f for f in flow_values if f < 0])
+            zero_flows = len([f for f in flow_values if f == 0])
+            
+            # Valeurs absolues pour les statistiques de magnitude
+            flow_abs_values = [abs(f) for f in flow_values]
+            
+            stats["flows"] = {
+                "count": len(flow_values),
+                "min": round(min(flow_values), 6),  # Valeur algébrique (peut être négative)
+                "max": round(max(flow_values), 6),  # Valeur algébrique (peut être négative)
+                "mean": round(statistics.mean(flow_values), 6),  # Moyenne algébrique
+                "median": round(statistics.median(flow_values), 6),  # Médiane algébrique
+                "std": round(statistics.stdev(flow_values), 6) if len(flow_values) > 1 else 0.0,
+                "total": round(sum(flow_values), 6),  # Conservation de masse
+                # Statistiques sur le sens d'écoulement
+                "positive_flows": positive_flows,  # Conduites avec écoulement dans le sens défini
+                "negative_flows": negative_flows,  # Conduites avec écoulement inverse
+                "zero_flows": zero_flows,  # Conduites sans écoulement
+                # Statistiques sur la magnitude (valeurs absolues)
+                "min_abs": round(min(flow_abs_values), 6),
+                "max_abs": round(max(flow_abs_values), 6),
+                "mean_abs": round(statistics.mean(flow_abs_values), 6),
+                "median_abs": round(statistics.median(flow_abs_values), 6),
+            }
+        
+        # Statistiques des diamètres réels DN
+        if diameter_values:
+            stats["diameters"] = {
+                "count": len(diameter_values),
+                "min": round(min(diameter_values), 1),
+                "max": round(max(diameter_values), 1),
+                "mean": round(statistics.mean(diameter_values), 1),
+                "median": round(statistics.median(diameter_values), 1),
+                "std": round(statistics.stdev(diameter_values), 1) if len(diameter_values) > 1 else 0.0,
+            }
+            
+            # Distribution des diamètres par gammes DN
+            dn_ranges = {
+                "DN20-50": len([d for d in diameter_values if 20 <= d <= 50]),
+                "DN63-100": len([d for d in diameter_values if 63 <= d <= 100]),
+                "DN125-200": len([d for d in diameter_values if 125 <= d <= 200]),
+                "DN250-400": len([d for d in diameter_values if 250 <= d <= 400]),
+                "DN450+": len([d for d in diameter_values if d >= 450]),
+            }
+            stats["diameters"]["distribution"] = dn_ranges
+        
+        # Calculs dérivés
+        if pressure_values and velocity_values:
+            # Indice de performance hydraulique (moyenne pondérée)
+            p_norm = [max(0, p - 10) / 20 for p in pressure_values]  # Normalisation 10-30m
+            v_norm = [max(0, 2 - v) / 2 for v in velocity_values]    # Normalisation 0-2m/s
+            performance = (statistics.mean(p_norm) + statistics.mean(v_norm)) / 2
+            stats["performance_index"] = round(performance, 3)
+        
+        # Résumé global
+        stats["summary"] = {
+            "total_nodes": len(pressures),
+            "total_pipes": len(velocities),
+            "pressure_range": f"{stats.get('pressures', {}).get('min', 0)} - {stats.get('pressures', {}).get('max', 0)} m",
+            "velocity_range": f"{stats.get('velocities', {}).get('min', 0)} - {stats.get('velocities', {}).get('max', 0)} m/s",
+            "diameter_range": f"{stats.get('diameters', {}).get('min', 0)} - {stats.get('diameters', {}).get('max', 0)} mm",
+            "total_headloss": f"{stats.get('headlosses', {}).get('total', 0)} m",
+            "total_flow": f"{stats.get('flows', {}).get('total', 0)} m³/s",
+        }
+        
+    except Exception as e:
+        logger.warning(f"Erreur lors du calcul des statistiques hydrauliques: {e}")
+        stats["error"] = str(e)
+    
+    return stats
 
 def convert_inp_to_unified_model(inp_path: Path) -> Dict[str, Any]:
     """Convertit un .inp en modèle unifié (noeuds, liens, tanks, meta).
@@ -244,6 +511,12 @@ class OptimizationController:
                     # Build minimal OptimizationConfig
                     cfg = self.config or {}
                     h_bounds = cfg.get("H_bounds", {"TANK1": (5.0, 50.0)})
+                    # Normaliser: accepter tuple (min,max) et le convertir en dict attendu par le modèle
+                    try:
+                        if isinstance(h_bounds, tuple) and len(h_bounds) == 2:
+                            h_bounds = {"TANK1": tuple(h_bounds)}  # type: ignore[assignment]
+                    except Exception:
+                        pass
                     self.optcfg = _OptCfg(method="global", h_bounds_m=h_bounds, pressure_min_m=float(cfg.get("pressure_min_m", 10.0)))
                     # Forcer un seul worker et désactiver les checkpoints (éviter pickling de callbacks)
                     try:
@@ -253,10 +526,26 @@ class OptimizationController:
                         pass
                     self.net_path = Path(network_model) if isinstance(network_model, (str, Path)) else Path(cfg.get("network_path", "network.inp"))
                     self.impl = None
+                    # Progress callback pour UI Rich
+                    self._progress_callback = None
 
                 def optimize(self, constraints: Dict[str, Any], objective: str = "price", seed: Optional[int] = None) -> Dict[str, Any]:
                     if (self.config or {}).get("dry_run"):
                         return {"meta": {"method": "global", "dry_run": True}, "proposals": []}
+                    
+                    # Émettre run_start si callback disponible
+                    if self._progress_callback:
+                        try:
+                            total_work = self.optcfg.global_config.generations * self.optcfg.global_config.population_size
+                            self._progress_callback("run_start", {
+                                "total_work": total_work,
+                                "generations": self.optcfg.global_config.generations,
+                                "population_size": self.optcfg.global_config.population_size,
+                                "method": "global"
+                            })
+                        except Exception:
+                            pass
+                    
                     try:
                         # Sécurité supplémentaire: forcer config runtime côté implémentation
                         try:
@@ -265,7 +554,7 @@ class OptimizationController:
                             setattr(self.optcfg, "checkpoint", False)
                         except Exception:
                             pass
-                        self.impl = _Global(self.optcfg, self.net_path)
+                        self.impl = _Global(self.optcfg, self.net_path, progress_callback=self._progress_callback)
                         # Neutraliser tout callback de checkpoint si exposé par l'implémentation
                         try:
                             setattr(self.impl, "_create_checkpoint_callback", lambda *a, **k: (lambda *a2, **k2: None))
@@ -313,9 +602,17 @@ class OptimizationController:
                 def __init__(self, network_model: Any, solver: str = "epanet", price_db: Optional[Any] = None, config: Optional[Dict[str, Any]] = None) -> None:
                     super().__init__(network_model, solver, price_db, config)
                     self._on_generation_callback = None
+                    # Progress callback pour UI Rich
+                    self._progress_callback = None
 
                 def set_on_generation_callback(self, cb) -> None:
                     self._on_generation_callback = cb
+
+                def set_progress_callback(self, cb) -> None:
+                    self._progress_callback = cb
+                    # Transmettre aussi à la config pour que le GA puisse l'utiliser
+                    if hasattr(self, 'config') and self.config:
+                        self.config["_progress_cb"] = cb
 
                 def optimize(self, constraints: Dict[str, Any], objective: str = "price", seed: Optional[int] = None) -> Dict[str, Any]:
                     if (self.config or {}).get("dry_run"):
@@ -332,7 +629,7 @@ class OptimizationController:
                         import yaml
                         from ..optimization.models import ConfigurationOptimisation  # type: ignore
                         from ..optimization.constraints import ConstraintManager  # type: ignore
-                        from ..optimization.genetic_algorithm import GeneticOptimizer as _GA  # type: ignore
+                        from ..optimization import GeneticOptimizer as _GA  # type: ignore
 
                         cfg_raw = yaml.safe_load(Path(self.network_model).read_text(encoding="utf-8")) or {}
                         if "optimisation" not in cfg_raw:
@@ -340,6 +637,13 @@ class OptimizationController:
                         cfg = ConfigurationOptimisation(**cfg_raw["optimisation"])  # pydantic
                         cm = ConstraintManager(cfg.contraintes_budget, cfg.contraintes_techniques)
                         ga = _GA(cfg, cm)
+                        # Brancher le callback évènementiel si fourni via config
+                        try:
+                            evt_cb = (self.config or {}).get("_progress_cb")
+                            if callable(evt_cb):
+                                setattr(ga, "_progress_cb", evt_cb)
+                        except Exception:
+                            pass
                         try:
                             if self._on_generation_callback is not None and hasattr(ga, "set_on_generation_callback"):
                                 ga.set_on_generation_callback(self._on_generation_callback)
@@ -354,16 +658,17 @@ class OptimizationController:
                         out = ga.optimiser(reseau_data, nb_conduites)
                         # Adapter la sortie legacy vers le contrat unifié
                         best = (out or {}).get("optimisation", {}).get("meilleure_solution", {})
-                        diam_map = {k: v for k, v in best.get("diametres", {}).items()}
-                        perf = best.get("performance", {})
+                        diam_map = best.get("diameters_mm") or {k: v for k, v in best.get("diametres", {}).items()}
+                        capex = best.get("cout_total_fcfa")
+                        perf_h = best.get("performance_hydraulique", best.get("performance", {}).get("performance_hydraulique", 0.0))
                         proposal = {
                             "id": "genetic_best",
-                            "H_tank_m": None,
+                            "H_tank_m": best.get("h_tank_m"),  # exposé par GA si disponible ultérieurement
                             "diameters_mm": diam_map,
-                            "CAPEX": perf.get("cout_total_fcfa"),
+                            "CAPEX": capex,
                             "OPEX_NPV": None,
                             "constraints_ok": True,
-                            "metrics": {"performance_hydraulique": perf.get("performance_hydraulique", 0.0)},
+                            "metrics": {"performance_hydraulique": perf_h},
                         }
                         return {"meta": {"method": "genetic", "solver": self.solver}, "proposals": [proposal]}
 
@@ -372,7 +677,7 @@ class OptimizationController:
                         import yaml
                         from ..optimization.models import ConfigurationOptimisation, DiametreCommercial, CriteresOptimisation, ContraintesBudget, ContraintesTechniques, ParametresAlgorithme  # type: ignore
                         from ..optimization.constraints import ConstraintManager as _CM  # type: ignore
-                        from ..optimization.genetic_algorithm import GeneticOptimizer as _GA  # type: ignore
+                        from ..optimization import GeneticOptimizer as _GA  # type: ignore
                         from .io import load_yaml_or_inp as _load
                         # Charger INP minimal -> NetworkModel
                         nm, _meta = _load(Path(self.network_model))
@@ -391,16 +696,22 @@ class OptimizationController:
                             criteres=CriteresOptimisation(principal="cout", secondaires=[], poids=[1.0]),
                             contraintes_budget=ContraintesBudget(cout_max_fcfa=1e14),
                             contraintes_techniques=ContraintesTechniques(
-                                pression_min_mce=float((constraints or {}).get("pressure_min_m", 10.0)),
+                                pression_min_mce=max(0.1, float((constraints or {}).get("pressure_min_m", 10.0))),
                                 vitesse_min_m_s=float((constraints or {}).get("velocity_min_m_s", 0.3)),
-                                vitesse_max_m_s=float((constraints or {}).get("velocity_max_m_s", 2.0)),
+                                vitesse_max_m_s=float((constraints or {}).get("velocity_max_m_s", 1.5)),
                             ),
                             algorithme=ParametresAlgorithme(
-                                generations=int((self.config or {}).get("generations", 40)),
-                                population_size=int((self.config or {}).get("population", 60)),
+                                # Utiliser les paramètres CLI au lieu des valeurs par défaut
+                                generations=int((self.config or {}).get("generations", 120)),
+                                population_size=int((self.config or {}).get("population", 120)),
                             ),
                             diametres_candidats=diam_cands,
                         )
+                        # Bornes H_tank par défaut V15
+                        try:
+                            cfg.__dict__.setdefault('h_bounds_m', {'min': 0.0, 'max': float((self.config or {}).get('H_max', 50.0))})
+                        except Exception:
+                            pass
                         # Instancier explicitement le gestionnaire de contraintes (comme pour le flux YAML)
                         cm = _CM(cfg.contraintes_budget, cfg.contraintes_techniques)
                         
@@ -411,27 +722,39 @@ class OptimizationController:
                         simulator = _EPO()
                         # Nouvel optimiseur conscient hydraulique
                         ga = _GA(cfg, cm, network_path=str(self.network_model), solver=simulator, pipe_ids=pipe_ids)
+                        # Brancher le callback évènementiel si fourni via config
+                        try:
+                            evt_cb = (self.config or {}).get("_progress_cb")
+                            if callable(evt_cb):
+                                setattr(ga, "_progress_cb", evt_cb)
+                        except Exception:
+                            pass
                         
                         # Connecter le callback de progression
                         try:
                             if self._on_generation_callback is not None and hasattr(ga, "set_on_generation_callback"):
                                 ga.set_on_generation_callback(self._on_generation_callback)
+                            # Connecter le progress callback pour UI Rich (avec adaptateur si disponible)
+                            progress_cb_to_use = getattr(self, '_progress_callback', None)
+                            if progress_cb_to_use and hasattr(ga, "set_progress_callback"):
+                                ga.set_progress_callback(progress_cb_to_use)
                         except Exception:
                             pass
                         # Exécuter en mode EPANET (l'optimiseur se base sur pipe_ids et network_path)
                         out = ga.optimiser()
                         
                         best = (out or {}).get("optimisation", {}).get("meilleure_solution", {})
-                        diam_map = {k: v for k, v in best.get("diametres", {}).items()}
-                        perf = best.get("performance", {})
+                        diam_map = best.get("diameters_mm") or {k: v for k, v in best.get("diametres", {}).items()}
+                        capex = best.get("cout_total_fcfa")
+                        perf_h = best.get("performance_hydraulique", best.get("performance", {}).get("performance_hydraulique", 0.0))
                         proposal = {
                             "id": "genetic_best",
-                            "H_tank_m": None,
+                            "H_tank_m": best.get("h_tank_m"),  # exposé par GA si disponible ultérieurement
                             "diameters_mm": diam_map,
-                            "CAPEX": perf.get("cout_total_fcfa"),
+                            "CAPEX": capex,
                             "OPEX_NPV": None,
                             "constraints_ok": True,
-                            "metrics": {"performance_hydraulique": perf.get("performance_hydraulique", 0.0)},
+                            "metrics": {"performance_hydraulique": perf_h},
                         }
                         return {"meta": {"method": "genetic", "solver": self.solver}, "proposals": [proposal]}
                     except Exception as e:
@@ -464,21 +787,56 @@ class OptimizationController:
         verbose: bool = False,
         progress_callback: Optional[callable] = None,
         num_proposals: int = 1,
+        no_cache: bool = False,
+        no_surrogate: bool = False,
     ) -> Dict[str, Any]:
         constraints = constraints or {}
         algo_params = algo_params or {}
-
-        # Callback de progression
+        # Mesures de durée et reset des compteurs solveur au démarrage
+        t_start = time.time()
+        try:
+            # Lazy import pour éviter dépendance côté unit tests
+            from ..core.epanet_wrapper import reset_simulation_stats  # type: ignore
+            reset_simulation_stats()
+        except Exception:
+            pass
+        # Callback de progression (avec adaptateur normalisé)
+        progress_cb_adapter = None
         if progress_callback:
             try:
                 progress_callback("start", {"method": method, "solver": solver})
             except Exception:
                 pass
+            try:
+                progress_cb_adapter = _make_progress_adapter(progress_callback)
+            except Exception:
+                progress_cb_adapter = progress_callback
+            # Informer l'UI d'un démarrage de run via l'adaptateur standardisé
+            try:
+                (progress_cb_adapter or progress_callback)("run_start", {"method": method, "solver": solver})
+            except Exception:
+                pass
+        # Exposer le progress_callback adapté à l'optimiseur via la config (evt/data)
+        try:
+            if callable(progress_callback):
+                algo_params["_progress_cb"] = progress_cb_adapter or progress_callback
+        except Exception:
+            pass
         
         # Charger modèle (dict) pour métadonnées et compat YAML
         if progress_callback:
-            progress_callback("loading", {"input_path": str(input_path)})
+            (progress_cb_adapter or progress_callback)("loading", {"input_path": str(input_path)})
         model_dict = self._load_input(Path(input_path))
+
+        # Diagnostic faisabilité INP (V15)
+        try:
+            if str(input_path).lower().endswith('.inp'):
+                from .validators import check_inp_feasibility  # type: ignore
+                feas = check_inp_feasibility(Path(input_path), simulate=True)
+                if not feas.get('ok', True):
+                    return {"status": "failed", "errors": feas.get('errors', []), "meta": {"input": str(input_path), "feasibility": feas}}
+        except Exception:
+            pass
 
         # Pour l'optimiseur nested existant, passer plutôt le chemin pour qu'il parse lui-même
         network_for_opt: Any = str(input_path)
@@ -500,26 +858,60 @@ class OptimizationController:
             pass
 
         if progress_callback:
-            progress_callback("validation", {"constraints": constraints})
+            (progress_cb_adapter or progress_callback)("validation", {"constraints": constraints})
         
+        # Activer un raffineur par défaut si GA sans hybrid_refiner
+        if str(method).lower() == "genetic" and not hybrid_refiner:
+            hybrid_refiner = "global"
+            hybrid_params = hybrid_params or {"topk": 2, "steps": 1}
         optimizer = self.get_optimizer_instance(method, network_for_opt, solver, price_db, config=algo_params)
 
-        # Simple cache key (path + method + constraints + algo params relevant)
+        # Cache key robuste: inclut hash topologie, contraintes, backend, price_db, seed, paramètres clés
         cache_key = None
         try:
-            cache_key = (
-                str(input_path),
-                method,
-                json.dumps(constraints, sort_keys=True, default=str),
-                json.dumps({k: algo_params[k] for k in sorted(algo_params.keys()) if k in ("penalty_weight","penalty_beta","hard_velocity","H_bounds")}, sort_keys=True, default=str),
-            )
-        except Exception:
+            # Hash du fichier réseau
+            from .io import sha256_of_file as _sha
+            net_sha = _sha(Path(input_path)) if Path(input_path).exists() else None
+            # Backend EPANET (wntr|dll)
+            backend = str((algo_params or {}).get("epanet_backend", "wntr")).lower()
+            # Price DB checksum si disponible
+            price_sha = None
+            try:
+                if price_db:
+                    price_sha = _sha(Path(price_db))
+            except Exception:
+                price_sha = None
+            # Paramètres algorithmiques pertinents
+            algo_subset: Dict[str, Any] = {}
+            for k in ("penalty_weight","penalty_beta","hard_velocity","H_bounds","generations","population","seed"):
+                if k in (algo_params or {}):
+                    algo_subset[k] = algo_params.get(k)
+            payload = {
+                "network_file": str(input_path),
+                "network_sha256": net_sha,
+                "method": method,
+                "solver": solver,
+                "constraints": constraints,
+                "backend": backend,
+                "price_db_sha256": price_sha,
+                "algo": algo_subset,
+            }
+            payload_str = json.dumps(payload, sort_keys=True, default=str, ensure_ascii=False)
+            cache_key = hashlib.sha256(payload_str.encode("utf-8")).hexdigest()
+        except Exception as _e:
             cache_key = None
         _cache = getattr(self, "_result_cache", {})
-        if cache_key and cache_key in _cache:
+        if (not no_cache) and cache_key and cache_key in _cache:
             cached = json.loads(json.dumps(_cache[cache_key]))
             cached.setdefault("metrics", {})["cache_hit"] = True
-            cached.setdefault("cache_info", {})["hit"] = True
+            ci = cached.setdefault("cache_info", {})
+            ci["hit"] = True
+            ci["key"] = cache_key
+            try:
+                if verbose:
+                    logger.info(f"Cache hit (key={cache_key[:12]}..., method={method}, solver={solver})")
+            except Exception:
+                pass
             return cached
         # Per-generation hybrid hook for genetic method
         ga_hook_calls = 0
@@ -538,38 +930,34 @@ class OptimizationController:
                 nonlocal ga_hook_improved
                 ga_hook_calls += 1
                 
-                # Callback de progression pour les générations
-                if progress_callback:
-                    # Calculer le meilleur coût de la population
-                    best_cost = float('inf')
-                    best_fitness = 0.0
-                    best_performance = 0.0
-                    
+                # Callback de progression pour les générations (via adaptateur normalisé)
+                # Calculer le meilleur coût de la population
+                try:
+                    best_cost = float('inf'); best_fitness = 0.0; best_performance = 0.0
                     for ind in population:
                         try:
                             cost = float(getattr(ind, "cout_total", float('inf')))
                             fitness = float(getattr(ind, "fitness", 0.0))
                             performance = float(getattr(ind, "performance_hydraulique", 0.0))
-                            
                             if cost < best_cost:
                                 best_cost = cost
                             if fitness > best_fitness:
                                 best_fitness = fitness
                             if performance > best_performance:
                                 best_performance = performance
-                        except:
+                        except Exception:
                             pass
-                    
                     if best_cost == float('inf'):
-                        best_cost = 0
-                    
-                    progress_callback("generation", {
+                        best_cost = 0.0
+                    (progress_cb_adapter or progress_callback)("generation", {
                         "generation": gen,
                         "best_cost": best_cost,
                         "population_size": len(population),
                         "fitness": best_fitness,
                         "performance": best_performance
                     })
+                except Exception:
+                    pass
                 
                 # Afficher aussi la progression dans le terminal (comme l'algorithme génétique le fait déjà)
                 if verbose:
@@ -597,7 +985,7 @@ class OptimizationController:
                     
                     # Utiliser le callback de progression au lieu de print()
                     if progress_callback:
-                        progress_callback("generation", {
+                        (progress_cb_adapter or progress_callback)("generation", {
                             "generation": gen,
                             "best_cost": best_cost,
                             "population_size": len(population),
@@ -635,7 +1023,7 @@ class OptimizationController:
                                 ga_hook_improved += 1
                                 # Callback de progression pour le raffinement
                                 if progress_callback:
-                                    progress_callback("hybrid", {
+                                    (progress_cb_adapter or progress_callback)("hybrid", {
                                         "generation": gen,
                                         "improvement": current_cost - new_capex,
                                         "new_cost": new_capex
@@ -649,10 +1037,42 @@ class OptimizationController:
             try:
                 if hasattr(optimizer, "set_on_generation_callback"):
                     optimizer.set_on_generation_callback(_ga_cb)  # type: ignore[attr-defined]
+                # attacher l'adaptateur global pour les évènements génériques/simulation
+                if hasattr(optimizer, "set_progress_callback"):
+                    optimizer.set_progress_callback(progress_cb_adapter or progress_callback)
+                else:
+                    setattr(optimizer, "_progress_cb", progress_cb_adapter or progress_callback)
+                    setattr(optimizer, "_progress_callback", progress_cb_adapter or progress_callback)
             except Exception:
                 pass
         if progress_callback:
-            progress_callback("convergence", {"method": method})
+            (progress_cb_adapter or progress_callback)("convergence", {"method": method})
+        
+        # Passer le progress_callback adapté à l'optimiseur si supporté
+        # ensure standard progress API is set
+        try:
+            if callable(progress_callback):
+                cb = progress_cb_adapter or progress_callback
+                # try preferred public API
+                if hasattr(optimizer, "set_progress_callback"):
+                    try:
+                        optimizer.set_progress_callback(cb)
+                        print(f"DEBUG: Progress callback attaché via set_progress_callback()")
+                    except Exception as e:
+                        print(f"DEBUG: Erreur set_progress_callback(): {e}")
+                        # fallback to direct attribute assignment
+                        setattr(optimizer, "_progress_cb", cb)
+                        print(f"DEBUG: Progress callback attaché via _progress_cb")
+                else:
+                    # best-effort: set common attribute names used across codebase
+                    for attr in ("_progress_cb", "_progress_callback", "progress_cb"):
+                        try:
+                            setattr(optimizer, attr, cb)
+                            break
+                        except Exception:
+                            pass
+        except Exception:
+            pass
         
         result = optimizer.optimize(constraints=constraints, objective=algo_params.get("objective", "price"), seed=algo_params.get("seed"))
         
@@ -698,29 +1118,61 @@ class OptimizationController:
             pass
         
         if progress_callback:
-            progress_callback("complete", {"result": result})
+            try:
+                progress_callback("complete", {"result": result})
+            except Exception:
+                pass
         # Normaliser des clés attendues par le reporting
         result.setdefault("pareto", [])
         result.setdefault("metrics", {})
         result.setdefault("cache_info", {})["hit"] = False
+        # Compléter meta avec mesures
+        try:
+            meta = result.setdefault("meta", {})
+            # durée et stats simulateur
+            from ..core.epanet_wrapper import get_simulation_stats  # type: ignore
+            stats = get_simulation_stats()
+            meta["sim_time_seconds_total"] = float(stats.get("time_seconds", 0.0))
+            meta["solver_calls"] = int(stats.get("calls", 0))
+            # config GA
+            meta["generations"] = int((algo_params or {}).get("generations", 0))
+            meta["population"] = int((algo_params or {}).get("population", 0))
+            # best_cost / constraints_ok
+            try:
+                props = result.get("proposals") or []
+                if props:
+                    best = props[0]
+                    meta["best_cost"] = best.get("CAPEX")
+                    meta["best_constraints_ok"] = bool(best.get("constraints_ok", False))
+            except Exception:
+                pass
+            # placeholders (à compléter): cache_hits, surrogate_used, total_evals, headloss_model
+            meta.setdefault("cache_hits", 0)
+            meta.setdefault("surrogate_used", False)
+            meta.setdefault("total_evals", meta.get("generations", 0) * meta.get("population", 0))
+            meta.setdefault("headloss_model", "auto")
+        except Exception:
+            pass
         # Enrichissement hydraulique (pressions/charges/vitesses/pertes/débits) pour INP si possible
         try:
             from ..core.epanet_wrapper import EPANETOptimizer as _EPO
             if str(Path(str(input_path)).suffix).lower() == ".inp":
                 if progress_callback:
-                    progress_callback("simulation", {"solver": solver, "stage": "start"})
+                    (progress_cb_adapter or progress_callback)("simulation", {"solver": solver, "stage": "start"})
                 
-                epo = _EPO()
+                # Choix de backend si fourni via algo_params
+                backend = str((algo_params or {}).get("epanet_backend", "wntr")).lower()
+                epo = _EPO(backend=backend)
                 best = (result.get("proposals") or [None])[0]
                 diams = best.get("diameters_mm", {}) if isinstance(best, dict) else {}
                 
                 if progress_callback:
-                    progress_callback("simulation", {"solver": solver, "stage": "running", "diameters_count": len(diams)})
+                    (progress_cb_adapter or progress_callback)("simulation", {"solver": solver, "stage": "running", "diameters_count": len(diams)})
                 
-                sim = epo.simulate(str(input_path), H_tank_map={}, diameters_map=diams, duration_h=1, timestep_min=5)
+                sim = epo.simulate(str(input_path), H_tank_map={}, diameters_map=diams, duration_h=1, timestep_min=5, progress_callback=progress_cb_adapter or progress_callback)
                 if sim.get("success"):
                     if progress_callback:
-                        progress_callback("simulation", {"solver": solver, "stage": "success"})
+                        (progress_cb_adapter or progress_callback)("simulation", {"solver": solver, "stage": "success"})
                     
                     hyd = result.setdefault("hydraulics", {})
                     # Clés historiques
@@ -739,6 +1191,22 @@ class OptimizationController:
                         hyd["diameters_mm"] = dict(diams)
                     except Exception:
                         pass
+                    
+                    # Calcul des statistiques hydrauliques détaillées
+                    try:
+                        hyd["statistics"] = _calculate_hydraulic_statistics(hyd)
+                    except Exception as e:
+                        logger.warning(f"Erreur lors du calcul des statistiques hydrauliques: {e}")
+                        hyd["statistics"] = {"error": str(e)}
+                    # Reporter backend et temps de simulation si exposés
+                    try:
+                        meta = result.setdefault("meta", {})
+                        if "simulator" in sim:
+                            meta["simulator_used"] = sim.get("simulator")
+                        if "sim_time_seconds" in sim:
+                            meta["sim_time_seconds"] = float(sim.get("sim_time_seconds") or 0.0)
+                    except Exception:
+                        pass
                     # Enrichir la meilleure proposition avec des métriques agrégées
                     try:
                         min_p = float(sim.get("min_pressure_m", 0.0))
@@ -753,7 +1221,7 @@ class OptimizationController:
                         pass
                 else:
                     if progress_callback:
-                        progress_callback("simulation", {"solver": solver, "stage": "error", "error": sim.get("error")})
+                        (progress_cb_adapter or progress_callback)("simulation", {"solver": solver, "stage": "error", "error": sim.get("error")})
                     result.setdefault("hydraulics", {})["error"] = sim.get("error")
         except Exception:
             pass
@@ -768,6 +1236,14 @@ class OptimizationController:
             penalty_beta=float(algo_params.get("penalty_beta", 1.0)),
             hard_velocity=hard_velocity,
         )
+
+        # Sécurité: si constraints_ok manquant, le définir par défaut à True (aucune pénalité)
+        try:
+            for _p in result.get("proposals", []) or []:
+                if "constraints_ok" not in _p:
+                    _p["constraints_ok"] = True
+        except Exception:
+            pass
 
         # Hybridation post-run (top-k)
         if hybrid_refiner:
@@ -824,7 +1300,8 @@ class OptimizationController:
                 # Renseigner la provenance (si --price-db fourni) ou tenter le défaut utilisé
                 p = Path(price_db) if price_db else Path(__file__).resolve().parents[3] / "src" / "lcpi" / "db" / "aep_prices.db"
                 if p.exists():
-                    meta["price_db_info"] = {"path": str(p), "checksum": sha256_of_file(p)}
+                    # version placeholder
+                    meta["price_db_info"] = {"path": str(p), "checksum": sha256_of_file(p), "version": "unknown"}
             except Exception:
                 pass
         meta.update({
@@ -837,6 +1314,18 @@ class OptimizationController:
                 "family": ("epanet" if str(solver).lower() == "epanet" else "lcpi"),
             },
         })
+        # Alerte solver_calls==0 avec --no-cache
+        try:
+            if bool(no_cache) and int(result.get("meta", {}).get("solver_calls", 0)) == 0:
+                result.setdefault("warnings", []).append("Aucune simulation EPANET détectée malgré --no-cache. Vérifiez le backend et les contraintes.")
+        except Exception:
+            pass
+        # Si l'utilisateur impose no_surrogate, refléter explicitement dans les métadonnées
+        try:
+            if bool(no_surrogate):
+                meta["surrogate_used"] = False
+        except Exception:
+            pass
         result["meta"] = meta
         # Construire un report_payload conforme aux templates V11/V16
         try:
@@ -878,15 +1367,35 @@ class OptimizationController:
             pass
         # Cache store
         try:
-            if cache_key is not None:
+            if (not no_cache) and (cache_key is not None):
                 self._result_cache = getattr(self, "_result_cache", {})
-                self._result_cache[cache_key] = json.loads(json.dumps(result))
+                stored = json.loads(json.dumps(result))
+                # Annoter la clé pour transparence
+                stored.setdefault("cache_info", {})["key"] = cache_key
+                self._result_cache[cache_key] = stored
+                if verbose:
+                    try:
+                        logger.info(f"Cache store (key={cache_key[:12]}..., method={method}, solver={solver})")
+                    except Exception:
+                        pass
         except Exception:
             pass
         # Attach GA hook metrics if any
         if ga_hook_calls > 0:
             result.setdefault("metrics", {})["ga_hook_calls"] = ga_hook_calls
             result.setdefault("metrics", {})["hybrid_improved_count"] = result.get("metrics", {}).get("hybrid_improved_count", 0) + ga_hook_improved
+
+        # Ajouter métriques globales de simulation et durée totale
+        try:
+            duration_seconds = time.time() - t_start
+            result.setdefault("meta", {})["duration_seconds"] = float(duration_seconds)
+            # Inclure stats solveur si disponibles
+            from ..core.epanet_wrapper import get_simulation_stats  # type: ignore
+            stats = get_simulation_stats()
+            result["meta"]["solver_calls"] = int(stats.get("calls", 0))
+            result["meta"]["sim_time_seconds_total"] = float(stats.get("time_seconds", 0.0))
+        except Exception:
+            pass
 
         # Signature (activée plus tard en Sprint 3, no-op si indisponible)
         if self.integrity_manager:
@@ -965,7 +1474,7 @@ class OptimizationController:
         for _ in range(max_iters):
             if epo is None:
                 break
-            sim = epo.simulate(str(input_path), H_tank_map={}, diameters_map=diams, duration_h=1, timestep_min=5)
+            sim = epo.simulate(str(input_path), H_tank_map={}, diameters_map=diams, duration_h=1, timestep_min=5, progress_callback=progress_callback)
             if not sim.get("success"):
                 break
             min_p = float(sim.get("min_pressure_m", 0.0))
@@ -1096,7 +1605,7 @@ class OptimizationController:
             try:
                 if progress_callback:
                     progress_callback("simulation", {"solver": solver, "stage": "variation", "index": idx})
-                sim = epo.simulate(str(input_path), H_tank_map={}, diameters_map=diams, duration_h=1, timestep_min=5)
+                sim = epo.simulate(str(input_path), H_tank_map={}, diameters_map=diams, duration_h=1, timestep_min=5, progress_callback=progress_callback)
                 checked += 1
                 if sim.get("success"):
                     min_p = float(sim.get("min_pressure_m", 0.0))

@@ -28,10 +28,11 @@ def network_optimize_unified(
     output: Optional[Path] = typer.Option(None, "--output", "-o", help="Fichier JSON de sortie"),
     report: Optional[str] = typer.Option(None, "--report", help="Générer un rapport: html|md|pdf"),
     report_output: Optional[Path] = typer.Option(None, "--report-output", help="Dossier de sortie pour les rapports (défaut: même dossier que --output)"),
+    show_stats: bool = typer.Option(False, "--show-stats", help="Afficher les statistiques hydrauliques après l'optimisation"),
     verbose: bool = typer.Option(False, "--verbose", "-v", help="Verbose"),
 ):
     """Commande d'optimisation unifiée acceptant .inp et .yml avec support des rapports HTML, Markdown et PDF."""
-    rprint(f"[blue]🔍 Debug: input_file={input_file}, report={report}, report_output={report_output}[/blue]")
+            # Processing input file
     
     if not input_file.exists():
         rprint(f"[red]Fichier introuvable:[/red] {input_file}")
@@ -102,6 +103,14 @@ def network_optimize_unified(
                 json.dump(index, f, indent=2, ensure_ascii=False)
             rprint(f"[green]Résultats multi-solveurs écrits (index):[/green] {idx_path}")
             
+            # Affichage des statistiques hydrauliques si demandé
+            if show_stats:
+                rprint("[yellow]📊 Affichage des statistiques hydrauliques pour chaque solveur...[/yellow]")
+                for sname, res in outputs.items():
+                    if "error" not in res:
+                        rprint(f"\n[bold blue]=== Statistiques pour {sname} ===[/bold blue]")
+                        _display_hydraulic_statistics(res)
+            
             # Génération des rapports si demandé
             if report:
                 # Déterminer le dossier de sortie des rapports
@@ -143,9 +152,14 @@ def network_optimize_unified(
             json.dump(result, f, indent=2, ensure_ascii=False)
         rprint(f"[green]Résultat écrit dans[/green] {output}")
         
+        # Affichage des statistiques hydrauliques si demandé
+        if show_stats:
+            rprint("[yellow]📊 Affichage des statistiques hydrauliques...[/yellow]")
+            _display_hydraulic_statistics(result)
+        
         # Génération des rapports si demandé
         if report:
-            rprint(f"[blue]🔍 Debug: report={report}, output={output}[/blue]")
+            # Generating report
             # Déterminer le dossier de sortie des rapports
             report_dir = report_output if report_output else output.parent
             rprint(f"[yellow]📊 Génération du rapport {report.upper()} dans {report_dir}...[/yellow]")
@@ -164,6 +178,97 @@ def network_optimize_unified(
         rprint("[green]Optimisation terminée — résumé :[/green]")
         rprint(f" method: {meta.get('method')} solver: {meta.get('solver')}")
         rprint(f" best CAPEX: {best.get('CAPEX')} constraints_ok: {best.get('constraints_ok')}")
+        
+        # Affichage des statistiques hydrauliques si demandé
+        if show_stats:
+            rprint("[yellow]📊 Affichage des statistiques hydrauliques...[/yellow]")
+            _display_hydraulic_statistics(result)
+
+
+def _display_hydraulic_statistics(result_data: dict):
+    """Affiche les statistiques hydrauliques de manière structurée."""
+    
+    # Chercher les statistiques hydrauliques
+    stats = None
+    
+    # Chercher dans la section hydraulics
+    if "hydraulics" in result_data:
+        hydraulics = result_data["hydraulics"]
+        if "statistics" in hydraulics:
+            stats = hydraulics["statistics"]
+    
+    # Si pas trouvé, chercher dans les propositions
+    if not stats:
+        proposals = result_data.get("proposals", [])
+        for proposal in proposals:
+            if "statistics" in proposal:
+                stats = proposal["statistics"]
+                break
+    
+    # Si pas trouvé, chercher à la racine
+    if not stats and "statistics" in result_data:
+        stats = result_data["statistics"]
+    
+    if not stats:
+        rprint("[yellow]⚠️ Aucune statistique hydraulique trouvée dans les résultats[/yellow]")
+        return
+    
+    # Affichage des statistiques
+    rprint("\n" + "="*80)
+    rprint("[bold green]📊 Statistiques Hydrauliques[/bold green]")
+    rprint("="*80)
+    
+    # Pressions
+    pressures = stats.get("pressures", {})
+    if pressures:
+        rprint(f"[bold magenta]📊 Pressions:[/bold magenta]")
+        rprint(f"  • Nœuds: {pressures.get('count', 0)}")
+        rprint(f"  • Min: {pressures.get('min', 0):.3f} m, Max: {pressures.get('max', 0):.3f} m")
+        rprint(f"  • Moyenne: {pressures.get('mean', 0):.3f} m, Médiane: {pressures.get('median', 0):.3f} m")
+        rprint(f"  • % < 10m: {pressures.get('percent_under_10m', 0):.1f}%")
+    
+    # Vitesses
+    velocities = stats.get("velocities", {})
+    if velocities:
+        rprint(f"[bold blue]⚡ Vitesses:[/bold blue]")
+        rprint(f"  • Conduites: {velocities.get('count', 0)}")
+        rprint(f"  • Min: {velocities.get('min', 0):.3f} m/s, Max: {velocities.get('max', 0):.3f} m/s")
+        rprint(f"  • Moyenne: {velocities.get('mean', 0):.3f} m/s, Médiane: {velocities.get('median', 0):.3f} m/s")
+        rprint(f"  • % > 2 m/s: {velocities.get('percent_over_2ms', 0):.1f}%")
+    
+    # Diamètres
+    diameters = stats.get("diameters", {})
+    if diameters:
+        rprint(f"[bold yellow]🔧 Diamètres:[/bold yellow]")
+        rprint(f"  • Conduites: {diameters.get('count', 0)}")
+        rprint(f"  • Min: {diameters.get('min', 0):.0f} mm, Max: {diameters.get('max', 0):.0f} mm")
+        rprint(f"  • Moyenne: {diameters.get('mean', 0):.0f} mm, Médiane: {diameters.get('median', 0):.0f} mm")
+    
+    # Pertes de charge
+    headlosses = stats.get("headlosses", {})
+    if headlosses:
+        rprint(f"[bold red]💧 Pertes de charge:[/bold red]")
+        rprint(f"  • Conduites: {headlosses.get('count', 0)}")
+        rprint(f"  • Min: {headlosses.get('min', 0):.3f} m, Max: {headlosses.get('max', 0):.3f} m")
+        rprint(f"  • Moyenne: {headlosses.get('mean', 0):.3f} m, Total: {headlosses.get('total', 0):.3f} m")
+    
+    # Débits
+    flows = stats.get("flows", {})
+    if flows:
+        rprint(f"[bold green]🌊 Débits:[/bold green]")
+        rprint(f"  • Conduites: {flows.get('count', 0)}")
+        rprint(f"  • Magnitude (absolue): Min: {flows.get('min_abs', 0):.3f} m³/s, Max: {flows.get('max_abs', 0):.3f} m³/s")
+        rprint(f"  • Moyenne (absolue): {flows.get('mean_abs', 0):.3f} m³/s")
+        rprint(f"  • Sens normal: {flows.get('positive_flows', 0)} conduites, Sens inverse: {flows.get('negative_flows', 0)} conduites")
+        rprint(f"  • Total (conservation): {flows.get('total', 0):.3f} m³/s")
+        rprint(f"  [dim]💡 Note: Débit négatif = écoulement inverse au sens défini[/dim]")
+    
+    # Indice de performance
+    performance_index = stats.get("performance_index")
+    if performance_index is not None:
+        rprint(f"[bold]Indice de Performance Hydraulique:[/bold] {performance_index:.3f}")
+    
+    rprint("="*80)
 
 
 def _generate_reports(index_data: dict, outputs: dict, report_format: str, output_dir: Path, verbose: bool):

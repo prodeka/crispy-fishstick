@@ -129,12 +129,13 @@ class TankAEPProblem(Problem):
 class GlobalOptimizer:
     """Optimiseur global basé sur NSGA-II (pymoo) avec parallélisation et checkpoints."""
 
-    def __init__(self, config: OptimizationConfig, network_path: Path):
+    def __init__(self, config: OptimizationConfig, network_path: Path, progress_callback=None):
         if not _PYMOO_AVAILABLE:
             raise ImportError("pymoo n'est pas installé. Installez-le pour utiliser GlobalOptimizer.")
         
         self.config = config
         self.network_path = network_path
+        self.progress_callback = progress_callback
         
         # Configuration des checkpoints
         checkpoint_dir = Path("data/checkpoints")
@@ -186,11 +187,29 @@ class GlobalOptimizer:
                     print(f"⚠️ Erreur lors du chargement du checkpoint: {e}")
                     print("   Démarrage d'une nouvelle optimisation")
 
-            # Callback pour les checkpoints
-            callback = self._create_checkpoint_callback(algorithm)
+            # Callback pour les checkpoints et progress UI
+            checkpoint_callback = self._create_checkpoint_callback(algorithm)
+            progress_callback = self._create_progress_callback() if self.progress_callback else None
+            
+            # Combiner les callbacks
+            if progress_callback:
+                callback = lambda algo: (checkpoint_callback(algo), progress_callback(algo))
+            else:
+                callback = checkpoint_callback
             
             print(f"🎯 Optimisation: {self.config.global_config.population_size} individus, "
                   f"{self.config.global_config.generations} générations")
+            
+            # Émettre generation_start si callback disponible
+            if self.progress_callback:
+                try:
+                    self.progress_callback("generation_start", {
+                        "generation": 0,
+                        "total_generations": self.config.global_config.generations,
+                        "population_size": self.config.global_config.population_size
+                    })
+                except Exception:
+                    pass
             
             res = minimize(
                 problem,
@@ -264,6 +283,37 @@ class GlobalOptimizer:
         def checkpoint_callback(algorithm):
             self._save_checkpoint(algorithm)
         return checkpoint_callback
+
+    def _create_progress_callback(self):
+        """Crée un callback pour émettre les événements de progression."""
+        def callback(algorithm):
+            try:
+                if self.progress_callback:
+                    # Émettre generation_end avec les meilleures solutions
+                    current_gen = len(algorithm.callback.data["n_gen"])
+                    if current_gen > 0:
+                        # Trouver la meilleure solution (fitness le plus bas)
+                        best_idx = np.argmin(algorithm.callback.data["F"][-1])
+                        best_fitness = float(algorithm.callback.data["F"][-1][best_idx])
+                        
+                        self.progress_callback("generation_end", {
+                            "generation": current_gen,
+                            "best_cost": best_fitness,
+                            "population_size": self.config.global_config.population_size
+                        })
+                        
+                        # Émettre generation_start pour la prochaine génération
+                        if current_gen < self.config.global_config.generations:
+                            self.progress_callback("generation_start", {
+                                "generation": current_gen,
+                                "total_generations": self.config.global_config.generations,
+                                "population_size": self.config.global_config.population_size
+                            })
+            except Exception as e:
+                # Ignorer silencieusement les erreurs de callback
+                pass
+        
+        return callback
 
     def _save_checkpoint(self, algorithm, result=None):
         """Sauvegarde l'état de l'algorithme et des métadonnées."""

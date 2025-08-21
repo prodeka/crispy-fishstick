@@ -6,7 +6,7 @@ et de la configuration des réseaux d'alimentation en eau potable.
 """
 
 from .individual import Individu
-from .genetic_algorithm import GeneticOptimizer
+from .genetic_algorithm import GeneticOptimizerV2 as GeneticOptimizer
 from .constraints import ConstraintManager
 
 __all__ = [

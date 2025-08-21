@@ -1,0 +1,64 @@
+{# templates/report.md.jinja #}
+# Rapport d'Optimisation - {{ project.title | default('Projet') }}
+
+**Généré**: {{ generation_date }}
+
+## Résumé
+- **Meilleur coût**: {{ meta.best_cost | default('N/A') }}
+- **Nombre de propositions**: {{ result.proposals | length if result.proposals is defined else 0 }}
+
+## 1 — Énumération des Tronçons
+{% if project.tables.enumeration_troncons %}
+| DC_ID | longueur | NODE1 | NODE2 |
+|---:|---:|---|---|
+{% for r in project.tables.enumeration_troncons %}
+| {{ r.DC_ID or r['DC_ID'] }} | {{ r.longueur }} | {{ r.NODE1 }} | {{ r.NODE2 }} |
+{% endfor %}
+{% else %}
+Aucune donnée.
+{% endif %}
+
+## 2 — Dimensionnement des Tronçons
+{% if project.tables.dimensionnement_troncons %}
+| DC_ID | longueur | Qd (m3/s) | DN (mm) | V (m/s) | ΔH (m) |
+|---:|---:|---:|---:|---:|---:|
+{% for r in project.tables.dimensionnement_troncons %}
+| {{ r['DC_ID'] }} | {{ r['longueur'] }} | {{ r['Qd (m^3/s)'] }} | {{ r['DN (mm)'] }} | {{ r['V (m/s)'] }} | {{ r['ΔH (m)'] }} |
+{% endfor %}
+{% else %}
+Aucune donnée.
+{% endif %}
+
+## 3 — Dimensionnement des Nœuds
+{% if project.tables.dimensionnement_noeuds %}
+| JUNCTIONS | X | Y | Z (m) | P_réel (m) |
+|---:|---:|---:|---:|---:|
+{% for r in project.tables.dimensionnement_noeuds %}
+| {{ r['JUNCTIONS'] }} | {{ r['X'] }} | {{ r['Y'] }} | {{ r['Z (m)'] }} | {{ r['P_réel (m)'] }} |
+{% endfor %}
+{% else %}
+Aucune donnée.
+{% endif %}
+
+## Récapitulatif du Réservoir
+{% if project.tables.recap_reservoir %}
+{% for k,v in project.tables.recap_reservoir.items() %}
+- **{{ k }}**: {{ v }}
+{% endfor %}
+{% else %}
+Aucune information sur le réservoir.
+{% endif %}
+
+## Comparatifs & Validation
+(voir sections: comparatif_diametres_debits, comparatif_vitesses_pertes, comparatif_pressions)
+
+## Devis Estimatif
+{% if project.tables.devis_estimatif %}
+| N° | Désignations | Unité | Quantité | Prix Unitaire | MONTANT |
+|---:|---|---:|---:|---:|---:|
+{% for r in project.tables.devis_estimatif %}
+| {{ r['N°'] }} | {{ r['Désignations'] }} | {{ r['Unité'] }} | {{ r['Quantité'] }} | {{ r['Prix Unitaire'] }} | {{ r['MONTANT'] }} |
+{% endfor %}
+{% else %}
+Aucun devis.
+{% endif %}

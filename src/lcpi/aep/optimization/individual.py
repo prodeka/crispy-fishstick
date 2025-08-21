@@ -3,12 +3,13 @@ Classe Individu pour l'algorithme génétique.
 """
 
 from dataclasses import dataclass
-from typing import List
+from typing import List, Optional
 
 @dataclass
 class Individu:
     """Représente un individu dans l'algorithme génétique."""
     diametres: List[int]
+    h_tank_m: Optional[float] = None
     fitness: float = 0.0
     cout_total: float = 0.0
     energie_totale: float = 0.0
@@ -35,6 +36,7 @@ class Individu:
         """Retourne une copie de l'individu."""
         return Individu(
             diametres=self.diametres.copy(),
+            h_tank_m=self.h_tank_m,
             fitness=self.fitness,
             cout_total=self.cout_total,
             energie_totale=self.energie_totale,

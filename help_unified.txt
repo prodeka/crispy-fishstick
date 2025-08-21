@@ -1,0 +1,42 @@
+                                                                                                                                           
+ Usage: python -m lcpi.aep.cli network-optimize-unified [OPTIONS] INPUT_FILE                                                               
+                                                                                                                                           
+ Optimisation de réseau avec algorithme génétique et choix de solveur                                                                      
+                                                                                                                                           
+                                                                                                                                           
+┌─ Arguments ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│ *    input_file      PATH  Fichier YAML contenant la configuration d'optimisation [default: None] [required]                            │
+└─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+┌─ Options ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│ --solver          -s      TEXT     Solveur hydraulique (lcpi/epanet) [default: lcpi]                                                    │
+│ --solvers                 TEXT     Exécuter pour plusieurs solveurs séparés par des virgules (ex: epanet,lcpi) [default: None]          │
+│ --method          -m      TEXT     Méthode d'optimisation (nested|genetic|surrogate|global|multi-tank) [default: nested]                │
+│ --pression-min            FLOAT    Pression minimale (m) [default: 10.0]                                                                │
+│ --vitesse-min             FLOAT    Vitesse minimale (m/s) [default: 0.3]                                                                │
+│ --vitesse-max             FLOAT    Vitesse maximale (m/s) [default: 1.5]                                                                │
+│ --num-prop                INTEGER  Nombre de propositions à générer [default: 1]                                                        │
+│ --hybrid-refiner          TEXT     Raffinement local post-run (ex: nested/global) [default: None]                                       │
+│ --hybrid-topk             INTEGER  Top-K solutions à raffiner [default: 2]                                                              │
+│ --hybrid-steps            INTEGER  Nombre d'étapes de raffinage local [default: 1]                                                      │
+│ --penalty-weight          FLOAT    Poids de pénalité pour contraintes soft [default: 1000000.0]                                         │
+│ --penalty-beta            FLOAT    Exposant de pénalité (1 ou 2) [default: 1.0]                                                         │
+│ --hard-vel                         Traiter la contrainte de vitesse max comme hard (rejet)                                              │
+│ --price-db                PATH     Base de prix à utiliser (provenance incluse dans meta)                                               │
+│                                    [default: C:\PROJET_DIMENTIONEMENT_2\src\lcpi\db\aep_prices.db]                                      │
+│ --critere         -c      TEXT     Critère d'optimisation principal (cout/energie/performance) [default: cout]                          │
+│ --budget          -b      FLOAT    Budget maximum en FCFA [default: None]                                                               │
+│ --generations     -g      INTEGER  Nombre de générations (défaut 120) [default: 120]                                                    │
+│ --population      -p      INTEGER  Taille de la population (défaut 120) [default: 120]                                                  │
+│ --output          -o      PATH     Fichier de sortie JSON [default: None]                                                               │
+│ --no-cache                         Désactiver le cache interne des résultats                                                            │
+│ --no-surrogate                     Désactiver l'utilisation de surrogate/approximation                                                  │
+│ --epanet-backend          TEXT     Backend EPANET à utiliser: wntr|dll [default: wntr]                                                  │
+│ --report                  TEXT     Générer un rapport: html|md|pdf [default: None]                                                      │
+│ --report-output           PATH     Dossier de sortie pour les rapports (défaut: même dossier que --output) [default: None]              │
+│ --hmax                    FLOAT    Hauteur sous radier maximale (m), défaut 50 [default: 50.0]                                          │
+│ --verbose         -v               Affichage détaillé                                                                                   │
+│ --log                              Journaliser le calcul (demande confirmation si non spécifié)                                         │
+│ --no-log                           Ne pas journaliser le calcul                                                                         │
+│ --help                             Show this message and exit.                                                                          │
+└─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+

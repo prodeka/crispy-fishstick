@@ -1,0 +1,1189 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rapport d'Optimisation Réseau - {{ meta.method|default('Méthode') }}</title>
+    
+    <style>
+        @page {
+            size: A4;
+            margin: 2cm;
+            @top-center {
+                content: "Rapport d'Optimisation Réseau LCPI";
+                font-size: 10pt;
+                color: #666;
+            }
+            @bottom-center {
+                content: "Page " counter(page) " sur " counter(pages);
+                font-size: 10pt;
+                color: #666;
+            }
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: white;
+            font-size: 11pt;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 2cm;
+            padding: 1cm 0;
+            border-bottom: 3px solid #2563eb;
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+        }
+        
+        .header h1 {
+            font-size: 24pt;
+            color: #1e40af;
+            margin-bottom: 0.5cm;
+            font-weight: bold;
+        }
+        
+        .header .subtitle {
+            font-size: 14pt;
+            color: #64748b;
+            margin-bottom: 0.5cm;
+        }
+
+        /* Logo Section */
+        .logo-section {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1cm;
+            text-align: center;
+        }
+
+        .logo-icon {
+            font-size: 3rem;
+            margin-right: 0.5cm;
+            color: #1e40af;
+        }
+
+        .logo-text {
+            text-align: left;
+        }
+
+        .logo-title {
+            font-size: 20pt;
+            color: #1e40af;
+            margin: 0 0 0.2cm 0;
+            font-weight: bold;
+        }
+
+        .logo-subtitle {
+            font-size: 12pt;
+            color: #64748b;
+            margin: 0;
+            font-weight: normal;
+        }
+
+        .report-title {
+            font-size: 24pt;
+            color: #1e40af;
+            margin-bottom: 0.5cm;
+            font-weight: bold;
+        }
+        
+        .meta-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.5cm;
+            margin-top: 1cm;
+        }
+        
+        .meta-card {
+            background: white;
+            padding: 0.5cm;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        .meta-card .label {
+            font-size: 9pt;
+            color: #64748b;
+            margin-bottom: 0.2cm;
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+        
+        .meta-card .value {
+            font-size: 12pt;
+            color: #1e40af;
+            font-weight: bold;
+        }
+        
+        .section {
+            margin-bottom: 1.5cm;
+            page-break-inside: avoid;
+        }
+        
+        .section-header {
+            background: #1e40af;
+            color: white;
+            padding: 0.5cm;
+            border-radius: 8px;
+            margin-bottom: 0.5cm;
+        }
+        
+        .section-header h2 {
+            font-size: 16pt;
+            font-weight: bold;
+        }
+        
+        .section-header h3 {
+            font-size: 14pt;
+            font-weight: bold;
+            margin-top: 0.3cm;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0.5cm;
+            margin-bottom: 1cm;
+        }
+        
+        .stat-card {
+            background: #f8fafc;
+            padding: 0.5cm;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            text-align: center;
+        }
+        
+        .stat-card .stat-title {
+            font-size: 8pt;
+            color: #64748b;
+            text-transform: uppercase;
+            margin-bottom: 0.2cm;
+            font-weight: bold;
+        }
+        
+        .stat-card .stat-value {
+            font-size: 14pt;
+            color: #1e40af;
+            font-weight: bold;
+        }
+        
+        .stat-card .stat-description {
+            font-size: 8pt;
+            color: #64748b;
+            margin-top: 0.2cm;
+        }
+        
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 1cm;
+            font-size: 9pt;
+        }
+        
+        .data-table th {
+            background: #1e40af;
+            color: white;
+            padding: 0.3cm;
+            text-align: left;
+            font-weight: bold;
+            border: 1px solid #1e40af;
+        }
+        
+        .data-table td {
+            padding: 0.3cm;
+            border: 1px solid #cbd5e1;
+            vertical-align: top;
+        }
+        
+        .data-table tr:nth-child(even) {
+            background: #f8fafc;
+        }
+        
+        .data-table tr:hover {
+            background: #e0e7ff;
+        }
+        
+        .proposal-card {
+            background: #f8fafc;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            padding: 0.5cm;
+            margin-bottom: 0.5cm;
+        }
+        
+        .proposal-header {
+            background: #059669;
+            color: white;
+            padding: 0.3cm;
+            border-radius: 6px;
+            margin: -0.5cm -0.5cm 0.5cm -0.5cm;
+        }
+        
+        .proposal-header h3 {
+            font-size: 12pt;
+            font-weight: bold;
+        }
+        
+        .proposal-meta {
+            font-size: 9pt;
+            opacity: 0.9;
+        }
+        
+        .proposal-details {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.5cm;
+        }
+        
+        .detail-item {
+            background: white;
+            padding: 0.3cm;
+            border-radius: 4px;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .detail-label {
+            font-size: 8pt;
+            color: #64748b;
+            margin-bottom: 0.1cm;
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+        
+        .detail-value {
+            font-size: 11pt;
+            color: #1e40af;
+            font-weight: bold;
+        }
+        
+        .note-box {
+            background: #fef3c7;
+            border: 1px solid #f59e0b;
+            border-radius: 6px;
+            padding: 0.5cm;
+            margin: 0.5cm 0;
+        }
+        
+        .note-box p {
+            margin: 0;
+            color: #92400e;
+            font-size: 9pt;
+        }
+        
+        .footer {
+            margin-top: 2cm;
+            padding-top: 0.5cm;
+            border-top: 1px solid #cbd5e1;
+            text-align: center;
+            font-size: 9pt;
+            color: #64748b;
+        }
+        
+        .page-break {
+            page-break-before: always;
+        }
+        
+        .compact-table {
+            font-size: 8pt;
+        }
+        
+        .compact-table th,
+        .compact-table td {
+            padding: 0.2cm;
+        }
+        
+        .highlight {
+            background: #fef3c7;
+            font-weight: bold;
+        }
+        
+        .success {
+            color: #059669;
+            font-weight: bold;
+        }
+        
+        .warning {
+            color: #d97706;
+            font-weight: bold;
+        }
+        
+        .error {
+            color: #dc2626;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <!-- En-tête -->
+    <div class="header">
+        <div class="logo-section">
+            <span class="logo-icon">🏗️</span>
+            <div class="logo-text">
+                <h1 class="logo-title">LCPI Engineering</h1>
+                <p class="logo-subtitle">Analyse et Dimensionnement Hydraulique</p>
+            </div>
+        </div>
+        
+        <h1 class="report-title">📊 Rapport d'Optimisation Réseau</h1>
+        <div class="subtitle">
+            {{ meta.method|default('Méthode') }} - {{ meta.solver|default('Solveur') }} | {{ generation_date }}
+        </div>
+        
+        <div class="meta-grid">
+            <div class="meta-card">
+                <div class="label">Fichier source</div>
+                <div class="value">{{ input_file }}</div>
+            </div>
+            <div class="meta-card">
+                <div class="label">Méthode</div>
+                <div class="value">{{ meta.method|default('N/A') }}</div>
+            </div>
+            <div class="meta-card">
+                <div class="label">Solveur</div>
+                <div class="value">{{ meta.solver|default('N/A') }}</div>
+            </div>
+            <div class="meta-card">
+                <div class="label">Générations</div>
+                <div class="value">{{ meta.generations|default('N/A') }}</div>
+            </div>
+            <div class="meta-card">
+                <div class="label">Population</div>
+                <div class="value">{{ meta.population|default('N/A') }}</div>
+            </div>
+            <div class="meta-card">
+                <div class="label">Durée</div>
+                <div class="value">{{ meta.duration_seconds|default(0)|round(1) }}s</div>
+            </div>
+            <div class="meta-card">
+                <div class="label">Appels simulateur</div>
+                <div class="value">{{ meta.solver_calls|default(0) }}</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Section Résumé de l'Optimisation -->
+    <div class="section">
+        <div class="section-header">
+            <h2>🎯 Résumé de l'Optimisation</h2>
+        </div>
+        <div class="section-body">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-title">Coût Optimal</div>
+                    <div class="stat-value">
+                        {% if proposals %}
+                            {{ proposals[0].CAPEX|default(0)|round(0)|int }} FCFA
+                        {% else %}
+                            N/A
+                        {% endif %}
+                    </div>
+                    <div class="stat-description">Solution la moins chère</div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-title">Contraintes Respectées</div>
+                    <div class="stat-value">
+                        {% if proposals %}
+                            {% if proposals[0].constraints_ok %}✅{% else %}❌{% endif %}
+                        {% else %}
+                            N/A
+                        {% endif %}
+                    </div>
+                    <div class="stat-description">Validation des contraintes</div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-title">Appels Simulateur</div>
+                    <div class="stat-value">{{ meta.solver_calls|default(0) }}</div>
+                    <div class="stat-description">Nombre total de simulations</div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-title">Durée d'Exécution</div>
+                    <div class="stat-value">{{ meta.duration_seconds|default(0)|round(1) }}s</div>
+                    <div class="stat-description">Temps total d'optimisation</div>
+                </div>
+            </div>
+
+            {% if constraints %}
+            <div class="section" style="margin-top: 1cm;">
+                <h3>⚙️ Contraintes d'Optimisation</h3>
+                <div class="stats-grid">
+                    {% if constraints.pressure_min_m %}
+                    <div class="stat-card">
+                        <div class="stat-title">Pression Minimale</div>
+                        <div class="stat-value">{{ constraints.pressure_min_m }} m</div>
+                        <div class="stat-description">Pression minimale autorisée</div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if constraints.velocity_max_m_s %}
+                    <div class="stat-card">
+                        <div class="stat-title">Vitesse Maximale</div>
+                        <div class="stat-value">{{ constraints.velocity_max_m_s }} m/s</div>
+                        <div class="stat-description">Vitesse maximale autorisée</div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Section Propositions d'Optimisation -->
+    <div class="section">
+        <div class="section-header">
+            <h2>🏆 Propositions d'Optimisation</h2>
+        </div>
+        <div class="section-body">
+            {% if proposals %}
+                {% for proposal in proposals %}
+                <div class="proposal-card">
+                    <div class="proposal-header">
+                        <h3>Proposition {{ loop.index }}</h3>
+                        <div class="proposal-meta">
+                            <span>ID: {{ proposal.id|default('N/A') }}</span> | 
+                            <span>{% if proposal.constraints_ok %}✅ Contraintes OK{% else %}❌ Contraintes Violées{% endif %}</span>
+                        </div>
+                    </div>
+                    <div class="proposal-details">
+                        <div class="detail-item">
+                            <div class="detail-label">CAPEX</div>
+                            <div class="detail-value">{{ proposal.CAPEX|default(0)|round(0)|int }} FCFA</div>
+                        </div>
+                        
+                        {% if proposal.H_tank_m %}
+                        <div class="detail-item">
+                            <div class="detail-label">Hauteur Réservoir</div>
+                            <div class="detail-value">{{ proposal.H_tank_m|round(2) }} m</div>
+                        </div>
+                        {% endif %}
+                        
+                        {% if proposal.performance_index %}
+                        <div class="detail-item">
+                            <div class="detail-label">Indice Performance</div>
+                            <div class="detail-value">{{ proposal.performance_index|round(3) }}</div>
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    {% if proposal.diameters_mm %}
+                    <div style="margin-top: 1cm;">
+                        <h4 style="margin-bottom: 0.5cm; color: #64748b;">📏 Diamètres des Conduites</h4>
+                        <div class="table-container">
+                            <table class="data-table compact-table">
+                                <thead>
+                                    <tr>
+                                        <th>Conduite</th>
+                                        <th>Diamètre (mm)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for pipe, diameter in proposal.diameters_mm.items() %}
+                                    <tr>
+                                        <td>{{ pipe }}</td>
+                                        <td>{{ diameter }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            {% else %}
+                <p style="text-align: center; color: #64748b; font-style: italic;">
+                    Aucune proposition d'optimisation disponible.
+                </p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Section Statistiques Hydrauliques -->
+    <div class="section">
+        <div class="section-header">
+            <h2>📊 Statistiques Hydrauliques</h2>
+        </div>
+        <div class="section-body">
+            {% if hydraulics and hydraulics.statistics %}
+            {% set stats = hydraulics.statistics %}
+            
+            <!-- Pressions -->
+            {% if stats.pressures %}
+            <div class="section" style="margin-bottom: 1.5cm;">
+                <h3>📊 Pressions</h3>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-title">Nœuds</div>
+                        <div class="stat-value">{{ stats.pressures.count|default(0) }}</div>
+                        <div class="stat-description">Total analysé</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-title">Min</div>
+                        <div class="stat-value">{{ stats.pressures.min|default(0)|round(3) }} m</div>
+                        <div class="stat-description">Pression minimale</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-title">Max</div>
+                        <div class="stat-value">{{ stats.pressures.max|default(0)|round(3) }} m</div>
+                        <div class="stat-description">Pression maximale</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-title">Moyenne</div>
+                        <div class="stat-value">{{ stats.pressures.mean|default(0)|round(3) }} m</div>
+                        <div class="stat-description">Pression moyenne</div>
+                    </div>
+                </div>
+                
+                <div class="table-container">
+                    <table class="data-table compact-table">
+                        <thead>
+                            <tr>
+                                <th>Paramètre</th>
+                                <th>Valeur</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Médiane</td>
+                                <td>{{ stats.pressures.median|default(0)|round(3) }} m</td>
+                                <td>Pression médiane</td>
+                            </tr>
+                            <tr>
+                                <td>Écart-type</td>
+                                <td>{{ stats.pressures.std|default(0)|round(3) }} m</td>
+                                <td>Variabilité des pressions</td>
+                            </tr>
+                            <tr>
+                                <td>Q25</td>
+                                <td>{{ stats.pressures.q25|default(0)|round(3) }} m</td>
+                                <td>Premier quartile</td>
+                            </tr>
+                            <tr>
+                                <td>Q75</td>
+                                <td>{{ stats.pressures.q75|default(0)|round(3) }} m</td>
+                                <td>Troisième quartile</td>
+                            </tr>
+                            <tr>
+                                <td>% < 10m</td>
+                                <td>{{ stats.pressures.pct_lt_10m|default(0)|round(1) }}%</td>
+                                <td>Pourcentage sous 10m</td>
+                            </tr>
+                            <tr>
+                                <td>% < 15m</td>
+                                <td>{{ stats.pressures.pct_lt_15m|default(0)|round(1) }}%</td>
+                                <td>Pourcentage sous 15m</td>
+                            </tr>
+                            <tr>
+                                <td>% < 20m</td>
+                                <td>{{ stats.pressures.pct_lt_20m|default(0)|round(1) }}%</td>
+                                <td>Pourcentage sous 20m</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Débits -->
+            {% if stats.flows %}
+            <div class="section" style="margin-bottom: 1.5cm;">
+                <h3>🌊 Débits</h3>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-title">Conduites</div>
+                        <div class="stat-value">{{ stats.flows.count|default(0) }}</div>
+                        <div class="stat-description">Total analysé</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-title">Sens Normal</div>
+                        <div class="stat-value">{{ stats.flows.positive_flows|default(0) }}</div>
+                        <div class="stat-description">Conduites en sens normal</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-title">Sens Inverse</div>
+                        <div class="stat-value">{{ stats.flows.negative_flows|default(0) }}</div>
+                        <div class="stat-description">Conduites en sens inverse</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-title">Débit Absolu Moyen</div>
+                        <div class="stat-value">{{ stats.flows.mean_abs|default(0)|round(3) }} m³/s</div>
+                        <div class="stat-description">Débit moyen en valeur absolue</div>
+                    </div>
+                </div>
+                
+                <div class="note-box">
+                    <p><strong>ℹ️ Note sur les débits :</strong> Un débit négatif indique que le sens réel de l'écoulement est opposé à la direction définie dans le fichier d'entrée. Par exemple, si la conduite N21_N22 a un débit de -0.23 m³/s, cela signifie que l'eau circule réellement de N22 vers N21.</p>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Vitesses -->
+            {% if stats.velocities %}
+            <div class="section" style="margin-bottom: 1.5cm;">
+                <h3>🚀 Vitesses</h3>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-title">Conduites</div>
+                        <div class="stat-value">{{ stats.velocities.count|default(0) }}</div>
+                        <div class="stat-description">Total analysé</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-title">Min</div>
+                        <div class="stat-value">{{ stats.velocities.min|default(0)|round(3) }} m/s</div>
+                        <div class="stat-description">Vitesse minimale</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-title">Max</div>
+                        <div class="stat-value">{{ stats.velocities.max|default(0)|round(3) }} m/s</div>
+                        <div class="stat-description">Vitesse maximale</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-title">Moyenne</div>
+                        <div class="stat-value">{{ stats.velocities.mean|default(0)|round(3) }} m/s</div>
+                        <div class="stat-description">Vitesse moyenne</div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Diamètres -->
+            {% if stats.diameters %}
+            <div class="section" style="margin-bottom: 1.5cm;">
+                <h3>📏 Diamètres</h3>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-title">Conduites</div>
+                        <div class="stat-value">{{ stats.diameters.count|default(0) }}</div>
+                        <div class="stat-description">Total analysé</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-title">Min</div>
+                        <div class="stat-value">{{ stats.diameters.min|default(0) }} mm</div>
+                        <div class="stat-description">Diamètre minimal</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-title">Max</div>
+                        <div class="stat-value">{{ stats.diameters.max|default(0) }} mm</div>
+                        <div class="stat-description">Diamètre maximal</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-title">Moyen</div>
+                        <div class="stat-value">{{ stats.diameters.mean|default(0)|round(1) }} mm</div>
+                        <div class="stat-description">Diamètre moyen</div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Pertes de charge -->
+            {% if stats.headlosses %}
+            <div class="section" style="margin-bottom: 1.5cm;">
+                <h3>📉 Pertes de Charge</h3>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-title">Conduites</div>
+                        <div class="stat-value">{{ stats.headlosses.count|default(0) }}</div>
+                        <div class="stat-description">Total analysé</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-title">Min</div>
+                        <div class="stat-value">{{ stats.headlosses.min|default(0)|round(3) }} m</div>
+                        <div class="stat-description">Perte minimale</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-title">Max</div>
+                        <div class="stat-value">{{ stats.headlosses.max|default(0)|round(3) }} m</div>
+                        <div class="stat-description">Perte maximale</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-title">Moyenne</div>
+                        <div class="stat-value">{{ stats.headlosses.mean|default(0)|round(3) }} m</div>
+                        <div class="stat-description">Perte moyenne</div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Indice de performance -->
+            {% if stats.performance_index %}
+            <div class="section">
+                <h3>📈 Indice de Performance</h3>
+                <div class="stats-grid">
+                    <div class="stat-card highlight">
+                        <div class="stat-title">Indice Global</div>
+                        <div class="stat-value">{{ stats.performance_index|round(3) }}</div>
+                        <div class="stat-description">Indice global de performance</div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            
+            {% else %}
+            <div style="text-align: center; padding: 2cm; color: #64748b;">
+                <h3>Aucune statistique hydraulique disponible</h3>
+                <p>Les données hydrauliques n'ont pas été calculées ou ne sont pas accessibles.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Section Structure du Réseau -->
+    <div class="section page-break">
+        <div class="section-header">
+            <h2>🏗️ Structure du Réseau</h2>
+        </div>
+        <div class="section-body">
+            <!-- Énumération des Tronçons -->
+            <div class="section" style="margin-bottom: 1.5cm;">
+                <h3>📋 Énumération des Tronçons</h3>
+                <div class="table-container">
+                    <table class="data-table compact-table">
+                        <thead>
+                            <tr>
+                                <th>DC_ID</th>
+                                <th>Longueur (m)</th>
+                                <th>NODE1</th>
+                                <th>NODE2</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% if proposals and proposals[0].diameters_mm %}
+                                {% for pipe, diameter in proposals[0].diameters_mm.items() %}
+                                <tr>
+                                    <td>{{ pipe }}</td>
+                                    <td>--</td>
+                                    <td>--</td>
+                                    <td>--</td>
+                                </tr>
+                                {% endfor %}
+                            {% else %}
+                            <tr>
+                                <td colspan="4" style="text-align: center; color: #64748b;">
+                                    Aucune donnée de tronçon disponible
+                                </td>
+                            </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Dimensionnement des Tronçons -->
+            <div class="section" style="margin-bottom: 1.5cm;">
+                <h3>📐 Dimensionnement des Tronçons</h3>
+                <div class="table-container">
+                    <table class="data-table compact-table">
+                        <thead>
+                            <tr>
+                                <th>DC_ID</th>
+                                <th>Longueur (m)</th>
+                                <th>Qd (m³/s)</th>
+                                <th>DN (mm)</th>
+                                <th>V (m/s)</th>
+                                <th>ΔH (m)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% if proposals and proposals[0].diameters_mm %}
+                                {% for pipe, diameter in proposals[0].diameters_mm.items() %}
+                                <tr>
+                                    <td>{{ pipe }}</td>
+                                    <td>--</td>
+                                    <td>--</td>
+                                    <td>{{ diameter }}</td>
+                                    <td>--</td>
+                                    <td>--</td>
+                                </tr>
+                                {% endfor %}
+                            {% else %}
+                            <tr>
+                                <td colspan="6" style="text-align: center; color: #64748b;">
+                                    Aucune donnée de dimensionnement disponible
+                                </td>
+                            </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Dimensionnement des Nœuds -->
+            <div class="section" style="margin-bottom: 1.5cm;">
+                <h3>🎯 Dimensionnement des Nœuds</h3>
+                <div class="table-container">
+                    <table class="data-table compact-table">
+                        <thead>
+                            <tr>
+                                <th>JUNCTIONS</th>
+                                <th>X</th>
+                                <th>Y</th>
+                                <th>Z (m)</th>
+                                <th>P_réel (m)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% if hydraulics and hydraulics.statistics and hydraulics.statistics.pressures %}
+                                {% for i in range(hydraulics.statistics.pressures.count|default(0)) %}
+                                <tr>
+                                    <td>N{{ i + 1 }}</td>
+                                    <td>--</td>
+                                    <td>--</td>
+                                    <td>--</td>
+                                    <td>--</td>
+                                </tr>
+                                {% endfor %}
+                            {% else %}
+                            <tr>
+                                <td colspan="5" style="text-align: center; color: #64748b;">
+                                    Aucune donnée de nœud disponible
+                                </td>
+                            </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Récapitulatif du Réservoir -->
+            <div class="section">
+                <h3>🗼 Récapitulatif du Réservoir</h3>
+                <div class="table-container">
+                    <table class="data-table compact-table">
+                        <thead>
+                            <tr>
+                                <th>Paramètre</th>
+                                <th>Valeur</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Type</td>
+                                <td>Réservoir surélevé</td>
+                                <td>Type de réservoir</td>
+                            </tr>
+                            <tr>
+                                <td>Hauteur (m)</td>
+                                <td>
+                                    {% if proposals and proposals[0].H_tank_m %}
+                                        {{ proposals[0].H_tank_m|round(2) }}
+                                    {% else %}
+                                        --
+                                    {% endif %}
+                                </td>
+                                <td>Hauteur du réservoir</td>
+                            </tr>
+                            <tr>
+                                <td>Volume utile (m³)</td>
+                                <td>--</td>
+                                <td>Volume utile calculé</td>
+                            </tr>
+                            <tr>
+                                <td>Volume max (m³)</td>
+                                <td>--</td>
+                                <td>Volume maximum</td>
+                            </tr>
+                            <tr>
+                                <td>Volume min (m³)</td>
+                                <td>--</td>
+                                <td>Volume minimum</td>
+                            </tr>
+                            <tr>
+                                <td>Hauteur min (m)</td>
+                                <td>--</td>
+                                <td>Hauteur minimale</td>
+                            </tr>
+                            <tr>
+                                <td>Hauteur max (m)</td>
+                                <td>--</td>
+                                <td>Hauteur maximale</td>
+                            </tr>
+                            <tr>
+                                <td>Pression min (m)</td>
+                                <td>--</td>
+                                <td>Pression minimale</td>
+                            </tr>
+                            <tr>
+                                <td>Pression max (m)</td>
+                                <td>--</td>
+                                <td>Pression maximale</td>
+                            </tr>
+                            <tr>
+                                <td>Capacité (m³)</td>
+                                <td>--</td>
+                                <td>Capacité totale</td>
+                            </tr>
+                            <tr>
+                                <td>Réserve (m³)</td>
+                                <td>--</td>
+                                <td>Volume de réserve</td>
+                            </tr>
+                            <tr>
+                                <td>Autonomie (h)</td>
+                                <td>--</td>
+                                <td>Autonomie en heures</td>
+                            </tr>
+                            <tr>
+                                <td>Débit d'entrée (m³/s)</td>
+                                <td>--</td>
+                                <td>Débit d'alimentation</td>
+                            </tr>
+                            <tr>
+                                <td>Débit de sortie (m³/s)</td>
+                                <td>--</td>
+                                <td>Débit de distribution</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Section Comparaisons et Validation -->
+    <div class="section page-break">
+        <div class="section-header">
+            <h2>🔄 Comparaisons et Validation</h2>
+        </div>
+        <div class="section-body">
+            <!-- Comparatif Diamètres et Débits -->
+            <div class="section" style="margin-bottom: 1.5cm;">
+                <h3>📊 Comparatif Diamètres et Débits</h3>
+                <div class="table-container">
+                    <table class="data-table compact-table">
+                        <thead>
+                            <tr>
+                                <th>TRONCONS</th>
+                                <th>D_CALCULE (mm)</th>
+                                <th>D_EPANET (mm)</th>
+                                <th>DN_CALCULE (mm)</th>
+                                <th>DN_EPANET (mm)</th>
+                                <th>Q_CALCULER (m³/s)</th>
+                                <th>Q_EPANET (m³/s)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% if proposals and proposals[0].diameters_mm %}
+                                {% for pipe, diameter in proposals[0].diameters_mm.items() %}
+                                <tr>
+                                    <td>{{ pipe }}</td>
+                                    <td>{{ diameter }}</td>
+                                    <td>{{ diameter }}</td>
+                                    <td>{{ diameter }}</td>
+                                    <td>{{ diameter }}</td>
+                                    <td>--</td>
+                                    <td>--</td>
+                                </tr>
+                                {% endfor %}
+                            {% else %}
+                            <tr>
+                                <td colspan="7" style="text-align: center; color: #64748b;">
+                                    Aucune donnée de comparaison disponible
+                                </td>
+                            </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Comparatif Vitesses et Pertes de Charges -->
+            <div class="section" style="margin-bottom: 1.5cm;">
+                <h3>🚀 Comparatif Vitesses et Pertes de Charges</h3>
+                <div class="table-container">
+                    <table class="data-table compact-table">
+                        <thead>
+                            <tr>
+                                <th>TRONCONS</th>
+                                <th>V_CALCULE (m/s)</th>
+                                <th>V_EPANET (m/s)</th>
+                                <th>ΔH_i_CALCULER (m)</th>
+                                <th>ΔH_i_EPANET (m)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% if proposals and proposals[0].diameters_mm %}
+                                {% for pipe, diameter in proposals[0].diameters_mm.items() %}
+                                <tr>
+                                    <td>{{ pipe }}</td>
+                                    <td>--</td>
+                                    <td>--</td>
+                                    <td>--</td>
+                                    <td>--</td>
+                                </tr>
+                                {% endfor %}
+                            {% else %}
+                            <tr>
+                                <td colspan="5" style="text-align: center; color: #64748b;">
+                                    Aucune donnée de comparaison disponible
+                                </td>
+                            </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Comparatif des Pressions -->
+            <div class="section" style="margin-bottom: 1.5cm;">
+                <h3>📏 Comparatif des Pressions</h3>
+                <div class="table-container">
+                    <table class="data-table compact-table">
+                        <thead>
+                            <tr>
+                                <th>JUNCTIONS</th>
+                                <th>P_CALCULE (m)</th>
+                                <th>P_EPANET (m)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% if hydraulics and hydraulics.statistics and hydraulics.statistics.pressures %}
+                                {% for i in range(hydraulics.statistics.pressures.count|default(0)) %}
+                                <tr>
+                                    <td>N{{ i + 1 }}</td>
+                                    <td>--</td>
+                                    <td>--</td>
+                                </tr>
+                                {% endfor %}
+                            {% else %}
+                            <tr>
+                                <td colspan="3" style="text-align: center; color: #64748b;">
+                                    Aucune donnée de pression disponible
+                                </td>
+                            </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Récapitulatif des Diamètres des Conduites -->
+            <div class="section">
+                <h3>📈 Récapitulatif des Diamètres des Conduites</h3>
+                <div class="table-container">
+                    <table class="data-table compact-table">
+                        <thead>
+                            <tr>
+                                <th>Diamètre nominal (mm)</th>
+                                <th>Longueur Distribution</th>
+                                <th>Longueur refoulement</th>
+                                <th>Longueurs totales</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% if proposals and proposals[0].diameters_mm %}
+                                {% set diameters = proposals[0].diameters_mm.values()|list %}
+                                {% for diameter in diameters|unique %}
+                                <tr>
+                                    <td>{{ diameter }}</td>
+                                    <td>--</td>
+                                    <td>--</td>
+                                    <td>--</td>
+                                </tr>
+                                {% endfor %}
+                            {% else %}
+                            <tr>
+                                <td colspan="4" style="text-align: center; color: #64748b;">
+                                    Aucune donnée de diamètre disponible
+                                </td>
+                            </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Section Analyse Financière -->
+    <div class="section page-break">
+        <div class="section-header">
+            <h2>💰 Analyse Financière</h2>
+        </div>
+        <div class="section-body">
+            <!-- Devis Estimatif et Quantitatif -->
+            <div class="section">
+                <h3>📋 Devis Estimatif et Quantitatif</h3>
+                <div class="table-container">
+                    <table class="data-table compact-table">
+                        <thead>
+                            <tr>
+                                <th>N°</th>
+                                <th>Désignations</th>
+                                <th>Unité</th>
+                                <th>Quantité</th>
+                                <th>Prix Unitaire</th>
+                                <th>MONTANT</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>1</td>
+                                <td>Conduites principales</td>
+                                <td>ml</td>
+                                <td>--</td>
+                                <td>--</td>
+                                <td>--</td>
+                            </tr>
+                            <tr>
+                                <td>2</td>
+                                <td>Réservoir surélevé</td>
+                                <td>u</td>
+                                <td>1</td>
+                                <td>--</td>
+                                <td>--</td>
+                            </tr>
+                            <tr>
+                                <td>3</td>
+                                <td>Vannes et robinets</td>
+                                <td>u</td>
+                                <td>--</td>
+                                <td>--</td>
+                                <td>--</td>
+                            </tr>
+                            <tr>
+                                <td>4</td>
+                                <td>Installation électrique</td>
+                                <td>lot</td>
+                                <td>1</td>
+                                <td>--</td>
+                                <td>--</td>
+                            </tr>
+                            <tr class="highlight">
+                                <td colspan="5" style="text-align: right; font-weight: bold;">TOTAL</td>
+                                <td style="font-weight: bold; color: var(--primary-color);">
+                                    {% if proposals %}
+                                        {{ proposals[0].CAPEX|default(0)|round(0)|int }} FCFA
+                                    {% else %}
+                                        --
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+        <p>Rapport généré automatiquement par LCPI | Version {{ version }}</p>
+        <p>Date de génération : {{ generation_date }}</p>
+    </div>
+</body>
+</html>

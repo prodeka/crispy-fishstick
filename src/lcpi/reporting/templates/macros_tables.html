@@ -1,0 +1,95 @@
+{# templates/macros_tables.html #}
+{%- macro render_table(table_id, columns, rows, caption=None, classes="lcpi-table table table-sm table-striped") -%}
+<div class="card mb-3" id="{{ table_id }}_card">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <strong>{{ caption or table_id }}</strong>
+    <small class="text-muted">ID: <code>{{ table_id }}</code></small>
+  </div>
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table id="{{ table_id }}" class="{{ classes }} mb-0" style="width:100%" data-table-id="{{ table_id }}">
+        <thead class="table-dark">
+          <tr>
+            {%- for c in columns %}
+            <th>{{ c }}</th>
+            {%- endfor %}
+          </tr>
+        </thead>
+        <tbody>
+          {%- if rows %}
+            {%- for r in rows %}
+              <tr>
+                {%- for c in columns %}
+                  {%- set key = c %}
+                  {%- if r is mapping %}
+                    <td>{{ r.get(c) if r.get(c) is not none else r.get(c|replace(' ','_')|lower) }}</td>
+                  {%- else %}
+                    <td>{{ r[loop.index0] if r|length > loop.index0 else '' }}</td>
+                  {%- endif %}
+                {%- endfor %}
+              </tr>
+            {%- endfor %}
+          {%- else %}
+            <tr><td colspan="{{ columns|length }}" class="text-center text-muted py-3">Aucune donnée</td></tr>
+          {%- endif %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{%- endmacro %}
+
+{# Specific named table macros (use these in report_base.html) #}
+{% macro enumeration_troncons(rows) -%}
+  {{ render_table('enumeration_troncons', ['DC_ID','longueur','NODE1','NODE2'], rows, 'Énumération des Tronçons') }}
+{%- endmacro %}
+
+{% macro dimensionnement_troncons(rows) -%}
+  {{ render_table('dimensionnement_troncons', ['DC_ID','longueur','Qd (m^3/s)','DN (mm)','V (m/s)','ΔH (m)'], rows, 'Dimensionnement des Tronçons') }}
+{%- endmacro %}
+
+{% macro dimensionnement_noeuds(rows) -%}
+  {{ render_table('dimensionnement_noeuds', ['JUNCTIONS','X','Y','Z (m)','P_réel (m)'], rows, 'Dimensionnement des Nœuds') }}
+{%- endmacro %}
+
+{% macro recap_reservoir(info) -%}
+<div class="card mb-3" id="recap_reservoir_card">
+  <div class="card-header"><strong>Récapitulatif du Réservoir</strong> <small class="text-muted">ID: <code>recap_reservoir</code></small></div>
+  <div class="card-body">
+    {%- if info %}
+      <div class="row">
+        {%- for k, v in info.items() %}
+          <div class="col-md-6 mb-2">
+            <div class="d-flex">
+              <div class="me-2 text-muted" style="width:45%"><small>{{ k }}</small></div>
+              <div class="fw-bold">{{ v }}</div>
+            </div>
+          </div>
+        {%- endfor %}
+      </div>
+    {%- else %}
+      <p class="text-muted">Aucune information fournie.</p>
+    {%- endif %}
+  </div>
+</div>
+{%- endmacro %}
+
+{% macro comparatif_diametres_debits(rows) -%}
+  {{ render_table('comparatif_diametres_debits', ['TRONCONS','D_CALCULE (mm)','D_EPANET (mm)','DN_CALCULE (mm)','DN_EPANET (mm)','Q_CALCULER (m³/s)','Q_EPANET (m³/s)'], rows, 'Comparatif : Diamètres & Débits') }}
+{%- endmacro %}
+
+{% macro comparatif_vitesses_pertes(rows) -%}
+  {{ render_table('comparatif_vitesses_pertes', ['TRONCONS','V_CALCULE (m/s)','V_EPANET (m/s)','ΔH_i_CALCULER (m)','ΔH_i_EPANET (m)'], rows, 'Comparatif : Vitesses & Pertes de charge') }}
+{%- endmacro %}
+
+{% macro comparatif_pressions(rows) -%}
+  {{ render_table('comparatif_pressions', ['JUNCTIONS','P_CALCULE (m)','P_EPANET (m)'], rows, 'Comparatif : Pressions') }}
+{%- endmacro %}
+
+{% macro recap_diametres_conduites(rows) -%}
+  {{ render_table('recap_diametres_conduites', ['Diamètre nominal (mm)','Longueur Distribution','Longueur refoulement','Longueurs totales'], rows, 'Récapitulatif des Diamètres des Conduites') }}
+{%- endmacro %}
+
+{% macro devis_estimatif(rows) -%}
+  {{ render_table('devis_estimatif', ['N°','Désignations','Unité','Quantité','Prix Unitaire','MONTANT'], rows, 'Devis Estimatif & Quantitatif', classes='lcpi-table table table-sm table-bordered') }}
+{%- endmacro %}

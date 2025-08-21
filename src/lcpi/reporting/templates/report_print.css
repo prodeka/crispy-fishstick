@@ -1,0 +1,12 @@
+/* templates/report_print.css */
+@page { size: A4; margin: 15mm; }
+body { font-family: "Helvetica Neue", Arial, sans-serif; color:#111; background:white; }
+.card { page-break-inside: avoid; }
+table { border-collapse: collapse; width: 100%; }
+table th, table td { border: 1px solid #ddd; padding: 6px; font-size: 10pt; }
+.no-print { display: none !important; }
+h1, h2, h3, h4 { color: #0f172a; }
+@media print {
+  .lcpi-table { font-size: 10pt; }
+  .page { margin: 0; }
+}

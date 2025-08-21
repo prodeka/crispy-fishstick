@@ -68,7 +68,7 @@ TABLE_TEMPLATES = {
         "cle_nom": "Désignation",
         "cle_valeur": "Caractéristique",
         "parametres": [
-            "Marque", "Nom du produit", "Débit d’exploitation",
+            "Marque", "Nom du produit", "Débit d'exploitation",
             "Hauteur manométrique totale (HMT)", "Puissance nominale P2",
             "Rendement de la pompe"
         ],
@@ -132,7 +132,7 @@ TABLE_TEMPLATES = {
         "colonnes": ["Milieu", "Aspect affecté"],
     },
     "activites_impact": {
-        "titre_defaut": "Activités sources d’impact par phase",
+        "titre_defaut": "Activités sources d'impact par phase",
         "type_tableau": "liste_enregistrements",
         "colonnes": ["Phase", "Activités"],
     },
@@ -140,6 +140,120 @@ TABLE_TEMPLATES = {
         "titre_defaut": "Évaluation des impacts négatifs",
         "type_tableau": "liste_enregistrements",
         "colonnes": ["Impact", "Intensité", "Étendue", "Durée", "Importance Absolue", "Importance Relative"],
+    },
+    # Nouveaux templates pour network-optimize-unified
+    "statistiques_pressions": {
+        "titre_defaut": "Statistiques des Pressions",
+        "type_tableau": "liste_parametres",
+        "parametres": [
+            "Nombre de nœuds", "Pression minimale (m)", "Pression maximale (m)", 
+            "Pression moyenne (m)", "Pression médiane (m)", "Écart-type (m)",
+            "Q25 (m)", "Q75 (m)", "% < 10m", "% < 15m", "% < 20m"
+        ],
+    },
+    "statistiques_vitesses": {
+        "titre_defaut": "Statistiques des Vitesses",
+        "type_tableau": "liste_parametres",
+        "parametres": [
+            "Nombre de conduites", "Vitesse minimale (m/s)", "Vitesse maximale (m/s)",
+            "Vitesse moyenne (m/s)", "Vitesse médiane (m/s)", "Écart-type (m/s)",
+            "Q25 (m/s)", "Q75 (m/s)", "% > 1 m/s", "% > 2 m/s", "% > 3 m/s"
+        ],
+    },
+    "statistiques_diametres": {
+        "titre_defaut": "Statistiques des Diamètres",
+        "type_tableau": "liste_parametres",
+        "parametres": [
+            "Nombre de conduites", "Diamètre minimal (mm)", "Diamètre maximal (mm)",
+            "Diamètre moyen (mm)", "Diamètre médian (mm)", "Écart-type (mm)"
+        ],
+    },
+    "statistiques_pertes_charge": {
+        "titre_defaut": "Statistiques des Pertes de Charge",
+        "type_tableau": "liste_parametres",
+        "parametres": [
+            "Nombre de conduites", "Perte minimale (m)", "Perte maximale (m)",
+            "Perte moyenne (m)", "Perte médiane (m)", "Écart-type (m)", "Perte totale (m)"
+        ],
+    },
+    "statistiques_debits": {
+        "titre_defaut": "Statistiques des Débits",
+        "type_tableau": "liste_parametres",
+        "parametres": [
+            "Nombre de conduites", "Débit minimal (absolu) (m³/s)", "Débit maximal (absolu) (m³/s)",
+            "Débit moyen (absolu) (m³/s)", "Débit médian (absolu) (m³/s)", "Écart-type (m³/s)",
+            "Conduites sens normal", "Conduites sens inverse", "Débit total (conservation) (m³/s)"
+        ],
+    },
+    "resultats_optimisation": {
+        "titre_defaut": "Résultats de l'Optimisation",
+        "type_tableau": "liste_parametres",
+        "parametres": [
+            "Méthode", "Solveur", "Générations", "Population", "Coût optimal (FCFA)",
+            "Contraintes respectées", "Durée totale (secondes)", "Appels simulateur"
+        ],
+    },
+    "propositions_optimisation": {
+        "titre_defaut": "Propositions d'Optimisation",
+        "type_tableau": "liste_enregistrements",
+        "colonnes": ["Rang", "CAPEX (FCFA)", "Contraintes OK", "Méthode", "Solveur", "Performance"],
+    },
+    # Nouveaux templates pour network-optimize-unified
+    "statistiques_pressions": {
+        "titre_defaut": "Statistiques des Pressions",
+        "type_tableau": "liste_parametres",
+        "parametres": [
+            "Nombre de nœuds", "Pression minimale (m)", "Pression maximale (m)", 
+            "Pression moyenne (m)", "Pression médiane (m)", "Écart-type (m)",
+            "Q25 (m)", "Q75 (m)", "% < 10m", "% < 15m", "% < 20m"
+        ],
+    },
+    "statistiques_vitesses": {
+        "titre_defaut": "Statistiques des Vitesses",
+        "type_tableau": "liste_parametres",
+        "parametres": [
+            "Nombre de conduites", "Vitesse minimale (m/s)", "Vitesse maximale (m/s)",
+            "Vitesse moyenne (m/s)", "Vitesse médiane (m/s)", "Écart-type (m/s)",
+            "Q25 (m/s)", "Q75 (m/s)", "% > 1 m/s", "% > 2 m/s", "% > 3 m/s"
+        ],
+    },
+    "statistiques_diametres": {
+        "titre_defaut": "Statistiques des Diamètres",
+        "type_tableau": "liste_parametres",
+        "parametres": [
+            "Nombre de conduites", "Diamètre minimal (mm)", "Diamètre maximal (mm)",
+            "Diamètre moyen (mm)", "Diamètre médian (mm)", "Écart-type (mm)"
+        ],
+    },
+    "statistiques_pertes_charge": {
+        "titre_defaut": "Statistiques des Pertes de Charge",
+        "type_tableau": "liste_parametres",
+        "parametres": [
+            "Nombre de conduites", "Perte minimale (m)", "Perte maximale (m)",
+            "Perte moyenne (m)", "Perte médiane (m)", "Écart-type (m)", "Perte totale (m)"
+        ],
+    },
+    "statistiques_debits": {
+        "titre_defaut": "Statistiques des Débits",
+        "type_tableau": "liste_parametres",
+        "parametres": [
+            "Nombre de conduites", "Débit minimal (absolu) (m³/s)", "Débit maximal (absolu) (m³/s)",
+            "Débit moyen (absolu) (m³/s)", "Débit médian (absolu) (m³/s)", "Écart-type (m³/s)",
+            "Conduites sens normal", "Conduites sens inverse", "Débit total (conservation) (m³/s)"
+        ],
+    },
+    "resultats_optimisation": {
+        "titre_defaut": "Résultats de l'Optimisation",
+        "type_tableau": "liste_parametres",
+        "parametres": [
+            "Méthode", "Solveur", "Générations", "Population", "Coût optimal (FCFA)",
+            "Contraintes respectées", "Durée totale (secondes)", "Appels simulateur"
+        ],
+    },
+    "propositions_optimisation": {
+        "titre_defaut": "Propositions d'Optimisation",
+        "type_tableau": "liste_enregistrements",
+        "colonnes": ["Rang", "CAPEX (FCFA)", "Contraintes OK", "Méthode", "Solveur", "Performance"],
     },
 }
 
