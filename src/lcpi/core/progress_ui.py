@@ -166,6 +166,15 @@ class RichProgressManager:
 							self._progress.update(self._tasks['generations'], description=f"Best: {self._format_cost(self._best_cost)}")
 				except Exception:
 					pass
+			elif event == "best_updated":
+				# Mise à jour atomique depuis le contrôleur (source de vérité finale)
+				try:
+					final_best = float(data.get("best_cost"))
+					self._best_cost = final_best
+					if self.use_rich and 'generations' in self._tasks and self._progress:
+						self._progress.update(self._tasks['generations'], description=f"Best: {self._format_cost(self._best_cost)}")
+				except Exception:
+					pass
 			elif event == "progress_info":
 				# could update a footer table
 				pass
@@ -275,6 +284,9 @@ class RichProgressManager:
 		if self.use_rich and 'population' in self._tasks and self._progress:
 			try:
 				self._progress.reset(self._tasks['population'])
+				# Initialiser l'affichage de la barre population à 0/total
+				total_pop = self._progress.tasks[self._tasks['population']].total or 0
+				self._progress.update(self._tasks['population'], completed=0, description=f"Éval 0/{total_pop}")
 			except Exception:
 				pass
 
@@ -319,6 +331,9 @@ class RichProgressManager:
 		if self.use_rich and 'population' in self._tasks and self._progress:
 			try:
 				current = self._progress.tasks[self._tasks['population']].completed or 0
+				# Si l'index n'est pas fourni ou vaut 0, avancer au moins d'une unité
+				if idx <= 0:
+					idx = (current or 0) + 1
 				self._progress.update(self._tasks['population'], completed=max(current, idx), description=f"Éval {idx}/{self._progress.tasks[self._tasks['population']].total}")
 			except Exception:
 				pass

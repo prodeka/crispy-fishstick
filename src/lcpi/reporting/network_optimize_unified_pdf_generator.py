@@ -13,7 +13,7 @@ import tempfile
 from io import BytesIO
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
-from .utils.pdf_generator import export_to_pdf
+from .utils.pdf_generator import export_to_pdf, get_weasyprint_status
 from .table_templates import TABLE_TEMPLATES, initialize_log_data
 
 
@@ -36,6 +36,9 @@ class NetworkOptimizeUnifiedPDFGenerator:
             loader=FileSystemLoader(template_dir),
             autoescape=select_autoescape(['html', 'xml'])
         )
+        # Indique le backend utilisé lors de la dernière génération ('weasyprint'|'pdfkit'|'wkhtmltopdf'|'existing'|'reportlab_error'|'none')
+        self.last_backend: str = "none"
+        self.last_error: Optional[str] = None
     
     def generate_pdf_report(
         self, 
@@ -55,36 +58,55 @@ class NetworkOptimizeUnifiedPDFGenerator:
             Contenu PDF du rapport en bytes
         """
         try:
+            self.last_backend = "none"
+            self.last_error = None
             # Générer le contenu HTML avec le template Jinja2
             html_content = self._generate_html_content(result_data, input_file, version)
             
             # Essayer d'abord WeasyPrint
             try:
-                return self._generate_with_weasyprint(html_content)
+                pdf = self._generate_with_weasyprint(html_content)
+                self.last_backend = "weasyprint"
+                return pdf
             except Exception as e:
                 print(f"WeasyPrint non disponible: {e}")
+                self.last_error = str(e)
                 # 1) Fallback via pdfkit (wkhtmltopdf)
                 try:
-                    return self._generate_with_pdfkit(html_content)
+                    pdf = self._generate_with_pdfkit(html_content)
+                    self.last_backend = "pdfkit"
+                    return pdf
                 except Exception as e_pdfkit:
                     print(f"pdfkit/wkhtmltopdf non disponible: {e_pdfkit}")
+                    self.last_error = str(e_pdfkit)
                 # 2) Fallback via CLI wkhtmltopdf si présent dans PATH
                 try:
-                    return self._generate_with_wkhtmltopdf_cli(html_content)
+                    pdf = self._generate_with_wkhtmltopdf_cli(html_content)
+                    self.last_backend = "wkhtmltopdf"
+                    return pdf
                 except Exception as e_cli:
                     print(f"wkhtmltopdf CLI non disponible: {e_cli}")
+                    self.last_error = str(e_cli)
                 # 3) Fallback vers le composant PDF existant
                 try:
-                    return self._generate_with_existing_pdf(html_content)
+                    pdf = self._generate_with_existing_pdf(html_content)
+                    self.last_backend = "existing"
+                    return pdf
                 except Exception as e2:
                     print(f"Composant PDF existant non disponible: {e2}")
+                    self.last_error = str(e2)
                     
                     # En dernier recours, retourner un PDF d'erreur
-                    return self._generate_error_pdf()
+                    pdf = self._generate_error_pdf()
+                    self.last_backend = "reportlab_error"
+                    return pdf
                     
         except Exception as e:
             print(f"Erreur lors de la génération du rapport PDF: {e}")
-            return self._generate_error_pdf()
+            self.last_error = str(e)
+            pdf = self._generate_error_pdf()
+            self.last_backend = "reportlab_error"
+            return pdf
     
     def _generate_html_content(
         self, 
@@ -330,7 +352,11 @@ class NetworkOptimizeUnifiedPDFGenerator:
                 tmp_path = Path(tmp_file.name)
             
             try:
-                # Utiliser le composant PDF existant
+                # Éviter d'appeler export_to_pdf si WeasyPrint est indisponible pour ne pas polluer les logs
+                status = get_weasyprint_status()
+                if not status.get("available", False):
+                    raise Exception("WeasyPrint indisponible (composant existant désactivé)")
+                # Utiliser le composant PDF existant (basé sur WeasyPrint)
                 success = export_to_pdf(
                     html_content=html_content,
                     output_path=tmp_path,

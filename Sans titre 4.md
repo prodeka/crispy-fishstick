@@ -29,252 +29,340 @@ si la commande lcpi est lancer au niveau de best met le prix ex Best: 4,298,246 
   - À faire: retirer l’avance de “Total” sur l’événement “generation” (elle est encore codée) et conserver l’avance par individu uniquement.
   - À faire: ajouter `--no-rich` et basculer automatiquement en mode logs si terminal non interactif.
 
-
-
----
-
-## 4) Diagnostic pas-à-pas (exécutable immédiatement)
-
-### 4.1 Exécuter un run de contrôle (no-cache, no-surrogate, taille réduite)
-
-But : forcer vraies évaluations et avoir moins de données à analyser.
-
-```bash
-lcpi aep network-optimize-unified small_test.inp \
-  --method genetic --solver epanet \
-  --no-cache --no-surrogate --generations 3 --population 6 \
-  --verbose --output /tmp/opt_debug.json
-```
-
-→ Inspecte `/tmp/opt_debug.json['meta']` et `/tmp/opt_debug.json['optimization_results']`.
-
-### 4.2 Vérifier les métriques meta
-
-```bash
-jq '.meta | {duration_seconds, solver_calls, sim_time_seconds_total, cache_hits, surrogate_used}' /tmp/opt_debug.json
-```
-
-Attendu : `solver_calls > 0`, `sim_time_seconds_total > 0`, `cache_hits == 0`, `surrogate_used == false`.
-
-### 4.3 Lancer en mode mock solver (si dispo) pour contrôler outputs
-
-Si tu as un solver `mock` ou `dummy` (évalue rapidement), exécute pour vérifier que le GA met bien à jour `best` :
-
-```bash
-lcpi aep network-optimize-unified small_test.inp --method genetic --solver mock --generations 4 --population 8 --no-cache --no-surrogate --verbose --output /tmp/mock.json
-```
-
-Si `best` devient fini : problème lié au backend EPANET/WNTR (long runs ou exceptions) ; si `best` reste `inf`, bug GA/progression.
-
-### 4.4 Activer logs détaillés dans GeneticOptimizer
-
-Dans `optimization/genetic_algorithm.py` (ou l’emplacement réel), ajoute temporairement :
-
-```python
-# juste après avoir évalué un individu
-try:
-    cost = self.evaluate_cost(individu)
-    constraints_ok = self.check_constraints(individu)
-    logger.debug(f"EVAL i={i} id={individu.id} cost={cost} constraints_ok={constraints_ok}")
-except Exception as e:
-    logger.exception("Erreur evaluation individu")
-```
-
-Ça permet d’observer si des exceptions sont levées et cachées.
-
-### 4.5 Inspecter le calcul de fitness & perf
-
-Trouve la fonction `compute_fitness(...)` et imprime les parties :
-
-- composantes : `capex`, `opex`, `penalties`
-    
-- vérifie si `fitness = f(capex, opex, penalties)` est NaN/0/inf  
-    Ajoute :
-    
-
-```python
-logger.debug(f"fitness components capex={capex}, opex={opex}, penalty={penalty}, fitness={fitness}")
-```
-
-### 4.6 Vérifier le progress callback
-
-- S’assurer que `on_generation_callback` et `on_individual` sont bien assignés : imprime un log quand callback est appelé.
-    
-- Si tu utilises `multiprocessing`, vérifie que le callback envoie events via queue et que le process main lit la queue.
-    
-
-Ajoute dans le callback :
-
-```python
-def progress_cb(event, data):
-    logger.debug(f"PROG_CB event={event} data={data}")
-    try:
-        ui_manager.update(event, data)
-    except Exception as e:
-        logger.exception("Erreur UI update")
-```
-
-### 4.7 Vérifier coûts infinis ou NaN
-
-Après run debug, cherche dans le JSON final si `proposals` contiennent `NaN`/`inf` :
-
-```bash
-python - <<PY
-import json, math
-d=json.load(open('/tmp/opt_debug.json'))
-for s in d.get('optimization_results',{}).get('proposals',[]):
-    c = s.get('CAPEX', None)
-    if c is None or isinstance(c, str) and 'inf' in c.lower():
-        print("Proposal with invalid CAPEX:", s.get('id'))
-    if c is not None and (math.isinf(c) or math.isnan(c)):
-        print("Invalid numeric CAPEX", s.get('id'), c)
-PY
-```
+Très bien — voici un relevé clair et actionnable des **incohérences** visibles dans la sortie que tu as fournie, pourquoi elles sont problématiques, et comment les diagnostiquer / corriger rapidement.
 
 ---
 
-## 5) Causes typiques & corrections à appliquer (priorité)
+## 1) `Best` affiché dans la progression ≠ `Meilleur coût` du résumé
 
-### Cause 1 — `Best` reste `inf` parce que tu filtres toutes les solutions invalides
-
-**Symptôme** : `Cout=...` loggué ailleurs mais `best` inf.  
-**Correction** : si tu filtres par `constraints_ok` avant de mettre à jour `best`, et qu’aucune solution ne respecte les contraintes, alors `best` restera `inf`.  
-**Fix** :
-
-- Mettre à jour best sur **toutes** les solutions mais marquer `constraints_ok` dans les métadonnées (ou)
+- **Observation :**
     
-- Ou, si tu veux seulement considérer valides, fournir un fallback : si aucune solution valide, choisir la solution avec **moindre pénalité** plutôt que `inf`.
+    - Progress bar: `Génération 9/10 - Best: 3,750,065 FCFA`.
+        
+    - Résumé / Statistiques : `Meilleur coût : 9,321,718 FCFA`.
+        
+- **Pourquoi c'est incohérent :**
     
-
-### Cause 2 — Fitness = 0 parce que la formule retourne 0 pour coûts très grands
-
-**Symptôme** : fitness = 1/(1+cost) => pour cost énorme fitness ≈ 0.  
-**Correction** :
-
-- **Normaliser** les coûts (log-scale ou min-max) pour garder une plage utile.
+    - Deux valeurs distinctes pour "meilleur coût" → perte de confiance dans le résultat final (affichage UI et artefact JSON hors synchro).
+        
+- **Vérifications à faire :**
     
-- Ou utiliser fitness = -cost (si GA supporte minimisation) ou scaler adapté.
+    - Ouvrir le fichier `results\test_integrated_stats.json` (ou le log JSON) et comparer :
+        
+        ```bash
+        jq '.meta.best_cost, .proposals[0].CAPEX, .metrics.best_cost' results/test_integrated_stats.json
+        ```
+        
+    - Vérifier s’il y a **plusieurs** sources d’`best` (p.ex. best au niveau du GA vs best après hybrid/refine/repair).
+        
+- **Causes probables :**
     
-- Éviter de convertir directement en 0 → risque de blocage de sélection (ex: tous égaux).
+    - Best mis-actualisé lors d’un raffinement/post-processing.
+        
+    - Affichage en temps réel lit une variable en mémoire différente du `result` final (race condition).
+        
+- **Remède rapide :**
     
-
-### Cause 3 — Perf = 0 (division par zéro)
-
-**Symptôme** : Perf calculée comme `(achieved - target)/target` avec `target==0`.  
-**Correction** : ajouter garde `if target == 0: perf = 0` ou autre logique.
-
-### Cause 4 — Progress total à 0
-
-**Symptôme** : La tâche total a `total=0` ou aucun `advance` appelé.  
-**Correction** :
-
-- Lors de la création du UI set `total = generations * population` (ou inclure top-K validations et validations sureth).
-    
-- À chaque évaluation `ui.advance(total_task, 1)`.
-    
-
-### Cause 5 — Exceptions silencieuses
-
-**Symptôme** : callback swallow exceptions -> UI ne s’update pas.  
-**Correction** : loguer les exceptions dans callback (ne pas les supprimer silencieusement).
-
-### Cause 6 — Surrogate / cache court-circuit
-
-**Symptôme** : quelques évaluations rapides, total pas avancé.  
-**Correction** : si `surrogate_used` true, s’assurer que le surrogate envoie des events proportionnels (ou que total = nombre de candidats testés sur surrogate), et que validation top-K déclenche vraies simulations.
+    - Centraliser la source du `best` (ex : `result['meta']['best_cost']`) et n’afficher que celle-ci.
+        
+    - Ajouter logs atomiques : `logger.debug("BEST_UPDATE", best_cost=...)` à chaque point d’update.
+        
 
 ---
 
-## 6) Correctifs immédiats (patch suggestions rapides)
+## 2) `Simulations (busy: 0 | done: 0)` alors que des résultats hydrauliques existent
 
-1. **Initialisation best** :
+- **Observation :** la UI montre `Simulations (busy: 0 | done: 0)` tout le long, pourtant des pressions/vitesses/headloss sont affichées à la fin.
     
-
-```python
-best_cost = None
-# when evaluating:
-if best_cost is None or candidate_cost < best_cost:
-    best_cost = candidate_cost
-```
-
-2. **Fitness computation guard**:
+- **Pourquoi c'est incohérent :**
     
-
-```python
-# avoid division by zero etc
-if math.isfinite(cost):
-    fitness = 1.0 / (1.0 + cost_normalized)
-else:
-    fitness = 0.0
-```
-
-3. **Progress total** when creating tasks:
+    - Indique que le compteur de simulations n’est pas branché ou que l’adaptateur d’événements n’a pas été propagé correctement.
+        
+- **Vérifications :**
     
-
-```python
-total = generations * population
-self.tasks['total'] = progress.add_task("Total", total=total)
-```
-
-and on each individual:
-
-```python
-self.progress.advance(self.tasks['total'], 1)
-```
-
-4. **Callback exception logging**:
+    - Dans le JSON de sortie :
+        
+        ```bash
+        jq '.meta.solver_calls, .meta.sim_time_seconds_total' results/test_integrated_stats.json
+        ```
+        
+        et
+        
+        ```bash
+        jq '.hydraulics | has("pressures_m"), .hydraulics.pressures_m | length' results/...
+        ```
+        
+    - Vérifier `get_simulation_stats()` : retourne-t-il `calls > 0` ?
+        
+- **Causes probables :**
     
-
-```python
-try:
-    progress_cb(...)
-except Exception as e:
-    logger.exception("progress_cb failed")
-```
-
-5. **Fallback if no valid solution**:
+    - `EPANETOptimizer.simulate` émet des événements mais `progress_adapter` non branché pour ces événements.
+        
+    - `reset_simulation_stats()` appelé, mais stats non incrémentées / non lues ensuite.
+        
+- **Remède rapide :**
     
-
-```python
-if no_valid_solutions:
-    # select least-penalized solution instead of leaving best=inf
-    best = min(all_candidates, key=lambda s: s.get('penalty', float('inf')))
-```
+    - S’assurer que `progress_callback` transmis à `epo.simulate(..., progress_callback=progress_cb_adapter)`.
+        
+    - Instrumenter `EPANETOptimizer.simulate()` pour logger `simulator_used`, `sim_time_seconds` et faire `logger.debug` à l’entrée/sortie.
+        
 
 ---
 
-## 7) Tests à écrire (pratiques)
+## 3) `Simulations` affichent 0 alors que `solver_calls`/`sim_time` existent (contradiction)
 
-- **test_progress_total_increment** : run GA small and assert `meta.progress_events_count == gens*pop`.
+- **Observation :** UI `Simulations 0/0`, mais `meta.sim_time_seconds_total` / `hydraulics` non nuls.
     
-- **test_best_finite_or_fallback** : force constraints impossible and assert `best` is chosen by min-penalty, not inf.
+- **Diagnostic :**
     
-- **test_fitness_non_zero_distribution** : ensure fitness values vary and > 0 for finite cost.
+    - UI ne lit pas les mêmes métriques que celles écrites dans `meta`, ou les mises à jour d’événements n’atteignent pas UI (ou sont émises après l’affichage final).
+        
+- **Vérif à exécuter :**
+    
+    - Chercher dans le log JSON les événements `simulation` :
+        
+        ```bash
+        jq '.log[] | select(.event=="simulation")' logs/... .json
+        ```
+        
+- **Fix :**
+    
+    - Normaliser event names (`sim_start`/`sim_done` → `simulation` avec `busy`/`done`) partout.
+        
+    - Ajouter test unitaire simulant `simulate(..., progress_callback=cb)` et vérifier que UI reçoit `busy/done`.
+        
+
+---
+
+## 4) PDF export : messages contradictoires (WeasyPrint manquant **ET** "PDF généré")
+
+- **Observation :**
+    
+    - Message d’erreur : _WeasyPrint non disponible_ / _wkhtmltopdf non trouvé_ → `Export PDF non disponible`.
+        
+    - Juste après : `📄 Rapport PDF généré: results\test_integrated_stats.pdf`
+        
+- **Pourquoi c'est incohérent :**
+    
+    - L’outil annonce à la fois l’échec du backend PDF et la génération effective d’un PDF.
+        
+- **Vérif :**
+    
+    - Contrôler l’existence du fichier:
+        
+        ```powershell
+        Test-Path .\results\test_integrated_stats.pdf
+        ```
+        
+        ou sous bash:
+        
+        ```bash
+        ls -l results/test_integrated_stats.pdf
+        ```
+        
+    - Inspecter le log pour voir quelle méthode a tenté de générer le PDF (WeasyPrint? wkhtmltopdf? fallback DOCX→PDF?).
+        
+- **Cause probable :**
+    
+    - Deux chemins de génération: d’abord on teste WeasyPrint/wkhtmltopdf (échoue), puis on tente un composant interne ou un stub qui écrit un PDF minimal (ou écrit un HTML renommé `.pdf`).
+        
+- **Fix :**
+    
+    - Uniformiser la logique: s’il y a erreur, ne pas logguer `Rapport PDF généré`. Faire un message unique final (success/fail) avec la cause.
+        
+    - Si fallback génère effectivement un PDF, préciser la méthode utilisée.
+        
+
+---
+
+## 5) `Meilleur coût` OK dans résumé mais `Générations` / `Éval` affichent barres incohérentes
+
+- **Observations UI :**
+    
+    - `Génération 9/10 - Best: 3,750,065 FCFA` (progress ok)
+        
+    - `Éval 20/20` barre reste à 0% (la barre secondaire ne progresse pas)
+        
+    - `Total` 100% (probablement calculé uniquement sur generations)
+        
+- **Diagnostic :**
+    
+    - Le callback `individual_start` / `individual_end` est émis mais la UI n’incrémente pas la barre (probablement mauvaise clé `total`/`completed` ou reset inopportun).
+        
+- **Vérifs :**
+    
+    - Dans `progress_ui.update` : vérifier si la tâche `population` a été créée avec `total=population_size`. Log des appels `update('individual')`.
+        
+- **Fix :**
+    
+    - Assure `setup_tasks(total_generations, population_size)` **avant** `run_start`.
+        
+    - Dans `update('individual')` utiliser `progress.update(task_population, completed=index)` (index starts at 1) — ne pas reset la tâche sauf au début d'une génération.
+        
+
+---
+
+## 6) `Solutions valides: 1` alors que contraintes hydrauliques manifestement violées
+
+- **Observation :**
+    
+    - CLI lancé avec `--vitesse-max 5`, mais `max velocity` rapportée = **10.572 m/s**.
+        
+    - Pourtant `Solutions valides = 1`.
+        
+- **Pourquoi c'est incohérent :**
+    
+    - Soit la validation des contraintes n’est pas exécutée (ou bug), soit la contrainte `vitesse_max` n’est pas appliquée correctement.
+        
+- **Vérif :**
+    
+    - Dans le JSON : `jq '.proposals[] | {id, constraints_ok, metrics: .metrics}' results/...json`
+        
+    - Vérifier la valeur de `meta.constraints` et `result.proposals[].constraints_ok`.
+        
+- **Cause probable :**
+    
+    - `apply_constraints_to_result()` peut être en mode `soft` et n’annoter que CAPEX avec pénalité sans marquer `constraints_ok=False`.
+        
+    - Les unités ou noms de champs mal mappés (`velocity_max_m_s` vs `vitesse_max_m_s`).
+        
+- **Fix :**
+    
+    - Standardiser noms de contraintes (`pressure_min_m`, `velocity_max_m_s`) et s’assurer que `constraints_ok` est mis à `False` si violation et pas seulement pénalisé.
+        
+    - Ajouter test d’intégration : simuler solution avec `max_velocity` > constraint → `constraints_ok` false.
+        
+
+---
+
+## 7) Diamètres min == max == 200 mm (toutes les conduites identiques) — suspect
+
+- **Observation :**
+    
+    - Diamètres: Min 200 mm, Max 200 mm, Moyenne 200 mm.
+        
+- **Pourquoi c'est surprenant :**
+    
+    - En optimisation on attend une diversité ; tous les diamètres identiques → probable bug (price_db/non-chargement des candidats) ou post-traitement forcé (repair).
+        
+- **Vérif :**
+    
+    - Vérifier la liste `proposals[0].diameters_mm` dans JSON.
+        
+    - Vérifier source des `diametres_candidats` (PriceDB) :
+        
+        ```bash
+        jq '.meta.price_db_info, .proposals[0].diameters_mm' results/...
+        ```
+        
+- **Causes probables :**
+    
+    - PriceDB introuvable → fallback unique diam 200mm.
+        
+    - `_ensure_at_least_one_feasible` a remplacé tous diam par une valeur large.
+        
+- **Fix :**
+    
+    - S’assurer du fallback cohérent : si price_db manquant, proposer un jeu raisonnable [50,63,75,...], documenter fallback.
+        
+    - Log explicite lorsque une réparation override les diamètres.
+        
+
+---
+
+## 8) Conservation des débits non vérifiée : `Total (conservation): -1.202 m³/s`
+
+- **Observation :**
+    
+    - Somme des débits ≠ 0 → perte/sources non nulles : `-1.202 m³/s`.
+        
+- **Pourquoi c'est critique :**
+    
+    - Violation de bilan massique → simulation suspecte (injection/consommation non traitée) ou erreur d’agrégation/mapping (sens).
+        
+- **Vérif :**
+    
+    - Inspecter `hydraulics.flows_m3_s` et sommation script :
+        
+        ```bash
+        jq '.hydraulics.flows_m3_s | map(.value) | add' results/...
+        ```
+        
+    - Vérifier unités et signes.
+        
+- **Fix :**
+    
+    - Valider mapping entre `links` et `flows` (sens conventions). Normaliser en `abs` vs signed flows.
+        
+    - Ajouter check de conservation dans CI : `abs(total) < small_eps`.
+        
+
+---
+
+## Recommandations pratiques & test rapide (commande)
+
+1. **Comparer `best` runtime vs final** :
+    
+    ```bash
+    jq '{progress_best:.meta.progress_best, final_best:.meta.best_cost, proposal_best: .proposals[0].CAPEX}' results/test_integrated_stats.json
+    ```
+    
+    _(ajoute `meta.progress_best` si nécessaire dans le code)_
+    
+2. **Vérifier simulation counts** :
+    
+    ```bash
+    jq '.meta.solver_calls, .meta.sim_time_seconds_total, .hydraulics | keys' results/...
+    ```
+    
+3. **Vérifier `constraints_ok` vs metrics** :
+    
+    ```bash
+    jq '.proposals[] | {id: .id, capex:.CAPEX, constraints_ok:.constraints_ok, min_p:.metrics.min_pressure_m, max_v:.metrics.max_velocity_m_s}' results/...
+    ```
+    
+4. **Vérifier existence dossier PDF et logs** :
+    
+    ```powershell
+    Test-Path .\results\test_integrated_stats.pdf
+    Test-Path .\test_validation\logs\aep_network_optimize_unified_*.log.json
+    ```
     
 
 ---
 
-## 8) Commandes à exécuter maintenant (résumé rapide)
+## Correctifs à prioriser (ordre de priorité)
 
-1. Forcer no-cache/no-surrogate (retest) :
+1. **Synchroniser source unique du `best`** (UI et result.json). (Haute)
     
-
-```bash
-lcpi aep network-optimize-unified small_test.inp --method genetic --solver epanet --no-cache --no-surrogate --generations 4 --population 8 --verbose --output /tmp/debug.json
-```
-
-2. Print meta & first proposals:
+2. **Réparer propagation des événements `simulation` → UI** (busy/done). (Haute)
     
-
-```bash
-jq '.meta, .optimization_results.proposals[:3]' /tmp/debug.json
-```
-
-3. Si best toujours `inf`, exécute GA with mock solver:
+3. **Corriger la logique `constraints_ok` (hard vs soft)** ; s’assurer que les violations critiques marquent `constraints_ok=False`. (Haute)
     
-
-```bash
-lcpi aep network-optimize-unified small_test.inp --method genetic --solver mock --generations 4 --population 8 --no-cache --no-surrogate --verbose
-```
+4. **Unifier messages PDF/Export** (ne pas loguer success si le backend a échoué). (Moyenne)
+    
+5. **Ajouter tests CI** : assertions sur conservation des débits, `solver_calls>0` si `--no-cache`, field consistency (min<=avg<=max), `constraints_ok` behavior. (Moyenne)
+    
+6. **Vérifier PriceDB/fallback diameters** (log quand fallback utilisé). (Moyenne)
+    
 
 ---
+
+## Exemples d’assertions unitaires à ajouter
+
+```python
+def test_simulation_stats_present(result):
+    assert result['meta']['solver_calls'] > 0
+    assert result['meta']['sim_time_seconds_total'] > 0
+
+def test_best_consistency(result):
+    # best in meta must equal CAPEX of first proposal
+    assert float(result['meta']['best_cost']) == float(result['proposals'][0]['CAPEX'])
+
+def test_mass_conservation(result, tol=1e-3):
+    total = sum(v for v in result['hydraulics'].get('flows_m3_s', {}).values())
+    assert abs(total) < tol, f"Mass not conserved: {total}"
+```
+
+
+Voici comment tu peux formuler ton texte comme **prompt clair pour une IA**, pour qu’elle comprenne exactement ce que tu veux faire et produise un guide ou un script : --- **Prompt IA :** > Diagnostiquer la conservation de masse (flow breach) dans un réseau hydraulique simulé avec EPANET/WNTR. > > **Contexte :** Les violations de conservation de masse peuvent être causées par un sens de conduite arbitraire, l’orientation des conduites, des exports WNTR mal agrégés, des unités signées, ou des modifications d’orientations par la réparation/optimisation. > > **Tâches :** > > 1. Simuler un run unique sur un fichier INP avec EPANET CLI : > > ``` > .\venv_new\Scripts\python.exe -m lcpi.aep.cli simulate-inp .\src\lcpi\aep\PROTOTYPE\INP\bismark-Administrator.inp --format json --output .\results\sim_one.json --verbose > ``` > > 2. Ouvrir `results\sim_one.json` et exécuter un script Python qui somme les `flows_m3_s`. Comparer le `total_flow` entre la simulation et l’optimisation hydraulique. > 3. Si la simulation brute (`simulate-inp`) montre somme ≈ 0 mais que l’optimisation non → l’erreur vient de la modification des diamètres par l’optimiseur. Sinon → le parsing initial de l’INP (ordre/orientation) est suspect. > 4. Pour isoler le problème, choisir un petit sous-ensemble de conduites (ex. 10 premières) et simuler uniquement via un INP temporaire ou la WNTR API pour vérifier sens/valeurs. > > **Outils :** > > * Script fourni : `@check_flows.py` > * Exemple avec EPANET officiel : > > ``` > python tools/check_flows.py src/lcpi/aep/PROTOTYPE/INP/bismark-Administrator.inp --simulator epanet --save-plot --show > ``` > > * Exemple avec WNTR pour sous-ensemble : > > ``` > python tools/check_flows.py src/lcpi/aep/PROTOTYPE/INP/bismark-Administrator.inp --simulator wntr --links "P1,P2" --sample 10 --no-json-series > ``` > > **Notes :** > > * WNTR via EpanetSimulator nécessite EPANET Toolkit. Si non dispo → WNTRSimulator utilisé. > * JSON volumineux si beaucoup de pas temporels → utiliser `--no-json-series`. > * Plot interactif possible avec `progress_callback`. > * Vérification de conservation de masse : alerte si moyenne signée ou max > epsilon (`--epsilon 1e-3`). > * Interprétation : si `sum(flows) ≠ 0` → violation de la conservation de masse. > Génère un guide étape par étape et un exemple de script Python autonome pour diagnostiquer les violations de conservation de masse dans un réseau EPANET/WNTR en utilisant les instructions et scripts ci-dessus.

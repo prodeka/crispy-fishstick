@@ -1,0 +1,27 @@
+🚀 SIMULATION FICHIER .INP: src\lcpi\aep\PROTOTYPE\INP\bismark-Administrator.inp
+✅ EPANET DLL chargée : C:\PROJET_DIMENTIONEMENT_2\vendor\dlls\epanet2_64.dll
+✅ Projet EPANET ouvert : src\lcpi\aep\PROTOTYPE\INP\bismark-Administrator.inp
+✅ Fichier .inp ouvert avec succès
+✅ Simulation hydraulique terminée
+✅ Simulation hydraulique réussie
+📊 RÉSUMÉ: 0 nœuds, 0 conduites
+📊 RÉSERVOIRS: 0, TANKS: 0
+📈 ITÉRATIONS: 0
+📈 ERREUR RELATIVE: 0.0
+{
+  "nodes": {},
+  "pipes": {},
+  "statistics": {
+    "iterations": 0,
+    "relative_error": 0.0,
+    "max_head_error": 0.0,
+    "max_flow_change": 0.0,
+    "mass_balance": 0.0
+  },
+  "node_count": 0,
+  "pipe_count": 0,
+  "reservoir_count": 0,
+  "tank_count": 0
+}
+✅ Projet EPANET fermé
+✅ Simulation terminée avec succès

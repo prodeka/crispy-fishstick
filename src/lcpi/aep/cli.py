@@ -2809,6 +2809,7 @@ def network_optimize_unified(
 	show_stats: bool = typer.Option(False, "--show-stats", help="Afficher les statistiques hydrauliques après l'optimisation"),
 	hmax: Optional[float] = typer.Option(50.0, "--hmax", help="Hauteur sous radier maximale (m), défaut 50"),
 	verbose: bool = typer.Option(False, "--verbose", "-v", help="Affichage détaillé"),
+	stream_flows: bool = typer.Option(False, "--stream-flows", help="Activer le streaming live des flux pendant la simulation"),
 	log: Optional[bool] = typer.Option(None, "--log", help="Journaliser le calcul (demande confirmation si non spécifié)"),
 	no_log: bool = typer.Option(False, "--no-log", help="Ne pas journaliser le calcul")
 ):
@@ -2837,6 +2838,30 @@ def network_optimize_unified(
 		if not input_file.exists():
 			typer.secho(f"❌ Fichier d'entrée introuvable: {input_file}", fg=typer.colors.RED)
 			raise typer.Exit(1)
+		# Activer wkhtmltopdf portable depuis vendor/ si présent (pour --report pdf)
+		try:
+			import os, shutil  # type: ignore
+			from pathlib import Path as _Path  # type: ignore
+			if shutil.which("wkhtmltopdf") is None:
+				_candidates = [
+					_Path.cwd() / "vendor" / "wkhtmltopdf" / "wkhtmltox" / "bin",
+					_Path.cwd() / "vendor" / "wkhtmltopdf" / "bin",
+				]
+				_added = False
+				for _p in _candidates:
+					try:
+						if _p.exists():
+							os.environ["PATH"] = f"{str(_p)}{os.pathsep}{os.environ.get('PATH','')}"
+							_added = True
+					except Exception:
+						pass
+				if _added and shutil.which("wkhtmltopdf") is not None and verbose:
+					try:
+						typer.echo("✅ wkhtmltopdf activé depuis vendor/")
+					except Exception:
+						pass
+		except Exception:
+			pass
 		if input_file.suffix.lower() == ".inp":
 			from .optimizer.controllers import OptimizationController  # type: ignore
 			# Forcer sandbox si aucun projet actif
@@ -2908,6 +2933,10 @@ def network_optimize_unified(
 									"population_size": int(details.get("population_size", pop)),
 									"worker": details.get("worker", ""),
 								})
+							elif stage == "simulation":
+								ui_obj.update("simulation", details)
+							elif stage == "best_updated":
+								ui_obj.update("best_updated", details)
 						except Exception:
 							pass
 					return _cb
@@ -3085,6 +3114,10 @@ def network_optimize_unified(
 									"population_size": int(details.get("population_size", pop)),
 									"worker": details.get("worker", ""),
 								})
+							elif stage == "simulation":
+								ui_obj.update("simulation", details)
+							elif stage == "best_updated":
+								ui_obj.update("best_updated", details)
 						except Exception:
 							pass
 					return _cb
@@ -3199,18 +3232,24 @@ def network_optimize_unified(
 					results_table.add_row("Solutions valides", str(len(valid_solutions)))
 					
 					if valid_solutions:
-						# Les solutions utilisent CAPEX comme clé standard; fallback sur 'cost' si absent
+						# Prioriser meta.best_cost sinon calculer
+						meta_best = None
+						try:
+							meta_best = float(resultats.get("meta", {}).get("best_cost"))
+						except Exception:
+							meta_best = None
 						def _get_cost(p):
 							c = p.get("CAPEX")
 							if c is None:
 								c = p.get("cost")
 							return float(c) if c is not None else float('inf')
 						costs = [_get_cost(p) for p in valid_solutions]
-						best_cost = min(costs)
-						worst_cost = max(costs)
-						avg_cost = sum([c for c in costs if c != float('inf')]) / max(1, len([c for c in costs if c != float('inf')]))
-						
-						results_table.add_row("Meilleur coût", f"{best_cost:,.0f} FCFA")
+						best_computed = min(costs) if costs else float('inf')
+						worst_cost = max(costs) if costs else 0.0
+						avg_pool = [c for c in costs if c != float('inf')]
+						avg_cost = (sum(avg_pool) / max(1, len(avg_pool))) if avg_pool else 0.0
+						best_to_show = meta_best if (meta_best is not None and meta_best > 0) else best_computed
+						results_table.add_row("Meilleur coût", f"{best_to_show:,.0f} FCFA")
 						results_table.add_row("Pire coût", f"{worst_cost:,.0f} FCFA")
 						results_table.add_row("Coût moyen", f"{avg_cost:,.0f} FCFA")
 					
@@ -3262,7 +3301,12 @@ def network_optimize_unified(
 							)
 							rep_path = report_dir / f"{output.stem}.pdf"
 							rep_path.write_bytes(pdf_bytes)
-							typer.echo(f"📄 Rapport PDF généré: {rep_path}")
+							backend = getattr(gen, "last_backend", "unknown")
+							if backend in ("weasyprint", "pdfkit", "wkhtmltopdf", "existing"):
+								typer.echo(f"📄 Rapport PDF généré ({backend}): {rep_path}")
+							else:
+								# PDF d'erreur minimal (reportlab)
+								typer.echo(f"⚠️  PDF généré en mode dégradé ({backend}). Installez WeasyPrint ou wkhtmltopdf pour un rendu complet: {rep_path}")
 					except Exception as e:
 						typer.echo(f"⚠️  Génération du rapport échouée: {e}")
 			# Affichage des statistiques hydrauliques si demandé (cas sans fichier de sortie)
