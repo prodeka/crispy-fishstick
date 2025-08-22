@@ -129,3 +129,35 @@ if __name__ == "__main__":
         run_simulation_sequence(adapter)
 
 
+# tools/test_progress_adapter.py
+from src.lcpi.aep.optimizer.controllers import _make_progress_adapter
+
+
+def main():
+	log = []
+	def user_cb(evt, data):
+		log.append((evt, data))
+		print("progress adapter received:", evt, data)
+
+	adapter = _make_progress_adapter(user_cb)
+	# Sim start/done
+	adapter("simulation_start", {})
+	adapter("simulation_done", {"generation": 1, "index": 1})
+	# Individuals
+	adapter("individual_start", {"index": 0})
+	adapter("individual_end", {"index": 1, "cost": 123.0})
+	# Best updates
+	adapter("best_improved", {"new_cost": 100.0})
+	adapter("best_updated", {"best_cost": 95.0})
+	# Unknown passthrough
+	adapter("foo", {"bar": 1})
+
+	assert any(e == "simulation" and d.get("stage") in ("running", "success") for e, d in log)
+	assert any(e == "best_updated" for e, _ in log)
+	print("OK")
+
+
+if __name__ == "__main__":
+	main()
+
+

@@ -954,6 +954,46 @@ class EPANETOptimizer:
                     extracted["sim_time_seconds"] = round(float(dt), 6)
                 except Exception:
                     pass
+
+                # Émettre des snapshots de flux par pas de temps si possible
+                try:
+                    if callable(progress_callback):
+                        link_block = getattr(results, "link", None)
+                        if callable(link_block):
+                            link_block = link_block()
+                        flow_df = None
+                        if isinstance(link_block, dict):
+                            flow_df = link_block.get("flowrate") or link_block.get("flow")
+                        elif link_block is not None:
+                            flow_df = getattr(link_block, "flowrate", None) or getattr(link_block, "flow", None)
+                        if flow_df is not None:
+                            # index is seconds; convert to hours
+                            for idx, row in flow_df.iterrows():
+                                try:
+                                    t_h = float(idx) / 3600.0
+                                except Exception:
+                                    t_h = 0.0
+                                try:
+                                    flows_snapshot = {str(k): float(v) for k, v in row.to_dict().items()}
+                                except Exception:
+                                    flows_snapshot = {}
+                                # Emit unified snapshot event
+                                try:
+                                    progress_callback("simulation.snapshot", {"time_h": t_h, "flows": flows_snapshot})
+                                except Exception:
+                                    pass
+                                # Optional: detect conservation breach
+                                try:
+                                    total = sum(flows_snapshot.values()) if flows_snapshot else 0.0
+                                    if abs(total) > 1e-6:
+                                        try:
+                                            logger.warning("FLOW_CONSERVATION_BREACH", extra={"time_h": t_h, "sum_flows": total})
+                                        except Exception:
+                                            pass
+                                except Exception:
+                                    pass
+                except Exception:
+                    pass
                 _record_simulation_stats(dt)
                 # event sim_done
                 try:
