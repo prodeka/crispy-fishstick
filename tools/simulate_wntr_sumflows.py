@@ -10,10 +10,10 @@ def _safe_float(x):
 		return 0.0
 
 
-def run_wntr_sumflows_and_save(inp_path, artifacts_dir, diameters_map=None, backend='wntr', progress_callback=None, duration_h=None, timestep_min=None):
+def run_wntr_sumflows_and_save(inp_path, artifacts_dir, diameters_map=None, backend='wntr', progress_callback=None, duration_h=None, timestep_min=None, conservation_eps=1e-6):
 	"""
 	Exécute une simulation WNTR/EPANET, calcule la série temporelle de la somme des débits,
-	sauvegarde JSON/CSV/PNG et retourne les chemins des artefacts.
+	sauvegarde JSON/CSV/PNG et retourne les chemins des artefacts et un check conservation.
 	"""
 	artifacts_dir = Path(artifacts_dir)
 	artifacts_dir.mkdir(parents=True, exist_ok=True)
@@ -75,6 +75,13 @@ def run_wntr_sumflows_and_save(inp_path, artifacts_dir, diameters_map=None, back
 	except Exception:
 		pass
 
+	# Simple conservation check: max |sum(flows)| across timesteps
+	max_abs_sum = 0.0
+	for v in total_flows:
+		if abs(v) > max_abs_sum:
+			max_abs_sum = abs(v)
+	conservation_ok = (max_abs_sum <= float(conservation_eps))
+
 	payload = {
 		"inp_file": str(inp_path),
 		"backend": backend,
@@ -82,6 +89,9 @@ def run_wntr_sumflows_and_save(inp_path, artifacts_dir, diameters_map=None, back
 		"duration_h": float(duration_h),
 		"times_h": times,
 		"sum_flows_m3_s": total_flows,
+		"flow_conservation_max_abs_sum": max_abs_sum,
+		"flow_conservation_eps": float(conservation_eps),
+		"flow_conservation_ok": bool(conservation_ok),
 	}
 
 	# JSON
@@ -119,4 +129,4 @@ def run_wntr_sumflows_and_save(inp_path, artifacts_dir, diameters_map=None, back
 	except Exception:
 		pass
 
-	return {"json": out_json, "csv": out_csv, "png": out_png}
+	return {"json": out_json, "csv": out_csv, "png": out_png, "flow_conservation_ok": conservation_ok, "flow_conservation_max_abs_sum": max_abs_sum}
