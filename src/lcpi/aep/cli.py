@@ -2890,6 +2890,8 @@ def network_optimize_unified(
 				# Assurer cohérence des barres de progression: transmettre générations/population à l'optimiseur
 				"generations": int(generations),
 				"population": int(population),
+				# Diagnostic des flux
+				"stream_flows": bool(stream_flows),
 			}
 			if hmax is not None:
 				try:

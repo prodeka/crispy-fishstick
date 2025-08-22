@@ -110,8 +110,32 @@ def analyze_and_dump(flows_df, outdir: Path, stem: str, sim_name: str, save_plot
     else:
         logger.debug("flows_inspector: matplotlib not available -> skip plot")
 
-    logger.info("flows_inspector: CSV %s JSON %s", csv_path, json_path)
-    return {"csv": str(csv_path), "json": str(json_path), "png": str(png_path) if png_path else None, "statistics": stats}
+    # Markdown summary
+    md_path = outdir / f"{stem}_sumflows_{sim_name}.md"
+    try:
+        md_lines = [
+            f"# Sum of Flows - {stem}",
+            "",
+            f"- Simulator: `{sim_name}`",
+            f"- Timesteps: {stats['n_timesteps']}",
+            f"- Links: {stats['link_count']}",
+            f"- Mean sum(flow): {stats['mean_total_signed']:.6f} m³/s",
+            f"- Min: {stats['min_total_signed']:.6f} m³/s",
+            f"- Max: {stats['max_total_signed']:.6f} m³/s",
+            f"- Std: {stats['std_total_signed']:.6f}",
+            "",
+            f"Artifacts:",
+            f"- CSV: `{csv_path}`",
+            f"- JSON: `{json_path}`",
+            f"- PNG: `{png_path}`" if png_path else "- PNG: (not generated)",
+        ]
+        with open(md_path, "w", encoding="utf-8") as fmd:
+            fmd.write("\n".join(md_lines))
+    except Exception:
+        md_path = None
+
+    logger.info("flows_inspector: CSV %s JSON %s MD %s", csv_path, json_path, md_path)
+    return {"csv": str(csv_path), "json": str(json_path), "png": str(png_path) if png_path else None, "md": str(md_path) if md_path else None, "statistics": stats}
 
 # --- flexible inspector wrapper to accept various simulation outputs ---
 def inspect_simulation_result(sim_out: Any, outdir: Path, stem: str = "network", sim_name: str = "sim", save_plot: bool = True, write_json_series: bool = True):
@@ -274,8 +298,34 @@ class FlowEventConsumer:
                     fig.savefig(str(png_file), dpi=150)
                 except Exception:
                     png_file = None
-            logger.info("FlowEventConsumer finalize: csv=%s json=%s png=%s", csv_file, json_file, png_file)
-            return {"csv": str(csv_file), "json": str(json_file), "png": str(png_file) if png_file else None}
+            # Markdown summary for stream
+            md_file = outdir / f"{self.stem}_sumflows_{self.sim_name}_stream.md"
+            try:
+                if len(self._values) > 0:
+                    mean_v = float(sum(self._values) / len(self._values))
+                    min_v = float(min(self._values))
+                    max_v = float(max(self._values))
+                else:
+                    mean_v = min_v = max_v = 0.0
+                md_lines = [
+                    f"# Live Sum of Flows (Stream) - {self.stem}",
+                    "",
+                    f"- Samples: {len(self._values)}",
+                    f"- Mean sum(flow): {mean_v:.6f} m³/s",
+                    f"- Min: {min_v:.6f} m³/s",
+                    f"- Max: {max_v:.6f} m³/s",
+                    "",
+                    f"Artifacts:",
+                    f"- CSV: `{csv_file}`",
+                    f"- JSON: `{json_file}`",
+                    f"- PNG: `{png_file}`" if png_file else "- PNG: (not generated)",
+                ]
+                with open(md_file, "w", encoding="utf-8") as fmd:
+                    fmd.write("\n".join(md_lines))
+            except Exception:
+                md_file = None
+            logger.info("FlowEventConsumer finalize: csv=%s json=%s png=%s md=%s", csv_file, json_file, png_file, md_file)
+            return {"csv": str(csv_file), "json": str(json_file), "png": str(png_file) if png_file else None, "md": str(md_file) if md_file else None}
         except Exception as e:
             logger.exception("FlowEventConsumer finalize error: %s", e)
             return {}

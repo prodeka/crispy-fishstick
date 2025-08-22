@@ -13,7 +13,7 @@ from .validators import NetworkValidator
 from .algorithms.binary import BinarySearchOptimizer
 from .base import BaseOptimizer, SimpleAdapter
 from .constraints_handler import apply_constraints_to_result
-from .utils.flows_inspector import inspect_simulation_result, FlowEventConsumer
+from ..utils.flows_inspector import inspect_simulation_result, FlowEventConsumer
 import json
 import time
 
@@ -528,18 +528,18 @@ class OptimizationController:
                         pass
                     self.net_path = Path(network_model) if isinstance(network_model, (str, Path)) else Path(cfg.get("network_path", "network.inp"))
                     self.impl = None
-                    # Progress callback pour UI Rich
-                    self._progress_callback = None
+                    # Progress callback pour UI Rich (unifié)
+                    self._progress_cb = None
 
                 def optimize(self, constraints: Dict[str, Any], objective: str = "price", seed: Optional[int] = None) -> Dict[str, Any]:
                     if (self.config or {}).get("dry_run"):
                         return {"meta": {"method": "global", "dry_run": True}, "proposals": []}
                     
                     # Émettre run_start si callback disponible
-                    if self._progress_callback:
+                    if self._progress_cb:
                         try:
                             total_work = self.optcfg.global_config.generations * self.optcfg.global_config.population_size
-                            self._progress_callback("run_start", {
+                            self._progress_cb("run_start", {
                                 "total_work": total_work,
                                 "generations": self.optcfg.global_config.generations,
                                 "population_size": self.optcfg.global_config.population_size,
@@ -556,7 +556,7 @@ class OptimizationController:
                             setattr(self.optcfg, "checkpoint", False)
                         except Exception:
                             pass
-                        self.impl = _Global(self.optcfg, self.net_path, progress_callback=self._progress_callback)
+                        self.impl = _Global(self.optcfg, self.net_path, progress_callback=self._progress_cb)
                         # Neutraliser tout callback de checkpoint si exposé par l'implémentation
                         try:
                             setattr(self.impl, "_create_checkpoint_callback", lambda *a, **k: (lambda *a2, **k2: None))
@@ -604,14 +604,14 @@ class OptimizationController:
                 def __init__(self, network_model: Any, solver: str = "epanet", price_db: Optional[Any] = None, config: Optional[Dict[str, Any]] = None) -> None:
                     super().__init__(network_model, solver, price_db, config)
                     self._on_generation_callback = None
-                    # Progress callback pour UI Rich
-                    self._progress_callback = None
+                    # Progress callback pour UI Rich (unifié)
+                    self._progress_cb = None
 
                 def set_on_generation_callback(self, cb) -> None:
                     self._on_generation_callback = cb
 
                 def set_progress_callback(self, cb) -> None:
-                    self._progress_callback = cb
+                    self._progress_cb = cb
                     # Transmettre aussi à la config pour que le GA puisse l'utiliser
                     if hasattr(self, 'config') and self.config:
                         self.config["_progress_cb"] = cb
@@ -724,9 +724,54 @@ class OptimizationController:
                         
                         # Construire un ordre stable des conduites à partir du modèle
                         pipe_ids = list((nm.links or {}).keys())
-                        # Créer le simulateur EPANET
-                        from ..core.epanet_wrapper import EPANETOptimizer as _EPO
-                        simulator = _EPO()
+                        # Créer le simulateur selon le choix de l'utilisateur
+                        if self.solver == "lcpi":
+                            # Utiliser LCPI avec le modèle unifié converti depuis INP
+                            from ..solvers.lcpi_optimizer import LCPIOptimizer as _LCPI
+                            from ..io import convert_to_solver_network_data
+                            lcpi_simulator = _LCPI()
+                            
+                            # Wrapper pour adapter l'interface LCPI à celle attendue par GA
+                            class LCPISimulatorWrapper:
+                                def __init__(self, lcpi_opt):
+                                    self.lcpi_opt = lcpi_opt
+                                
+                                def simulate(self, network_path, H_tank_map, diameters_map, duration_h=1, timestep_min=5, progress_callback=None):
+                                    # Convertir le modèle INP en format LCPI
+                                    network_data = convert_to_solver_network_data(
+                                        self.lcpi_opt._get_network_model_from_path(network_path),
+                                        H_tank_map.get("TANK1", 50.0),
+                                        diameters_map
+                                    )
+                                    
+                                    # Simulation LCPI
+                                    result = self.lcpi_opt.solver.simulate_network(network_data)
+                                    
+                                    # Adapter le format de sortie pour compatibilité avec EPANET
+                                    # L'algorithme génétique attend ces clés spécifiques
+                                    pressures = result.get("pressures", {})
+                                    velocities = result.get("velocities", {})
+                                    flows = result.get("flows", {})
+                                    
+                                    return {
+                                        "success": True,
+                                        "pressures_m": pressures,
+                                        "velocities_m_s": velocities,
+                                        "heads_m": result.get("heads", {}),
+                                        "flows_m3_s": flows,  # Important: LCPI fournit les débits ici
+                                        "min_pressure_m": min(pressures.values()) if pressures else 0.0,
+                                        "max_velocity_m_s": max(velocities.values()) if velocities else 0.0,
+                                        "min_velocity_m_s": min(velocities.values()) if velocities else 0.0,
+                                        "simulator": "lcpi",
+                                        "sim_time_seconds": 0.1  # LCPI est généralement plus rapide
+                                    }
+                            
+                            simulator = LCPISimulatorWrapper(lcpi_simulator)
+                        else:
+                            # Utiliser EPANET par défaut
+                            from ..core.epanet_wrapper import EPANETOptimizer as _EPO
+                            simulator = _EPO()
+                        
                         # Nouvel optimiseur conscient hydraulique
                         ga = _GA(cfg, cm, network_path=str(self.network_model), solver=simulator, pipe_ids=pipe_ids)
                         # Brancher le callback évènementiel si fourni via config
@@ -742,7 +787,7 @@ class OptimizationController:
                             if self._on_generation_callback is not None and hasattr(ga, "set_on_generation_callback"):
                                 ga.set_on_generation_callback(self._on_generation_callback)
                             # Connecter le progress callback pour UI Rich (avec adaptateur si disponible)
-                            progress_cb_to_use = getattr(self, '_progress_callback', None)
+                            progress_cb_to_use = getattr(self, '_progress_cb', None)
                             if progress_cb_to_use and hasattr(ga, "set_progress_callback"):
                                 ga.set_progress_callback(progress_cb_to_use)
                         except Exception:
@@ -1067,7 +1112,6 @@ class OptimizationController:
                     optimizer.set_progress_callback(progress_cb_adapter or progress_callback)
                 else:
                     setattr(optimizer, "_progress_cb", progress_cb_adapter or progress_callback)
-                    setattr(optimizer, "_progress_callback", progress_cb_adapter or progress_callback)
             except Exception:
                 pass
         if progress_callback:
@@ -1089,13 +1133,11 @@ class OptimizationController:
                         setattr(optimizer, "_progress_cb", cb)
                         print(f"DEBUG: Progress callback attaché via _progress_cb")
                 else:
-                    # best-effort: set common attribute names used across codebase
-                    for attr in ("_progress_cb", "_progress_callback", "progress_cb"):
-                        try:
-                            setattr(optimizer, attr, cb)
-                            break
-                        except Exception:
-                            pass
+                    # best-effort: set unified attribute name
+                    try:
+                        setattr(optimizer, "_progress_cb", cb)
+                    except Exception:
+                        pass
         except Exception:
             pass
         
@@ -1185,13 +1227,8 @@ class OptimizationController:
             pass
         # Enrichissement hydraulique (pressions/charges/vitesses/pertes/débits) pour INP si possible
         try:
-            from ..core.epanet_wrapper import EPANETOptimizer as _EPO
             if str(Path(str(input_path)).suffix).lower() == ".inp":
-                # Laisser EPANETOptimizer.simulate() émettre les événements sim_start/sim_done
-                
-                # Choix de backend si fourni via algo_params
-                backend = str((algo_params or {}).get("epanet_backend", "wntr")).lower()
-                epo = _EPO(backend=backend)
+                # Utiliser le solveur choisi par l'utilisateur pour l'enrichissement final
                 best = (result.get("proposals") or [None])[0]
                 diams = best.get("diameters_mm", {}) if isinstance(best, dict) else {}
                 
@@ -1224,9 +1261,133 @@ class OptimizationController:
                             pass
                     progress_cb_adapter = _combined_progress_cb
                 
-                # Pas d'émission supplémentaire ici pour éviter les doubles comptages
-                
-                sim = epo.simulate(str(input_path), H_tank_map={}, diameters_map=diams, duration_h=1, timestep_min=5, progress_callback=progress_cb_adapter)
+                # Simulation finale avec le solveur choisi par l'utilisateur
+                if solver == "lcpi":
+                    # Utiliser LCPI pour l'enrichissement final
+                    try:
+                        from .solvers.lcpi_optimizer import LCPIOptimizer as _LCPI
+                        from .io import convert_to_solver_network_data
+                        lcpi_final = _LCPI()
+                        
+                        # Debug: vérifier les paramètres
+                        if verbose:
+                            logger.info(f"LCPI enrichment: input_path={input_path}, diams={diams}")
+                        
+                        # Convertir le modèle INP en format LCPI
+                        network_data = convert_to_solver_network_data(
+                            lcpi_final._get_network_model_from_path(str(input_path)),
+                            10.0,  # H_tank par défaut
+                            diams
+                        )
+                        
+                        # Debug: vérifier le réseau converti
+                        if verbose:
+                            logger.info(f"LCPI enrichment: network_data keys={list(network_data.keys())}")
+                        
+                        # Simulation LCPI finale
+                        sim_raw = lcpi_final.solver.simulate_network(network_data)
+                        
+                        # Debug: vérifier ce que LCPI retourne
+                        if verbose:
+                            logger.info(f"LCPI simulation raw result: {sim_raw}")
+                        
+                        # Adapter le format de sortie pour compatibilité
+                        sim = {
+                            "success": True,
+                            "pressures_m": sim_raw.get("pressures", {}),
+                            "velocities_m_s": sim_raw.get("velocities", {}),
+                            "heads_m": sim_raw.get("heads", {}),
+                            "flows_m3_s": sim_raw.get("flows", {}),  # Important: LCPI fournit les débits ici
+                            "simulator": "lcpi",
+                            "sim_time_seconds": 0.1
+                        }
+                        
+                        # Debug: vérifier le format adapté
+                        if verbose:
+                            logger.info(f"LCPI simulation adapted result: {sim}")
+                            
+                    except ImportError as e:
+                        if verbose:
+                            logger.warning(f"Import LCPI failed: {e}, trying alternative path")
+                        try:
+                            from ..solvers.lcpi_optimizer import LCPIOptimizer as _LCPI
+                            from ..io import convert_to_solver_network_data
+                            lcpi_final = _LCPI()
+                            
+                            # Debug: vérifier les paramètres
+                            if verbose:
+                                logger.info(f"LCPI enrichment: input_path={input_path}, diams={diams}")
+                            
+                            # Convertir le modèle INP en format LCPI
+                            network_data = convert_to_solver_network_data(
+                                lcpi_final._get_network_model_from_path(str(input_path)),
+                                10.0,  # H_tank par défaut
+                                diams
+                            )
+                            
+                            # Debug: vérifier le réseau converti
+                            if verbose:
+                                logger.info(f"LCPI enrichment: network_data keys={list(network_data.keys())}")
+                            
+                            # Simulation LCPI finale
+                            sim_raw = lcpi_final.solver.simulate_network(network_data)
+                            
+                            # Debug: vérifier ce que LCPI retourne
+                            if verbose:
+                                logger.info(f"LCPI simulation raw result: {sim_raw}")
+                            
+                            # Adapter le format de sortie pour compatibilité
+                            sim = {
+                                "success": True,
+                                "pressures_m": sim_raw.get("pressures", {}),
+                                "velocities_m_s": sim_raw.get("velocities", {}),
+                                "heads_m": sim_raw.get("heads", {}),
+                                "flows_m3_s": sim_raw.get("flows", {}),  # Important: LCPI fournit les débits ici
+                                "simulator": "lcpi",
+                                "sim_time_seconds": 0.1
+                            }
+                            
+                            # Debug: vérifier le format adapté
+                            if verbose:
+                                logger.info(f"LCPI simulation adapted result: {sim}")
+                                
+                        except ImportError as e2:
+                            if verbose:
+                                logger.error(f"All LCPI import attempts failed: {e2}")
+                            # Fallback: utiliser EPANET si LCPI n'est pas disponible
+                            from ..core.epanet_wrapper import EPANETOptimizer as _EPO
+                            backend = str((algo_params or {}).get("epanet_backend", "wntr")).lower()
+                            epo = _EPO(backend=backend)
+                            sim = epo.simulate(str(input_path), H_tank_map={}, diameters_map=diams, duration_h=1, timestep_min=5, progress_callback=progress_cb_adapter)
+                            if verbose:
+                                logger.info("Fallback to EPANET due to LCPI import failure")
+                    
+                    # Convertir le modèle INP en format LCPI
+                    network_data = convert_to_solver_network_data(
+                        lcpi_final._get_network_model_from_path(str(input_path)),
+                        10.0,  # H_tank par défaut
+                        diams
+                    )
+                    
+                    # Simulation LCPI finale
+                    sim = lcpi_final.solver.simulate_network(network_data)
+                    
+                    # Adapter le format de sortie pour compatibilité
+                    sim = {
+                        "success": True,
+                        "pressures_m": sim.get("pressures", {}),
+                        "velocities_m_s": sim.get("velocities", {}),
+                        "heads_m": sim.get("heads", {}),
+                        "flows_m3_s": sim.get("flows", {}),  # Important: LCPI fournit les débits ici
+                        "simulator": "lcpi",
+                        "sim_time_seconds": 0.1
+                    }
+                else:
+                    # Utiliser EPANET par défaut
+                    from ..core.epanet_wrapper import EPANETOptimizer as _EPO
+                    backend = str((algo_params or {}).get("epanet_backend", "wntr")).lower()
+                    epo = _EPO(backend=backend)
+                    sim = epo.simulate(str(input_path), H_tank_map={}, diameters_map=diams, duration_h=1, timestep_min=5, progress_callback=progress_cb_adapter)
                 if sim.get("success"):
                     # Pas d'émission sim_done ici: EPANETOptimizer.simulate() l'a déjà émis
                     
@@ -1294,30 +1455,34 @@ class OptimizationController:
                     except Exception:
                         pass
                 
+                else:
+                    # Pas d'émission sim_error ici pour éviter les incohérences; les erreurs sont dans result.hydraulics
+                    result.setdefault("hydraulics", {})["error"] = sim.get("error")
+
                 # === INSPECTION DES FLUX APRÈS SIMULATION ===
                 try:
                     flows_artifacts = {}
                     # inspect_simulation_result accepte WNTR results or dicts
                     try:
                         inspect_res = inspect_simulation_result(sim, outdir=art_dir, stem=Path(input_path).stem, sim_name="epanet", save_plot=True, write_json_series=True)
-                        flows_artifacts.update(inspect_res)
+                        # Peut retourner un dict simple (csv/json/png/stats) ou être intégré
+                        if isinstance(inspect_res, dict):
+                            flows_artifacts.update(inspect_res)
                     except Exception as e:
                         logger.debug("flows_inspector offline failed: %s", e)
                     # finalize streaming consumer if present
                     if flow_consumer is not None:
                         try:
                             stream_art = flow_consumer.finalize()
-                            flows_artifacts.setdefault("stream", {}).update(stream_art)
+                            if isinstance(stream_art, dict):
+                                flows_artifacts.setdefault("stream", {}).update(stream_art)
                         except Exception:
                             pass
                     # attach to result meta
-                    result.setdefault("meta", {}).setdefault("artifacts", {})["flows"] = flows_artifacts
+                    if flows_artifacts:
+                        result.setdefault("meta", {}).setdefault("artifacts", {})["flows"] = flows_artifacts
                 except Exception as e:
                     logger.debug("Failed to attach flow artifacts: %s", e)
-                
-                else:
-                    # Pas d'émission sim_error ici pour éviter les incohérences; les erreurs sont dans result.hydraulics
-                    result.setdefault("hydraulics", {})["error"] = sim.get("error")
         except Exception:
             pass
 
@@ -1617,8 +1782,8 @@ class OptimizationController:
                 bigger = [x for x in candidate_diams if x >= d]
                 return bigger[0] if bigger else candidate_diams[-1]
 
-        # Agressivité accrue
-        max_iters = 20
+        # Agressivité réduite: itérations limitées
+        max_iters = 10
         for _ in range(max_iters):
             if epo is None:
                 break
@@ -1639,14 +1804,30 @@ class OptimizationController:
                 # Retrier
                 result["proposals"] = self._sort_proposals_by_quality(result["proposals"])
                 return result
-            # Sinon augmenter des conduites candidates (heuristique agressive: augmenter 20% des conduites les plus petites, saut de 2 crans)
+            # Sinon augmenter des conduites candidates de manière ciblée (faible agressivité):
+            # - augmenter uniquement les plus petites conduites (5% ou au moins 1)
+            # - un seul cran par itération
+            # - logger les modifications
             try:
                 sorted_small = sorted(diams.items(), key=lambda kv: kv[1])
-                k = max(1, int(0.2 * len(sorted_small)))
+                k = max(1, int(0.05 * len(sorted_small)))
+                changed = []
                 for key, val in sorted_small[:k]:
-                    v1 = bump(int(val))
-                    v2 = bump(int(v1))
-                    diams[key] = v2
+                    new_val = bump(int(val))
+                    if new_val != val:
+                        diams[key] = new_val
+                        changed.append((key, val, new_val))
+                if changed:
+                    try:
+                        logger.info("FEASIBLE_REPAIR_STEP", extra={
+                            "changes": [{"pipe": c[0], "from_mm": c[1], "to_mm": c[2]} for c in changed],
+                            "min_pressure": min_p,
+                            "required_pressure": pmin_req,
+                            "max_velocity": max_v,
+                            "required_vmax": vmax_req
+                        })
+                    except Exception:
+                        pass
             except Exception:
                 break
         # Si on arrive ici: réparation non concluante; renvoyer l'original

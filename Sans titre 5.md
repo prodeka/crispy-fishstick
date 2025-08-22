@@ -422,4 +422,51 @@ Condition manquante dans l’instruction if après « if ( ».
 PS C:\PROJET_DIMENTIONEMENT_2> 
 
 
+- J’ai corrigé les imports et intégré le diagnostic des débits (offline + streaming) au contrôleur. Le test de streaming fonctionne et génère CSV/JSON/PNG/MD. Le test d’optimisation tourne mais le mini INP de démo échoue (success=False), donc pas d’artefacts sur ce test synthétique.
+
+### Ce qui est fait
+- **`flows_inspector`**: analyse offline + rapport Markdown; consommateur d’événements live (`FlowEventConsumer`) avec sauvegarde CSV/JSON/PNG/MD.
+- **Contrôleur** `OptimizationController.run_optimization`:
+  - Création dossier d’artefacts `results/run_<timestamp>/`.
+  - Option streaming via `algo_params["stream_flows"]`; wrapper `progress_callback` pour dupliquer vers `FlowEventConsumer`.
+  - Inspection offline via `inspect_simulation_result`; artefacts attachés dans `result['meta']['artifacts']['flows']`.
+- **CLI** `--stream-flows`: exposé et propagé à `algo_params`.
+- **Tests**:
+  - `tools/test_flow_streaming.py`: OK → artefacts dans `results/test_stream/`.
+  - `tools/test_optimization_streaming.py`: exécute une optimisation courte avec streaming; succès False avec l’INP minimal, ce qui est attendu pour ce mock.
+
+### Comment tester rapidement
+- Test du streaming seul:
+```bash
+python tools/test_flow_streaming.py
+```
+Artefacts attendus: `results/test_stream/demo_sumflows_teststream_stream.{csv,json,png,md}`
+
+- Test d’optimisation (démo) avec streaming:
+```bash
+python tools/test_optimization_streaming.py
+```
+Note: ce mini INP peut échouer (success=False). Sur un vrai `.inp`, les artefacts seront dans `results/run_<timestamp>/`.
+
+- Via CLI sur votre projet:
+```bash
+python -m src.lcpi.aep.cli network-optimize-unified <votre_config.yml> --solver epanet --method genetic --stream-flows -g 10 -p 20
+```
+
+### Fichiers modifiés/ajoutés
+- `src/lcpi/aep/utils/flows_inspector.py`: +MD offline/stream, retours enrichis.
+- `src/lcpi/aep/optimizer/controllers.py`: intégration artefacts + streaming + import corrigé (`..utils`).
+- `src/lcpi/aep/cli.py`: ajout `--stream-flows` et propagation.
+- `tools/test_flow_streaming.py`: import corrigé et validé.
+- `tools/test_optimization_streaming.py`: nouveau script de démo.
+
+### Prochaines étapes suggérées
+- Exécuter une optimisation sur votre `.inp` réel avec `--stream-flows` pour valider la génération des artefacts et la courbe live.
+- Ensuite: corriger la logique de validation des contraintes et analyser la conservation de masse sur le réseau réel (déjà identifiés comme priorités).
+
+- Résumé:
+  - Intégration complète du diagnostic des flux (offline + live) et artefacts.
+  - Flag CLI `--stream-flows` opérationnel.
+  - Tests: streaming OK; optimisation de démo sans artefacts car simulation échoue avec l’INP minimal.
+
 

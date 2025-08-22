@@ -126,6 +126,10 @@ def apply_constraints(
             solution["costs"]["CAPEX"] = float(solution["costs"].get("CAPEX", 0.0)) + total_penalty
         elif "cost" in solution and isinstance(solution.get("cost"), (int, float)):
             solution["cost"] = float(solution.get("cost", 0.0)) + total_penalty
+        
+        # En mode soft, si il y a des violations, marquer comme non conforme
+        if violations:
+            constraints_ok = False
 
     # If hard mode is requested, any violation forces constraints_ok=False
     if mode == "hard" or (hard_velocity and vmax_req is not None):

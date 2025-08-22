@@ -1,4 +1,4 @@
-  Page 1                                    Thu Aug 21 16:51:40 2025
+  Page 1                                    Thu Aug 21 20:37:55 2025
 
   ******************************************************************
   *                           E P A N E T                          *
@@ -33,12 +33,12 @@
          No Nodes
          No Links
    
-  Analysis begun Thu Aug 21 16:51:40 2025
+  Analysis begun Thu Aug 21 20:37:55 2025
 
    
   Hydraulic Status:
   -----------------------------------------------------------------------
-     0:00:00: Balanced after 24 trials
+     0:00:00: Balanced after 28 trials
      0:00:00: Tank R1 is closed at 4.50 m
      0:00:00: Tank R2 is closed at 5.20 m
      0:00:00: Tank R3 is emptying at 32.00 m
@@ -69,4 +69,4 @@
    
      1:00:00: Balanced after 1 trials
    
-  Analysis ended Thu Aug 21 16:51:40 2025
+  Analysis ended Thu Aug 21 20:37:55 2025

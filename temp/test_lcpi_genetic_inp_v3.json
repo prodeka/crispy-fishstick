@@ -1,0 +1,96 @@
+{
+  "meta": {
+    "method": "genetic",
+    "solver": "lcpi",
+    "warning": "fallback: 2 validation errors for ParametresAlgorithme\npopulation_size\n  Input should be greater than or equal to 20 [type=greater_than_equal, input_value=2, input_type=int]\n    For further information visit https://errors.pydantic.dev/2.10/v/greater_than_equal\ngenerations\n  Input should be greater than or equal to 10 [type=greater_than_equal, input_value=1, input_type=int]\n    For further information visit https://errors.pydantic.dev/2.10/v/greater_than_equal",
+    "sim_time_seconds_total": 0.0,
+    "solver_calls": 0,
+    "generations": 1,
+    "population": 2,
+    "constraints": {
+      "pressure_min_m": 10.0,
+      "velocity_min_m_s": 0.3,
+      "velocity_max_m_s": 1.5
+    },
+    "cache_hits": 0,
+    "surrogate_used": false,
+    "total_evals": 2,
+    "headloss_model": "auto",
+    "price_db_info": {
+      "path": "C:\\PROJET_DIMENTIONEMENT_2\\src\\lcpi\\db\\aep_prices.db",
+      "checksum": "7d0a554448756f4e33dc32e856f7a74693b824c1e611ab021f1813b98254cf99",
+      "version": "unknown",
+      "type": "external_file",
+      "source": "C:\\PROJET_DIMENTIONEMENT_2\\src\\lcpi\\db\\aep_prices.db"
+    },
+    "source_meta": {
+      "source": "inp",
+      "file": "src\\lcpi\\aep\\PROTOTYPE\\INP\\bismark-Administrator.inp",
+      "converted_at": 1755807956.393775
+    },
+    "solver_details": {
+      "family": "lcpi"
+    },
+    "duration_seconds": 0.08298158645629883,
+    "best_cost": 0.0
+  },
+  "proposals": [
+    {
+      "id": "baseline",
+      "H_tank_m": null,
+      "diameters_mm": {},
+      "CAPEX": 0.0,
+      "metrics": {},
+      "constraints_ok": true
+    }
+  ],
+  "pareto": [],
+  "metrics": {
+    "ga_hook_calls": 1,
+    "hybrid_improved_count": 0,
+    "best_cost": 0.0
+  },
+  "cache_info": {
+    "hit": false
+  },
+  "report_payload": {
+    "metadata": {
+      "network_file": "src\\lcpi\\aep\\PROTOTYPE\\INP\\bismark-Administrator.inp",
+      "method": "genetic",
+      "solver": "lcpi",
+      "constraints": {
+        "pressure_min_m": 10.0,
+        "velocity_min_m_s": 0.3,
+        "velocity_max_m_s": 1.5
+      },
+      "price_db_info": {
+        "path": "C:\\PROJET_DIMENTIONEMENT_2\\src\\lcpi\\db\\aep_prices.db",
+        "checksum": "7d0a554448756f4e33dc32e856f7a74693b824c1e611ab021f1813b98254cf99",
+        "version": "unknown",
+        "type": "external_file",
+        "source": "C:\\PROJET_DIMENTIONEMENT_2\\src\\lcpi\\db\\aep_prices.db"
+      }
+    },
+    "proposals": [
+      {
+        "name": "baseline",
+        "is_feasible": true,
+        "costs": {
+          "capex": 0.0,
+          "opex_npv": null
+        },
+        "tanks": [],
+        "diameters_mm": {}
+      }
+    ],
+    "pareto_front": []
+  },
+  "integrity": {
+    "checksum": "061c2d3d68bd74321fcfa547853932b8a6a79336c4bef95cb6d1ad34175d4448",
+    "signature": "1f89824bfcdd3fcbf6b84affbae80e36b760930f996b69908a1a14d41a1cff62",
+    "signature_valid": true,
+    "algorithm": "HMAC-SHA256",
+    "timestamp": 1755807956.469321,
+    "signed_at": "2025-08-21T20:25:56.469321"
+  }
+}

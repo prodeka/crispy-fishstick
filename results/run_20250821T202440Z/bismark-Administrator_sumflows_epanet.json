@@ -1,0 +1,19 @@
+{
+  "simulator": "epanet",
+  "inp_stem": "bismark-Administrator",
+  "statistics": {
+    "n_timesteps": 1,
+    "mean_total_signed": -2.8811304562550504,
+    "max_total_signed": -2.8811304562550504,
+    "min_total_signed": -2.8811304562550504,
+    "std_total_signed": NaN,
+    "link_count": 205
+  },
+  "series": [
+    {
+      "time_s": 0.0,
+      "sum_signed_m3s": -2.8811304562550504,
+      "sum_abs_m3s": 9.577350484352792
+    }
+  ]
+}

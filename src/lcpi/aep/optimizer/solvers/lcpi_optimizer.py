@@ -22,5 +22,11 @@ class LCPIOptimizer:
         params = {"H_tank": float(H_tank), "diameters": diameters or {}}
         result = self.solver.simulate_network(network_dict, **params)
         return result
+    
+    def _get_network_model_from_path(self, network_path: str | Path) -> NetworkModel:
+        """Charge un modèle réseau depuis un chemin de fichier (.inp ou .yml)."""
+        from ..io import load_yaml_or_inp
+        nm, _ = load_yaml_or_inp(Path(network_path))
+        return nm
 
 

@@ -1,6 +1,11 @@
 # tools/test_flow_streaming.py
 import time, random
+import sys
 from pathlib import Path
+
+# Ajouter le répertoire racine au path pour les imports
+sys.path.insert(0, str(Path(__file__).parent.parent))
+
 from src.lcpi.aep.utils.flows_inspector import FlowEventConsumer
 
 def main():
