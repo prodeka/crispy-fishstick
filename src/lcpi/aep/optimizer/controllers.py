@@ -85,7 +85,7 @@ def _make_progress_adapter(user_cb):
                 pass
             return
 
-        # Generation events (pass through)
+        # Generation & individual events (pass through)
         if ev in ("generation_start", "generation_end", "individual_start", "individual_end"):
             try:
                 user_cb(evt, data)
@@ -97,6 +97,15 @@ def _make_progress_adapter(user_cb):
         if ev in ("hybrid_start", "hybrid_end", "refinement_start", "refinement_end"):
             try:
                 user_cb(evt, data)
+            except Exception:
+                pass
+            return
+
+        # Normalize best updates
+        if ev in ("best_updated", "best_improved"):
+            try:
+                bc = data.get("best_cost") or data.get("new_cost")
+                user_cb("best_updated", {"best_cost": bc})
             except Exception:
                 pass
             return
