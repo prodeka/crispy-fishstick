@@ -1,0 +1,10 @@
+{
+  "cost": 3750065.0,
+  "simulation_time": null,
+  "n_nodes": 0,
+  "n_links": 0,
+  "pressure_min": null,
+  "pressure_max": null,
+  "flow_sum": null,
+  "demand_sum": null
+}
