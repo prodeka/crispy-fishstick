@@ -1,0 +1,57 @@
+[TITLE]
+Test Network for Flow Streaming
+
+[JUNCTIONS]
+J1         10.0    100.0   ;
+J2         10.0    100.0   ;
+J3         10.0    100.0   ;
+
+[RESERVOIRS]
+R1         50.0    0.0     ;
+
+[PIPES]
+P1         R1      J1      1000.0  315.0   100.0   ;
+P2         J1      J2      800.0   315.0   100.0   ;
+P3         J2      J3      600.0   315.0   100.0   ;
+
+[DEMANDS]
+J1         0.1     ;
+J2         0.05    ;
+J3         0.05    ;
+
+[PATTERNS]
+P1         1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     ;
+
+[CONTROLS]
+LINK P1 OPEN AT TIME 0
+
+[OPTIONS]
+UNITS           LPS
+HEADLOSS        H-W
+QUALITY         NONE
+VISCOSITY       1.0
+DIFFUSIVITY     1.0
+SPECIFIC GRAVITY 1.0
+TRIALS          40
+ACCURACY        0.01
+CHECKFREQ       2
+MAXCHECK        10
+DAMPLIMIT       0
+UNBALANCED      STOP 10
+PATTERN         1
+DEMAND MULTIPLIER 1.0
+EMITTER EXPONENT 0.5
+QUALITY TOLERANCE 0.01
+MAP             NONE
+
+[REPORT]
+STATUS          YES
+SUMMARY         YES
+PAGESIZE        0
+FILE            NONE
+PRESSURE        1
+PRECISION       2
+NODES           ALL
+LINKS           ALL
+
+[END]

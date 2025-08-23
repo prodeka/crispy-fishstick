@@ -11,7 +11,7 @@ from rich.text import Text
 # Console globale pour une utilisation cohérente
 console = Console()
 
-class RichProgressManager:
+class RichUI:
     """Gère un affichage de progression multi-barres pour l'optimiseur."""
 
     def __init__(self, console: Console):

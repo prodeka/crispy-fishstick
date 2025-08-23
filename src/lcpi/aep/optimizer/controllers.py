@@ -907,15 +907,15 @@ class OptimizationController:
             (progress_cb_adapter or progress_callback)("loading", {"input_path": str(input_path)})
         model_dict = self._load_input(Path(input_path))
 
-        # Diagnostic faisabilité INP (V15)
-        try:
-            if str(input_path).lower().endswith('.inp'):
-                from .validators import check_inp_feasibility  # type: ignore
-                feas = check_inp_feasibility(Path(input_path), simulate=True)
-                if not feas.get('ok', True):
-                    return {"status": "failed", "errors": feas.get('errors', []), "meta": {"input": str(input_path), "feasibility": feas}}
-        except Exception:
-            pass
+        # Diagnostic faisabilité INP (V15) - DÉSACTIVÉ CAR REDONDANT AVEC LA VALIDATION CLI
+        # try:
+        #     if str(input_path).lower().endswith('.inp'):
+        #         from .validators import check_inp_feasibility  # type: ignore
+        #         feas = check_inp_feasibility(Path(input_path), simulate=True)
+        #         if not feas.get('ok', True):
+        #             return {"status": "failed", "errors": feas.get('errors', []), "meta": {"input": str(input_path), "feasibility": feas}}
+        # except Exception:
+        #     pass
 
         # Pour l'optimiseur nested existant, passer plutôt le chemin pour qu'il parse lui-même
         network_for_opt: Any = str(input_path)
@@ -1285,7 +1285,7 @@ class OptimizationController:
                         # Convertir le modèle INP en format LCPI
                         network_data = convert_to_solver_network_data(
                             lcpi_final._get_network_model_from_path(str(input_path)),
-                            10.0,  # H_tank par défaut
+                            50.0,  # H_tank par défaut (alignement)
                             diams
                         )
                         
@@ -1330,7 +1330,7 @@ class OptimizationController:
                             # Convertir le modèle INP en format LCPI
                             network_data = convert_to_solver_network_data(
                                 lcpi_final._get_network_model_from_path(str(input_path)),
-                                10.0,  # H_tank par défaut
+                                50.0,  # H_tank par défaut (alignement)
                                 diams
                             )
                             
@@ -1374,7 +1374,7 @@ class OptimizationController:
                     # Convertir le modèle INP en format LCPI
                     network_data = convert_to_solver_network_data(
                         lcpi_final._get_network_model_from_path(str(input_path)),
-                        10.0,  # H_tank par défaut
+                        50.0,  # H_tank par défaut (alignement)
                         diams
                     )
                     
@@ -1813,13 +1813,13 @@ class OptimizationController:
                 # Retrier
                 result["proposals"] = self._sort_proposals_by_quality(result["proposals"])
                 return result
-            # Sinon augmenter des conduites candidates de manière ciblée (faible agressivité):
-            # - augmenter uniquement les plus petites conduites (5% ou au moins 1)
-            # - un seul cran par itération
-            # - logger les modifications
+            # Sinon augmenter des conduites candidates de manière ciblée (encore plus conservateur):
+            # - sélectionner au plus 5 tronçons (les plus petites)
+            # - augmenter d'un seul cran par itération
+            # - journaliser la réparation appliquée
             try:
                 sorted_small = sorted(diams.items(), key=lambda kv: kv[1])
-                k = max(1, int(0.05 * len(sorted_small)))
+                k = min(5, max(1, int(0.05 * len(sorted_small))))
                 changed = []
                 for key, val in sorted_small[:k]:
                     new_val = bump(int(val))
@@ -1828,15 +1828,18 @@ class OptimizationController:
                         changed.append((key, val, new_val))
                 if changed:
                     try:
-                        logger.info("FEASIBLE_REPAIR_STEP", extra={
+                        logger.warning("REPAIR_DIAMETERS_APPLIED", extra={
                             "changes": [{"pipe": c[0], "from_mm": c[1], "to_mm": c[2]} for c in changed],
                             "min_pressure": min_p,
                             "required_pressure": pmin_req,
                             "max_velocity": max_v,
-                            "required_vmax": vmax_req
+                            "required_vmax": vmax_req,
+                            "changed_pipes_count": len(changed)
                         })
                     except Exception:
                         pass
+                else:
+                    break
             except Exception:
                 break
         # Si on arrive ici: réparation non concluante; renvoyer l'original

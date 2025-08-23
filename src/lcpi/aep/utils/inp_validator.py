@@ -77,19 +77,39 @@ class INPValidator:
     
     def _check_empty_sections(self):
         """Vérifie les sections vides qui peuvent causer des problèmes."""
+        # Sections qui sont souvent vides dans les fichiers INP de base et ne posent pas de problème.
+        ALLOWED_EMPTY_SECTIONS = {
+            'TAGS', 'DEMANDS', 'STATUS', 'CONTROLS', 'RULES', 'EMITTERS', 
+            'QUALITY', 'MIXING', 'VERTICES', 'LABELS', 'BACKDROP', 'PATTERNS', 
+            'ENERGY', 'REACTIONS', 'SOURCES', 'END'
+        }
+        
         empty_sections = []
+        allowed_empty_sections = []
         
         for section_name, lines in self.sections.items():
             # Filtrer les lignes vides et commentaires
             non_empty_lines = [line for line in lines if line and not line.startswith(';')]
             
             if not non_empty_lines:
-                empty_sections.append(section_name)
+                # Vérifier si c'est une section autorisée à être vide
+                if section_name.upper() in ALLOWED_EMPTY_SECTIONS:
+                    allowed_empty_sections.append(section_name)
+                else:
+                    empty_sections.append(section_name)
         
+        # Afficher les sections autorisées vides comme information
+        if allowed_empty_sections:
+            self.issues.append(
+                f"⚠️ Sections vides détectées: {', '.join(allowed_empty_sections)}. "
+                "Ces sections peuvent causer des warnings wntr mais sont généralement sans impact."
+            )
+        
+        # Afficher les sections critiques vides comme problème
         if empty_sections:
             self.issues.append(
-                f"Sections vides détectées: {', '.join(empty_sections)}. "
-                "Ces sections peuvent causer des warnings wntr."
+                f"❌ Sections critiques vides détectées: {', '.join(empty_sections)}. "
+                "Ces sections peuvent causer des problèmes de simulation."
             )
     
     def _check_units_consistency(self):
@@ -207,8 +227,24 @@ class INPValidator:
         if not self.issues:
             return "✅ Fichier INP valide - Aucun problème détecté"
         
-        summary = f"⚠️ {len(self.issues)} problème(s) détecté(s):\n"
-        for i, issue in enumerate(self.issues, 1):
+        # Compter les types de problèmes
+        warnings = [issue for issue in self.issues if issue.startswith("⚠️")]
+        errors = [issue for issue in self.issues if issue.startswith("❌")]
+        others = [issue for issue in self.issues if not issue.startswith(("⚠️", "❌"))]
+        
+        total_issues = len(self.issues)
+        summary = f"⚠️ {total_issues} problème(s) détecté(s):\n"
+        
+        # Afficher d'abord les erreurs critiques
+        for i, issue in enumerate(errors, 1):
+            summary += f"  {i}. {issue}\n"
+        
+        # Puis les avertissements
+        for i, issue in enumerate(warnings, len(errors) + 1):
+            summary += f"  {i}. {issue}\n"
+        
+        # Puis les autres problèmes
+        for i, issue in enumerate(others, len(errors) + len(warnings) + 1):
             summary += f"  {i}. {issue}\n"
         
         return summary

@@ -474,6 +474,11 @@ class GeneticOptimizerV2:
                     self._emit("best_improved", {"generation": generation, "new_cost": current_best_cost})
                 except Exception:
                     pass
+                # Alias homogène pour UI/adapter
+                try:
+                    self._emit("best_updated", {"generation": generation, "best_cost": current_best_cost})
+                except Exception:
+                    pass
             else:
                 self.stagnation_counter += 1
 

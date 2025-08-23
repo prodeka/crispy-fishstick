@@ -1,0 +1,17 @@
+{
+  "status": "failed",
+  "errors": [
+    "Lecture/Simulation échouée: (Error 200) one or more errors in input file 'examples\\\\bismark-Administrator.inp'"
+  ],
+  "meta": {
+    "input": "examples\\bismark-Administrator.inp",
+    "feasibility": {
+      "ok": false,
+      "errors": [
+        "Lecture/Simulation échouée: (Error 200) one or more errors in input file 'examples\\\\bismark-Administrator.inp'"
+      ],
+      "warnings": [],
+      "simulator_info": null
+    }
+  }
+}

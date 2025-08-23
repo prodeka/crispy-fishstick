@@ -8,18 +8,21 @@ from rich import print as rprint
 
 from ..optimizer.controllers import OptimizationController  # type: ignore
 from ..utils.inp_validator import validate_inp_file
+from ..utils.inp_demand_manager import handle_demand_logic
 
 
 app = typer.Typer(name="network-optimize-unified", help="Optimisation réseau unifiée (INP/YML)")
 _controller = OptimizationController()
 
 
-@app.command("run")
+@app.callback(invoke_without_command=True)
 def network_optimize_unified(
-    input_file: Path = typer.Argument(..., help="Fichier réseau (.inp ou .yml)"),
+    ctx: typer.Context,
+    input_file: Path = typer.Argument(..., help="Fichier réseau (.inp ou .yml)", exists=True, file_okay=True, dir_okay=False, readable=True),
     method: str = typer.Option("nested", "--method", "-m", help="genetic|nested|surrogate|global|multi-tank"),
     solver: str = typer.Option("epanet", "--solver", help="epanet|lcpi|mock"),
     solvers: Optional[str] = typer.Option(None, "--solvers", help="Exécuter la commande pour plusieurs solveurs, séparés par des virgules (ex: epanet,lcpi)"),
+    demand: Optional[float] = typer.Option(None, "--demand", help="Valeur de demande globale à appliquer (écrase les demandes existantes si confirmé)"),
     pression_min: Optional[float] = typer.Option(None, "--pression-min", help="Pression minimale (m)"),
     vitesse_min: Optional[float] = typer.Option(None, "--vitesse-min", help="Vitesse minimale (m/s)"),
     vitesse_max: Optional[float] = typer.Option(None, "--vitesse-max", help="Vitesse maximale (m/s)"),
@@ -30,23 +33,25 @@ def network_optimize_unified(
     report_output: Optional[Path] = typer.Option(None, "--report-output", help="Dossier de sortie pour les rapports (défaut: même dossier que --output)"),
     show_stats: bool = typer.Option(False, "--show-stats", help="Afficher les statistiques hydrauliques après l'optimisation"),
     verbose: bool = typer.Option(False, "--verbose", "-v", help="Verbose"),
+    no_log: bool = typer.Option(False, "--no-log", help="Désactiver les journaux et confirmations interactives"),
+    epanet_backend: str = typer.Option("dll", "--epanet-backend", help="Backend EPANET à utiliser: wntr|dll"),
 ):
     """Commande d'optimisation unifiée acceptant .inp et .yml avec support des rapports HTML, Markdown et PDF."""
-            # Processing input file
-    
-    if not input_file.exists():
-        rprint(f"[red]Fichier introuvable:[/red] {input_file}")
-        raise typer.Exit(code=2)
-    
+    if ctx.invoked_subcommand is not None:
+        return
+
+    # Gestion de la logique de demande AVANT la validation
+    processed_input_file = handle_demand_logic(input_file, demand, no_log)
+
     # Validation et nettoyage automatique du fichier INP
-    if input_file.suffix.lower() == '.inp':
-        rprint("[yellow]🔍 Validation du fichier INP...[/yellow]")
-        success, message = validate_inp_file(input_file)
+    if processed_input_file.suffix.lower() == '.inp':
+        rprint("[yellow]🔍 Validation du fichier INP traité...[/yellow]")
+        success, message = validate_inp_file(processed_input_file)
         if success:
             rprint(f"[green]✅ {message}[/green]")
         else:
             rprint(f"[red]❌ {message}[/red]")
-            if typer.confirm("Continuer malgré les problèmes ?"):
+            if no_log or typer.confirm("Continuer malgré les problèmes ?"):
                 rprint("[yellow]⚠️ Continuation avec le fichier non validé[/yellow]")
             else:
                 raise typer.Exit(1)
@@ -72,7 +77,7 @@ def network_optimize_unified(
             rprint(f"[yellow]⏳ Optimisation {i}/{len(multi_solver_list)} avec {sname}...[/yellow]")
             try:
                 result = _controller.run_optimization(
-                    input_path=input_file,
+                    input_path=processed_input_file,
                     method=method,
                     solver=sname,
                     constraints=constraints,
@@ -131,13 +136,13 @@ def network_optimize_unified(
     
     try:
         result = _controller.run_optimization(
-            input_path=input_file,
+            input_path=processed_input_file,
             method=method,
             solver=solver,
             constraints=constraints,
             hybrid_refiner=None,
             hybrid_params=None,
-            algo_params={"hard_velocity": bool(hard_vel)},
+            algo_params={"hard_velocity": bool(hard_vel), "epanet_backend": epanet_backend},
             price_db=str(price_db) if price_db else None,
             verbose=verbose,
         )

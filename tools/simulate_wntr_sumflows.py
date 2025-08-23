@@ -2,6 +2,7 @@
 from pathlib import Path
 import json
 import csv
+import argparse
 
 def _safe_float(x):
 	try:
@@ -130,3 +131,93 @@ def run_wntr_sumflows_and_save(inp_path, artifacts_dir, diameters_map=None, back
 		pass
 
 	return {"json": out_json, "csv": out_csv, "png": out_png, "flow_conservation_ok": conservation_ok, "flow_conservation_max_abs_sum": max_abs_sum}
+
+
+def _derive_png_path(json_path: Path = None, csv_path: Path = None) -> Path:
+	try:
+		if json_path:
+			stem = json_path.stem
+			base = json_path.with_name(f"{stem}_flow.png")
+			return base
+	except Exception:
+		pass
+	try:
+		if csv_path:
+			stem = csv_path.stem
+			if stem.endswith("_flows"):
+				stem = stem[:-1]
+			base = csv_path.with_name(f"{stem}.png")
+			return base
+	except Exception:
+		pass
+	return Path("flows_timeseries.png")
+
+
+def main_cli():
+	parser = argparse.ArgumentParser(description="Simuler un INP avec WNTR/EPANET et exporter la somme des débits (JSON/CSV/PNG)")
+	parser.add_argument("--inp", required=True, help="Chemin du fichier .inp")
+	parser.add_argument("--out", required=False, help="Chemin du JSON de sortie (ex: artifacts/sim_one.json)")
+	parser.add_argument("--csv", dest="csv_out", required=False, help="Chemin du CSV de sortie (ex: artifacts/sim_one_flows.csv)")
+	parser.add_argument("--png", dest="png_out", required=False, help="Chemin du PNG de sortie (ex: artifacts/sim_one_flow.png)")
+	parser.add_argument("--artifacts", required=False, help="Dossier d'artefacts si --out/--csv non fournis", default=None)
+	parser.add_argument("--backend", required=False, default="wntr")
+	args = parser.parse_args()
+
+	inp_path = Path(args.inp)
+	if args.out:
+		art_dir = Path(args.out).parent
+	elif args.csv_out:
+		art_dir = Path(args.csv_out).parent
+	elif args.artifacts:
+		art_dir = Path(args.artifacts)
+	else:
+		art_dir = Path("artifacts")
+	art_dir.mkdir(parents=True, exist_ok=True)
+
+	res = run_wntr_sumflows_and_save(inp_path, art_dir, backend=args.backend)
+
+	try:
+		if args.out:
+			target_json = Path(args.out)
+			target_json.parent.mkdir(parents=True, exist_ok=True)
+			if Path(res["json"]) != target_json:
+				target_json.write_text(Path(res["json"]).read_text(encoding="utf-8"), encoding="utf-8")
+			res["json"] = target_json
+	except Exception:
+		pass
+
+	try:
+		if args.csv_out:
+			target_csv = Path(args.csv_out)
+			target_csv.parent.mkdir(parents=True, exist_ok=True)
+			if Path(res["csv"]) != target_csv:
+				target_csv.write_text(Path(res["csv"]).read_text(encoding="utf-8"), encoding="utf-8")
+			res["csv"] = target_csv
+	except Exception:
+		pass
+
+	try:
+		target_png = None
+		if args.png_out:
+			target_png = Path(args.png_out)
+		elif args.out:
+			target_png = _derive_png_path(json_path=Path(args.out))
+		elif args.csv_out:
+			target_png = _derive_png_path(csv_path=Path(args.csv_out))
+		if target_png is not None:
+			target_png.parent.mkdir(parents=True, exist_ok=True)
+			src_png = Path(res["png"]) if res.get("png") else None
+			if src_png and src_png.exists() and src_png != target_png:
+				target_png.write_bytes(src_png.read_bytes())
+			res["png"] = target_png
+	except Exception:
+		pass
+
+	try:
+		print(json.dumps({"json": str(res.get("json")), "csv": str(res.get("csv")), "png": str(res.get("png")), "flow_conservation_ok": bool(res.get("flow_conservation_ok"))}, indent=2))
+	except Exception:
+		pass
+
+
+if __name__ == "__main__":
+	main_cli()

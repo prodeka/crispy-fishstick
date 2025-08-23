@@ -11,7 +11,7 @@ from src.lcpi.aep.optimization.models import (
     ParametresAlgorithme, DiametreCommercial, ConfigurationOptimisation
 )
 from src.lcpi.aep.optimization.constraints import ConstraintManager
-from src.lcpi.aep.optimization.genetic_algorithm import GeneticOptimizer, Individu
+from src.lcpi.aep.optimization.genetic_algorithm import GeneticOptimizerV2 as GeneticOptimizer, Individu
 
 class TestModels:
     """Tests pour les modèles Pydantic."""

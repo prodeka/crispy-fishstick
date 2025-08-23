@@ -1,4 +1,4 @@
-  Page 1                                    Thu Aug 21 20:37:55 2025
+  Page 1                                    Fri Aug 22 11:33:27 2025
 
   ******************************************************************
   *                           E P A N E T                          *
@@ -33,40 +33,71 @@
          No Nodes
          No Links
    
-  Analysis begun Thu Aug 21 20:37:55 2025
+  Analysis begun Fri Aug 22 11:33:27 2025
 
    
   Hydraulic Status:
   -----------------------------------------------------------------------
-     0:00:00: Balanced after 28 trials
+     0:00:00: Balanced after 14 trials
      0:00:00: Tank R1 is closed at 4.50 m
-     0:00:00: Tank R2 is closed at 5.20 m
+     0:00:00: Tank R2 is emptying at 5.20 m
      0:00:00: Tank R3 is emptying at 32.00 m
-     0:00:00: Pipe N105_R1 temporarily closed
-     0:00:00: Pipe R2_N41 temporarily closed
+     0:00:00: CV N105_R1 closed
    
-     0:05:00: Balanced after 1 trials
+     0:05:00: Balanced after 2 trials
    
-     0:10:00: Balanced after 1 trials
+     0:10:00: Balanced after 6 trials
+     0:10:00: Tank R1 is emptying at 4.50 m
+     0:10:00: CV N105_R1 changed from closed to open
    
-     0:15:00: Balanced after 1 trials
+     0:10:20: Balanced after 6 trials
+     0:10:20: Tank R2 is closed at -0.00 m
+     0:10:20: CV R2_N41 changed from open to temporarily closed
    
-     0:20:00: Balanced after 1 trials
+  WARNING: Negative pressures at 0:10:20 hrs.
    
-     0:25:00: Balanced after 1 trials
+     0:15:20: Balanced after 2 trials
    
-     0:30:00: Balanced after 1 trials
+  WARNING: Negative pressures at 0:15:20 hrs.
    
-     0:35:00: Balanced after 1 trials
+     0:15:37: Balanced after 2 trials
    
-     0:40:00: Balanced after 1 trials
+  WARNING: Negative pressures at 0:15:37 hrs.
    
-     0:45:00: Balanced after 1 trials
+     0:20:37: Balanced after 2 trials
    
-     0:50:00: Balanced after 1 trials
+  WARNING: Negative pressures at 0:20:37 hrs.
    
-     0:55:00: Balanced after 1 trials
+     0:25:37: Balanced after 2 trials
    
-     1:00:00: Balanced after 1 trials
+  WARNING: Negative pressures at 0:25:37 hrs.
    
-  Analysis ended Thu Aug 21 20:37:55 2025
+     0:30:37: Balanced after 2 trials
+   
+  WARNING: Negative pressures at 0:30:37 hrs.
+   
+     0:35:37: Balanced after 2 trials
+   
+  WARNING: Negative pressures at 0:35:37 hrs.
+   
+     0:40:37: Balanced after 2 trials
+   
+  WARNING: Negative pressures at 0:40:37 hrs.
+   
+     0:45:37: Balanced after 2 trials
+   
+  WARNING: Negative pressures at 0:45:37 hrs.
+   
+     0:50:37: Balanced after 2 trials
+   
+  WARNING: Negative pressures at 0:50:37 hrs.
+   
+     0:55:37: Balanced after 2 trials
+   
+  WARNING: Negative pressures at 0:55:37 hrs.
+   
+     1:00:00: Balanced after 2 trials
+   
+  WARNING: Negative pressures at 1:00:00 hrs.
+   
+  Analysis ended Fri Aug 22 11:33:27 2025

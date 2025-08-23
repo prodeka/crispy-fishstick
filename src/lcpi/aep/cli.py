@@ -2810,11 +2810,81 @@ def network_optimize_unified(
 	hmax: Optional[float] = typer.Option(50.0, "--hmax", help="Hauteur sous radier maximale (m), défaut 50"),
 	verbose: bool = typer.Option(False, "--verbose", "-v", help="Affichage détaillé"),
 	stream_flows: bool = typer.Option(False, "--stream-flows", help="Activer le streaming live des flux pendant la simulation"),
+	demand: Optional[float] = typer.Option(None, "--demand", help="Valeur de demande globale à appliquer (écrase les demandes existantes si confirmé)"),
+	no_confirm: bool = typer.Option(False, "--no-confirm", help="Ne pas demander de confirmation pour écraser les demandes existantes"),
 	log: Optional[bool] = typer.Option(None, "--log", help="Journaliser le calcul (demande confirmation si non spécifié)"),
 	no_log: bool = typer.Option(False, "--no-log", help="Ne pas journaliser le calcul")
 ):
 	"""Optimisation de réseau avec algorithme génétique et choix de solveur"""
 	try:
+		# Expansion d'alias @nom.inp -> recherche dans emplacements connus
+		from typing import List as _List
+		if str(input_file).startswith("@"):
+			_alias_name = str(input_file)[1:]
+			_candidates: _List[Path] = []
+			try:
+				_candidates.extend([
+					Path("src/lcpi/aep/PROTOTYPE/INP") / _alias_name,
+					Path("examples") / _alias_name,
+					Path(_alias_name),
+				])
+			except Exception:
+				pass
+			resolved = None
+			for p in _candidates:
+				if p.exists():
+					resolved = p
+					break
+			if resolved is None:
+				# tentative de recherche récursive limitée
+				try:
+					for base in [Path("src/lcpi/aep"), Path("examples"), Path(".")]:
+						cand = base.rglob(_alias_name)
+						for c in cand:
+							resolved = c
+							break
+						if resolved is not None:
+							break
+				except Exception:
+					pass
+			if resolved is None:
+				typer.secho(f"❌ Alias introuvable: @{_alias_name}", fg=typer.colors.RED)
+				raise typer.Exit(2)
+			input_file = resolved
+
+		# Validation/diagnostic INP avant exécution (si .inp)
+		if input_file.suffix.lower() == ".inp":
+			from .utils.inp_validator import validate_inp_file as _validate_inp_file
+			from .utils.inp_mass_conservation_validator import validate_inp_mass_conservation as _mass_check
+			typer.secho("🔍 Validation du fichier INP...", fg=typer.colors.YELLOW)
+			ok, msg = _validate_inp_file(input_file)
+			if ok:
+				typer.secho(msg, fg=typer.colors.GREEN)
+			else:
+				typer.secho(msg, fg=typer.colors.RED)
+				# demander confirmation pour continuer
+				try:
+					if not typer.confirm("Continuer malgré les problèmes ?", default=False):
+						raise typer.Exit(1)
+				except Exception:
+					pass
+			# Contrôle conservation des débits (WNTR-friendly)
+			try:
+				m_ok, m_info = _mass_check(input_file)
+				if not m_ok:
+					typer.secho(f"⚠️ FLOW_CONSERVATION_BREACH max_abs={m_info.get('max_abs_sum')}", fg=typer.colors.YELLOW)
+			except Exception:
+				pass
+
+		# Gestion des demandes pour les fichiers INP
+		if input_file.suffix.lower() == ".inp":
+			from .utils.inp_demand_manager_fixed import handle_demand_logic
+			# Passer no_confirm en plus de no_log pour éviter les confirmations
+			processed_input_file = handle_demand_logic(input_file, demand, no_log or no_confirm)
+			if processed_input_file != input_file:
+				typer.secho(f"📝 Fichier INP traité: {processed_input_file}", fg=typer.colors.BLUE)
+				input_file = processed_input_file
+
 		from ..core.context import get_project_context, handle_sandbox_logic, ensure_project_structure
 		context = get_project_context()
 		used_sandbox = False

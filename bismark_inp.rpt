@@ -1,14 +1,14 @@
-  Page 1                                    Fri Aug 22 10:30:50 2025
+  Page 1                                    Fri Aug 22 12:04:58 2025
 
   ******************************************************************
   *                           E P A N E T                          *
   *                   Hydraulic and Water Quality                  *
   *                   Analysis for Pipe Networks                   *
-  *                         Version 2.2                            *
+  *                          Version 2.3.01                        *
   ******************************************************************
   
    
-      Input Data File ................... temp.inp
+      Input Data File ................... bismark_inp.inp
       Number of Junctions................ 196
       Number of Reservoirs............... 0
       Number of Tanks ................... 3
@@ -33,7 +33,7 @@
          No Nodes
          No Links
    
-  Analysis begun Fri Aug 22 10:30:50 2025
+  Analysis begun Fri Aug 22 12:04:58 2025
 
    
   Hydraulic Status:
@@ -45,4 +45,14 @@
      0:00:00: CV N105_R1 closed
      0:00:00: CV R2_N41 closed
    
-  Analysis ended Fri Aug 22 10:30:50 2025
+  Hydraulic Flow Balance (L/s)
+  ================================
+  Total Inflow:             0.000
+  Consumer Demand:        332.120
+  Demand Deficit:           0.000
+  Emitter Flow:             0.000
+  Leakage Flow:             0.000
+  Total Outflow:          332.120
+  Storage Flow:          -332.120
+  Flow Ratio:               1.000
+  ================================

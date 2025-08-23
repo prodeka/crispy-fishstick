@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import List
 
-from src.lcpi.aep.optimization.genetic_algorithm import GeneticOptimizer
+from src.lcpi.aep.optimization.genetic_algorithm import GeneticOptimizerV2 as GeneticOptimizer
 
 
 class _FakeAlgoCfg:
