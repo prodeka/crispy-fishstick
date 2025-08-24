@@ -1,5 +1,4 @@
 """
-Utilitaire pour la gestion des demandes dans les fichiers EPANET .inp.
 """
 import configparser
 import io
@@ -154,8 +153,10 @@ def _apply_demand_override(input_path: Path, demand_value: float, no_log: bool =
     Applique la demande fournie par l'utilisateur, en demandant confirmation
     si des demandes existent déjà.
     """
+    rprint(f"[yellow]Application de la demande {demand_value:.4f} fournie par --demand...[/yellow]")
     lines = _read_inp_lines(input_path)
     
+    junctions_with_demand = [] # To store (node_id, initial_demand)
     try:
         demands_idx = -1
         junctions_idx = -1
@@ -190,24 +191,56 @@ def _apply_demand_override(input_path: Path, demand_value: float, no_log: bool =
             rprint("[red]❌ Impossible d'appliquer la demande : section [JUNCTIONS] introuvable.[/red]")
             raise typer.Exit(1)
 
-        # Trouver le premier noeud dans [JUNCTIONS]
-        first_node = None
+        # Extraire les nœuds et leurs demandes de base depuis [JUNCTIONS]
+        in_junctions_section = False
         for line in lines[junctions_idx + 1:]:
             stripped = line.strip()
-            if stripped.startswith('['): break
-            if stripped and not stripped.startswith(';'):
-                first_node = stripped.split()[0]
-                break
-        
-        if not first_node:
-            rprint("[red]❌ Impossible d'appliquer la demande : aucun noeud trouvé dans [JUNCTIONS].[/red]")
-            raise typer.Exit(1)
+            if stripped.startswith('['):
+                break # Fin de la section
+            
+            if stripped.startswith(';') or not stripped:
+                continue
+            
+            parts = stripped.split()
+            if len(parts) >= 3:
+                try:
+                    node_id = parts[0]
+                    initial_demand = float(parts[2])
+                    if initial_demand > 0:
+                        junctions_with_demand.append((node_id, initial_demand))
+                except (ValueError, IndexError):
+                    continue
 
-        # Supprimer l'ancien contenu de [DEMANDS] et insérer le nouveau
-        new_demands_lines = [
-            "; Demande fournie via --demand\n",
-            f"{first_node:<16} {demand_value:<16.4f}\n"
-        ]
+        if not junctions_with_demand:
+            rprint("[yellow]Aucun noeud avec demande de base > 0 trouvé dans [JUNCTIONS]. La demande sera appliquée au premier noeud si possible.[/yellow]")
+            # Fallback: If no junctions have base demand > 0, find the very first node to apply the demand to.
+            first_node_fallback = None
+            for line in lines[junctions_idx + 1:]:
+                stripped = line.strip()
+                if stripped.startswith('['): break
+                if stripped and not stripped.startswith(';'):
+                    first_node_fallback = stripped.split()[0]
+                    break
+
+            if not first_node_fallback:
+                 rprint("[red]❌ Impossible d'appliquer la demande : aucun noeud trouvé dans [JUNCTIONS], même pour le fallback.[/red]")
+                 raise typer.Exit(1)
+            
+            # Apply the entire demand to the single fallback node
+            demands_to_add_lines = [\
+                "; Demande fournie via --demand (appliquée au premier noeud car aucun n'avait de demande > 0)\\n",\
+                f"{first_node_fallback:<16} {demand_value:<16.4f}\\n"\
+            ]
+            rprint(f"[yellow]Demande totale {demand_value:.4f} appliquée au noeud unique {first_node_fallback}.[/yellow]")
+
+        else:
+            # Calculate demand per node by distributing demand_value uniformly
+            demand_per_node = demand_value / len(junctions_with_demand)
+            rprint(f"[yellow]Distribution uniforme de la demande {demand_value:.4f} sur {len(junctions_with_demand)} noeuds (soit {demand_per_node:.4f} par noeud).[/yellow]")
+
+            demands_to_add_lines = ["; Demande fournie via --demand (distribuée uniformément)\\n"]
+            for node_id, _ in junctions_with_demand:
+                 demands_to_add_lines.append(f"{node_id:<16} {demand_per_node:<16.4f}\\n")
         
         # Trouver la fin de la section [DEMANDS]
         end_demands_idx = len(lines)
@@ -217,10 +250,10 @@ def _apply_demand_override(input_path: Path, demand_value: float, no_log: bool =
                 break
         
         # Construire le nouveau fichier
-        new_lines = lines[:demands_idx + 1] + new_demands_lines + lines[end_demands_idx:]
+        new_lines = lines[:demands_idx + 1] + demands_to_add_lines + lines[end_demands_idx:]
         temp_path = _write_lines_to_temp_file(new_lines, ".demand_override.inp")
 
-        rprint(f"[green]Demande de {demand_value:.4f} appliquée au noeud {first_node} dans {temp_path}[/green]")
+        rprint(f"[green]Demande appliquée et fichier temporaire créé :[/green] {temp_path}")
         return temp_path
 
     except Exception as e:

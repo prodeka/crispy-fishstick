@@ -26,6 +26,7 @@ def tweak_pipes_diameter(lines: List[str], diameters_mm: Dict[str, int]) -> List
 	section = None
 	out: List[str] = []
 	for raw in lines:
+
 		line = raw.rstrip("\n")
 		stripd = line.strip()
 		if not stripd or stripd.startswith(";"):
@@ -39,14 +40,32 @@ def tweak_pipes_diameter(lines: List[str], diameters_mm: Dict[str, int]) -> List
 			parts = stripd.split()
 			if len(parts) >= 5:
 				pid = parts[0]
-				if pid in diameters_mm:
+				if pid in diameters_mm:  # Assurez-vous que le PID existe bien
 					parts[4] = str(int(diameters_mm[pid]))
 					line = ("\t").join(parts)
 		out.append(line)
-	continue
+		# Correction: Cette ligne était mal indentée et ajoutait la dernière ligne en double
 	return out
 
 
+def count_pipes(inp_path: Path) -> int:
+ """
+ Counts the number of data lines in the [PIPES] section of an EPANET .inp file (excluding comments and section headers).
+ """
+ lines = read_inp_lines(inp_path)
+ section = None
+ pipe_count = 0
+ for raw in lines:
+  line = raw.strip()
+  if not line or line.startswith(";"):
+   continue
+  if line.startswith("[") and line.endswith("]"):
+   section = line.upper()
+   continue
+  if section == "[PIPES]":
+   pipe_count += 1
+ return pipe_count
+# Correction: La fonction doit retourner 'pipe_count' après la boucle.
 def tweak_tanks_levels(lines: List[str], H_tank_map: Dict[str, float]) -> List[str]:
 
 	if not lines or not H_tank_map:
@@ -77,9 +96,7 @@ def tweak_tanks_levels(lines: List[str], H_tank_map: Dict[str, float]) -> List[s
 					except Exception:
 						pass
 		out.append(line)
-		continue
-	out.append(line)
-	continue
+	# Correction: Supprimé la ligne qui ajoutait la dernière ligne en double
 	return out
 
 

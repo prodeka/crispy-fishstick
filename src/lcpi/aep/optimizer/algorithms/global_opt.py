@@ -38,7 +38,7 @@ from ..models import OptimizationConfig, OptimizationResult, Proposal, TankDecis
 from ..solvers import EPANETOptimizer
 from ..scoring import CostScorer
 from ..db_dao import get_candidate_diameters
-from ..output import OutputFormatter
+from ..inp_utils import count_pipes
 
 # Structure pour passer les données à l'évaluation parallèle
 EVAL_TUPLE = Tuple[np.ndarray, OptimizationConfig, Path]
@@ -47,6 +47,8 @@ EVAL_TUPLE = Tuple[np.ndarray, OptimizationConfig, Path]
 def evaluate_candidate(eval_tuple: EVAL_TUPLE) -> Dict[str, Any]:
     """Fonction exécutée dans un processus parallèle pour évaluer un individu."""
     chromosome, config, network_path = eval_tuple
+    
+    print(f"Evaluating chromosome: {chromosome}") # Print the whole chromosome
     
     try:
         # Décoder le chromosome
@@ -58,9 +60,12 @@ def evaluate_candidate(eval_tuple: EVAL_TUPLE) -> Dict[str, Any]:
         diam_map = {}
         for i, idx in enumerate(chromosome[1:], 1):
             if 0 <= int(idx) < len(candidate_diams):
+                print(f" Pipe {i}: index {int(idx)} -> diameter {candidate_diams[int(idx)]['d_mm']} mm") # Print index and diameter
                 diam_map[f"pipe_{i}"] = candidate_diams[int(idx)]["d_mm"]
             else:
                 # Index invalide, utiliser le diamètre par défaut
+                print(f" Pipe {i}: Invalid index {int(idx)}. Using default diameter {candidate_diams[0]['d_mm']} mm.") # Print invalid index and default diameter
+
                 diam_map[f"pipe_{i}"] = candidate_diams[0]["d_mm"]
 
         # Simulation
@@ -74,7 +79,7 @@ def evaluate_candidate(eval_tuple: EVAL_TUPLE) -> Dict[str, Any]:
             timeout_s=30
         )
 
-        if not sim_result.get("success") or sim_result.get("min_pressure_m", 0) < config.pressure_min_m:
+        if not sim_result.get("success") or sim_result.get("min_pressure_m", 0) < config.pressure_min_m or sim_result.get("max_velocity_m_s", 0) > config.velocity_max_m_s:
             return {"feasible": False, "capex": 1e12, "opex_npv": 1e12}  # Pénalité forte
 
         # Scoring (le CostScorer interrogera la DB si aucun mapping fourni)
@@ -97,9 +102,7 @@ class TankAEPProblem(Problem):
         self.executor = executor
         
         # Déterminer le nombre de conduites à partir du réseau
-        # Pour l'instant, on utilise une valeur par défaut
-        # TODO: Lire le réseau pour obtenir le nombre exact de conduites
-        num_pipes = 10  # Placeholder, à remplacer par une lecture du réseau
+        num_pipes = count_pipes(self.network_path)
         n_var = 1 + num_pipes
         
         # Bornes des variables
