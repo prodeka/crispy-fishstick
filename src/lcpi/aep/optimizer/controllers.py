@@ -733,6 +733,24 @@ class OptimizationController:
                         
                         # Construire un ordre stable des conduites à partir du modèle
                         pipe_ids = list((nm.links or {}).keys())
+                        # Journaliser côté controller: longueur et 20 premiers pipe_ids
+                        try:
+                            from pathlib import Path as _P
+                            import json as _json
+                            _proj = None
+                            for _p in _P(__file__).resolve().parents:
+                                if (_p / "test_validation").exists():
+                                    _proj = _p
+                                    break
+                            if _proj is None:
+                                _proj = _P.cwd()
+                            _ld = _proj / "test_validation" / "logs"
+                            _ld.mkdir(parents=True, exist_ok=True)
+                            _out = _ld / "pipe_ids_controller.json"
+                            _data = {"count": len(pipe_ids), "sample": pipe_ids[:20]}
+                            _out.write_text(_json.dumps(_data, ensure_ascii=False, indent=2), encoding="utf-8")
+                        except Exception:
+                            pass
                         # Créer le simulateur selon le choix de l'utilisateur
                         if self.solver == "lcpi":
                             # Utiliser LCPI avec le modèle unifié converti depuis INP

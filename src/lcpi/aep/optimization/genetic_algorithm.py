@@ -98,6 +98,28 @@ class GeneticOptimizerV2:
             self._logs_dir = None
             self._ga_log_shared = None
             self._ga_log_pid = None
+        # Journaliser un résumé des candidats (taille, min/max, diversité)
+        try:
+            if self.diam_candidats:
+                vals = [int(d.diametre_mm) for d in self.diam_candidats]
+                uniq = sorted(set(vals))
+                self._log_ga(
+                    f"candidates={len(vals)} unique={len(uniq)} range=[{min(vals)}, {max(vals)}] sample={uniq[:10]}"
+                )
+            else:
+                self._log_ga("candidates=0 (AUCUN DIAMETRE CANDIDAT)")
+        except Exception:
+            pass
+        # Journaliser la réception de pipe_ids
+        try:
+            n_pid = len(self.pipe_ids) if self.pipe_ids else 0
+            self._log_ga(f"pipe_ids_received_len={n_pid}")
+            if n_pid > 0:
+                sample_n = min(10, n_pid)
+                details = [f"pipe_ids[{i}]={self.pipe_ids[i]}" for i in range(sample_n)]
+                self._log_ga("pipe_ids_sample:", details)
+        except Exception:
+            pass
 
     def _log_ga(self, line: str, details: Optional[List[str]] = None) -> None:
         """Ecrit une ligne de log GA (chromosomes) dans les fichiers partagé et par-processus."""
@@ -221,6 +243,27 @@ class GeneticOptimizerV2:
             if getattr(individu, "h_tank_m", None) is not None:
                 # if tank IDs unknown, the wrapper will interpret/assign as appropriate
                     h_map = {"tank1": float(individu.h_tank_m)}
+            # Log: ce que le GA envoie réellement au simulateur (échantillon)
+            try:
+                from pathlib import Path as _P
+                from datetime import datetime as _dt
+                import os as _os
+                _proj = None
+                for _p in _P(__file__).resolve().parents:
+                    if (_p / "test_validation").exists():
+                        _proj = _p
+                        break
+                if _proj is None:
+                    _proj = _P.cwd()
+                _ld = _proj / "test_validation" / "logs"
+                _ld.mkdir(parents=True, exist_ok=True)
+                _out = _ld / "ga_to_solver_debug.log"
+                sample = list(diam_map.items())[:10]
+                with open(_out, "a", encoding="utf-8", buffering=1) as gf:
+                    gf.write(f"[{_dt.now().isoformat()}] pid={_os.getpid()} send {len(diam_map)} diams | sample="
+                             f"{[(k, v) for k, v in sample]}\n")
+            except Exception:
+                pass
             t0 = time.time()
             try:
                 sim = self.solver.simulate(
@@ -363,16 +406,28 @@ class GeneticOptimizerV2:
             p_req = float(getattr(getattr(self.constraint_manager, "contraintes_techniques", {}), "pression_min_mce", self.pressure_default_min))
             p_min = float(sim.get("min_pressure_m", 0.0) or 0.0)
             if p_min < p_req:
-                penal += 1e5 * (p_req - p_min) ** 2
+                penal += 5e5 * (p_req - p_min) ** 2
             # velocity penalties
             v_max_req = float(getattr(getattr(self.constraint_manager, "contraintes_techniques", {}), "vitesse_max_m_s", self.velocity_max_default))
             v_min_req = float(getattr(getattr(self.constraint_manager, "contraintes_techniques", {}), "vitesse_min_m_s", self.velocity_min_default))
             vmax_obs = float(sim.get("max_velocity_m_s", 0.0) or 0.0)
             vmin_obs = float(sim.get("min_velocity_m_s", 0.0) or 0.0)
             if vmax_obs > v_max_req:
-                penal += 1e5 * (vmax_obs - v_max_req) ** 2
+                penal += 1e6 * (vmax_obs - v_max_req) ** 2
             if vmin_obs < v_min_req:
-                penal += 1e4 * (v_min_req - vmin_obs) ** 2
+                penal += 5e5 * (v_min_req - vmin_obs) ** 2
+
+        # uniformity penalty: décourage trop de conduites au même diamètre
+        try:
+            from collections import Counter
+            counts = Counter(int(d) for d in individu.diametres)
+            total_pipes = max(1, len(individu.diametres))
+            max_ratio = max(counts.values()) / float(total_pipes)
+            # pénalise au-dessus de 0.6 d’uniformité, croît quadratiquement
+            if max_ratio > 0.6:
+                penal += 1e5 * (max_ratio - 0.6) ** 2 * total_pipes
+        except Exception:
+            pass
 
         # energy approx: use sim raw if exists (wrapper may provide energy_W)
         energy = float(sim.get("raw", {}).get("energy_W", 0.0) or 0.0)
@@ -480,6 +535,20 @@ class GeneticOptimizerV2:
         
         # init population
         self.initialiser_population(int(nb_conduites), reseau_data)
+
+        # Vérifier et journaliser l'alignement des pipe_ids (une seule fois)
+        try:
+            n_pipes = int(nb_conduites)
+            pid_len = len(self.pipe_ids) if self.pipe_ids else 0
+            self._log_ga(f"pipes_declared={n_pipes} pipe_ids_len={pid_len}")
+            if self.pipe_ids and pid_len == n_pipes:
+                sample_n = min(10, n_pipes)
+                details = [f"pipe_ids[{i}]={self.pipe_ids[i]}" for i in range(sample_n)]
+                self._log_ga("pipe_ids_sample:", details)
+            else:
+                self._log_ga("WARNING: pipe_ids absent ou taille non conforme — mapping diameters_map peut être vide/décalé")
+        except Exception:
+            pass
         
         total_gen = int(self.generations)
         pop_size = int(self.population_size)

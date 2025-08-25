@@ -863,6 +863,45 @@ class EPANETOptimizer:
             return {"success": False, "error": f"Chargement INP échoué: {e}"}
 
         # Appliquer les modifications au modèle wntr
+        # Avant application: journaliser l'alignement IDs → diamètres
+        try:
+            from datetime import datetime as _dt
+            import os as _os
+            _proj = None
+            for p in Path(__file__).resolve().parents:
+                if (p / "test_validation").exists():
+                    _proj = p
+                    break
+            if _proj is None:
+                _proj = Path.cwd()
+            _logs = _proj / "test_validation" / "logs"
+            _logs.mkdir(parents=True, exist_ok=True)
+            _maplog = _logs / "epanet_mapping_debug.log"
+            # Collecter les noms de conduites dans le modèle
+            try:
+                model_link_names = list(getattr(model, 'link_name_list', []) or [])
+                if not model_link_names:
+                    # fallback via WNTR API
+                    model_link_names = list(getattr(model.links, 'keys')()) if hasattr(model, 'links') else []
+            except Exception:
+                model_link_names = []
+            di_keys = list((diameters_map or {}).keys())
+            set_model = set(model_link_names)
+            set_keys = set(di_keys)
+            matched = list((set_model & set_keys))
+            missing_in_model = [k for k in di_keys if k not in set_model][:20]
+            extra_in_model = [k for k in model_link_names if k not in set_keys][:20]
+            with open(_maplog, "a", encoding="utf-8", buffering=1) as mf:
+                mf.write(
+                    f"[{_dt.now().isoformat()}] pid={_os.getpid()} model_links={len(model_link_names)} di_keys={len(di_keys)} matched={len(matched)}\n"
+                )
+                if missing_in_model:
+                    mf.write(f"  missing_in_model({len(missing_in_model)} of first 20): {missing_in_model}\n")
+                if extra_in_model:
+                    mf.write(f"  links_not_in_di_map({len(extra_in_model)} of first 20): {extra_in_model}\n")
+        except Exception:
+            pass
+
         self._apply_modifications(model, H_tank_map, diameters_map, duration_h, timestep_min)
 
         # Préparer le dossier d'archivage
@@ -1159,6 +1198,22 @@ class EPANETOptimizer:
                 pass
         
         # Modifier les diamètres des conduites (si l'objet lien a un attribut diameter)
+        _logged_count = 0
+        _maplog_path = None
+        try:
+            _proj = None
+            for p in Path(__file__).resolve().parents:
+                if (p / "test_validation").exists():
+                    _proj = p
+                    break
+            if _proj is None:
+                _proj = Path.cwd()
+            _logs = _proj / "test_validation" / "logs"
+            _logs.mkdir(parents=True, exist_ok=True)
+            _maplog_path = _logs / "epanet_mapping_debug.log"
+        except Exception:
+            _maplog_path = None
+
         for link_id, diameter in diameters_map.items():
             try:
                 link_obj = None
@@ -1177,7 +1232,19 @@ class EPANETOptimizer:
                         if isinstance(pipes_map, dict):
                             link_obj = pipes_map.get(link_id)
                 if link_obj is not None and hasattr(link_obj, 'diameter'):
+                    before = None
+                    try:
+                        before = float(getattr(link_obj, 'diameter'))
+                    except Exception:
+                        before = None
                     link_obj.diameter = float(diameter) / 1000.0  # mm -> m
+                    if _maplog_path is not None and _logged_count < 10:
+                        try:
+                            with open(_maplog_path, "a", encoding="utf-8", buffering=1) as mf:
+                                mf.write(f"  set_diam: link={link_id} req_mm={diameter} before_m={before} after_m={link_obj.diameter}\n")
+                            _logged_count += 1
+                        except Exception:
+                            pass
             except Exception:
                 pass
         
