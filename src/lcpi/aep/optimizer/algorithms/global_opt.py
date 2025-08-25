@@ -47,31 +47,43 @@ EVAL_TUPLE = Tuple[np.ndarray, OptimizationConfig, Path]
 def evaluate_candidate(eval_tuple: EVAL_TUPLE) -> Dict[str, Any]:
     """Fonction exécutée dans un processus parallèle pour évaluer un individu."""
     chromosome, config, network_path = eval_tuple
-    
-    print(f"Evaluating chromosome: {chromosome}") # Print the whole chromosome
-    
+
+    # Write debugging information to a log file
+    try:
+        with open("debug_diameters.log", "a") as f:
+            f.write(f"Evaluating chromosome: {chromosome}\n")
+    except Exception: # Ignore file writing errors
+        pass # Continue execution even if logging fails
+
     try:
         # Décoder le chromosome
         # Le premier gène est la hauteur du tank, les autres sont des index de diamètres
         h_tanks = {list(config.h_bounds_m.keys())[0]: float(chromosome[0])}
-        
+
         candidate_diams = get_candidate_diameters()
         # Créer un mapping des diamètres basé sur les indices du chromosome
         diam_map = {}
         for i, idx in enumerate(chromosome[1:], 1):
             if 0 <= int(idx) < len(candidate_diams):
-                print(f" Pipe {i}: index {int(idx)} -> diameter {candidate_diams[int(idx)]['d_mm']} mm") # Print index and diameter
+                try:
+                    with open("debug_diameters.log", "a") as f:
+                        f.write(f" Pipe {i}: index {int(idx)} -> diameter {candidate_diams[int(idx)]['d_mm']} mm\n")
+                except Exception: # Ignore file writing errors
+                    pass
                 diam_map[f"pipe_{i}"] = candidate_diams[int(idx)]["d_mm"]
             else:
                 # Index invalide, utiliser le diamètre par défaut
-                print(f" Pipe {i}: Invalid index {int(idx)}. Using default diameter {candidate_diams[0]['d_mm']} mm.") # Print invalid index and default diameter
-
+                try:
+                    with open("debug_diameters.log", "a") as f:
+                        f.write(f" Pipe {i}: Invalid index {int(idx)}. Using default diameter {candidate_diams[0]['d_mm']} mm.\n")
+                except Exception: # Ignore file writing errors
+                    pass
                 diam_map[f"pipe_{i}"] = candidate_diams[0]["d_mm"]
 
         # Simulation
         solver = EPANETOptimizer()
         sim_result = solver.simulate(
-            network_path, 
+            network_path,
             H_tank_map=h_tanks, 
             diameters_map=diam_map,
             duration_h=24,
@@ -84,7 +96,7 @@ def evaluate_candidate(eval_tuple: EVAL_TUPLE) -> Dict[str, Any]:
 
         # Scoring (le CostScorer interrogera la DB si aucun mapping fourni)
         scorer = CostScorer(diameter_cost_db={})
-        costs = scorer.evaluate_solution(network=None, diameters=diam_map, sim_results=sim_result)
+        costs = scorer.evaluate_solution(network=None, diameters=diam_map, sim_results=sim_result) # type: ignore
         
         return {"feasible": True, **costs}
         
