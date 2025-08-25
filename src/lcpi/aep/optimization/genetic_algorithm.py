@@ -17,6 +17,9 @@ from typing import List, Dict, Tuple, Optional, Callable, Any
 from dataclasses import dataclass, field
 from multiprocessing import Pool, cpu_count
 import numpy as np
+from pathlib import Path
+import os
+from datetime import datetime
 
 # IMPORTS PROJET (adapter aux chemins réels)
 from .models import ConfigurationOptimisation, DiametreCommercial  # type: ignore
@@ -78,6 +81,46 @@ class GeneticOptimizerV2:
 
         # quick lookup of candidate diameters (list of DiametreCommercial)
         self.diam_candidats: List[DiametreCommercial] = list(getattr(self.config, "diametres_candidats", []))
+        # Préparer le dossier de logs (partagé et par-processus)
+        try:
+            proj = None
+            for p in Path(__file__).resolve().parents:
+                if (p / "test_validation").exists():
+                    proj = p
+                    break
+            if proj is None:
+                proj = Path.cwd()
+            self._logs_dir = proj / "test_validation" / "logs"
+            self._logs_dir.mkdir(parents=True, exist_ok=True)
+            self._ga_log_shared = self._logs_dir / "ga_chromosomes.log"
+            self._ga_log_pid = self._logs_dir / f"ga_chromosomes_{os.getpid()}.log"
+        except Exception:
+            self._logs_dir = None
+            self._ga_log_shared = None
+            self._ga_log_pid = None
+
+    def _log_ga(self, line: str, details: Optional[List[str]] = None) -> None:
+        """Ecrit une ligne de log GA (chromosomes) dans les fichiers partagé et par-processus."""
+        try:
+            ts = datetime.now().isoformat()
+            msg = f"[{ts}] pid={os.getpid()} {line}\n"
+            if self._ga_log_shared:
+                try:
+                    with open(self._ga_log_shared, "a", buffering=1, encoding="utf-8") as f:
+                        f.write(msg)
+                        if details:
+                            for d in details[:50]:
+                                f.write(f"  {d}\n")
+                except Exception:
+                    pass
+            if self._ga_log_pid:
+                with open(self._ga_log_pid, "a", buffering=1, encoding="utf-8") as f2:
+                    f2.write(msg)
+                    if details:
+                        for d in details[:200]:
+                            f2.write(f"  {d}\n")
+        except Exception:
+            pass
 
     # ---------------- callbacks ----------------
     def set_on_generation_callback(self, callback: Optional[Callable[[List[Individu], int], None]]) -> None:
@@ -267,6 +310,36 @@ class GeneticOptimizerV2:
     def _evaluate_individual(self, args: Tuple[int, int, Individu, Optional[Dict], int]) -> Tuple[int, Individu, float, Dict[str, Any]]:
         """Worker-friendly evaluation: args=(generation, idx1, individu, reseau_data, pop_size) -> (idx1, individu, fitness, sim_result)"""
         generation, idx1, individu, reseau_data, pop_size = args
+        # Journaliser le chromosome: conversion diamètres -> indices par rapport aux candidats
+        try:
+            cand_list = [int(d.diametre_mm) for d in self.diam_candidats]
+            indices = []
+            invalid_positions: List[int] = []
+            for pos, d in enumerate(individu.diametres):
+                try:
+                    idx = cand_list.index(int(d))
+                except ValueError:
+                    idx = -1
+                    invalid_positions.append(pos)
+                indices.append(idx)
+            invalid_count = len(invalid_positions)
+            sample_details = []
+            # échantillon de paires conduite→(idx->diam)
+            n_show = min(10, len(indices))
+            for k in range(n_show):
+                pipe_id = self.pipe_ids[k] if self.pipe_ids and k < len(self.pipe_ids) else f"C{k+1}"
+                idx = indices[k]
+                dmm = individu.diametres[k]
+                sample_details.append(f"pipe[{pipe_id}]: idx={idx} diam={dmm}mm")
+            self._log_ga(
+                line=(
+                    f"generation={generation} ind={idx1} genes={len(indices)} invalid_indices={invalid_count} "
+                    f"h_tank={getattr(individu, 'h_tank_m', None)}"
+                ),
+                details=sample_details + ([f"invalid_positions={invalid_positions[:50]}"] if invalid_count else [])
+            )
+        except Exception:
+            pass
         try:
             self._emit("sim_start", {"generation": generation, "index": idx1, "population_size": pop_size})
         except Exception:

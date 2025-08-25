@@ -815,6 +815,48 @@ class EPANETOptimizer:
         diameters_map = diameters_map or {}
         network_path = Path(network_path)
 
+        # Debug: journaliser les appels de simulation et le contenu des diamètres
+        try:
+            from datetime import datetime as _dt
+            import os as _os
+            # Trouver la racine projet contenant test_validation
+            _proj = None
+            for p in Path(__file__).resolve().parents:
+                if (p / "test_validation").exists():
+                    _proj = p
+                    break
+            if _proj is None:
+                _proj = Path.cwd()
+            _logs = _proj / "test_validation" / "logs"
+            _logs.mkdir(parents=True, exist_ok=True)
+            _shared = _logs / "epanet_sim_debug.log"
+            _perproc = _logs / f"epanet_sim_debug_{_os.getpid()}.log"
+            _line = f"[{_dt.now().isoformat()}] pid={_os.getpid()} simulate called with pipes={len(diameters_map)} Hs={list(H_tank_map.keys())} net={network_path}\n"
+            # Ecriture dans le log partagé
+            try:
+                with open(_shared, "a", buffering=1, encoding="utf-8") as f:
+                    f.write(_line)
+                    # Ecrire quelques éléments de diamètres (partagé)
+                    _sample_keys = list(diameters_map.keys())[:10]
+                    for _k in _sample_keys:
+                        try:
+                            f.write(f"  diam[{_k}]={diameters_map[_k]}\n")
+                        except Exception:
+                            pass
+            except Exception:
+                pass
+            # Ecriture dans le log par-processus
+            with open(_perproc, "a", buffering=1, encoding="utf-8") as f2:
+                f2.write(_line)
+                _sample_keys = list(diameters_map.keys())[:10]
+                for _k in _sample_keys:
+                    try:
+                        f2.write(f"  diam[{_k}]={diameters_map[_k]}\n")
+                    except Exception:
+                        pass
+        except Exception:
+            pass
+
         try:
             model = self.wntr.network.WaterNetworkModel(str(network_path))
         except Exception as e:
