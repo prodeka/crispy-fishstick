@@ -23,10 +23,10 @@ class ContraintesBudget(BaseModel):
 
 class ContraintesTechniques(BaseModel):
     """Contraintes techniques du réseau."""
-    pression_min_mce: float = Field(default=20.0, gt=0)
-    pression_max_mce: float = Field(default=80.0, gt=0)
+    pression_min_mce: float = Field(default=10.0, gt=0)
+    pression_max_mce: float = Field(default=100.0, gt=0)
     vitesse_min_m_s: float = Field(default=0.5, gt=0)
-    vitesse_max_m_s: float = Field(default=2.5, gt=0)
+    vitesse_max_m_s: float = Field(default=1.5, gt=0)
     
     def model_post_init(self, __context):
         if self.pression_min_mce >= self.pression_max_mce:

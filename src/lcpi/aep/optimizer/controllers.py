@@ -640,7 +640,7 @@ class OptimizationController:
                         import yaml
                         from ..optimization.models import ConfigurationOptimisation  # type: ignore
                         from ..optimization.constraints import ConstraintManager  # type: ignore
-                        from ..optimization import GeneticOptimizer as _GA  # type: ignore
+                        from ..optimization.genetic_algorithm import GeneticOptimizerV2 as _GA  # type: ignore
 
                         cfg_raw = yaml.safe_load(Path(self.network_model).read_text(encoding="utf-8")) or {}
                         if "optimisation" not in cfg_raw:
@@ -688,7 +688,7 @@ class OptimizationController:
                         import yaml
                         from ..optimization.models import ConfigurationOptimisation, DiametreCommercial, CriteresOptimisation, ContraintesBudget, ContraintesTechniques, ParametresAlgorithme  # type: ignore
                         from ..optimization.constraints import ConstraintManager as _CM  # type: ignore
-                        from ..optimization import GeneticOptimizer as _GA  # type: ignore
+                        from ..optimization.genetic_algorithm import GeneticOptimizerV2 as _GA  # type: ignore
                         from .io import load_yaml_or_inp as _load
                         # Charger INP minimal -> NetworkModel
                         nm, _meta = _load(Path(self.network_model))
@@ -819,22 +819,44 @@ class OptimizationController:
                                 ga.set_progress_callback(progress_cb_to_use)
                         except Exception:
                             pass
+                        
+                        # AGAMO: Initialiser la population avant l'optimisation
+                        try:
+                            ga.initialiser_population(len(pipe_ids), reseau_data=None)
+                        except Exception as e:
+                            logger.warning(f"AGAMO initialization failed: {e}")
+                        
                         # Exécuter en mode EPANET (l'optimiseur se base sur pipe_ids et network_path)
                         out = ga.optimiser()
                         
-                        best = (out or {}).get("optimisation", {}).get("meilleure_solution", {})
-                        diam_map = best.get("diameters_mm") or {k: v for k, v in best.get("diametres", {}).items()}
-                        capex = best.get("cout_total_fcfa")
-                        perf_h = best.get("performance_hydraulique", best.get("performance", {}).get("performance_hydraulique", 0.0))
-                        proposal = {
-                            "id": "genetic_best",
-                            "H_tank_m": best.get("h_tank_m"),  # exposé par GA si disponible ultérieurement
-                            "diameters_mm": diam_map,
-                            "CAPEX": capex,
-                            "OPEX_NPV": None,
-                            "constraints_ok": True,
-                            "metrics": {"performance_hydraulique": perf_h},
-                        }
+                        # CORRECTION: best est un objet Individu, pas un dict
+                        best = (out or {}).get("best_solution")
+                        if best and hasattr(best, 'diametres'):
+                            # Construire le mapping pipe_id -> diamètre
+                            diam_map = {}
+                            if pipe_ids and len(pipe_ids) == len(best.diametres):
+                                diam_map = {pipe_ids[i]: d for i, d in enumerate(best.diametres)}
+                            
+                            proposal = {
+                                "id": "genetic_best",
+                                "H_tank_m": getattr(best, 'h_tank_m', None),
+                                "diameters_mm": diam_map,  # Maintenant correctement rempli !
+                                "CAPEX": getattr(best, 'cout_total', None),
+                                "OPEX_NPV": None,
+                                "constraints_ok": getattr(best, 'constraints_ok', True),
+                                "metrics": {"performance_hydraulique": getattr(best, 'performance_hydraulique', 0.0)},
+                            }
+                        else:
+                            # Fallback si best n'est pas un objet Individu valide
+                            proposal = {
+                                "id": "genetic_best",
+                                "H_tank_m": None,
+                                "diameters_mm": {},
+                                "CAPEX": None,
+                                "OPEX_NPV": None,
+                                "constraints_ok": False,
+                                "metrics": {"error": "best_solution invalide"},
+                            }
                         return {"meta": {"method": "genetic", "solver": self.solver}, "proposals": [proposal]}
                     except Exception as e:
                         # Appeler le hook de génération au moins une fois si présent

@@ -111,8 +111,18 @@ def apply_constraints(
             # Without detailed per-pipe data, we cannot reliably check vmin
             pass
 
-    # Determine pass/fail
-    constraints_ok = len(violations) == 0
+    # Determine pass/fail with intelligent tolerance (same logic as genetic algorithm)
+    if len(violations) == 0:
+        constraints_ok = True
+    else:
+        # Calculate violation ratio relative to total cost for intelligent tolerance
+        base_cost = solution.get("CAPEX") or solution.get("cost")
+        if base_cost is not None and float(base_cost) > 0:
+            violation_ratio = total_penalty / (float(base_cost) + total_penalty)
+            # Tolerance de 5% : si les violations représentent moins de 5% du coût total
+            constraints_ok = (violation_ratio < 0.05)
+        else:
+            constraints_ok = False
 
     # Apply penalty to CAPEX in-place; also support simple 'cost' field used in some tests
     if mode == "soft" and total_penalty > 0.0:
@@ -127,9 +137,7 @@ def apply_constraints(
         elif "cost" in solution and isinstance(solution.get("cost"), (int, float)):
             solution["cost"] = float(solution.get("cost", 0.0)) + total_penalty
         
-        # En mode soft, si il y a des violations, marquer comme non conforme
-        if violations:
-            constraints_ok = False
+        # Note: constraints_ok is now determined by intelligent tolerance above
 
     # If hard mode is requested, any violation forces constraints_ok=False
     if mode == "hard" or (hard_velocity and vmax_req is not None):

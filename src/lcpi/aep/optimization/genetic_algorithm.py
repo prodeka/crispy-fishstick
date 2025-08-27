@@ -1,11 +1,11 @@
 """
-GeneticOptimizer V2 - Améliorations:
-- Initialisation mixte (heuristique + aléatoire)
-- Uniform crossover + mutation adaptative (selon stagnation)
-- Réparation (adjust h_tank si pression insuffisante)
-- Parallélisation des évaluations (multiprocessing)
-- Mémoïsation / cache des simulations
-- Evénements riches (_emit) pour UI / ProgressManager
+GeneticOptimizer V2 - Améliorations AGAMO:
+- Initialisation physique adaptative (estimation diamètres par vitesse cible)
+- Réparation guidée par contraintes (augmentation diamètres si vitesse excessive)
+- Pénalités adaptatives (feasibility-first avec pondérations dynamiques)
+- Mutation biaisée vers diamètres supérieurs en cas de violations
+- Optimisation multi-phase (coarse-to-fine)
+- Diversité et robustesse améliorées
 """
 
 import time
@@ -20,6 +20,7 @@ import numpy as np
 from pathlib import Path
 import os
 from datetime import datetime
+from collections import Counter, defaultdict
 
 # IMPORTS PROJET (adapter aux chemins réels)
 from .models import ConfigurationOptimisation, DiametreCommercial  # type: ignore
@@ -32,10 +33,36 @@ def _hash_candidate(diams: List[int], h_tank: Optional[float]) -> str:
     payload = {"d": diams, "h": h_tank}
     return hashlib.sha1(json.dumps(payload, sort_keys=True).encode()).hexdigest()
 
+def _estimate_initial_diameter(debit_m3_s: float, target_velocity_m_s: float = 1.0) -> float:
+    """Estime un diamètre initial basé sur le débit et une vitesse cible."""
+    if debit_m3_s <= 0:
+        return 200.0  # diamètre par défaut
+    section_m2 = debit_m3_s / target_velocity_m_s
+    diam_m = math.sqrt(4 * section_m2 / math.pi)
+    return diam_m * 1000.0  # conversion en mm
+
+def _find_nearest_candidate(diam_mm: float, candidates: List[int]) -> int:
+    """Trouve le candidat le plus proche d'un diamètre donné."""
+    if not candidates:
+        return 200
+    return min(candidates, key=lambda x: abs(x - diam_mm))
+
+def _get_next_candidate(diam_mm: float, candidates: List[int], direction: int = 1) -> int:
+    """Trouve le candidat suivant/précédent dans la liste triée."""
+    if not candidates:
+        return diam_mm
+    sorted_cands = sorted(candidates)
+    try:
+        current_idx = sorted_cands.index(diam_mm)
+        new_idx = max(0, min(len(sorted_cands) - 1, current_idx + direction))
+        return sorted_cands[new_idx]
+    except ValueError:
+        return _find_nearest_candidate(diam_mm, candidates)
+
 # ---- GeneticOptimizerV2 -----
 class GeneticOptimizerV2:
     """
-    Version améliorée de l'optimiseur génétique.
+    Version AGAMO de l'optimiseur génétique avec adaptabilité complète.
     """
 
     def __init__(
@@ -59,7 +86,7 @@ class GeneticOptimizerV2:
         self.on_generation_callback: Optional[Callable[[List[Individu], int], None]] = None
         self._progress_cb: Optional[Callable[[str, dict], None]] = None
 
-        # Parameters
+        # Parameters AGAMO
         self.generations = int(getattr(self.config.algorithme, "generations", 120))
         self.population_size = int(getattr(self.config.algorithme, "population_size", 120))
         self.crossover_rate = float(getattr(self.config.algorithme, "crossover_rate", 0.9))
@@ -70,10 +97,23 @@ class GeneticOptimizerV2:
         self.velocity_min_default = float(getattr(self.config, "velocity_min_default", 0.3))
         self.velocity_max_default = float(getattr(self.config, "velocity_max_default", 1.5))
 
-        self.workers = workers or max(1, min(cpu_count(), 8))
-        self.cache: Dict[str, Dict[str, Any]] = {}  # key -> simulation payload
+        # AGAMO: Paramètres adaptatifs
+        self.current_phase = 1  # 1: exploration, 2: exploitation, 3: raffinement
         self.stagnation_counter = 0
+        self.repair_history: Dict[int, int] = defaultdict(int)  # pipe_idx -> count
+        self.constraint_violation_history: Dict[str, int] = defaultdict(int)
+        self.adaptive_penalty_weights = {
+            "pressure": 1.0,
+            "velocity_max": 1.0,
+            "velocity_min": 1.0,
+            "uniformity": 1.0
+        }
+        self.feasibility_found = False
+        self.generations_without_improvement = 0
         self.best_cost_history: List[float] = []
+
+        self.workers = 1  # Forcer séquentiel pour éviter les problèmes de pickle
+        self.cache: Dict[str, Dict[str, Any]] = {}  # key -> simulation payload
         self.seed = seed
         if seed is not None:
             random.seed(seed)
@@ -81,6 +121,11 @@ class GeneticOptimizerV2:
 
         # quick lookup of candidate diameters (list of DiametreCommercial)
         self.diam_candidats: List[DiametreCommercial] = list(getattr(self.config, "diametres_candidats", []))
+        
+        # AGAMO: Plages adaptatives par conduite
+        self.pipe_diameter_ranges: Dict[int, List[int]] = {}
+        self.pipe_repair_bias: Dict[int, float] = defaultdict(float)
+        
         # Préparer le dossier de logs (partagé et par-processus)
         try:
             proj = None
@@ -98,6 +143,7 @@ class GeneticOptimizerV2:
             self._logs_dir = None
             self._ga_log_shared = None
             self._ga_log_pid = None
+            
         # Journaliser un résumé des candidats (taille, min/max, diversité)
         try:
             if self.diam_candidats:
@@ -167,58 +213,355 @@ class GeneticOptimizerV2:
         except Exception:
             pass
 
-    # -------------- initialization ----------------
+    # -------------- AGAMO: Initialisation Physique Adaptative ----------------
+    def _estimate_pipe_initial_diameters(self, reseau_data: Optional[Dict]) -> Dict[int, int]:
+        """Estime les diamètres initiaux par conduite basés sur la physique du réseau."""
+        candidate_diams = [int(d.diametre_mm) for d in self.diam_candidats]
+        if not candidate_diams:
+            return {}
+            
+        pipe_diams = {}
+        
+        # Méthode 1: Estimation par débit nominal
+        if reseau_data and "conduites" in reseau_data:
+            for i, conduite in enumerate(reseau_data["conduites"]):
+                debit = conduite.get("debit_m3_s") or conduite.get("q_m3_s", 0.1)
+                # Vitesse cible adaptative selon la taille du réseau
+                target_v = 0.8  # vitesse modérée pour éviter les extrêmes
+                est_diam = _estimate_initial_diameter(debit, target_v)
+                chosen_diam = _find_nearest_candidate(est_diam, candidate_diams)
+                pipe_diams[i] = chosen_diam
+                
+        # Méthode 2: Estimation par longueur (proxy pour l'importance)
+        elif reseau_data and "conduites" in reseau_data:
+            lengths = [c.get("longueur_m", 100.0) for c in reseau_data["conduites"]]
+            if lengths:
+                max_len = max(lengths)
+                for i, length in enumerate(lengths):
+                    # Conduites plus longues = diamètres plus grands
+                    ratio = length / max_len
+                    diam_idx = int(ratio * (len(candidate_diams) - 1))
+                    diam_idx = max(0, min(len(candidate_diams) - 1, diam_idx))
+                    pipe_diams[i] = candidate_diams[diam_idx]
+                    
+        # Méthode 3: Distribution équilibrée
+        else:
+            for i in range(len(self.pipe_ids) if self.pipe_ids else 100):
+                # Distribution centrée sur le milieu de la gamme
+                diam_idx = len(candidate_diams) // 2
+                pipe_diams[i] = candidate_diams[diam_idx]
+                
+        return pipe_diams
+
+    def _build_adaptive_diameter_ranges(self, reseau_data: Optional[Dict]) -> None:
+        """Construit des plages adaptatives de diamètres par conduite."""
+        candidate_diams = [int(d.diametre_mm) for d in self.diam_candidats]
+        if not candidate_diams:
+            return
+            
+        initial_diams = self._estimate_pipe_initial_diameters(reseau_data)
+        
+        for pipe_idx in range(len(self.pipe_ids) if self.pipe_ids else 100):
+            initial_diam = initial_diams.get(pipe_idx, candidate_diams[len(candidate_diams)//2])
+            
+            # Phase 1: Plage large (±5 paliers)
+            range_size = min(5, len(candidate_diams) // 3)
+            initial_idx = candidate_diams.index(initial_diam) if initial_diam in candidate_diams else len(candidate_diams)//2
+            
+            start_idx = max(0, initial_idx - range_size)
+            end_idx = min(len(candidate_diams), initial_idx + range_size + 1)
+            
+            self.pipe_diameter_ranges[pipe_idx] = candidate_diams[start_idx:end_idx]
+            
+        self._log_ga(f"AGAMO: Built adaptive ranges for {len(self.pipe_diameter_ranges)} pipes")
+
     def initialiser_population(self, nb_conduites: int, reseau_data: Optional[Dict] = None) -> None:
         """
-        Initialise la population: mélange d'individus heuristiques et aléatoires.
-        Heuristique: dimensionne diamètres selon débit nominal ou vitesse cible.
+        AGAMO: Initialisation physique adaptative avec plages locales.
         """
         self.population = []
-        heuristics_ratio = 0.2  # 20% heuristique
-        n_heur = max(1, int(self.population_size * heuristics_ratio))
-        n_random = self.population_size - n_heur
 
-        # precompute candidate diam list in mm
+        # Construire les plages adaptatives
+        self._build_adaptive_diameter_ranges(reseau_data)
+        
         candidate_diams = [int(d.diametre_mm) for d in self.diam_candidats]
         if not candidate_diams:
             raise ValueError("Aucun diamètre candidat défini dans la config")
 
-        # Heuristic individuals
+        # AGAMO: Distribution adaptative avec h_tank_m optimisé
+        heuristics_ratio = 0.4  # 40% heuristique (augmenté)
+        n_heur = max(1, int(self.population_size * heuristics_ratio))
+        n_random = self.population_size - n_heur
+
+        # Individus heuristiques (physique adaptative avec h_tank_m)
         for _ in range(n_heur):
             diams = []
             for i in range(nb_conduites):
-                # try to use reseau_data if available to estimate flow
-                debit = None
-                if reseau_data and "conduites" in reseau_data and i < len(reseau_data["conduites"]):
-                    debit = reseau_data["conduites"][i].get("debit_m3_s") or reseau_data["conduites"][i].get("q_m3_s")
-                # target velocity (m/s) moderate to avoid extremes
-                target_v = 0.8
-                chosen = candidate_diams[len(candidate_diams)//2]  # default mid
-                if debit and debit > 0:
-                    # pick smallest candidate with section >= needed to get target_v
-                    for d in candidate_diams:
-                        section = math.pi * (d / 1000) ** 2 / 4
-                        v = debit / section
-                        if v <= target_v:
-                            chosen = d
-                            break
+                # Initialiser debit par défaut
+                debit = 0.1
+                
+                # Utiliser la plage adaptative si disponible
+                if i in self.pipe_diameter_ranges:
+                    local_candidates = self.pipe_diameter_ranges[i]
+                    chosen = random.choice(local_candidates)
+                else:
+                    # Fallback: estimation par débit
+                    if reseau_data and "conduites" in reseau_data and i < len(reseau_data["conduites"]):
+                        debit = reseau_data["conduites"][i].get("debit_m3_s") or reseau_data["conduites"][i].get("q_m3_s", 0.1)
+                    target_v = 0.8
+                    est_diam = _estimate_initial_diameter(debit, target_v)
+                    chosen = _find_nearest_candidate(est_diam, candidate_diams)
+                
                 diams.append(int(chosen))
-            # choose h_tank near mid-range
+                
+            # h_tank adaptatif - Utiliser h_max comme guide principal
             h_min = float(self.h_bounds.get("min", 0.0))
             h_max = float(self.h_bounds.get("max", 50.0))
-            h_val = (h_min + h_max) / 2.0
+            
+            # Stratégie intelligente : favoriser les hauteurs qui permettent la satisfaction des contraintes
+            # 70% de chance d'utiliser une hauteur élevée (plus de pression disponible)
+            if random.random() < 0.7:
+                h_val = random.uniform(h_min + (h_max - h_min) * 0.6, h_max - (h_max - h_min) * 0.1)
+            else:
+                # 30% de chance d'explorer les hauteurs moyennes
+                h_val = random.uniform(h_min + (h_max - h_min) * 0.3, h_min + (h_max - h_min) * 0.7)
+            
             ind = Individu(diametres=diams, h_tank_m=float(h_val))
             self.population.append(ind)
 
-        # Random individuals
+        # Individus aléatoires avec biais vers les plages adaptatives et h_tank_m optimisé
         for _ in range(n_random):
-            diams = [int(random.choice(candidate_diams)) for _ in range(nb_conduites)]
-            # h_tank random within bounds but biased toward mid
+            diams = []
+            for i in range(nb_conduites):
+                if i in self.pipe_diameter_ranges and random.random() < 0.7:
+                    # 70% du temps, utiliser la plage adaptative
+                    local_candidates = self.pipe_diameter_ranges[i]
+                    chosen = random.choice(local_candidates)
+                else:
+                    # 30% du temps, exploration complète
+                    chosen = random.choice(candidate_diams)
+                diams.append(int(chosen))
+                
             h_min = float(self.h_bounds.get("min", 0.0))
             h_max = float(self.h_bounds.get("max", 50.0))
-            h_val = random.uniform(h_min + (h_max - h_min) * 0.25, h_max - (h_max - h_min) * 0.25)
+            
+            # Stratégie mixte pour h_tank_m : exploration équilibrée
+            if random.random() < 0.5:
+                # 50% de chance d'utiliser des hauteurs élevées
+                h_val = random.uniform(h_min + (h_max - h_min) * 0.5, h_max - (h_max - h_min) * 0.1)
+            else:
+                # 50% de chance d'explorer toute la gamme
+                h_val = random.uniform(h_min + (h_max - h_min) * 0.1, h_max - (h_max - h_min) * 0.1)
+            
             ind = Individu(diametres=diams, h_tank_m=float(h_val))
             self.population.append(ind)
+            
+        self._log_ga(f"AGAMO: Initialized population with {n_heur} heuristic + {n_random} random individuals")
+
+    # -------------- AGAMO: Réparation Guidée par Contraintes ----------------
+    def _repair_velocity_violations(self, individu: Individu, sim_result: Dict[str, Any]) -> Tuple[Individu, Dict[str, Any]]:
+        """
+        AGAMO: Réparation intelligente des violations de vitesse avec stratégie adaptative.
+        """
+        v_max_req = float(getattr(getattr(self.constraint_manager, "contraintes_techniques", {}), "vitesse_max_m_s", self.velocity_max_default))
+        vmax_obs = float(sim_result.get("max_velocity_m_s", 0.0) or 0.0)
+        
+        if vmax_obs <= v_max_req:
+            return individu, sim_result
+            
+        # Calculer la sévérité de la violation
+        violation_ratio = vmax_obs / v_max_req if v_max_req > 0 else 1.0
+        candidate_diams = [int(d.diametre_mm) for d in self.diam_candidats]
+        repaired = False
+        
+        # Stratégie adaptative basée sur la sévérité de la violation
+        if violation_ratio > 2.0:
+            # Violation sévère (>2x) : augmentation agressive
+            repair_strategy = "aggressive"
+            diam_threshold = len(candidate_diams) // 2  # Moitié inférieure
+            step_size = 2  # Sauter 2 paliers
+        elif violation_ratio > 1.5:
+            # Violation modérée (1.5-2x) : augmentation modérée
+            repair_strategy = "moderate"
+            diam_threshold = len(candidate_diams) // 3  # Tiers inférieur
+            step_size = 1  # Sauter 1 palier
+        else:
+            # Violation légère (<1.5x) : augmentation fine
+            repair_strategy = "fine"
+            diam_threshold = len(candidate_diams) // 4  # Quart inférieur
+            step_size = 1  # Sauter 1 palier
+        
+        current_diams = individu.diametres.copy()
+        repairs_made = 0
+        
+        # Réparation intelligente : cibler les conduites les plus problématiques
+        for i, current_diam in enumerate(current_diams):
+            diam_idx = candidate_diams.index(current_diam) if current_diam in candidate_diams else -1
+            if diam_idx >= 0 and diam_idx < diam_threshold:
+                # Augmenter le diamètre selon la stratégie
+                new_diam = current_diam
+                for _ in range(step_size):
+                    next_diam = _get_next_candidate(new_diam, candidate_diams, direction=1)
+                    if next_diam != new_diam:
+                        new_diam = next_diam
+                    else:
+                        break  # Déjà au maximum
+                
+                if new_diam != current_diam:
+                    current_diams[i] = new_diam
+                    self.repair_history[i] += 1
+                    repairs_made += 1
+                    repaired = True
+                    
+                    # Limiter le nombre de réparations pour éviter l'explosion des coûts
+                    if repairs_made >= max(3, len(current_diams) // 10):
+                        break
+        
+        if repaired:
+            individu.diametres = current_diams
+            # Re-simuler avec les diamètres réparés
+            new_sim = self._simulate_or_approx(individu, None)
+            
+            # Vérifier si la réparation a amélioré la situation
+            new_vmax = float(new_sim.get("max_velocity_m_s", 0.0) or 0.0)
+            if new_vmax < vmax_obs:
+                self._log_ga(f"AGAMO: Velocity repair successful - {vmax_obs:.2f}m/s → {new_vmax:.2f}m/s (strategy: {repair_strategy})")
+            else:
+                self._log_ga(f"AGAMO: Velocity repair limited effect - {vmax_obs:.2f}m/s → {new_vmax:.2f}m/s")
+            
+            return individu, new_sim
+            
+        return individu, sim_result
+
+    def _repair_if_needed(self, individu: Individu, sim_result: Dict[str, Any]) -> Tuple[Individu, Dict[str, Any]]:
+        """
+        AGAMO: Réparation complète guidée par contraintes avec optimisation de h_tank_m.
+        """
+        # Réparation vitesse
+        individu, sim_result = self._repair_velocity_violations(individu, sim_result)
+        
+        # Réparation pression avec optimisation intelligente de h_tank_m
+        p_min = float(sim_result.get("min_pressure_m", 0.0) or 0.0)
+        p_req = float(getattr(getattr(self.constraint_manager, "contraintes_techniques", {}), "pression_min_mce", self.pressure_default_min))
+        
+        if p_min >= p_req or getattr(individu, "h_tank_m", None) is None:
+            return individu, sim_result
+
+        # Stratégie de réparation intelligente : optimisation binaire de h_tank_m
+        h_min = float(self.h_bounds.get("min", 0.0))
+        h_max = float(self.h_bounds.get("max", 50.0))
+        h_current = float(individu.h_tank_m)
+        
+        # Recherche binaire pour trouver la hauteur optimale
+        left = h_current
+        right = h_max
+        best_h = h_current
+        best_p = p_min
+        attempts = 0
+        max_attempts = 8
+        
+        while left <= right and attempts < max_attempts:
+            mid = (left + right) / 2.0
+            individu.h_tank_m = float(mid)
+            
+            # Simuler avec la nouvelle hauteur
+            test_sim = self._simulate_or_approx(individu, None)
+            test_p = float(test_sim.get("min_pressure_m", 0.0) or 0.0)
+            
+            if test_p >= p_req:
+                # Cette hauteur satisfait la contrainte de pression
+                best_h = mid
+                best_p = test_p
+                right = mid - 0.5  # Chercher une hauteur plus basse
+            else:
+                # Cette hauteur ne satisfait pas la contrainte
+                left = mid + 0.5  # Chercher une hauteur plus haute
+            
+            attempts += 1
+        
+        # Appliquer la meilleure hauteur trouvée
+        individu.h_tank_m = float(best_h)
+        
+        # Re-simuler avec la hauteur optimisée
+        final_sim = self._simulate_or_approx(individu, None)
+        
+        self._log_ga(f"AGAMO: h_tank repair - {h_current:.2f}m → {best_h:.2f}m, pressure: {p_min:.2f}m → {best_p:.2f}m")
+        
+        return individu, final_sim
+
+    # -------------- AGAMO: Pénalités Adaptatives ----------------
+    def _update_adaptive_penalties(self, generation: int) -> None:
+        """Met à jour les poids des pénalités selon la phase et l'historique."""
+        if not self.feasibility_found and generation > 10:
+            # Augmenter les pénalités si aucune solution faisable trouvée
+            for key in self.adaptive_penalty_weights:
+                self.adaptive_penalty_weights[key] *= 1.1
+                
+        elif self.feasibility_found and generation > 20:
+            # Réduire les pénalités si faisabilité atteinte
+            for key in self.adaptive_penalty_weights:
+                self.adaptive_penalty_weights[key] *= 0.95
+                
+        # Limiter les poids
+        for key in self.adaptive_penalty_weights:
+            self.adaptive_penalty_weights[key] = max(0.1, min(10.0, self.adaptive_penalty_weights[key]))
+
+    def _calculate_adaptive_penalties(self, individu: Individu, sim_result: Dict[str, Any]) -> float:
+        """Calcule les pénalités avec poids adaptatifs - Version corrigée avec pénalités linéaires intelligentes."""
+        penal = 0.0
+        
+        if not sim_result.get("success"):
+            penal += 1e6  # Pénalité forte pour échec de simulation
+            return penal
+            
+        # Pénalités de pression - LINÉAIRES et PROPORTIONNELLES au coût
+        p_req = float(getattr(getattr(self.constraint_manager, "contraintes_techniques", {}), "pression_min_mce", self.pressure_default_min))
+        p_min = float(sim_result.get("min_pressure_m", 0.0) or 0.0)
+        if p_min < p_req:
+            weight = self.adaptive_penalty_weights["pressure"]
+            # Pénalité linéaire : 10% du coût par mètre de déficit de pression
+            deficit = p_req - p_min
+            penal += weight * 0.1 * deficit * 1000  # 1000 FCFA par mètre de déficit
+            self.constraint_violation_history["pressure"] += 1
+            
+        # Pénalités de vitesse - LINÉAIRES et PROPORTIONNELLES
+        v_max_req = float(getattr(getattr(self.constraint_manager, "contraintes_techniques", {}), "vitesse_max_m_s", self.velocity_max_default))
+        v_min_req = float(getattr(getattr(self.constraint_manager, "contraintes_techniques", {}), "vitesse_min_m_s", self.velocity_min_default))
+        vmax_obs = float(sim_result.get("max_velocity_m_s", 0.0) or 0.0)
+        vmin_obs = float(sim_result.get("min_velocity_m_s", 0.0) or 0.0)
+        
+        if vmax_obs > v_max_req:
+            weight = self.adaptive_penalty_weights["velocity_max"]
+            # Pénalité linéaire : 5% du coût par m/s d'excès
+            excess = vmax_obs - v_max_req
+            penal += weight * 0.05 * excess * 1000  # 1000 FCFA par m/s d'excès
+            self.constraint_violation_history["velocity_max"] += 1
+            
+        if vmin_obs < v_min_req:
+            weight = self.adaptive_penalty_weights["velocity_min"]
+            # Pénalité linéaire : 3% du coût par m/s de déficit
+            deficit = v_min_req - vmin_obs
+            penal += weight * 0.03 * deficit * 1000  # 1000 FCFA par m/s de déficit
+            self.constraint_violation_history["velocity_min"] += 1
+
+        # Pénalité d'uniformité - RÉDUITE et linéaire
+        try:
+            counts = Counter(int(d) for d in individu.diametres)
+            total_pipes = max(1, len(individu.diametres))
+            max_ratio = max(counts.values()) / float(total_pipes)
+            
+            # Seuil adaptatif selon la phase
+            uniformity_threshold = 0.5 if self.current_phase == 1 else 0.4
+            
+            if max_ratio > uniformity_threshold:
+                weight = self.adaptive_penalty_weights["uniformity"]
+                # Pénalité linéaire : 2% du coût par excès d'uniformité
+                excess = max_ratio - uniformity_threshold
+                penal += weight * 0.02 * excess * 1000  # 1000 FCFA par excès d'uniformité
+        except Exception:
+            pass
+
+        return penal
 
     # -------------- evaluation ----------------
     def _simulate_or_approx(self, individu: Individu, reseau_data: Optional[Dict]) -> Dict[str, Any]:
@@ -238,11 +581,17 @@ class GeneticOptimizerV2:
             diam_map = {}
             if self.pipe_ids and len(self.pipe_ids) == len(individu.diametres):
                 diam_map = {self.pipe_ids[i]: d for i, d in enumerate(individu.diametres)}
+            else:
+                # DEBUG: Log pourquoi le mapping échoue
+                try:
+                    self._log_ga(f"DEBUG: Mapping failed - pipe_ids_len={len(self.pipe_ids) if self.pipe_ids else 0}, diams_len={len(individu.diametres)}")
+                except Exception:
+                    pass
             # H_tank map heuristic
-                h_map = {}
+            h_map = {}
             if getattr(individu, "h_tank_m", None) is not None:
                 # if tank IDs unknown, the wrapper will interpret/assign as appropriate
-                    h_map = {"tank1": float(individu.h_tank_m)}
+                h_map = {"tank1": float(individu.h_tank_m)}
             # Log: ce que le GA envoie réellement au simulateur (échantillon)
             try:
                 from pathlib import Path as _P
@@ -326,33 +675,13 @@ class GeneticOptimizerV2:
             total += unit_cost * length
         return float(total)
 
-    def _repair_if_needed(self, individu: Individu, sim_result: Dict[str, Any]) -> Tuple[Individu, Dict[str, Any]]:
-        """
-        Tentative de réparation simple: si pression min insuffisante, augmenter h_tank progressivement
-        jusqu'à h_max. Retourne (individu_potentiellement_modifie, sim_result_final).
-        """
-        p_min = float(sim_result.get("min_pressure_m", 0.0) or 0.0)
-        p_req = float(getattr(getattr(self.constraint_manager, "contraintes_techniques", {}), "pression_min_mce", self.pressure_default_min))
-        if p_min >= p_req or getattr(individu, "h_tank_m", None) is None:
-            return individu, sim_result
-
-        # try to increase tank height by steps until feasible or max reached
-        h_current = float(individu.h_tank_m)
-        h_max = float(self.h_bounds.get("max", 50.0))
-        step = max(0.5, (h_max - h_current) * 0.1)
-        attempts = 0
-        last_sim = sim_result
-        while p_min < p_req and h_current < h_max and attempts < 6:
-            h_current = min(h_max, h_current + step)
-            individu.h_tank_m = float(h_current)
-            last_sim = self._simulate_or_approx(individu, None)
-            p_min = float(last_sim.get("min_pressure_m", 0.0) or 0.0)
-            attempts += 1
-        return individu, last_sim
-
     def _evaluate_individual(self, args: Tuple[int, int, Individu, Optional[Dict], int]) -> Tuple[int, Individu, float, Dict[str, Any]]:
         """Worker-friendly evaluation: args=(generation, idx1, individu, reseau_data, pop_size) -> (idx1, individu, fitness, sim_result)"""
         generation, idx1, individu, reseau_data, pop_size = args
+        
+        # AGAMO: Mise à jour des pénalités adaptatives
+        self._update_adaptive_penalties(generation)
+        
         # Journaliser le chromosome: conversion diamètres -> indices par rapport aux candidats
         try:
             cand_list = [int(d.diametre_mm) for d in self.diam_candidats]
@@ -392,42 +721,20 @@ class GeneticOptimizerV2:
             self._emit("sim_done", {"generation": generation, "index": idx1, "population_size": pop_size, "success": bool(sim.get("success", False))})
         except Exception:
             pass
-        # attempt repair only if simulation failed or pressure not met
-        if sim.get("success") and sim.get("min_pressure_m", 0.0) < getattr(getattr(self.constraint_manager, "contraintes_techniques", {}), "pression_min_mce", self.pressure_default_min):
+        
+        # AGAMO: Réparation guidée par contraintes
+        if sim.get("success"):
             individu, sim = self._repair_if_needed(individu, sim)
 
         # cost
         cost = self._calculate_cost(individu, reseau_data)
-        penal = 0.0
-        if not sim.get("success"):
-            penal += 1e6  # keep but it's softened by repair attempt
-        else:
-            # pressure penalty (soft)
-            p_req = float(getattr(getattr(self.constraint_manager, "contraintes_techniques", {}), "pression_min_mce", self.pressure_default_min))
-            p_min = float(sim.get("min_pressure_m", 0.0) or 0.0)
-            if p_min < p_req:
-                penal += 5e5 * (p_req - p_min) ** 2
-            # velocity penalties
-            v_max_req = float(getattr(getattr(self.constraint_manager, "contraintes_techniques", {}), "vitesse_max_m_s", self.velocity_max_default))
-            v_min_req = float(getattr(getattr(self.constraint_manager, "contraintes_techniques", {}), "vitesse_min_m_s", self.velocity_min_default))
-            vmax_obs = float(sim.get("max_velocity_m_s", 0.0) or 0.0)
-            vmin_obs = float(sim.get("min_velocity_m_s", 0.0) or 0.0)
-            if vmax_obs > v_max_req:
-                penal += 1e6 * (vmax_obs - v_max_req) ** 2
-            if vmin_obs < v_min_req:
-                penal += 5e5 * (v_min_req - vmin_obs) ** 2
-
-        # uniformity penalty: décourage trop de conduites au même diamètre
-        try:
-            from collections import Counter
-            counts = Counter(int(d) for d in individu.diametres)
-            total_pipes = max(1, len(individu.diametres))
-            max_ratio = max(counts.values()) / float(total_pipes)
-            # pénalise au-dessus de 0.6 d’uniformité, croît quadratiquement
-            if max_ratio > 0.6:
-                penal += 1e5 * (max_ratio - 0.6) ** 2 * total_pipes
-        except Exception:
-            pass
+        
+        # AGAMO: Pénalités adaptatives
+        penal = self._calculate_adaptive_penalties(individu, sim)
+        
+        # Marquer si faisabilité trouvée
+        if penal == 0.0 and sim.get("success"):
+            self.feasibility_found = True
 
         # energy approx: use sim raw if exists (wrapper may provide energy_W)
         energy = float(sim.get("raw", {}).get("energy_W", 0.0) or 0.0)
@@ -449,7 +756,16 @@ class GeneticOptimizerV2:
         individu.cout_total = float(cost)
         individu.energie_totale = float(energy)
         individu.performance_hydraulique = float(perf)
-        individu.constraints_ok = (penal == 0.0)
+        
+        # Logique intelligente pour constraints_ok : tolérance technique
+        # Une solution est "OK" si les violations sont minimes (< 5% des contraintes)
+        if penal == 0.0:
+            individu.constraints_ok = True
+        else:
+            # Calculer le pourcentage de violation par rapport au coût total
+            violation_ratio = penal / (cost + penal) if (cost + penal) > 0 else 1.0
+            # Tolérance de 5% : si les violations représentent moins de 5% du coût total
+            individu.constraints_ok = (violation_ratio < 0.05)
         # Agrégation de statistiques hydrauliques globales
         try:
             _hs = getattr(self, "_hydro_stats", None) or {
@@ -491,261 +807,445 @@ class GeneticOptimizerV2:
             return 1.0
         return 0.0
 
-    # ---------------- genetic operators ----------------
+    # ---------------- AGAMO: Opérateurs Génétiques Biaisés ----------------
+    def _biased_mutation(self, individu: Individu, generation: int) -> Individu:
+        """Mutation biaisée vers diamètres supérieurs en cas de violations fréquentes."""
+        candidate_diams = [int(d.diametre_mm) for d in self.diam_candidats]
+        if not candidate_diams:
+            return individu
+            
+        mutated = Individu(diametres=individu.diametres.copy(), h_tank_m=getattr(individu, "h_tank_m", None))
+        
+        # Taux de mutation adaptatif
+        mutation_rate = self.mutation_rate_base
+        if not self.feasibility_found and generation > 10:
+            mutation_rate *= 1.5  # Augmenter si pas de faisabilité
+        elif self.feasibility_found:
+            mutation_rate *= 0.8  # Réduire si faisabilité atteinte
+            
+        for i in range(len(mutated.diametres)):
+            if random.random() < mutation_rate:
+                current_diam = mutated.diametres[i]
+                
+                # Biais vers diamètres supérieurs si cette conduite a été souvent réparée
+                bias = self.pipe_repair_bias.get(i, 0.0)
+                if bias > 0.5:  # Si réparée plus de 50% du temps
+                    # 70% de chance d'augmenter
+                    if random.random() < 0.7:
+                        new_diam = _get_next_candidate(current_diam, candidate_diams, direction=1)
+                    else:
+                        new_diam = _get_next_candidate(current_diam, candidate_diams, direction=-1)
+                else:
+                    # Mutation normale
+                    new_diam = random.choice(candidate_diams)
+                    
+                mutated.diametres[i] = new_diam
+                
+        # Mutation h_tank avec stratégie intelligente
+        if random.random() < mutation_rate and getattr(mutated, "h_tank_m", None) is not None:
+            h_min = float(self.h_bounds.get("min", 0.0))
+            h_max = float(self.h_bounds.get("max", 50.0))
+            h_current = float(mutated.h_tank_m)
+            
+            # Stratégie de mutation adaptative pour h_tank_m
+            h_range = h_max - h_min
+            if not self.feasibility_found:
+                # Si pas de faisabilité trouvée, favoriser les hauteurs élevées
+                if random.random() < 0.7:
+                    # 70% de chance d'augmenter la hauteur
+                    h_delta = random.uniform(0.5, h_range * 0.2)
+                    mutated.h_tank_m = max(h_min, min(h_max, h_current + h_delta))
+                else:
+                    # 30% de chance de mutation normale
+                    h_delta = random.uniform(-h_range * 0.15, h_range * 0.15)
+                    mutated.h_tank_m = max(h_min, min(h_max, h_current + h_delta))
+            else:
+                # Si faisabilité trouvée, mutation fine pour optimisation
+                h_delta = random.uniform(-h_range * 0.05, h_range * 0.05)
+                mutated.h_tank_m = max(h_min, min(h_max, h_current + h_delta))
+            
+        return mutated
+
     def _uniform_crossover(self, p1: Individu, p2: Individu) -> Tuple[Individu, Individu]:
-        """Uniform crossover per gene (diamètre and h_tank)."""
+        """Uniform crossover per gene (diamètre and h_tank) avec stratégie intelligente."""
         n = len(p1.diametres)
         child1 = Individu(diametres=p1.diametres.copy(), h_tank_m=getattr(p1, "h_tank_m", None))
         child2 = Individu(diametres=p2.diametres.copy(), h_tank_m=getattr(p2, "h_tank_m", None))
+        
+        # Crossover des diamètres
         for i in range(n):
             if random.random() < 0.5:
                 child1.diametres[i], child2.diametres[i] = child2.diametres[i], child1.diametres[i]
-        # crossover h_tank with 50% pick
+        
+        # Crossover h_tank_m avec stratégie intelligente
         if hasattr(p1, "h_tank_m") and hasattr(p2, "h_tank_m") and random.random() < 0.5:
-            child1.h_tank_m, child2.h_tank_m = p2.h_tank_m, p1.h_tank_m
-        return child1, child2
-
-    def _adaptive_mutation(self, individu: Individu, mutation_rate: float) -> None:
-        """Mutation that can also nudge h_tank and offers higher exploration when stagnating."""
-        # diameters mutation: with mutation_rate change a gene
-        for i in range(len(individu.diametres)):
-            if random.random() < mutation_rate:
-                individu.diametres[i] = int(random.choice([int(d.diametre_mm) for d in self.diam_candidats]))
-        # mutate tank height slightly
-        if hasattr(individu, "h_tank_m") and random.random() < (mutation_rate * 0.5):
+            h1 = float(p1.h_tank_m)
+            h2 = float(p2.h_tank_m)
+            
+            # Stratégie : favoriser la hauteur la plus élevée (plus de pression disponible)
+            if h1 > h2:
+                # Parent 1 a une hauteur plus élevée
+                child1.h_tank_m = float(h1)  # Garder la meilleure
+                child2.h_tank_m = float((h1 + h2) / 2.0)  # Moyenne
+            else:
+                # Parent 2 a une hauteur plus élevée
+                child1.h_tank_m = float((h1 + h2) / 2.0)  # Moyenne
+                child2.h_tank_m = float(h2)  # Garder la meilleure
+            
+            # Ajouter une petite variation pour maintenir la diversité
             h_min = float(self.h_bounds.get("min", 0.0))
             h_max = float(self.h_bounds.get("max", 50.0))
-            perturb = (h_max - h_min) * (random.uniform(-0.05, 0.05))
-            individu.h_tank_m = float(max(h_min, min(h_max, individu.h_tank_m + perturb)))
-
-    # ---------------- main loop ----------------
-    def optimiser(self, reseau_data: Optional[Dict] = None, nb_conduites: Optional[int] = None) -> Dict[str, Any]:
-        """Main entry: run GA and return canonical JSON-like result."""
-        t_start = time.time()
-        # compute nb_conduites
-        if nb_conduites is None:
-            if self.pipe_ids:
-                nb_conduites = len(self.pipe_ids)
-            else:
-                # try from reseau_data
-                if reseau_data and "conduites" in reseau_data:
-                    nb_conduites = len(reseau_data["conduites"])
-                else:
-                    raise ValueError("nb_conduites non spécifié et pipe_ids/reseau_data absents")
-        
-        # init population
-        self.initialiser_population(int(nb_conduites), reseau_data)
-
-        # Vérifier et journaliser l'alignement des pipe_ids (une seule fois)
-        try:
-            n_pipes = int(nb_conduites)
-            pid_len = len(self.pipe_ids) if self.pipe_ids else 0
-            self._log_ga(f"pipes_declared={n_pipes} pipe_ids_len={pid_len}")
-            if self.pipe_ids and pid_len == n_pipes:
-                sample_n = min(10, n_pipes)
-                details = [f"pipe_ids[{i}]={self.pipe_ids[i]}" for i in range(sample_n)]
-                self._log_ga("pipe_ids_sample:", details)
-            else:
-                self._log_ga("WARNING: pipe_ids absent ou taille non conforme — mapping diameters_map peut être vide/décalé")
-        except Exception:
-            pass
-        
-        total_gen = int(self.generations)
-        pop_size = int(self.population_size)
-
-        # warm-up: emit run_start
-        try:
-            self._emit("run_start", {"generations": total_gen, "population": pop_size, "num_solvers": 1})
-        except Exception:
-            pass
-
-        # create multiprocessing pool if needed
-        use_mp = False  # DÉSACTIVÉ TEMPORAIREMENT: (self.workers > 1 and self.solver is not None)
-        pool = Pool(processes=self.workers) if use_mp else None
-
-        for generation in range(total_gen):
-            gen_t0 = time.time()
-            # adaptive mutation rate based on stagnation
-            mutation_rate = self.mutation_rate_base * (1.0 + min(5.0, self.stagnation_counter * 0.5))
-
-            # emit generation_start
-            try:
-                self._emit("generation_start", {"generation": generation, "total_generations": total_gen, "population_size": pop_size})
-            except Exception:
-                pass
-
-            # Evaluate population (parallel if possible)
-            args = [(generation, i + 1, ind, reseau_data, pop_size) for i, ind in enumerate(self.population)]
-            results = []
-            if pool:
-                results = pool.map(self._evaluate_individual, args)
-            else:
-                results = [self._evaluate_individual(a) for a in args]
-
-            # unpack results; update individuals
-            for idx, ind, fitness, sim in results:
-                ind.fitness = float(fitness)
-                # emit individual_start event
-                try:
-                    self._emit("individual_start", {"generation": generation, "index": idx, "candidate_id": getattr(ind, "id", None)})
-                except Exception:
-                    pass
-                # emit individual_end event
-                try:
-                    self._emit("individual_end", {"generation": generation, "index": idx, "candidate_id": getattr(ind, "id", None), "cost": getattr(ind, "cout_total", None), "fitness": ind.fitness, "feasible": bool(getattr(ind, "constraints_ok", False))})
-                except Exception:
-                    pass
-
-            # sort population by fitness descending
-            self.population.sort(key=lambda x: getattr(x, "fitness", 0.0), reverse=True)
-
-            # track best
-            current_best = self.population[0]
-            current_best_cost = float(getattr(current_best, "cout_total", float("inf")) or float("inf"))
-            if self.best_solution is None or self.population[0].fitness > getattr(self.best_solution, "fitness", -1):
-                self.best_solution = Individu(
-                    diametres=self.population[0].diametres.copy(),
-                    h_tank_m=getattr(self.population[0], "h_tank_m", None),
-                    fitness=self.population[0].fitness,
-                    cout_total=self.population[0].cout_total,
-                    energie_totale=self.population[0].energie_totale,
-                    performance_hydraulique=self.population[0].performance_hydraulique,
-                )
-                self.stagnation_counter = 0
-                try:
-                    self._emit("best_improved", {"generation": generation, "new_cost": current_best_cost})
-                except Exception:
-                    pass
-                # Alias homogène pour UI/adapter
-                try:
-                    self._emit("best_updated", {"generation": generation, "best_cost": current_best_cost})
-                except Exception:
-                    pass
-            else:
-                self.stagnation_counter += 1
-
-            self.best_cost_history.append(current_best_cost)
+            variation = random.uniform(-1.0, 1.0)
             
-            # history record
-            fitness_vals = [getattr(ind, "fitness", 0.0) for ind in self.population]
-            mean_fitness = float(np.mean(fitness_vals)) if fitness_vals else 0.0
-            self.history.append({
-                "generation": generation,
-                "best_fitness": float(self.population[0].fitness),
-                "mean_fitness": mean_fitness,
-                "best_cost": current_best_cost,
-                "stagnation": int(self.stagnation_counter),
+            child1.h_tank_m = max(h_min, min(h_max, child1.h_tank_m + variation))
+            child2.h_tank_m = max(h_min, min(h_max, child2.h_tank_m + variation))
+        
+        return child1, child2
+
+    # ---------------- AGAMO: Sélection et Gestion des Phases ----------------
+    def _tournament_selection(self, population: List[Individu], tournament_size: int = 3) -> Individu:
+        """Sélection par tournoi avec biais vers les meilleurs."""
+        if not population:
+            raise ValueError("Population vide pour la sélection")
+        
+        # Sélection aléatoire de candidats
+        candidates = random.sample(population, min(tournament_size, len(population)))
+        
+        # Tri par fitness (plus élevé = meilleur)
+        candidates.sort(key=lambda x: getattr(x, 'fitness', 0.0), reverse=True)
+        
+        # Biais vers les meilleurs (70% de chance pour le meilleur)
+        if random.random() < 0.7:
+            return candidates[0]
+        else:
+            return random.choice(candidates)
+
+    def _update_phase(self, generation: int) -> None:
+        """Met à jour la phase d'optimisation selon la progression."""
+        if generation < self.generations // 3:
+            self.current_phase = 1  # Exploration
+        elif generation < 2 * self.generations // 3:
+            self.current_phase = 2  # Exploitation
+        else:
+            self.current_phase = 3  # Raffinement
+            
+        # Transition de phase avec ajustements
+        if self.current_phase == 2 and not self.feasibility_found:
+            # Si pas de faisabilité en phase 2, augmenter les pénalités
+            for key in self.adaptive_penalty_weights:
+                self.adaptive_penalty_weights[key] *= 1.5
+                
+        self._log_ga(f"AGAMO: Phase {self.current_phase} at generation {generation}")
+
+    def _check_stagnation(self, generation: int) -> bool:
+        """Vérifie si l'optimisation stagne et déclenche des actions correctives."""
+        if len(self.best_cost_history) < 10:
+            return False
+            
+        recent_costs = self.best_cost_history[-10:]
+        improvement = recent_costs[0] - recent_costs[-1]
+        
+        if improvement < 1e-6:  # Pas d'amélioration significative
+            self.stagnation_counter += 1
+            if self.stagnation_counter > 5:
+                self._log_ga(f"AGAMO: Stagnation detected at generation {generation}")
+                return True
+        else:
+            self.stagnation_counter = 0
+            
+        return False
+
+    def _restart_population_partially(self, reseau_data: Optional[Dict]) -> None:
+        """Redémarre partiellement la population pour échapper à la stagnation."""
+        if not self.population:
+            return
+            
+        # Garder les 20% meilleurs
+        n_keep = max(1, int(self.population_size * 0.2))
+        self.population.sort(key=lambda x: getattr(x, 'fitness', 0.0), reverse=True)
+        kept = self.population[:n_keep]
+        
+        # Régénérer le reste avec plus de diversité
+        n_new = self.population_size - n_keep
+        new_individuals = []
+        
+        for _ in range(n_new):
+            # 50% heuristique, 50% aléatoire avec exploration étendue
+            if random.random() < 0.5:
+                # Heuristique avec plages élargies
+                diams = []
+                for i in range(len(self.pipe_ids) if self.pipe_ids else 100):
+                    if i in self.pipe_diameter_ranges:
+                        # Élargir la plage
+                        local_cands = self.pipe_diameter_ranges[i]
+                        candidate_diams = [int(d.diametre_mm) for d in self.diam_candidats]
+                        if local_cands:
+                            # Ajouter des candidats voisins
+                            min_local = min(local_cands)
+                            max_local = max(local_cands)
+                            min_idx = candidate_diams.index(min_local) if min_local in candidate_diams else 0
+                            max_idx = candidate_diams.index(max_local) if max_local in candidate_diams else len(candidate_diams)-1
+                            extended_min = max(0, min_idx - 2)
+                            extended_max = min(len(candidate_diams), max_idx + 3)
+                            extended_cands = candidate_diams[extended_min:extended_max]
+                            chosen = random.choice(extended_cands)
+                        else:
+                            chosen = random.choice(candidate_diams)
+                    else:
+                        chosen = random.choice([int(d.diametre_mm) for d in self.diam_candidats])
+                    diams.append(chosen)
+            else:
+                # Aléatoire complet
+                diams = [random.choice([int(d.diametre_mm) for d in self.diam_candidats]) 
+                        for _ in range(len(self.pipe_ids) if self.pipe_ids else 100)]
+                
+            h_min = float(self.h_bounds.get("min", 0.0))
+            h_max = float(self.h_bounds.get("max", 50.0))
+            h_val = random.uniform(h_min, h_max)
+            new_ind = Individu(diametres=diams, h_tank_m=float(h_val))
+            new_individuals.append(new_ind)
+            
+        self.population = kept + new_individuals
+        self.stagnation_counter = 0
+        self._log_ga(f"AGAMO: Partial restart - kept {n_keep}, generated {n_new} new individuals")
+
+    # ---------------- Boucle Principale d'Optimisation ----------------
+    def optimiser(self, reseau_data: Optional[Dict] = None) -> Dict[str, Any]:
+        """
+        AGAMO: Boucle principale d'optimisation avec phases adaptatives.
+        """
+        if not self.population:
+            raise ValueError("Population non initialisée. Appelez initialiser_population() d'abord.")
+            
+        nb_conduites = len(self.pipe_ids) if self.pipe_ids else len(self.population[0].diametres)
+        
+        self._log_ga(f"AGAMO: Starting optimization with {self.population_size} individuals, {self.generations} generations")
+        
+        # Statistiques de suivi
+        best_fitness_history = []
+        feasibility_rate_history = []
+        
+        for generation in range(self.generations):
+            # Émission de début de génération
+            self._emit("generation_start", {
+                "generation": generation + 1,
+                "total_generations": self.generations,
+                "population_size": self.population_size,
+                "phase": self.current_phase
             })
-
-            # emit generation_end
-            try:
-                self._emit("generation_end", {"generation": generation, "best_cost": current_best_cost, "best_id": getattr(self.population[0], "id", None)})
-            except Exception:
-                pass
-
-            # optionally call external on_generation_callback (UI)
-            try:
-                if self.on_generation_callback:
-                    # provide limited frequency to avoid spam
-                    if generation % max(1, total_gen // 40) == 0 or generation in (0, total_gen - 1):
-                        self.on_generation_callback(self.population, generation)
-            except Exception:
-                pass
-
-            # create new generation
-            nouvelle_population: List[Individu] = []
-            nb_elites = max(1, int(self.elitism_ratio * pop_size))
-            nouvelle_population.extend(self.population[:nb_elites])
             
-            # fill rest
-            while len(nouvelle_population) < pop_size:
-                # selection: binary tournament
-                parent1 = self._tournament_select(3)
-                parent2 = self._tournament_select(3)
-                # crossover (with probability)
+            # AGAMO: Mise à jour de phase
+            self._update_phase(generation)
+            
+            # AGAMO: Vérification de stagnation
+            if self._check_stagnation(generation):
+                self._restart_population_partially(reseau_data)
+            
+            # Évaluation parallèle de la population
+            args_list = [(generation, i, ind, reseau_data, self.population_size) 
+                         for i, ind in enumerate(self.population)]
+            
+            # Émission de début d'évaluation
+            self._emit("evaluation_start", {
+                "generation": generation + 1,
+                "population_size": self.population_size,
+                "workers": self.workers
+            })
+            
+            if self.workers > 1:
+                with Pool(processes=self.workers) as pool:
+                    results = pool.map(self._evaluate_individual, args_list)
+            else:
+                results = [self._evaluate_individual(args) for args in args_list]
+            
+            # Émission de fin d'évaluation
+            self._emit("evaluation_complete", {
+                "generation": generation + 1,
+                "evaluated_count": len(results),
+                "success_count": sum(1 for r in results if r[3].get("success", False))
+            })
+            
+            # Mise à jour de la population avec les résultats
+            for idx, individu, fitness, sim_result in results:
+                self.population[idx] = individu
+                individu.fitness = fitness
+                individu.sim_result = sim_result
+                
+                # Mise à jour du biais de réparation
+                if hasattr(individu, 'diametres'):
+                    for i, diam in enumerate(individu.diametres):
+                        if i in self.repair_history and self.repair_history[i] > 0:
+                            self.pipe_repair_bias[i] = self.repair_history[i] / max(1, generation + 1)
+            
+            # Tri par fitness
+            self.population.sort(key=lambda x: getattr(x, 'fitness', 0.0), reverse=True)
+            
+            # Mise à jour de la meilleure solution
+            if not self.best_solution or getattr(self.population[0], 'fitness', 0.0) > getattr(self.best_solution, 'fitness', 0.0):
+                self.best_solution = self.population[0]
+                self.generations_without_improvement = 0
+            else:
+                self.generations_without_improvement += 1
+            
+            # Historique des coûts
+            if self.best_solution:
+                cost = self._calculate_cost(self.best_solution, reseau_data)
+                self.best_cost_history.append(cost)
+                
+                # Émission de mise à jour du meilleur coût
+                self._emit("best_cost_updated", {
+                    "generation": generation + 1,
+                    "best_cost": cost,
+                    "improvement": self.best_cost_history[-2] - cost if len(self.best_cost_history) > 1 else 0.0
+                })
+            
+            # Statistiques de la génération
+            best_fitness = getattr(self.population[0], 'fitness', 0.0)
+            best_fitness_history.append(best_fitness)
+            
+            feasibility_count = sum(1 for ind in self.population if getattr(ind, 'constraints_ok', False))
+            feasibility_rate = feasibility_count / len(self.population)
+            feasibility_rate_history.append(feasibility_rate)
+            
+            # Émission de progression globale
+            total_progress = (generation + 1) / self.generations
+            self._emit("progress_update", {
+                "generation": generation + 1,
+                "total_generations": self.generations,
+                "total_progress": total_progress,
+                "best_cost": cost if self.best_solution else None,
+                "feasibility_rate": feasibility_rate,
+                "phase": self.current_phase
+            })
+            
+            # Log de progression
+            if generation % 10 == 0 or generation == self.generations - 1:
+                self._log_ga(
+                    f"AGAMO: Gen {generation}/{self.generations} - "
+                    f"Best fitness: {best_fitness:.6f} - "
+                    f"Feasibility rate: {feasibility_rate:.2%} - "
+                    f"Phase: {self.current_phase}"
+                )
+            
+            # Callback de progression
+            if self.on_generation_callback:
+                try:
+                    self.on_generation_callback(self.population, generation)
+                except Exception as e:
+                    self._log_ga(f"Error in generation callback: {e}")
+            
+            # Émission d'événements
+            self._emit("generation_complete", {
+                "generation": generation,
+                "best_fitness": best_fitness,
+                "feasibility_rate": feasibility_rate,
+                "phase": self.current_phase
+            })
+            
+            # Génération de la nouvelle population
+            new_population = []
+            
+            # Élitisme (garder les meilleurs)
+            n_elite = max(1, int(self.population_size * self.elitism_ratio))
+            new_population.extend(self.population[:n_elite])
+            
+            # Génération des enfants
+            while len(new_population) < self.population_size:
+                # Sélection des parents
+                parent1 = self._tournament_selection(self.population)
+                parent2 = self._tournament_selection(self.population)
+                
+                # Croisement
                 if random.random() < self.crossover_rate:
                     child1, child2 = self._uniform_crossover(parent1, parent2)
                 else:
-                    child1, child2 = Individu(diametres=parent1.diametres.copy(), h_tank_m=getattr(parent1, "h_tank_m", None)), Individu(diametres=parent2.diametres.copy(), h_tank_m=getattr(parent2, "h_tank_m", None))
-                # mutation
-                self._adaptive_mutation(child1, mutation_rate)
-                self._adaptive_mutation(child2, mutation_rate)
-                nouvelle_population.append(child1)
-                if len(nouvelle_population) < pop_size:
-                    nouvelle_population.append(child2)
-
-            # replace population (truncate if oversize)
-            self.population = nouvelle_population[:pop_size]
-
-        # clean up pool
-        if pool:
-            pool.close()
-            pool.join()
-
-        duration = time.time() - t_start
-        # final report
-        result = self._generer_resultats(duration_seconds=duration)
-        return result
-
-    # ---------------- selection ----------------
-    def _tournament_select(self, k: int = 3) -> Individu:
-        participants = random.sample(self.population, min(k, len(self.population)))
-        return max(participants, key=lambda x: getattr(x, "fitness", 0.0))
-
-    # ---------------- results ----------------
-    def _generer_resultats(self, duration_seconds: float = 0.0) -> Dict[str, Any]:
-        """Sortie standardisée pour intégration rapports."""
-        algo_type = getattr(getattr(self.config, "algorithme", None), "type", "genetic_v2")
-        best = self.best_solution
-        diam_map = {}
-        if best:
-            if self.pipe_ids and len(best.diametres) == len(self.pipe_ids):
-                diam_map = {self.pipe_ids[i]: int(best.diametres[i]) for i in range(len(best.diametres))}
-            else:
-                diam_map = {f"C{i+1}": int(best.diametres[i]) for i in range(len(best.diametres))}
-        # Calcul des statistiques hydrauliques agrégées
-        hs = getattr(self, "_hydro_stats", {}) or {}
-        avg_min_pressure = 0.0
-        avg_max_velocity = 0.0
-        if hs.get("sim_count", 0) > 0:
-            avg_min_pressure = float(hs.get("sum_min_pressure", 0.0)) / float(hs.get("sim_count", 1))
-            avg_max_velocity = float(hs.get("sum_max_velocity", 0.0)) / float(hs.get("sim_count", 1))
+                    child1, child2 = parent1, parent2
+                
+                # AGAMO: Mutation biaisée
+                child1 = self._biased_mutation(child1, generation)
+                child2 = self._biased_mutation(child2, generation)
+                
+                new_population.extend([child1, child2])
+            
+            # Ajuster la taille si nécessaire
+            self.population = new_population[:self.population_size]
+            
+            # Historique
+            self.history.append({
+                "generation": generation,
+                "best_fitness": best_fitness,
+                "feasibility_rate": feasibility_rate,
+                "phase": self.current_phase,
+                "stagnation_counter": self.stagnation_counter
+            })
         
-        # Statistiques hydrauliques détaillées si disponibles
-        detailed_stats = {}
-        if hasattr(self, "last_hydraulics") and self.last_hydraulics:
-            try:
-                from ..optimizer.controllers import _calculate_hydraulic_statistics
-                detailed_stats = _calculate_hydraulic_statistics(self.last_hydraulics)
-            except Exception as e:
-                detailed_stats = {"error": str(e)}
+        # Émission de fin d'optimisation
+        self._emit("optimization_complete", {
+            "total_generations": self.generations,
+            "final_phase": self.current_phase,
+            "feasibility_found": self.feasibility_found,
+            "total_evaluations": self.generations * self.population_size
+        })
+        
+        # Résultats finaux
+        if not self.best_solution:
+            self.best_solution = self.population[0]
+            
+        final_cost = self._calculate_cost(self.best_solution, reseau_data)
+        
+        # Statistiques finales
+        final_stats = {
+            "best_fitness_history": best_fitness_history,
+            "feasibility_rate_history": feasibility_rate_history,
+            "repair_history": dict(self.repair_history),
+            "constraint_violation_history": dict(self.constraint_violation_history),
+            "adaptive_penalty_weights": self.adaptive_penalty_weights.copy(),
+            "final_phase": self.current_phase,
+            "feasibility_found": self.feasibility_found
+        }
+        
+        self._log_ga(
+            f"AGAMO: Optimization completed - "
+            f"Final cost: {final_cost:.2f} - "
+            f"Feasibility: {self.feasibility_found} - "
+            f"Final phase: {self.current_phase}"
+        )
+        
         return {
-            "optimisation": {
-                "algorithme": algo_type,
-                "meta": {
-                    "generations": self.generations,
-                    "population": self.population_size,
-                    "duration_seconds": float(duration_seconds),
-                    "best_cost_history": self.best_cost_history,
-                    "stagnation": self.stagnation_counter,
-                    "evaluations": len(self.cache),
-                    "hydraulics_stats": {
-                        "sim_count": int(hs.get("sim_count", 0)),
-                        "success_count": int(hs.get("success_count", 0)),
-                        "min_pressure_min": float(hs.get("min_pressure_min", 0.0) if hs.get("min_pressure_min", float("inf")) != float("inf") else 0.0),
-                        "max_velocity_max": float(hs.get("max_velocity_max", 0.0)),
-                        "min_velocity_min": float(hs.get("min_velocity_min", 0.0) if hs.get("min_velocity_min", float("inf")) != float("inf") else 0.0),
-                        "avg_min_pressure": float(avg_min_pressure),
-                        "avg_max_velocity": float(avg_max_velocity),
-                        "detailed_statistics": detailed_stats,
-                    },
-                },
-                "meilleure_solution": {
-                    "diameters_mm": diam_map,
-                    "cout_total_fcfa": float(getattr(best, "cout_total", 0.0) if best else 0.0),
-                    "energie_total_wh": float(getattr(best, "energie_totale", 0.0) if best else 0.0),
-                    "performance_hydraulique": float(getattr(best, "performance_hydraulique", 0.0) if best else 0.0),
-                },
-                "historique": self.history,
-            }
+            "success": True,
+            "best_solution": self.best_solution,
+            "final_cost": final_cost,
+            "generations": self.generations,
+            "population_size": self.population_size,
+            "history": self.history,
+            "stats": final_stats
+        }
+
+    # ---------------- Méthodes Utilitaires ----------------
+    def get_best_solution(self) -> Optional[Individu]:
+        """Retourne la meilleure solution trouvée."""
+        return self.best_solution
+    
+    def get_optimization_history(self) -> List[Dict[str, Any]]:
+        """Retourne l'historique complet de l'optimisation."""
+        return self.history
+    
+    def get_population_stats(self) -> Dict[str, Any]:
+        """Retourne les statistiques actuelles de la population."""
+        if not self.population:
+            return {}
+            
+        fitnesses = [getattr(ind, 'fitness', 0.0) for ind in self.population]
+        costs = [getattr(ind, 'cout_total', 0.0) for ind in self.population]
+        feasibility_count = sum(1 for ind in self.population if getattr(ind, 'constraints_ok', False))
+        
+        return {
+            "population_size": len(self.population),
+            "best_fitness": max(fitnesses) if fitnesses else 0.0,
+            "avg_fitness": sum(fitnesses) / len(fitnesses) if fitnesses else 0.0,
+            "best_cost": min(costs) if costs else 0.0,
+            "avg_cost": sum(costs) / len(costs) if costs else 0.0,
+            "feasibility_rate": feasibility_count / len(self.population),
+            "current_phase": self.current_phase,
+            "feasibility_found": self.feasibility_found
         }

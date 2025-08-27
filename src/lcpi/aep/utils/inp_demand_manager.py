@@ -1,7 +1,9 @@
 """
+Utilitaire pour la gestion des demandes dans les fichiers EPANET .inp (version corrigée).
 """
 import configparser
 import io
+import os
 from pathlib import Path
 from typing import Optional
 import typer
@@ -9,6 +11,7 @@ from rich import print as rprint
 
 import tempfile
 import atexit
+from .demand_verifier import verify_demands_in_file, display_verification_results
 
 _temp_files = []
 
@@ -26,14 +29,6 @@ atexit.register(_cleanup_temp_files)
 def handle_demand_logic(input_path: Path, demand_value: Optional[float], no_log: bool = False) -> Path:
     """
     Gère la logique de la demande pour un fichier .inp.
-
-    1. Si aucune demande n'est fournie, vérifie si [DEMANDS] est vide.
-       Si oui, calcule la demande depuis [JUNCTIONS] et la remplit.
-    2. Si une demande est fournie:
-       a. Si [DEMANDS] est non vide, demande confirmation pour écraser.
-       b. Si [DEMANDS] est vide ou si l'utilisateur confirme, écrase/crée la section.
-
-    Retourne le chemin vers le fichier .inp (potentiellement modifié).
     """
     if input_path.suffix.lower() != '.inp':
         return input_path
@@ -44,7 +39,6 @@ def handle_demand_logic(input_path: Path, demand_value: Optional[float], no_log:
     else:
         # Scénario 2: --demand est fourni, on gère l'écrasement
         return _apply_demand_override(input_path, demand_value, no_log)
-
 
 def _read_inp_lines(path: Path) -> list[str]:
     """Lit toutes les lignes d'un fichier .inp."""
@@ -57,7 +51,7 @@ def _write_lines_to_temp_file(lines: list[str], suffix: str) -> Path:
     temp_path = Path(temp_path_str)
     _temp_files.append(temp_path)
 
-    with open(fd, 'w', encoding='utf-8', newline='') as f: # newline='' préserve les fins de ligne
+    with os.fdopen(fd, 'w', encoding='utf-8', newline='') as f:
         f.writelines(lines)
     
     return temp_path
@@ -65,62 +59,62 @@ def _write_lines_to_temp_file(lines: list[str], suffix: str) -> Path:
 def _ensure_demand_from_junctions(input_path: Path) -> Path:
     """
     Vérifie si la section [DEMANDS] est vide. Si c'est le cas, la remplit
-    en se basant sur la section [JUNCTIONS].
-    Cette version est plus robuste car elle préserve le formatage original.
+    en se basant sur la section [JUNCTIONS] (3ème colonne).
     """
     lines = _read_inp_lines(input_path)
     
     try:
         demands_idx = -1
         junctions_idx = -1
-        in_demands_section = False
-        has_demands_content = False
-
-        # Trouver les sections et vérifier le contenu de [DEMANDS]
+        
+        # Trouver les sections
         for i, line in enumerate(lines):
             stripped = line.strip()
             if stripped.startswith('[DEMANDS]'):
                 demands_idx = i
-                in_demands_section = True
-            elif stripped.startswith('[') and in_demands_section:
-                in_demands_section = False
             elif stripped.startswith('[JUNCTIONS]'):
                 junctions_idx = i
 
-            if in_demands_section and stripped and not stripped.startswith(';'):
-                has_demands_content = True
+        if demands_idx == -1:  # Pas de section [DEMANDS]
+            rprint("[yellow]Section [DEMANDS] manquante. Création automatique depuis [JUNCTIONS]...[/yellow]")
+            # Créer la section [DEMANDS] après [JUNCTIONS]
+            insert_pos = junctions_idx + 1 if junctions_idx != -1 else 0
+            new_lines = lines[:insert_pos] + ["\n[DEMANDS]\n"] + lines[insert_pos:]
+            lines = new_lines
+            demands_idx = insert_pos
 
-        if demands_idx == -1: # Pas de section [DEMANDS]
-            return input_path
-
-        # Vérification supplémentaire : analyser le contenu après [DEMANDS]
-        if not has_demands_content and demands_idx != -1:
-            # Vérifier les lignes après [DEMANDS] jusqu'à la prochaine section
-            for i in range(demands_idx + 1, len(lines)):
-                line = lines[i].strip()
-                if line.startswith('['):
-                    break  # Nouvelle section
-                if line and not line.startswith(';'):
-                    # Vérifier si c'est vraiment du contenu (pas juste un en-tête de colonnes)
-                    words = line.split()
-                    if not any(word.lower() in ['junction', 'demand', 'pattern', 'category', 'id', 'status', 'setting'] for word in words):
-                        has_demands_content = True
-                        break
+        # Vérifier si la section [DEMANDS] est vide (après création si nécessaire)
+        has_demands_content = False
+        for i in range(demands_idx + 1, len(lines)):
+            line = lines[i].strip()
+            if line.startswith('['):
+                break  # Nouvelle section
+            if line and not line.startswith(';'):
+                # Vérifier si c'est vraiment du contenu (pas juste un en-tête)
+                words = line.split()
+                if not any(word.lower() in ['junction', 'demand', 'pattern', 'category', 'id', 'status', 'setting'] for word in words):
+                    has_demands_content = True
+                    break
 
         if not has_demands_content:
-            rprint("[yellow]La section [DEMANDS] est vide. Calcul depuis [JUNCTIONS]...[/yellow]")
-            rprint(f"[dim]Debug: demands_idx={demands_idx}, junctions_idx={junctions_idx}[/dim]")
+            rprint("[yellow]Section [DEMANDS] vide détectée. Transfert automatique depuis [JUNCTIONS] (3ème colonne)...[/yellow]")
             
             if junctions_idx == -1:
+                rprint("[red]❌ Section [JUNCTIONS] non trouvée.[/red]")
                 return input_path
 
-            # Extraire les demandes depuis [JUNCTIONS]
-            demands_to_add = ["; Demandes reportées depuis la section [JUNCTIONS]\n"]
-            in_junctions_section = False
+            # Extraire les demandes depuis [JUNCTIONS] (3ème colonne)
+            demands_to_add = [
+                "; Demandes transférées depuis la section [JUNCTIONS] (3ème colonne)\n",
+                ";Node  BaseDemand  Pattern  Category\n"
+            ]
+            total_demand = 0.0
+            node_count = 0
+            
             for line in lines[junctions_idx + 1:]:
                 stripped = line.strip()
                 if stripped.startswith('['):
-                    break # Fin de la section
+                    break  # Fin de la section
                 
                 if stripped.startswith(';') or not stripped:
                     continue
@@ -130,132 +124,187 @@ def _ensure_demand_from_junctions(input_path: Path) -> Path:
                     try:
                         node_id = parts[0]
                         demand = float(parts[2])
-                        demands_to_add.append(f"{node_id:<16} {demand:<16.4f}\n")
+                        if demand > 0:  # Seulement les nœuds avec demande > 0
+                            demands_to_add.append(f"{node_id:<16} {demand:<16.4f}\n")
+                            total_demand += demand
+                            node_count += 1
                     except (ValueError, IndexError):
                         continue
             
             if len(demands_to_add) > 1:
+                # IMPORTANT: Éviter le double comptage EPANET
+                # Mettre à zéro la 3ème colonne (demande) dans [JUNCTIONS]
+                new_lines = lines.copy()
+                zeroed_count = 0
+                for i in range(junctions_idx + 1, len(new_lines)):
+                    line = new_lines[i].strip()
+                    if line.startswith('['):
+                        break  # Fin de la section
+                    if line and not line.startswith(';'):
+                        parts = line.split()
+                        if len(parts) >= 3:
+                            try:
+                                old_demand = float(parts[2])
+                                if old_demand > 0:
+                                    # Remplacer la demande (3ème colonne) par 0
+                                    parts[2] = "0"
+                                    new_lines[i] = " ".join(parts) + "\n"
+                                    zeroed_count += 1
+                            except (ValueError, IndexError):
+                                continue
+                
                 # Insérer les nouvelles demandes après la ligne [DEMANDS]
-                new_lines = lines[:demands_idx + 1] + demands_to_add + lines[demands_idx + 1:]
+                new_lines = new_lines[:demands_idx + 1] + demands_to_add + new_lines[demands_idx + 1:]
                 temp_path = _write_lines_to_temp_file(new_lines, ".demand_filled.inp")
-                rprint(f"[green]La section [DEMANDS] a été remplie avec {len(demands_to_add) - 1} entrées dans {temp_path}[/green]")
+                
+                rprint(f"[green]✅ Section [DEMANDS] remplie automatiquement avec {len(demands_to_add) - 2} entrées[/green]")
+                rprint(f"[cyan]📊 Somme totale des demandes : {total_demand:.4f} (moyenne : {total_demand/node_count:.4f} par nœud)[/cyan]")
+                rprint(f"[blue]💡 EPANET utilisera ces demandes comme valeurs constantes (pattern = 1.0)[/blue]")
+                rprint(f"[yellow]⚠️  IMPORTANT: {zeroed_count} demandes mises à zéro dans [JUNCTIONS] pour éviter le double comptage EPANET[/yellow]")
+                rprint(f"[green]✅ Résultat final : demande totale = {total_demand:.4f} (pas de double comptage)[/green]")
+                
+                # VÉRIFICATION AUTOMATIQUE : S'assurer que le double comptage est évité
+                rprint(f"\n🔍 [bold cyan]VÉRIFICATION AUTOMATIQUE DES DEMANDES...[/bold cyan]")
+                success, verification_details = verify_demands_in_file(temp_path)
+                display_verification_results(temp_path, verification_details)
+                
+                if not success:
+                    rprint(f"\n[red]⚠️  ATTENTION : Problème détecté dans la gestion des demandes ![/red]")
+                
                 return temp_path
+            else:
+                rprint("[yellow]⚠️  Aucune demande > 0 trouvée dans [JUNCTIONS].[/yellow]")
 
     except Exception as e:
-        rprint(f"[red]Erreur inattendue dans _ensure_demand_from_junctions: {e}[/red]")
+        rprint(f"[red]❌ Erreur inattendue dans _ensure_demand_from_junctions: {e}[/red]")
         return input_path
 
     return input_path
 
-
 def _apply_demand_override(input_path: Path, demand_value: float, no_log: bool = False) -> Path:
     """
-    Applique la demande fournie par l'utilisateur, en demandant confirmation
-    si des demandes existent déjà.
+    Applique la demande fournie par l'utilisateur.
     """
-    rprint(f"[yellow]Application de la demande {demand_value:.4f} fournie par --demand...[/yellow]")
     lines = _read_inp_lines(input_path)
     
-    junctions_with_demand = [] # To store (node_id, initial_demand)
     try:
         demands_idx = -1
         junctions_idx = -1
-        in_demands_section = False
-        has_demands_content = False
-
-        # Trouver les sections et vérifier le contenu de [DEMANDS]
+        
+        # Trouver les sections
         for i, line in enumerate(lines):
             stripped = line.strip()
             if stripped.startswith('[DEMANDS]'):
                 demands_idx = i
-                in_demands_section = True
-            elif stripped.startswith('[') and in_demands_section:
-                in_demands_section = False
             elif stripped.startswith('[JUNCTIONS]'):
                 junctions_idx = i
 
-            if in_demands_section and stripped and not stripped.startswith(';'):
-                has_demands_content = True
+        # Vérifier si des demandes existent déjà
+        existing_demands = False
+        if demands_idx != -1:
+            for i in range(demands_idx + 1, len(lines)):
+                line = lines[i].strip()
+                if line.startswith('['):
+                    break  # Nouvelle section
+                if line and not line.startswith(';'):
+                    # Vérifier si c'est vraiment du contenu (pas juste un en-tête)
+                    words = line.split()
+                    if not any(word.lower() in ['junction', 'demand', 'pattern', 'category', 'id', 'status', 'setting'] for word in words):
+                        existing_demands = True
+                        break
 
-        if demands_idx == -1:
-            rprint("[red]❌ Section [DEMANDS] introuvable dans le fichier .inp.[/red]")
-            raise typer.Exit(1)
-
-        if has_demands_content:
-            rprint("[bold yellow]⚠️ Une section [DEMANDS] avec du contenu a été détectée.[/bold yellow]")
-            if not no_log and not typer.confirm("Voulez-vous écraser les demandes existantes avec la valeur fournie ?"):
-                rprint("[red]Opération annulée. Utilisation du fichier original.[/red]")
+        # Si des demandes existent, demander confirmation
+        if existing_demands:
+            rprint(f"[yellow]⚠️  Des demandes existantes ont été détectées dans la section [DEMANDS].[/yellow]")
+            rprint(f"[yellow]Ces demandes peuvent provenir de la section [JUNCTIONS] (3ème colonne) ou d'une configuration précédente.[/yellow]")
+            rprint(f"[yellow]Voulez-vous écraser ces demandes avec la valeur {demand_value} ? (y/N)[/yellow]")
+            rprint(f"[blue]💡 Répondre 'N' conservera les demandes existantes (recommandé si elles viennent de [JUNCTIONS])[/blue]")
+            
+            try:
+                response = input().strip().lower()
+                if response not in ['y', 'yes', 'oui', 'o']:
+                    rprint("[blue]✅ Opération annulée. Conservation des demandes existantes.[/blue]")
+                    rprint("[blue]📝 Utilisation du fichier original avec les demandes de [JUNCTIONS].[/blue]")
+                    return input_path
+            except (EOFError, KeyboardInterrupt):
+                rprint("[blue]✅ Opération annulée. Conservation des demandes existantes.[/blue]")
+                rprint("[blue]📝 Utilisation du fichier original avec les demandes de [JUNCTIONS].[/blue]")
                 return input_path
 
-        if junctions_idx == -1:
-            rprint("[red]❌ Impossible d'appliquer la demande : section [JUNCTIONS] introuvable.[/red]")
-            raise typer.Exit(1)
+        # Si pas de section [DEMANDS], la créer
+        if demands_idx == -1:
+            # Insérer la section [DEMANDS] après [JUNCTIONS] ou au début
+            insert_pos = junctions_idx + 1 if junctions_idx != -1 else 0
+            new_lines = lines[:insert_pos] + ["\n[DEMANDS]\n"] + lines[insert_pos:]
+            lines = new_lines
+            demands_idx = insert_pos
 
-        # Extraire les nœuds et leurs demandes de base depuis [JUNCTIONS]
-        in_junctions_section = False
-        for line in lines[junctions_idx + 1:]:
-            stripped = line.strip()
-            if stripped.startswith('['):
-                break # Fin de la section
-            
-            if stripped.startswith(';') or not stripped:
-                continue
-            
-            parts = stripped.split()
-            if len(parts) >= 3:
-                try:
-                    node_id = parts[0]
-                    initial_demand = float(parts[2])
-                    if initial_demand > 0:
-                        junctions_with_demand.append((node_id, initial_demand))
-                except (ValueError, IndexError):
-                    continue
-
-        if not junctions_with_demand:
-            rprint("[yellow]Aucun noeud avec demande de base > 0 trouvé dans [JUNCTIONS]. La demande sera appliquée au premier noeud si possible.[/yellow]")
-            # Fallback: If no junctions have base demand > 0, find the very first node to apply the demand to.
-            first_node_fallback = None
+        # Calculer le nombre de nœuds et la demande par nœud
+        node_count = 0
+        if junctions_idx != -1:
             for line in lines[junctions_idx + 1:]:
                 stripped = line.strip()
-                if stripped.startswith('['): break
-                if stripped and not stripped.startswith(';'):
-                    first_node_fallback = stripped.split()[0]
+                if stripped.startswith('['):
                     break
+                if stripped and not stripped.startswith(';'):
+                    parts = stripped.split()
+                    if len(parts) >= 1:
+                        node_count += 1
 
-            if not first_node_fallback:
-                 rprint("[red]❌ Impossible d'appliquer la demande : aucun noeud trouvé dans [JUNCTIONS], même pour le fallback.[/red]")
-                 raise typer.Exit(1)
-            
-            # Apply the entire demand to the single fallback node
-            demands_to_add_lines = [\
-                "; Demande fournie via --demand (appliquée au premier noeud car aucun n'avait de demande > 0)\\n",\
-                f"{first_node_fallback:<16} {demand_value:<16.4f}\\n"\
-            ]
-            rprint(f"[yellow]Demande totale {demand_value:.4f} appliquée au noeud unique {first_node_fallback}.[/yellow]")
+        if node_count == 0:
+            rprint("[red]❌ Aucun nœud trouvé dans la section [JUNCTIONS].[/red]")
+            raise typer.Exit(1)
 
-        else:
-            # Calculate demand per node by distributing demand_value uniformly
-            demand_per_node = demand_value / len(junctions_with_demand)
-            rprint(f"[yellow]Distribution uniforme de la demande {demand_value:.4f} sur {len(junctions_with_demand)} noeuds (soit {demand_per_node:.4f} par noeud).[/yellow]")
+        demand_per_node = demand_value / node_count
 
-            demands_to_add_lines = ["; Demande fournie via --demand (distribuée uniformément)\\n"]
-            for node_id, _ in junctions_with_demand:
-                 demands_to_add_lines.append(f"{node_id:<16} {demand_per_node:<16.4f}\\n")
+        # Remplacer ou ajouter les demandes
+        new_demands = [
+            f"; Demandes injectées: {demand_value:.4f} réparties sur {node_count} nœuds\n",
+            ";Node  BaseDemand  Pattern  Category\n"
+        ]
         
+        # Parcourir les nœuds et ajouter les demandes
+        if junctions_idx != -1:
+            for line in lines[junctions_idx + 1:]:
+                stripped = line.strip()
+                if stripped.startswith('['):
+                    break
+                if stripped and not stripped.startswith(';'):
+                    parts = stripped.split()
+                    if len(parts) >= 1:
+                        node_id = parts[0]
+                        new_demands.append(f"{node_id:<16} {demand_per_node:<16.4f}\n")
+
+        # Remplacer la section [DEMANDS] existante
         # Trouver la fin de la section [DEMANDS]
-        end_demands_idx = len(lines)
+        demands_end = demands_idx + 1
         for i in range(demands_idx + 1, len(lines)):
             if lines[i].strip().startswith('['):
-                end_demands_idx = i
+                demands_end = i
                 break
-        
+        else:
+            demands_end = len(lines)
+
         # Construire le nouveau fichier
-        new_lines = lines[:demands_idx + 1] + demands_to_add_lines + lines[end_demands_idx:]
+        new_lines = lines[:demands_idx + 1] + new_demands + lines[demands_end:]
+
+        # Écrire le fichier temporaire
         temp_path = _write_lines_to_temp_file(new_lines, ".demand_override.inp")
 
-        rprint(f"[green]Demande appliquée et fichier temporaire créé :[/green] {temp_path}")
+        if not no_log:
+            rprint(f"[green]✅ Demande de {demand_value:.4f} répartie sur {node_count} nœuds ({demand_per_node:.4f} par nœud)[/green]")
+            rprint(f"[green]📝 Fichier INP traité: {temp_path}[/green]")
+            
+            # VÉRIFICATION AUTOMATIQUE : S'assurer que la demande est correctement appliquée
+            rprint(f"\n🔍 [bold cyan]VÉRIFICATION AUTOMATIQUE DES DEMANDES...[/bold cyan]")
+            success, verification_details = verify_demands_in_file(temp_path)
+            display_verification_results(temp_path, verification_details)
+            
+            if not success:
+                rprint(f"\n[red]⚠️  ATTENTION : Problème détecté dans la gestion des demandes ![/red]")
+
         return temp_path
 
     except Exception as e:
-        rprint(f"[red]Erreur inattendue dans _apply_demand_override: {e}[/red]")
-        return input_path
+        rprint(f"[red]❌ Erreur lors de l'application de la demande: {e}[/red]")
+        raise typer.Exit(1)

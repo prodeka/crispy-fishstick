@@ -2878,7 +2878,7 @@ def network_optimize_unified(
 
 		# Gestion des demandes pour les fichiers INP
 		if input_file.suffix.lower() == ".inp":
-			from .utils.inp_demand_manager_fixed import handle_demand_logic
+			from .utils.inp_demand_manager import handle_demand_logic
 			# Passer no_confirm en plus de no_log pour éviter les confirmations
 			processed_input_file = handle_demand_logic(input_file, demand, no_log or no_confirm)
 			if processed_input_file != input_file:
