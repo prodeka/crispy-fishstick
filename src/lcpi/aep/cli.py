@@ -2798,8 +2798,10 @@ def network_optimize_unified(
 	price_db: Optional[Path] = typer.Option(DEFAULT_AEP_PRICES_DB, "--price-db", help="Base de prix à utiliser (provenance incluse dans meta)"),
 	critere: str = typer.Option("cout", "--critere", "-c", help="Critère d'optimisation principal (cout/energie/performance)"),
 	budget_max: float = typer.Option(None, "--budget", "-b", help="Budget maximum en FCFA"),
-	generations: int = typer.Option(120, "--generations", "-g", help="Nombre de générations (défaut 120)"),
-	population: int = typer.Option(120, "--population", "-p", help="Taille de la population (défaut 120)"),
+	generations: int = typer.Option(120, "--generations", "-g", help="Nombre de générations (défaut 120, minimum 10)"),
+	population: int = typer.Option(120, "--population", "-p", help="Taille de la population (défaut 120, minimum 20)"),
+	tolerance: float = typer.Option(1e-6, "--tolerance", "-t", help="Tolérance de convergence pour les solveurs hydrauliques (défaut 1e-6)"),
+	max_iterations: int = typer.Option(200, "--max-iterations", "-i", help="Nombre maximum d'itérations pour les solveurs hydrauliques (défaut 200)"),
 	output: Optional[Path] = typer.Option(None, "--output", "-o", help="Fichier de sortie JSON"),
 	no_cache: bool = typer.Option(False, "--no-cache", help="Désactiver le cache interne des résultats"),
 	no_surrogate: bool = typer.Option(False, "--no-surrogate", help="Désactiver l'utilisation de surrogate/approximation"),
@@ -2816,6 +2818,16 @@ def network_optimize_unified(
 	no_log: bool = typer.Option(False, "--no-log", help="Ne pas journaliser le calcul")
 ):
 	"""Optimisation de réseau avec algorithme génétique et choix de solveur"""
+	
+	# Validation des contraintes Pydantic
+	if generations < 10:
+		typer.secho(f"❌ Erreur: --generations doit être >= 10 (valeur actuelle: {generations})", fg=typer.colors.RED)
+		raise typer.Exit(1)
+	
+	if population < 20:
+		typer.secho(f"❌ Erreur: --population doit être >= 20 (valeur actuelle: {population})", fg=typer.colors.RED)
+		raise typer.Exit(1)
+	
 	try:
 		# Expansion d'alias @nom.inp -> recherche dans emplacements connus
 		from typing import List as _List
@@ -2960,6 +2972,9 @@ def network_optimize_unified(
 				# Assurer cohérence des barres de progression: transmettre générations/population à l'optimiseur
 				"generations": int(generations),
 				"population": int(population),
+				# Paramètres de simulation hydraulique
+				"tolerance": float(tolerance),
+				"max_iterations": int(max_iterations),
 				# Diagnostic des flux
 				"stream_flows": bool(stream_flows),
 			}
@@ -3139,6 +3154,8 @@ def network_optimize_unified(
 				table.add_row("Solveur", solver)
 				table.add_row("Générations", str(generations))
 				table.add_row("Population", str(population))
+				table.add_row("Tolérance", f"{tolerance}")
+				table.add_row("Itérations max", str(max_iterations))
 				table.add_row("Pression min", f"{constraints['pressure_min_m']} m")
 				table.add_row("Vitesse min", f"{constraints['velocity_min_m_s']} m/s")
 				table.add_row("Vitesse max", f"{constraints['velocity_max_m_s']} m/s")

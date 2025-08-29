@@ -23,6 +23,18 @@ class CostScorer:
         discount_rate: float = 0.05,
         horizon_years: int = 20,
     ):
+        # Utiliser le gestionnaire centralisé des diamètres si aucun coût fourni
+        if diameter_cost_db is None:
+            try:
+                from .diameter_manager import get_diameter_manager
+                manager = get_diameter_manager()
+                # Créer un mapping diamètre -> prix
+                candidates = manager.get_candidate_diameters()
+                diameter_cost_db = {c.diameter_mm: c.cost_per_m for c in candidates}
+            except Exception as e:
+                logger.warning(f"Impossible de charger les prix depuis le gestionnaire centralisé: {e}")
+                diameter_cost_db = {}
+        
         self.diameter_costs = diameter_cost_db or {}
         self.energy_price = energy_price_kwh
         self.pump_efficiency = pump_efficiency

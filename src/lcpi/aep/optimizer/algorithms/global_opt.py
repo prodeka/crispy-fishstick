@@ -118,7 +118,21 @@ def evaluate_candidate(eval_tuple: EVAL_TUPLE) -> Dict[str, Any]:
         # Le premier gène est la hauteur du tank, les autres sont des index de diamètres
         h_tanks = {list(config.h_bounds_m.keys())[0]: float(chromosome[0])}
 
-        candidate_diams = get_candidate_diameters()
+        try:
+            from ..diameter_manager import get_standard_diameters_with_prices
+            candidate_diams = get_standard_diameters_with_prices()
+            logger.info(f"✅ {len(candidate_diams)} diamètres chargés depuis le gestionnaire centralisé")
+        except Exception as e:
+            logger.warning(f"Erreur lors du chargement des diamètres centralisés: {e}")
+            # Fallback avec diamètres standards et prix réalistes
+            STANDARD_DIAMETERS = [50, 63, 75, 90, 110, 125, 140, 160, 180, 200, 225, 250, 280, 315, 355, 400, 450, 500]
+            candidate_diams = []
+            for d in STANDARD_DIAMETERS:
+                base_price = 50.0
+                size_factor = (d / 100.0) ** 1.8
+                cost = base_price * size_factor
+                candidate_diams.append({"d_mm": d, "cost_per_m": cost})
+            logger.info(f"⚠️ Utilisation de {len(candidate_diams)} diamètres standards (fallback)")
         # Créer un mapping des diamètres basé sur les indices du chromosome
         diam_map = {}
         for i, idx in enumerate(chromosome[1:], 1):

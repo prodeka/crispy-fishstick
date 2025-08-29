@@ -119,8 +119,33 @@ class GeneticOptimizerV2:
             random.seed(seed)
             np.random.seed(seed)
 
-        # quick lookup of candidate diameters (list of DiametreCommercial)
-        self.diam_candidats: List[DiametreCommercial] = list(getattr(self.config, "diametres_candidats", []))
+        # Charger les diamètres candidats depuis le gestionnaire centralisé
+        try:
+            from ..optimizer.diameter_manager import get_standard_diameters_with_prices
+            diam_rows = get_standard_diameters_with_prices("PVC-U")
+            self.diam_candidats = []
+            for row in diam_rows:
+                candidate = DiametreCommercial(
+                    diametre_mm=int(row.get("d_mm")),
+                    cout_fcfa_m=float(row.get("cost_per_m", row.get("total_fcfa_per_m", 1000.0)))
+                )
+                self.diam_candidats.append(candidate)
+            logger.info(f"✅ {len(self.diam_candidats)} diamètres chargés depuis le gestionnaire centralisé")
+        except Exception as e:
+            logger.warning(f"Erreur lors du chargement des diamètres centralisés: {e}")
+            # Utiliser les diamètres de la config si disponibles
+            self.diam_candidats: List[DiametreCommercial] = list(getattr(self.config, "diametres_candidats", []))
+            if not self.diam_candidats:
+                logger.warning("⚠️ Aucun diamètre candidat disponible, utilisation des diamètres par défaut")
+                # Créer des diamètres par défaut avec prix réalistes
+                STANDARD_DIAMETERS = [50, 63, 75, 90, 110, 125, 140, 160, 180, 200, 225, 250, 280, 315, 355, 400, 450, 500]
+                for d in STANDARD_DIAMETERS:
+                    base_price = 50.0
+                    size_factor = (d / 100.0) ** 1.8
+                    cost = base_price * size_factor
+                    candidate = DiametreCommercial(diametre_mm=d, cout_fcfa_m=cost)
+                    self.diam_candidats.append(candidate)
+                logger.info(f"✅ {len(self.diam_candidats)} diamètres par défaut créés avec prix réalistes")
         
         # AGAMO: Plages adaptatives par conduite
         self.pipe_diameter_ranges: Dict[int, List[int]] = {}
@@ -363,7 +388,7 @@ class GeneticOptimizerV2:
     # -------------- AGAMO: Réparation Guidée par Contraintes ----------------
     def _repair_velocity_violations(self, individu: Individu, sim_result: Dict[str, Any]) -> Tuple[Individu, Dict[str, Any]]:
         """
-        AGAMO: Réparation intelligente des violations de vitesse avec stratégie adaptative.
+        AGAMO: Réparation intelligente des violations de vitesse avec stratégie adaptative et contrôle des coûts.
         """
         v_max_req = float(getattr(getattr(self.constraint_manager, "contraintes_techniques", {}), "vitesse_max_m_s", self.velocity_max_default))
         vmax_obs = float(sim_result.get("max_velocity_m_s", 0.0) or 0.0)
@@ -376,47 +401,72 @@ class GeneticOptimizerV2:
         candidate_diams = [int(d.diametre_mm) for d in self.diam_candidats]
         repaired = False
         
-        # Stratégie adaptative basée sur la sévérité de la violation
-        if violation_ratio > 2.0:
-            # Violation sévère (>2x) : augmentation agressive
-            repair_strategy = "aggressive"
-            diam_threshold = len(candidate_diams) // 2  # Moitié inférieure
-            step_size = 2  # Sauter 2 paliers
-        elif violation_ratio > 1.5:
-            # Violation modérée (1.5-2x) : augmentation modérée
-            repair_strategy = "moderate"
+        # PHASE 2: Stratégie adaptative améliorée avec contrôle des coûts
+        if violation_ratio > 1.8:  # Réduit de 2.0 à 1.8
+            # Violation sévère (>1.8x) : augmentation modérée
+            repair_strategy = "moderate_severe"
             diam_threshold = len(candidate_diams) // 3  # Tiers inférieur
-            step_size = 1  # Sauter 1 palier
-        else:
-            # Violation légère (<1.5x) : augmentation fine
-            repair_strategy = "fine"
+            step_size = 1  # Réduit de 2 à 1 palier max
+        elif violation_ratio > 1.3:  # Réduit de 1.5 à 1.3
+            # Violation modérée (1.3-1.8x) : augmentation fine
+            repair_strategy = "fine_moderate"
             diam_threshold = len(candidate_diams) // 4  # Quart inférieur
-            step_size = 1  # Sauter 1 palier
+            step_size = 1  # 1 palier max
+        else:
+            # Violation légère (<1.3x) : augmentation très fine
+            repair_strategy = "very_fine"
+            diam_threshold = len(candidate_diams) // 6  # Sixième inférieur
+            step_size = 1  # 1 palier max
         
         current_diams = individu.diametres.copy()
         repairs_made = 0
+        
+        # PHASE 2: Vérification du coût avant réparation
+        try:
+            from ..optimizer.scoring import CostScorer
+            scorer = CostScorer()
+            current_cost = scorer.compute_capex(self.network, {f"link_{i}": d for i, d in enumerate(current_diams)})
+            
+            # Vérifier la contrainte budgétaire
+            budget_max = getattr(getattr(self.constraint_manager, "contraintes_budget", {}), "cout_max_fcfa", float("inf"))
+            if current_cost >= budget_max * 0.8:  # Si déjà à 80% du budget
+                self._log_ga(f"AGAMO: Skipping repair - cost already at {current_cost:.0f} FCFA (80% of budget)")
+                return individu, sim_result
+        except Exception as e:
+            self._log_ga(f"AGAMO: Warning - could not check cost constraint: {e}")
         
         # Réparation intelligente : cibler les conduites les plus problématiques
         for i, current_diam in enumerate(current_diams):
             diam_idx = candidate_diams.index(current_diam) if current_diam in candidate_diams else -1
             if diam_idx >= 0 and diam_idx < diam_threshold:
-                # Augmenter le diamètre selon la stratégie
+                # Augmenter le diamètre selon la stratégie (max 1 palier)
                 new_diam = current_diam
-                for _ in range(step_size):
-                    next_diam = _get_next_candidate(new_diam, candidate_diams, direction=1)
-                    if next_diam != new_diam:
-                        new_diam = next_diam
-                    else:
-                        break  # Déjà au maximum
-                
-                if new_diam != current_diam:
+                next_diam = _get_next_candidate(new_diam, candidate_diams, direction=1)
+                if next_diam != new_diam:
+                    new_diam = next_diam
+                    
+                    # PHASE 2: Vérification du coût après augmentation
+                    if hasattr(self, 'network'):
+                        try:
+                            test_diams = current_diams.copy()
+                            test_diams[i] = new_diam
+                            test_cost = scorer.compute_capex(self.network, {f"link_{j}": d for j, d in enumerate(test_diams)})
+                            
+                            # Si l'augmentation dépasse le budget, ne pas réparer
+                            if test_cost > budget_max:
+                                self._log_ga(f"AGAMO: Skipping repair for link {i} - would exceed budget")
+                                continue
+                        except Exception:
+                            pass  # Continuer si la vérification échoue
+                    
                     current_diams[i] = new_diam
                     self.repair_history[i] += 1
                     repairs_made += 1
                     repaired = True
                     
-                    # Limiter le nombre de réparations pour éviter l'explosion des coûts
-                    if repairs_made >= max(3, len(current_diams) // 10):
+                    # PHASE 2: Limitation plus stricte des réparations
+                    if repairs_made >= max(2, len(current_diams) // 15):  # Réduit de 3 à 2 et de 10 à 15
+                        self._log_ga(f"AGAMO: Repair limit reached ({repairs_made}) to control costs")
                         break
         
         if repaired:
@@ -851,34 +901,68 @@ class GeneticOptimizerV2:
 
     # ---------------- AGAMO: Opérateurs Génétiques Biaisés ----------------
     def _biased_mutation(self, individu: Individu, generation: int) -> Individu:
-        """Mutation biaisée vers diamètres supérieurs en cas de violations fréquentes."""
+        """Mutation biaisée équilibrée avec contrôle des coûts et de la faisabilité."""
         candidate_diams = [int(d.diametre_mm) for d in self.diam_candidats]
         if not candidate_diams:
             return individu
             
         mutated = Individu(diametres=individu.diametres.copy(), h_tank_m=getattr(individu, "h_tank_m", None))
         
-        # Taux de mutation adaptatif
+        # PHASE 2: Taux de mutation adaptatif amélioré
         mutation_rate = self.mutation_rate_base
         if not self.feasibility_found and generation > 10:
-            mutation_rate *= 1.5  # Augmenter si pas de faisabilité
+            mutation_rate *= 1.3  # Réduit de 1.5 à 1.3
         elif self.feasibility_found:
-            mutation_rate *= 0.8  # Réduire si faisabilité atteinte
+            mutation_rate *= 0.7  # Réduit de 0.8 à 0.7 pour plus de stabilité
+            
+        # PHASE 2: Vérification du coût avant mutation
+        try:
+            from ..optimizer.scoring import CostScorer
+            scorer = CostScorer()
+            current_cost = scorer.compute_capex(self.network, {f"link_{i}": d for i, d in enumerate(mutated.diametres)})
+            budget_max = getattr(getattr(self.constraint_manager, "contraintes_budget", {}), "cout_max_fcfa", float("inf"))
+            cost_ratio = current_cost / budget_max if budget_max > 0 else 0.0
+        except Exception:
+            cost_ratio = 0.0
             
         for i in range(len(mutated.diametres)):
             if random.random() < mutation_rate:
                 current_diam = mutated.diametres[i]
                 
-                # Biais vers diamètres supérieurs si cette conduite a été souvent réparée
+                # PHASE 2: Biais équilibré basé sur la faisabilité et le coût
                 bias = self.pipe_repair_bias.get(i, 0.0)
-                if bias > 0.5:  # Si réparée plus de 50% du temps
-                    # 70% de chance d'augmenter
-                    if random.random() < 0.7:
-                        new_diam = _get_next_candidate(current_diam, candidate_diams, direction=1)
+                
+                if bias > 0.6:  # Si réparée plus de 60% du temps (augmenté de 0.5 à 0.6)
+                    # PHASE 2: Stratégie équilibrée au lieu de 70% vers le haut
+                    if cost_ratio > 0.7:  # Si déjà coûteux
+                        # 40% d'augmentation, 30% de diminution, 30% de remplacement aléatoire
+                        rand_val = random.random()
+                        if rand_val < 0.4:
+                            new_diam = _get_next_candidate(current_diam, candidate_diams, direction=1)
+                        elif rand_val < 0.7:
+                            new_diam = _get_next_candidate(current_diam, candidate_diams, direction=-1)
+                        else:
+                            new_diam = random.choice(candidate_diams)
                     else:
+                        # 50% d'augmentation, 25% de diminution, 25% de remplacement aléatoire
+                        rand_val = random.random()
+                        if rand_val < 0.5:
+                            new_diam = _get_next_candidate(current_diam, candidate_diams, direction=1)
+                        elif rand_val < 0.75:
+                            new_diam = _get_next_candidate(current_diam, candidate_diams, direction=-1)
+                        else:
+                            new_diam = random.choice(candidate_diams)
+                elif bias > 0.3:  # Si réparée modérément (30-60%)
+                    # 40% d'augmentation, 30% de diminution, 30% de remplacement aléatoire
+                    rand_val = random.random()
+                    if rand_val < 0.4:
+                        new_diam = _get_next_candidate(current_diam, candidate_diams, direction=1)
+                    elif rand_val < 0.7:
                         new_diam = _get_next_candidate(current_diam, candidate_diams, direction=-1)
+                    else:
+                        new_diam = random.choice(candidate_diams)
                 else:
-                    # Mutation normale
+                    # Mutation normale pour les conduites peu réparées
                     new_diam = random.choice(candidate_diams)
                     
                 mutated.diametres[i] = new_diam

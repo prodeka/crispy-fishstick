@@ -74,6 +74,14 @@ class ParallelMonteCarloAnalyzer:
             "total_execution_time": 0.0
         }
         
+        # Vérifier la disponibilité du gestionnaire centralisé des diamètres
+        try:
+            from ..optimizer.diameter_manager import get_standard_diameters_with_prices
+            diam_rows = get_standard_diameters_with_prices()
+            logger.info(f"✅ MonteCarlo: {len(diam_rows)} diamètres disponibles depuis le gestionnaire centralisé")
+        except Exception as e:
+            logger.warning(f"⚠️ MonteCarlo: Erreur lors du chargement des diamètres centralisés: {e}")
+        
         logger.info(f"Analyseur Monte Carlo initialisé avec {self.max_workers} workers")
     
     def run_parallel_analysis(self,

@@ -1,0 +1,72 @@
+  Page 1                                    Fri Aug 29 23:02:53 2025
+
+  ******************************************************************
+  *                           E P A N E T                          *
+  *                   Hydraulic and Water Quality                  *
+  *                   Analysis for Pipe Networks                   *
+  *                         Version 2.2                            *
+  ******************************************************************
+  
+   
+      Input Data File ................... temp\epanet_archive\sim.inp
+      Number of Junctions................ 196
+      Number of Reservoirs............... 0
+      Number of Tanks ................... 3
+      Number of Pipes ................... 205
+      Number of Pumps ................... 0
+      Number of Valves .................. 0
+      Headloss Formula .................. Chezy-Manning
+      Nodal Demand Model ................ DDA
+      Hydraulic Timestep ................ 5.00 min
+      Hydraulic Accuracy ................ 0.001000
+      Status Check Frequency ............ 2
+      Maximum Trials Checked ............ 10
+      Damping Limit Threshold ........... 0.000000
+      Maximum Trials .................... 40
+      Quality Analysis .................. None
+      Specific Gravity .................. 1.00
+      Relative Kinematic Viscosity ...... 1.00
+      Relative Chemical Diffusivity ..... 1.00
+      Demand Multiplier ................. 1.00
+      Total Duration .................... 60.00 min
+      Reporting Criteria:
+         No Nodes
+         No Links
+   
+  Analysis begun Fri Aug 29 23:02:53 2025
+
+   
+  Hydraulic Status:
+  -----------------------------------------------------------------------
+     0:00:00: Balanced after 23 trials
+     0:00:00: Tank R1 is closed at 4.50 m
+     0:00:00: Tank R2 is closed at 5.20 m
+     0:00:00: Tank R3 is emptying at 32.00 m
+     0:00:00: CV N105_R1 closed
+     0:00:00: CV R2_N41 closed
+   
+     0:05:00: Balanced after 1 trials
+   
+     0:10:00: Balanced after 1 trials
+   
+     0:15:00: Balanced after 1 trials
+   
+     0:20:00: Balanced after 1 trials
+   
+     0:25:00: Balanced after 1 trials
+   
+     0:30:00: Balanced after 1 trials
+   
+     0:35:00: Balanced after 1 trials
+   
+     0:40:00: Balanced after 1 trials
+   
+     0:45:00: Balanced after 1 trials
+   
+     0:50:00: Balanced after 1 trials
+   
+     0:55:00: Balanced after 1 trials
+   
+     1:00:00: Balanced after 1 trials
+   
+  Analysis ended Fri Aug 29 23:02:53 2025

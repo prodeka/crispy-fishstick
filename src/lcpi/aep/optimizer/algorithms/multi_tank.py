@@ -20,6 +20,14 @@ class MultiTankOptimizer:
         self.network_path = network_path
         self.config = config
         self.solver = EPANETOptimizer()
+        
+        # Vérifier la disponibilité du gestionnaire centralisé des diamètres
+        try:
+            from ..diameter_manager import get_standard_diameters_with_prices
+            diam_rows = get_standard_diameters_with_prices()
+            print(f"✅ MultiTank: {len(diam_rows)} diamètres disponibles depuis le gestionnaire centralisé")
+        except Exception as e:
+            print(f"⚠️ MultiTank: Erreur lors du chargement des diamètres centralisés: {e}")
 
     def optimize_heights(self) -> OptimizationResult:
         """Exécute l'algorithme de descente de coordonnées pour les hauteurs de réservoirs."""

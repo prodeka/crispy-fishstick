@@ -69,6 +69,14 @@ class BinarySearchOptimizer:
         self.network = network_model
         self.pressure_min = float(pressure_min_m)
         self.solver = solver or MockSolver()
+        
+        # Vérifier la disponibilité du gestionnaire centralisé des diamètres
+        try:
+            from ..diameter_manager import get_standard_diameters_with_prices
+            diam_rows = get_standard_diameters_with_prices()
+            print(f"✅ BinarySearch: {len(diam_rows)} diamètres disponibles depuis le gestionnaire centralisé")
+        except Exception as e:
+            print(f"⚠️ BinarySearch: Erreur lors du chargement des diamètres centralisés: {e}")
 
     def optimize_tank_height(self, H_min: float, H_max: float, tolerance: float = 0.1, max_iter: int = 60) -> Dict[str, Any]:
         low, high = float(H_min), float(H_max)

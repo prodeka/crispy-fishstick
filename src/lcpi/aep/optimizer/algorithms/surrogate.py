@@ -237,6 +237,16 @@ class SurrogateOptimizer:
             )
 
         best_h = sorted(feasible_points, key=lambda x: x[0])[0][0] # La plus petite hauteur faisable
+        
+        # Utiliser le gestionnaire centralisé des diamètres pour NestedGreedyOptimizer
+        try:
+            from ..diameter_manager import get_standard_diameters_with_prices
+            # Vérifier que les diamètres sont disponibles
+            diam_rows = get_standard_diameters_with_prices()
+            logger.info(f"✅ Surrogate: {len(diam_rows)} diamètres disponibles pour NestedGreedyOptimizer")
+        except Exception as e:
+            logger.warning(f"⚠️ Surrogate: Erreur lors du chargement des diamètres centralisés: {e}")
+        
         final_result = NestedGreedyOptimizer(self.network, solver=self.solver).optimize_nested(
             (best_h, best_h), pressure_min_m=pressure_min_m
         )

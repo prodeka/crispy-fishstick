@@ -1,0 +1,27 @@
+{
+  "convergence": {
+    "tolerance": 1e-06,
+    "max_iterations": 200,
+    "formula": "hazen_williams",
+    "criteria": "relative_error"
+  },
+  "constraints": {
+    "pressure_min_mce": 10.0,
+    "velocity_max_ms": 3.0,
+    "velocity_min_ms": 0.3
+  },
+  "solver_specific": {
+    "lcpi": {
+      "tolerance": 1e-06,
+      "max_iterations": 200
+    },
+    "epanet": {
+      "tolerance": 1e-06,
+      "max_iterations": 100
+    }
+  },
+  "epanet_wrapper": {
+    "available": false,
+    "version": "simulation_only"
+  }
+}

@@ -59,12 +59,17 @@ class NestedGreedyOptimizer:
 		vmin = (velocity_constraints or {}).get("min_m_s", 0.0)
 		vmax = (velocity_constraints or {}).get("max_m_s", float("inf"))
 
-		# Charger diamètres depuis la base (fallback si indisponible)
+		# Charger diamètres depuis le gestionnaire centralisé
 		try:
-			db_rows = get_candidate_diameters()
+			from ..diameter_manager import get_standard_diameters_with_prices
+			db_rows = get_standard_diameters_with_prices()
 			candidates: List[int] = sorted(int(row["d_mm"]) for row in (db_rows or []))
-		except Exception:
-			candidates = [50, 63, 75, 90, 110, 125, 140, 160, 200]
+			logger.info(f"✅ {len(candidates)} diamètres chargés depuis le gestionnaire centralisé")
+		except Exception as e:
+			logger.warning(f"Erreur lors du chargement des diamètres centralisés: {e}")
+			# Fallback avec diamètres standards et prix réalistes
+			candidates = [50, 63, 75, 90, 110, 125, 140, 160, 180, 200, 225, 250, 280, 315, 355, 400, 450, 500]
+			logger.info(f"⚠️ Utilisation de {len(candidates)} diamètres standards (fallback)")
 
 		nm = self._get_network_model()
 		current = {lid: int(link.get("diameter_mm")) for lid, link in (nm.links or {}).items() if link.get("diameter_mm") is not None}

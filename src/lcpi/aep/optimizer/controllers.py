@@ -12,7 +12,7 @@ from .io import load_yaml_or_inp
 from .validators import NetworkValidator
 from .algorithms.binary import BinarySearchOptimizer
 from .base import BaseOptimizer, SimpleAdapter
-from .constraints_handler import apply_constraints_to_result
+from .constraints_handler import ConstraintManager, ConstraintPenaltyCalculator
 from ..utils.flows_inspector import inspect_simulation_result, FlowEventConsumer
 import json
 import time
@@ -687,30 +687,34 @@ class OptimizationController:
                     try:
                         import yaml
                         from ..optimization.models import ConfigurationOptimisation, DiametreCommercial, CriteresOptimisation, ContraintesBudget, ContraintesTechniques, ParametresAlgorithme  # type: ignore
-                        from ..optimization.constraints import ConstraintManager as _CM  # type: ignore
+                        from .constraints_handler import ConstraintManager as _CM  # PHASE 2: Utiliser le nouveau gestionnaire de contraintes
                         from ..optimization.genetic_algorithm import GeneticOptimizerV2 as _GA  # type: ignore
                         from .io import load_yaml_or_inp as _load
                         # Charger INP minimal -> NetworkModel
                         nm, _meta = _load(Path(self.network_model))
-                        # Diamètres candidats depuis PriceDB
-                        diam_rows = []
+                        # Diamètres candidats depuis le gestionnaire centralisé
                         try:
-                            from .db_dao import get_candidate_diameters
-                            diam_rows = get_candidate_diameters("PVC-U") or []
-                        except Exception:
-                            pass
-                        if not diam_rows:
-                            # Fallback avec diamètres standards plus complets
+                            from .diameter_manager import get_standard_diameters_with_prices
+                            diam_rows = get_standard_diameters_with_prices("PVC-U")
+                            logger.info(f"DIAMETER_LOADED: {len(diam_rows)} diameters from centralized manager")
+                        except Exception as e:
+                            logger.warning(f"Erreur lors du chargement des diamètres centralisés: {e}")
+                            # Fallback avec diamètres standards et prix réalistes
                             STANDARD_DIAMETERS = [50, 63, 75, 90, 110, 125, 140, 160, 180, 200, 225, 250, 280, 315, 355, 400, 450, 500]
-                            diam_rows = [{"d_mm": d, "cost_per_m": 1000.0} for d in STANDARD_DIAMETERS]
-                            logger.info(f"DIAMETER_FALLBACK: Using {len(STANDARD_DIAMETERS)} standard diameters (PriceDB not available)")
-                        else:
-                            logger.info(f"DIAMETER_LOADED: {len(diam_rows)} diameters from PriceDB")
+                            # Prix réalistes basés sur la taille (pas de prix uniforme à 1000 FCFA/m)
+                            diam_rows = []
+                            for d in STANDARD_DIAMETERS:
+                                base_price = 50.0
+                                size_factor = (d / 100.0) ** 1.8
+                                cost = base_price * size_factor
+                                diam_rows.append({"d_mm": d, "cost_per_m": cost})
+                            logger.info(f"DIAMETER_FALLBACK: Using {len(STANDARD_DIAMETERS)} standard diameters with realistic prices")
+                        
                         diam_cands = [DiametreCommercial(diametre_mm=int(r.get("d_mm")), cout_fcfa_m=float(r.get("cost_per_m", r.get("total_fcfa_per_m", 1000.0)))) for r in diam_rows]
                         # Flags -> config
                         cfg = ConfigurationOptimisation(
                             criteres=CriteresOptimisation(principal="cout", secondaires=[], poids=[1.0]),
-                            contraintes_budget=ContraintesBudget(cout_max_fcfa=1e14),
+                            contraintes_budget=ContraintesBudget(cout_max_fcfa=500000),  # PHASE 2: Budget réaliste au lieu de 1e14
                             contraintes_techniques=ContraintesTechniques(
                                 pression_min_mce=max(0.1, float((constraints or {}).get("pressure_min_m", 10.0))),
                                 vitesse_min_m_s=float((constraints or {}).get("velocity_min_m_s", 0.3)),
@@ -1537,13 +1541,10 @@ class OptimizationController:
 
         # Appliquer pénalités/validation contraintes centralisées (premier passage)
         hard_velocity = bool(algo_params.get("hard_velocity", False))
-        result = apply_constraints_to_result(
+        result = self._apply_constraints_and_penalties(
             result,
             constraints,
-            mode="soft",
-            penalty_weight=float(algo_params.get("penalty_weight", 1e6)),
-            penalty_beta=float(algo_params.get("penalty_beta", 1.0)),
-            hard_velocity=hard_velocity,
+            algo_params
         )
 
         # Sécurité: si constraints_ok manquant, le définir par défaut à True (aucune pénalité)

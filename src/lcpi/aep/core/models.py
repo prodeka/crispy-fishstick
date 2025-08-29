@@ -415,14 +415,14 @@ class CriteresOptimisation(BaseModel):
 
 class ContraintesBudget(BaseModel):
     """Contraintes budgétaires."""
-    cout_max_fcfa: float = Field(..., gt=0, description="Coût maximum en FCFA")
-    cout_par_metre_max: float = Field(default=200, gt=0, description="Coût maximum par mètre")
+    cout_max_fcfa: float = Field(default=500000, gt=0, description="Coût maximum en FCFA")
+    cout_par_metre_max: float = Field(default=500, gt=0, description="Coût maximum par mètre")
     
     class Config:
         schema_extra = {
             "example": {
-                "cout_max_fcfa": 100000,
-                "cout_par_metre_max": 150
+                "cout_max_fcfa": 500000,
+                "cout_par_metre_max": 500
             }
         }
 
