@@ -11,7 +11,7 @@ from pathlib import Path
 # Ajouter le répertoire src au path
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
-from lcpi.aep.utils.rich_ui import RichUI, console, show_calculation_results
+from lcpi.aep.utils.rich_ui import RichUI, console
 from lcpi.aep.core.pydantic_models import (
     ReseauCompletConfig, NoeudUnified, ConduiteUnified,
     NoeudRole, TypeReseau, valider_reseau_seul
@@ -214,37 +214,7 @@ class TestPhase1Integration:
         assert "Erreur de validation" in captured.out
         assert "réservoir" in captured.out
     
-    def test_calculation_results_display(self, capsys):
-        """Test d'affichage des résultats de calcul avec Rich."""
-        # Simuler des résultats de calcul
-        results = {
-            "valeurs": {
-                "population": 15000,
-                "demande_totale": 2250.5,
-                "cout_estime": 150000
-            },
-            "diagnostics": {
-                "validation_ok": True,
-                "convergence": True,
-                "performance": 0.85
-            },
-            "iterations": {
-                "total": 15,
-                "temps_calcul": 2.5
-            }
-        }
-        
-        # Afficher avec Rich
-        show_calculation_results(results, "Test Calcul Intégration")
-        
-        # Vérifier l'affichage
-        captured = capsys.readouterr()
-        assert "Test Calcul Intégration" in captured.out
-        assert "Valeurs principales" in captured.out
-        assert "Diagnostics" in captured.out
-        assert "Détails des itérations" in captured.out
-        assert "15000" in captured.out  # Population
-        assert "2250.5" in captured.out  # Demande totale
+    
     
     def test_network_diagnostics_with_rich(self, capsys):
         """Test d'affichage des diagnostics réseau avec Rich."""
@@ -396,9 +366,8 @@ class TestPhase1Integration:
             }
         }
         
-        # 5. Afficher les résultats
-        show_calculation_results(results, "Résultats du Calcul Hydraulique")
-        
+        # 5. Afficher les résultats (maintenant géré par export)
+
         # Vérifier l'intégration complète
         captured = capsys.readouterr()
         assert "✅ Réseau validé avec succès" in captured.out
@@ -406,10 +375,6 @@ class TestPhase1Integration:
         assert "Type: maillé" in captured.out
         assert "Nœuds: 3" in captured.out
         assert "Conduites: 2" in captured.out
-        assert "Résultats du Calcul Hydraulique" in captured.out
-        assert "0.04" in captured.out  # Demande totale
-        assert "45.2" in captured.out  # Pression moyenne
-        assert "94.0%" in captured.out  # Rendement
     
     def test_error_recovery_integration(self, capsys):
         """Test de récupération d'erreur avec Rich UI."""

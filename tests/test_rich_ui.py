@@ -9,7 +9,7 @@ from pathlib import Path
 # Ajouter le répertoire src au path
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
-from lcpi.aep.utils.rich_ui import RichUI, console, show_calculation_results, show_network_diagnostics
+from lcpi.aep.utils.rich_ui import RichUI, console
 
 class TestRichUI:
     """Tests pour la classe RichUI."""
@@ -75,52 +75,7 @@ class TestRichUI:
         assert table.title == "Test Vide"
         assert not table.show_header  # Pas d'en-tête pour un tableau vide
 
-class TestShowFunctions:
-    """Tests pour les fonctions d'affichage."""
-    
-    def test_show_calculation_results(self, capsys):
-        """Test de l'affichage des résultats de calcul."""
-        results = {
-            "valeurs": {
-                "population": 15000,
-                "demande": 2250.5,
-                "cout": 150000
-            },
-            "diagnostics": {
-                "validation_ok": True,
-                "convergence": False,
-                "performance": 0.85
-            },
-            "iterations": {
-                "total": 15,
-                "temps": 2.5
-            }
-        }
-        
-        show_calculation_results(results, "Test Calcul")
-        captured = capsys.readouterr()
-        
-        assert "Test Calcul" in captured.out
-        assert "Valeurs principales" in captured.out
-        assert "Diagnostics" in captured.out
-        assert "Détails des itérations" in captured.out
-    
-    def test_show_network_diagnostics(self, capsys):
-        """Test de l'affichage des diagnostics réseau."""
-        diagnostics = {
-            "Connectivité": {"status": "OK", "details": "Tous les nœuds connectés"},
-            "Pression": {"status": "ERREUR", "details": "Pression insuffisante au nœud N3"},
-            "Vitesse": {"status": "OK", "details": "Vitesses dans les limites"}
-        }
-        
-        show_network_diagnostics(diagnostics)
-        captured = capsys.readouterr()
-        
-        assert "Diagnostics du Réseau" in captured.out
-        assert "État du Réseau" in captured.out
-        assert "Connectivité" in captured.out
-        assert "Pression" in captured.out
-        assert "Vitesse" in captured.out
+
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])

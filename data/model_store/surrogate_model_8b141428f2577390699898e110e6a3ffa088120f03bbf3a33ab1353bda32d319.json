@@ -4,7 +4,7 @@
   "features": [
     "height"
   ],
-  "training_date": "2025-08-19T12:44:33.151430",
+  "training_date": "2025-08-29T16:50:25.580669",
   "performance": {},
   "dataset_size": 2,
   "config": {
@@ -19,6 +19,6 @@
       "persist_model": true,
       "initial_samples": 5
     },
-    "cache_dir": "C:\\Users\\prota\\AppData\\Local\\Temp\\tmp8q5suh96\\cache"
+    "cache_dir": "C:\\Users\\prota\\AppData\\Local\\Temp\\tmp_wtr9y1f\\cache"
   }
 }

@@ -14,7 +14,7 @@ import json
 
 from ..core.solvers import SolverFactory
 from ..core.pydantic_models import ReseauCompletConfig, valider_reseau_seul
-from ..utils.rich_ui import RichUI, console, show_calculation_results, show_network_diagnostics
+from ..utils.rich_ui import RichUI, console
 # from ..utils.exporters import export_results  # Commenté car non disponible
 
 
@@ -138,11 +138,7 @@ def network_complete_unified(
             }
         }
         
-        # 7. Afficher les résultats avec Rich UI
-        if verbose:
-            RichUI.print_header("📊 Résultats de l'Analyse Complète")
-            show_calculation_results(results, f"Analyse Réseau: {reseau_config.nom}")
-            show_network_diagnostics(results["diagnostics"])
+        
         
         # 8. Export des résultats
         if output:

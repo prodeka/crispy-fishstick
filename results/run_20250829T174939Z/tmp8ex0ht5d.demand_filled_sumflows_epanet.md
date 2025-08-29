@@ -1,0 +1,14 @@
+# Sum of Flows - tmp8ex0ht5d.demand_filled
+
+- Simulator: `epanet`
+- Timesteps: 1
+- Links: 205
+- Mean sum(flow): -1.063650 m³/s
+- Min: -1.063650 m³/s
+- Max: -1.063650 m³/s
+- Std: nan
+
+Artifacts:
+- CSV: `results\run_20250829T174939Z\tmp8ex0ht5d.demand_filled_sumflows_epanet.csv`
+- JSON: `results\run_20250829T174939Z\tmp8ex0ht5d.demand_filled_sumflows_epanet.json`
+- PNG: `results\run_20250829T174939Z\tmp8ex0ht5d.demand_filled_sumflows_epanet.png`
