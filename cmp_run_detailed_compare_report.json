@@ -1,0 +1,47 @@
+{
+  "epanet": {
+    "cost": 43903200000.0,
+    "feasible": true,
+    "total_length": 2400000.0,
+    "implied_unit_cost": 18293.0,
+    "num_pipes": 3,
+    "diameters": {
+      "P1": 200,
+      "P2": 200,
+      "P3": 200
+    },
+    "diameters_mm": {
+      "P1": 200,
+      "P2": 200,
+      "P3": 200
+    }
+  },
+  "lcpi": {
+    "cost": 7808000000.0,
+    "feasible": true,
+    "total_length": 2400000.0,
+    "implied_unit_cost": 3253.3333333333335,
+    "num_pipes": 3,
+    "diameters": {
+      "P1": 75,
+      "P2": 40,
+      "P3": 32
+    },
+    "diameters_mm": {
+      "P1": 75,
+      "P2": 40,
+      "P3": 32
+    }
+  },
+  "comparison": {
+    "epanet_cost": 43903200000.0,
+    "lcpi_cost": 7808000000.0,
+    "delta": -36095200000.0,
+    "delta_percent": -82.21541937717524,
+    "total_length": 2400000.0,
+    "epanet_cost_per_m": 18293.0,
+    "lcpi_cost_per_m": 3253.3333333333335,
+    "price_ratio": 17.784580622824762,
+    "price_db_path": "C:\\PROJET_DIMENTIONEMENT_2\\src\\lcpi\\db\\aep_prices.db"
+  }
+}

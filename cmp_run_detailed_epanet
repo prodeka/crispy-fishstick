@@ -1,0 +1,118 @@
+{
+  "meta": {
+    "method": "genetic",
+    "solver": "epanet",
+    "sim_time_seconds_total": 0.0,
+    "solver_calls": 0,
+    "generations": 10,
+    "population": 20,
+    "best_cost": 43903200000.0,
+    "best_constraints_ok": true,
+    "constraints": {
+      "pressure_min_m": 10.0,
+      "velocity_min_m_s": 0.3,
+      "velocity_max_m_s": 1.5
+    },
+    "cache_hits": 0,
+    "surrogate_used": false,
+    "total_evals": 200,
+    "headloss_model": "auto",
+    "price_db_info": {
+      "path": "C:\\PROJET_DIMENTIONEMENT_2\\src\\lcpi\\db\\aep_prices.db",
+      "checksum": "7d0a554448756f4e33dc32e856f7a74693b824c1e611ab021f1813b98254cf99",
+      "version": "unknown",
+      "type": "external_file",
+      "source": "C:\\PROJET_DIMENTIONEMENT_2\\src\\lcpi\\db\\aep_prices.db"
+    },
+    "source_meta": {
+      "source": "inp",
+      "format": "inp",
+      "checksum": "12d1f54c874f5e280a607c338b44ab0d95fc2fd7bb0f2ec1b0176c33a494a163",
+      "links_parsed": 3,
+      "file_path": "C:\\PROJET_DIMENTIONEMENT_2\\examples\\bismark-Administrator.inp"
+    },
+    "solver_details": {
+      "family": "epanet"
+    },
+    "duration_seconds": 2.201815366744995
+  },
+  "proposals": [
+    {
+      "id": "genetic_best",
+      "H_tank_m": 33.37131235234464,
+      "diameters_mm": {
+        "P1": 200,
+        "P2": 200,
+        "P3": 200
+      },
+      "CAPEX": 43903200000.0,
+      "OPEX_NPV": null,
+      "constraints_ok": true,
+      "metrics": {
+        "performance_hydraulique": 0.0,
+        "diversity_to_best": 0.0
+      },
+      "constraints_violations": []
+    }
+  ],
+  "pareto": [],
+  "metrics": {
+    "hybrid_improved_count": 0,
+    "ga_hook_calls": 10,
+    "best_cost": 43903200000.0
+  },
+  "cache_info": {
+    "hit": false
+  },
+  "hydraulics": {
+    "error": "Chargement INP échoué: (Error 200) one or more errors in input file 'C:\\\\PROJET_DIMENTIONEMENT_2\\\\examples\\\\bismark-Administrator.inp'"
+  },
+  "report_payload": {
+    "metadata": {
+      "network_file": "C:\\PROJET_DIMENTIONEMENT_2\\examples\\bismark-Administrator.inp",
+      "method": "genetic",
+      "solver": "epanet",
+      "constraints": {
+        "pressure_min_m": 10.0,
+        "velocity_min_m_s": 0.3,
+        "velocity_max_m_s": 1.5
+      },
+      "price_db_info": {
+        "path": "C:\\PROJET_DIMENTIONEMENT_2\\src\\lcpi\\db\\aep_prices.db",
+        "checksum": "7d0a554448756f4e33dc32e856f7a74693b824c1e611ab021f1813b98254cf99",
+        "version": "unknown",
+        "type": "external_file",
+        "source": "C:\\PROJET_DIMENTIONEMENT_2\\src\\lcpi\\db\\aep_prices.db"
+      }
+    },
+    "proposals": [
+      {
+        "name": "genetic_best",
+        "is_feasible": true,
+        "costs": {
+          "capex": 43903200000.0,
+          "opex_npv": null
+        },
+        "tanks": [
+          {
+            "H_m": 33.37131235234464
+          }
+        ],
+        "diameters_mm": {
+          "P1": 200,
+          "P2": 200,
+          "P3": 200
+        }
+      }
+    ],
+    "pareto_front": []
+  },
+  "integrity": {
+    "checksum": "da3b4bb5cf60aa126a34334f62e3fb8b2b9f6bdb5fe255d4bb3f004723d0ef24",
+    "signature": "55b9303b68afc57fb7c6a9826e00f08fee35ff5d8d00c282e996d4116598bcf7",
+    "signature_valid": true,
+    "algorithm": "HMAC-SHA256",
+    "timestamp": 1756408348.8829708,
+    "signed_at": "2025-08-28T19:12:28.882971"
+  }
+}

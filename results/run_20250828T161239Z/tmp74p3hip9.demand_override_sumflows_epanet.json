@@ -1,0 +1,19 @@
+{
+  "simulator": "epanet",
+  "inp_stem": "tmp74p3hip9.demand_override",
+  "statistics": {
+    "n_timesteps": 1,
+    "mean_total_signed": -2.0976941842527594,
+    "max_total_signed": -2.0976941842527594,
+    "min_total_signed": -2.0976941842527594,
+    "std_total_signed": NaN,
+    "link_count": 205
+  },
+  "series": [
+    {
+      "time_s": 0.0,
+      "sum_signed_m3s": -2.0976941842527594,
+      "sum_abs_m3s": 14.88481476236484
+    }
+  ]
+}

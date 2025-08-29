@@ -308,6 +308,8 @@ class GeneticOptimizerV2:
                     # Fallback: estimation par débit
                     if reseau_data and "conduites" in reseau_data and i < len(reseau_data["conduites"]):
                         debit = reseau_data["conduites"][i].get("debit_m3_s") or reseau_data["conduites"][i].get("q_m3_s", 0.1)
+                    else:
+                        debit = 0.1
                     target_v = 0.8
                     est_diam = _estimate_initial_diameter(debit, target_v)
                     chosen = _find_nearest_candidate(est_diam, candidate_diams)
@@ -588,10 +590,10 @@ class GeneticOptimizerV2:
                 except Exception:
                     pass
             # H_tank map heuristic
-            h_map = {}
+                h_map = {}
             if getattr(individu, "h_tank_m", None) is not None:
                 # if tank IDs unknown, the wrapper will interpret/assign as appropriate
-                h_map = {"tank1": float(individu.h_tank_m)}
+                    h_map = {"tank1": float(individu.h_tank_m)}
             # Log: ce que le GA envoie réellement au simulateur (échantillon)
             try:
                 from pathlib import Path as _P
@@ -658,21 +660,61 @@ class GeneticOptimizerV2:
         return result
 
     def _calculate_cost(self, individu: Individu, reseau_data: Optional[Dict]) -> float:
-        """Calculate CAPEX using candidate costs and link lengths if available."""
+        """Calculate CAPEX using real pipe lengths and DB prices when available.
+
+        Strategy:
+        - If a network file is available, load the unified model and compute CAPEX
+          via CostScorer using a map of link_id -> diameter_mm.
+        - Else, fall back to reseau_data["conduites"] lengths if provided.
+        - As last resort, use a crude estimate.
+        """
+        # Try to use the robust scorer on the unified network model
+        try:
+            if self.network_path:
+                from ..io import load_yaml_or_inp  # type: ignore
+                from ..optimizer.scoring import CostScorer  # type: ignore
+
+                model, _meta = load_yaml_or_inp(Path(self.network_path))
+                # Build diameter map per link id
+                diam_map: Dict[str, int] = {}
+                if self.pipe_ids and len(self.pipe_ids) == len(individu.diametres):
+                    diam_map = {self.pipe_ids[i]: int(individu.diametres[i]) for i in range(len(individu.diametres))}
+                else:
+                    # Fallback: iterate links in deterministic order and zip
+                    links_items = list((getattr(model, "links", None) or {}).items())
+                    for idx, (lid, _ldata) in enumerate(links_items[: len(individu.diametres)]):
+                        diam_map[lid] = int(individu.diametres[idx])
+
+                scorer = CostScorer()
+                capex = scorer.compute_capex(model, diam_map)
+                # If CAPEX looks valid, return it
+                if capex and capex > 0:
+                    return float(capex)
+        except Exception:
+            # Fall back to lightweight computation below
+            pass
+
+        # Lightweight fallback using available lengths (reseau_data)
+        total_cost = 0.0
+        if reseau_data and "conduites" in reseau_data:
+            for i, d in enumerate(individu.diametres):
+                # Prefer unit cost from candidates when provided
+                unit_cost = None
+                for c in self.diam_candidats:
+                    if int(c.diametre_mm) == int(d):
+                        unit_cost = getattr(c, "cout_fcfa_m", None)
+                        break
+                if unit_cost is None:
+                    # very rough fallback
+                    unit_cost = (d ** 2) * 0.01
+                length = float(reseau_data["conduites"][i].get("longueur_m", 1.0)) if i < len(reseau_data["conduites"]) else 1.0
+                total_cost += float(unit_cost) * float(length)
+            return float(total_cost)
+
+        # Final crude estimate if nothing else available
         total = 0.0
-        for i, d in enumerate(individu.diametres):
-            unit_cost = None
-            for c in self.diam_candidats:
-                if int(c.diametre_mm) == int(d):
-                    unit_cost = getattr(c, "cout_fcfa_m", None)
-                    break
-            if unit_cost is None:
-                # fallback estimate (proportional to diameter^2)
-                unit_cost = (d ** 2) * 0.01
-            length = 1.0
-            if reseau_data and "conduites" in reseau_data and i < len(reseau_data["conduites"]):
-                length = float(reseau_data["conduites"][i].get("longueur_m", 1.0))
-            total += unit_cost * length
+        for d in individu.diametres:
+            total += (d ** 2) * 0.01 * 1.0
         return float(total)
 
     def _evaluate_individual(self, args: Tuple[int, int, Individu, Optional[Dict], int]) -> Tuple[int, Individu, float, Dict[str, Any]]:
@@ -1215,7 +1257,7 @@ class GeneticOptimizerV2:
             "success": True,
             "best_solution": self.best_solution,
             "final_cost": final_cost,
-            "generations": self.generations,
+                    "generations": self.generations,
             "population_size": self.population_size,
             "history": self.history,
             "stats": final_stats

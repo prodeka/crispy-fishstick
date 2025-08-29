@@ -1,0 +1,14 @@
+
+===== COMPARISON: EPANET vs LCPI =====
+Price DB (EPANET): C:\PROJET_DIMENTIONEMENT_2\src\lcpi\db\aep_prices.db
+Price DB (LCPI)  : C:\PROJET_DIMENTIONEMENT_2\src\lcpi\db\aep_prices.db
+
+Best cost EPANET : 0.0 FCFA
+Best cost LCPI   : 0.0 FCFA
+
+Total pipe length: 0.26 m
+
+Pipes (EPANET): 0
+Pipes (LCPI)  : 0
+Feasible (EPANET): True
+Feasible (LCPI)  : True

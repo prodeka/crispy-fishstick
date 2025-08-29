@@ -1,0 +1,68 @@
+{
+  "output_dir": "test_runs",
+  "cli_script": [
+    "python",
+    "-m",
+    "lcpi.aep.cli"
+  ],
+  "input_network_file": "bismark_inp.inp",
+  "max_workers": 1,
+  "param_combinations": [
+    {
+      "generations": 30,
+      "population": 40,
+      "hmax": 50,
+      "demand": 500,
+      "run_name": "gen30_pop40_hmax50"
+    },
+    {
+      "generations": 50,
+      "population": 50,
+      "hmax": 50,
+      "demand": 500,
+      "run_name": "gen50_pop50_hmax50"
+    },
+    {
+      "generations": 30,
+      "population": 40,
+      "hmax": 100,
+      "demand": 500,
+      "run_name": "gen30_pop40_hmax100"
+    },
+    {
+      "generations": 50,
+      "population": 50,
+      "hmax": 100,
+      "demand": 500,
+      "run_name": "gen50_pop50_hmax100"
+    },
+    {
+      "generations": 80,
+      "population": 80,
+      "hmax": 100,
+      "demand": 500,
+      "run_name": "gen80_pop80_hmax100"
+    },
+    {
+      "generations": 50,
+      "population": 50,
+      "hmax": 150,
+      "demand": 500,
+      "run_name": "gen50_pop50_hmax150"
+    },
+    {
+      "generations": 100,
+      "population": 100,
+      "hmax": 150,
+      "demand": 500,
+      "run_name": "gen100_pop100_hmax150"
+    },
+    {
+      "generations": 50,
+      "population": 50,
+      "hmax": 200,
+      "demand": 500,
+      "run_name": "gen50_pop50_hmax200"
+    }
+  ]
+}

@@ -22,6 +22,15 @@ from dataclasses import dataclass
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import threading
 
+# Forcer l'encodage UTF-8 pour le terminal Windows
+if sys.platform == "win32":
+    import codecs
+    sys.stdout = codecs.getwriter('utf-8')(sys.stdout.detach())
+    sys.stderr = codecs.getwriter('utf-8')(sys.stderr.detach())
+    # Définir la variable d'environnement pour les sous-processus
+    os.environ['PYTHONIOENCODING'] = 'utf-8'
+    os.environ['PYTHONLEGACYWINDOWSSTDIO'] = 'utf-8'
+
 # Configuration des couleurs pour l'affichage
 class Colors:
     HEADER = '\033[95m'
@@ -111,6 +120,8 @@ class OptimizationTestRunner:
         ]
         
         # Ajouter des paramètres optionnels
+        if "demand" in params:
+            base_command.extend(["--demand", str(params["demand"])])
         if "mutation_rate" in params:
             base_command.extend(["--mutation-rate", str(params["mutation_rate"])])
         if "crossover_rate" in params:
@@ -132,11 +143,17 @@ class OptimizationTestRunner:
             
             print(f"{Colors.OKBLUE}Commande: {' '.join(command)}{Colors.ENDC}")
             
-            # Exécuter la commande
+            # Exécuter la commande avec encodage UTF-8 forcé
+            env = os.environ.copy()
+            env['PYTHONIOENCODING'] = 'utf-8'
+            env['PYTHONLEGACYWINDOWSSTDIO'] = 'utf-8'
+            
             result = subprocess.run(
                 command,
                 capture_output=True,
                 text=True,
+                encoding='utf-8',
+                env=env,
                 check=True,
                 timeout=1800  # Timeout de 30 minutes
             )

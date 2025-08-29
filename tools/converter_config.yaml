@@ -1,0 +1,109 @@
+# Configuration du convertisseur CSV → YAML/SQLite pour pompes
+# Contexte: Conversion des données de pompes Grundfos vers FCFA
+
+# Paramètres de conversion monétaire
+conversion:
+  # Taux de change EUR → FCFA (Franc CFA)
+  # Source: BCEAO (Banque Centrale des États de l'Afrique de l'Ouest)
+  # Dernière mise à jour: 2025
+  eur_to_fcfa_rate: 655.957
+  
+  # Coût de l'électricité en FCFA/kWh
+  # Valeurs typiques en Afrique de l'Ouest
+  energy_cost_fcfa_kwh: 98.39
+  
+  # Note: Ces valeurs peuvent être ajustées selon le pays spécifique
+  # Sénégal: ~85-95 FCFA/kWh
+  # Côte d'Ivoire: ~90-100 FCFA/kWh
+  # Mali: ~95-105 FCFA/kWh
+  # Burkina Faso: ~90-100 FCFA/kWh
+
+# Paramètres de conversion des unités
+units:
+  # Conversion des débits: m³/h → m³/s (divisé par 3600)
+  # EPANET et LCPI utilisent m³/s comme unité standard
+  debit_conversion_factor: 3600
+  
+  # Unités de sortie
+  debit_output_unit: "m³/s"
+  hmt_output_unit: "m"
+  puissance_output_unit: "kW"
+  prix_output_unit: "FCFA"
+
+# Paramètres de la base de données
+database:
+  # Nom de la table principale
+  table_name: "pompes"
+  
+  # Index pour optimiser les requêtes
+  indexes:
+    - "idx_designation"
+    - "idx_marque"
+    - "idx_debit_range"
+    - "idx_hmt_range"
+    - "idx_capex_fcfa"
+    - "idx_opex_fcfa"
+    - "idx_rendement"
+    - "idx_debit_m3s"
+
+# Paramètres de validation
+validation:
+  # Champs obligatoires
+  required_fields:
+    - "designation"
+    - "marque"
+    - "debit_exploitation_m3h_min"
+    - "debit_exploitation_m3h_max"
+    - "hmt_min_m"
+    - "hmt_max_m"
+  
+  # Validation des plages de valeurs
+  value_ranges:
+    debit_m3h:
+      min: 0.1
+      max: 1000.0
+    hmt_m:
+      min: 1.0
+      max: 500.0
+    puissance_kw:
+      min: 0.1
+      max: 1000.0
+    rendement_pct:
+      min: 10.0
+      max: 100.0
+
+# Paramètres de sortie
+output:
+  # Formats supportés
+  formats:
+    - "yaml"
+    - "sqlite"
+  
+  # Dossier de sortie par défaut
+  default_directory: "output"
+  
+  # Préfixe des fichiers de sortie
+  file_prefix: "grundfos_pompes_converted"
+  
+  # Génération du rapport
+  generate_report: true
+  
+  # Logging
+  logging:
+    level: "INFO"
+    file: "conversion.log"
+    console: true
+
+# Métadonnées
+metadata:
+  version: "2.0"
+  description: "Convertisseur de données de pompes avec support FCFA"
+  author: "LCPI Team"
+  date_created: "2025-08-27"
+  last_updated: "2025-08-27"
+  
+  # Sources des données
+  sources:
+    taux_change: "BCEAO"
+    cout_electricite: "Données locales Afrique de l'Ouest"
+    donnees_pompes: "Grundfos"

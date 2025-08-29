@@ -1,0 +1,96 @@
+{
+  "meta": {
+    "method": "genetic",
+    "solver": "lcpi",
+    "warning": "fallback: cannot import name 'convert_to_solver_network_data' from 'lcpi.aep.io' (C:\\PROJET_DIMENTIONEMENT_2\\src\\lcpi\\aep\\io.py)",
+    "sim_time_seconds_total": 0.0,
+    "solver_calls": 0,
+    "generations": 10,
+    "population": 20,
+    "constraints": {
+      "pressure_min_m": 10.0,
+      "velocity_min_m_s": 0.3,
+      "velocity_max_m_s": 1.5
+    },
+    "cache_hits": 0,
+    "surrogate_used": false,
+    "total_evals": 200,
+    "headloss_model": "auto",
+    "price_db_info": {
+      "path": "C:\\PROJET_DIMENTIONEMENT_2\\src\\lcpi\\db\\aep_prices.db",
+      "checksum": "7d0a554448756f4e33dc32e856f7a74693b824c1e611ab021f1813b98254cf99",
+      "version": "unknown",
+      "type": "external_file",
+      "source": "C:\\PROJET_DIMENTIONEMENT_2\\src\\lcpi\\db\\aep_prices.db"
+    },
+    "source_meta": {
+      "source": "inp",
+      "file": "C:\\Users\\prota\\AppData\\Local\\Temp\\tmp9l7pfcpm.demand_filled.inp",
+      "converted_at": 1756342138.890201
+    },
+    "solver_details": {
+      "family": "lcpi"
+    },
+    "duration_seconds": 0.042615652084350586,
+    "best_cost": 0.0
+  },
+  "proposals": [
+    {
+      "id": "baseline",
+      "H_tank_m": null,
+      "diameters_mm": {},
+      "CAPEX": 0.0,
+      "metrics": {},
+      "constraints_ok": true
+    }
+  ],
+  "pareto": [],
+  "metrics": {
+    "ga_hook_calls": 1,
+    "hybrid_improved_count": 0,
+    "best_cost": 0.0
+  },
+  "cache_info": {
+    "hit": false
+  },
+  "report_payload": {
+    "metadata": {
+      "network_file": "C:\\Users\\prota\\AppData\\Local\\Temp\\tmp9l7pfcpm.demand_filled.inp",
+      "method": "genetic",
+      "solver": "lcpi",
+      "constraints": {
+        "pressure_min_m": 10.0,
+        "velocity_min_m_s": 0.3,
+        "velocity_max_m_s": 1.5
+      },
+      "price_db_info": {
+        "path": "C:\\PROJET_DIMENTIONEMENT_2\\src\\lcpi\\db\\aep_prices.db",
+        "checksum": "7d0a554448756f4e33dc32e856f7a74693b824c1e611ab021f1813b98254cf99",
+        "version": "unknown",
+        "type": "external_file",
+        "source": "C:\\PROJET_DIMENTIONEMENT_2\\src\\lcpi\\db\\aep_prices.db"
+      }
+    },
+    "proposals": [
+      {
+        "name": "baseline",
+        "is_feasible": true,
+        "costs": {
+          "capex": 0.0,
+          "opex_npv": null
+        },
+        "tanks": [],
+        "diameters_mm": {}
+      }
+    ],
+    "pareto_front": []
+  },
+  "integrity": {
+    "checksum": "4b1d7f0f91af0fd7c212a220201bdda64c78347a64a5f6525926c0ca432723b8",
+    "signature": "94922c0fabb7379484feee6cc750767e38865159bc77e4c66d9f1578640f538c",
+    "signature_valid": true,
+    "algorithm": "HMAC-SHA256",
+    "timestamp": 1756342138.924012,
+    "signed_at": "2025-08-28T00:48:58.924012"
+  }
+}

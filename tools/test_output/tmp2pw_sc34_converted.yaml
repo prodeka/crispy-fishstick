@@ -1,0 +1,81 @@
+metadata:
+  source: C:\Users\prota\AppData\Local\Temp\tmp2pw_sc34.csv
+  conversion_date: '2025-08-27T23:59:29.272319'
+  total_pompes: 3
+  format_version: '1.0'
+pompes:
+- designation: SP 1A-9
+  marque: Grundfos
+  nom_produit: SP 1A-9
+  type_moteur: MS 402
+  poids_net_kg: 10.0
+  debit_exploitation_m3h_min: 0.3
+  debit_exploitation_m3h_max: 1.5
+  diametre_moteur: 4 pouces
+  hmt_min_m: 10.0
+  hmt_max_m: 60.0
+  frequence_hz: 50
+  tension_v: '["1x230", "3x400"]'
+  intensite_nominale_a: '[1.9, 1.1]'
+  puissance_p2_kw: 0.37
+  cos_phi: 0.85
+  rendement_pompe_pct: 50.0
+  rendement_pompe_moteur_pct: 42.0
+  materiaux: AISI 304
+  classe_protection: IP68
+  classe_isolation: F
+  temp_max_liquide_c: 40.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 37.0
+  opex_par_kwh_eur: 0.357
+- designation: SP 1A-14
+  marque: Grundfos
+  nom_produit: SP 1A-14
+  type_moteur: MS 402
+  poids_net_kg: 11.0
+  debit_exploitation_m3h_min: 0.3
+  debit_exploitation_m3h_max: 1.5
+  diametre_moteur: 4 pouces
+  hmt_min_m: 15.0
+  hmt_max_m: 90.0
+  frequence_hz: 50
+  tension_v: '["1x230", "3x400"]'
+  intensite_nominale_a: '[1.9, 1.1]'
+  puissance_p2_kw: 0.37
+  cos_phi: 0.85
+  rendement_pompe_pct: 50.0
+  rendement_pompe_moteur_pct: 42.0
+  materiaux: AISI 304
+  classe_protection: IP68
+  classe_isolation: F
+  temp_max_liquide_c: 40.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 37.0
+  opex_par_kwh_eur: 0.357
+- designation: CR 1s-8
+  marque: Grundfos
+  nom_produit: CR 1s-8
+  type_moteur: IEC 80
+  poids_net_kg: 30.0
+  debit_exploitation_m3h_min: 0.3
+  debit_exploitation_m3h_max: 1.1
+  diametre_moteur: Surface
+  hmt_min_m: 20.0
+  hmt_max_m: 60.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[2.8]'
+  puissance_p2_kw: 0.75
+  cos_phi: 0.85
+  rendement_pompe_pct: 35.0
+  rendement_pompe_moteur_pct: 30.0
+  materiaux: Fonte/AISI 304
+  classe_protection: IP55
+  classe_isolation: F
+  temp_max_liquide_c: 120.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 60.0
+  opex_par_kwh_eur: 0.5

@@ -1,0 +1,56 @@
+{
+  "output_dir": "test_validation_runs",
+  "cli_script": ["python", "-m", "lcpi.aep.cli"],
+  "input_network_file": "test_validation/bismark_inp.inp",
+  "max_workers": 1,
+  "param_combinations": [
+    {
+      "generations": 10,
+      "population": 20,
+      "hmax": 100,
+      "run_name": "test_h100_g10_p20"
+    },
+    {
+      "generations": 10,
+      "population": 20,
+      "hmax": 120,
+      "run_name": "test_h120_g10_p20"
+    },
+    {
+      "generations": 20,
+      "population": 40,
+      "hmax": 100,
+      "run_name": "test_h100_g20_p40"
+    },
+    {
+      "generations": 20,
+      "population": 40,
+      "hmax": 120,
+      "run_name": "test_h120_g20_p40"
+    },
+    {
+      "generations": 15,
+      "population": 60,
+      "hmax": 100,
+      "run_name": "test_h100_g15_p60"
+    },
+    {
+      "generations": 15,
+      "population": 60,
+      "hmax": 120,
+      "run_name": "test_h120_g15_p60"
+    },
+    {
+      "generations": 25,
+      "population": 50,
+      "hmax": 100,
+      "run_name": "test_h100_g25_p50"
+    },
+    {
+      "generations": 25,
+      "population": 50,
+      "hmax": 120,
+      "run_name": "test_h120_g25_p50"
+    }
+  ]
+}

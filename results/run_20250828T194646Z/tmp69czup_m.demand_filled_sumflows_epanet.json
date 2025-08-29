@@ -1,0 +1,19 @@
+{
+  "simulator": "epanet",
+  "inp_stem": "tmp69czup_m.demand_filled",
+  "statistics": {
+    "n_timesteps": 1,
+    "mean_total_signed": -0.49899887217907235,
+    "max_total_signed": -0.49899887217907235,
+    "min_total_signed": -0.49899887217907235,
+    "std_total_signed": NaN,
+    "link_count": 205
+  },
+  "series": [
+    {
+      "time_s": 0.0,
+      "sum_signed_m3s": -0.49899887217907235,
+      "sum_abs_m3s": 9.208593712362926
+    }
+  ]
+}

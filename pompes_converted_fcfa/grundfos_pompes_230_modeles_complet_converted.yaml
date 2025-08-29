@@ -1,0 +1,6299 @@
+metadata:
+  source: ..\src\lcpi\db\grundfos_pompes_230_modeles_complet.csv
+  conversion_date: '2025-08-28T00:10:51.548689'
+  total_pompes: 203
+  format_version: '1.0'
+pompes:
+- designation: SP 1A-9
+  marque: Grundfos
+  nom_produit: SP 1A-9
+  type_moteur: MS 402
+  poids_net_kg: 10.0
+  debit_exploitation_m3h_min: 0.3
+  debit_exploitation_m3h_max: 1.5
+  debit_exploitation_m3s_min: 8.333333333333333e-05
+  debit_exploitation_m3s_max: 0.0004166666666666667
+  diametre_moteur: 4"
+  hmt_min_m: 10.0
+  hmt_max_m: 60.0
+  frequence_hz: 50
+  tension_v: '["1x230", "3x400"]'
+  intensite_nominale_a: '[1.9, 1.1]'
+  puissance_p2_kw: 0.37
+  cos_phi: 0.85
+  rendement_pompe_pct: 50.0
+  rendement_pompe_moteur_pct: 42.0
+  materiaux: AISI 304
+  classe_protection: IP68
+  classe_isolation: F
+  temp_max_liquide_c: 40.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 37.0
+  capex_estime_fcfa: 24270.409
+  opex_par_kwh_eur: 0.357
+  opex_par_kwh_fcfa: 234.176649
+  puissance_absorbe_kw: 0.8809523809523809
+  opex_estime_fcfa_kwh: 86.67690476190477
+- designation: SP 1A-14
+  marque: Grundfos
+  nom_produit: SP 1A-14
+  type_moteur: MS 402
+  poids_net_kg: 11.0
+  debit_exploitation_m3h_min: 0.3
+  debit_exploitation_m3h_max: 1.5
+  debit_exploitation_m3s_min: 8.333333333333333e-05
+  debit_exploitation_m3s_max: 0.0004166666666666667
+  diametre_moteur: 4"
+  hmt_min_m: 15.0
+  hmt_max_m: 90.0
+  frequence_hz: 50
+  tension_v: '["1x230", "3x400"]'
+  intensite_nominale_a: '[1.9, 1.1]'
+  puissance_p2_kw: 0.37
+  cos_phi: 0.85
+  rendement_pompe_pct: 50.0
+  rendement_pompe_moteur_pct: 42.0
+  materiaux: AISI 304
+  classe_protection: IP68
+  classe_isolation: F
+  temp_max_liquide_c: 40.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 37.0
+  capex_estime_fcfa: 24270.409
+  opex_par_kwh_eur: 0.357
+  opex_par_kwh_fcfa: 234.176649
+  puissance_absorbe_kw: 0.8809523809523809
+  opex_estime_fcfa_kwh: 86.67690476190477
+- designation: CR 1s-8
+  marque: Grundfos
+  nom_produit: CR 1s-8
+  type_moteur: IEC 80
+  poids_net_kg: 30.0
+  debit_exploitation_m3h_min: 0.3
+  debit_exploitation_m3h_max: 1.1
+  debit_exploitation_m3s_min: 8.333333333333333e-05
+  debit_exploitation_m3s_max: 0.0003055555555555556
+  diametre_moteur: Surface
+  hmt_min_m: 20.0
+  hmt_max_m: 60.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[2.8]'
+  puissance_p2_kw: 0.75
+  cos_phi: 0.85
+  rendement_pompe_pct: 35.0
+  rendement_pompe_moteur_pct: 30.0
+  materiaux: Fonte/AISI 304
+  classe_protection: IP55
+  classe_isolation: F
+  temp_max_liquide_c: 120.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 60.0
+  capex_estime_fcfa: 39357.42
+  opex_par_kwh_eur: 0.5
+  opex_par_kwh_fcfa: 327.9785
+  puissance_absorbe_kw: 2.5
+  opex_estime_fcfa_kwh: 245.975
+- designation: SP 1A-5
+  marque: Grundfos
+  nom_produit: SP 1A-5
+  type_moteur: MS 402
+  poids_net_kg: 12.0
+  debit_exploitation_m3h_min: 0.2
+  debit_exploitation_m3h_max: 1.2
+  debit_exploitation_m3s_min: 5.555555555555556e-05
+  debit_exploitation_m3s_max: 0.0003333333333333333
+  diametre_moteur: 4"
+  hmt_min_m: 8.0
+  hmt_max_m: 35.0
+  frequence_hz: 50
+  tension_v: '["1x230", "3x400"]'
+  intensite_nominale_a: '[1.7, 1.0]'
+  puissance_p2_kw: 0.37
+  cos_phi: 0.7
+  rendement_pompe_pct: 48.0
+  rendement_pompe_moteur_pct: 40.0
+  materiaux: AISI 304
+  classe_protection: IP68
+  classe_isolation: F
+  temp_max_liquide_c: 40.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 37.0
+  capex_estime_fcfa: 24270.409
+  opex_par_kwh_eur: 0.375
+  opex_par_kwh_fcfa: 245.983875
+  puissance_absorbe_kw: 0.9249999999999999
+  opex_estime_fcfa_kwh: 91.01074999999999
+- designation: SP 1A-7
+  marque: Grundfos
+  nom_produit: SP 1A-7
+  type_moteur: MS 402
+  poids_net_kg: 13.0
+  debit_exploitation_m3h_min: 0.2
+  debit_exploitation_m3h_max: 1.2
+  debit_exploitation_m3s_min: 5.555555555555556e-05
+  debit_exploitation_m3s_max: 0.0003333333333333333
+  diametre_moteur: 4"
+  hmt_min_m: 9.0
+  hmt_max_m: 50.0
+  frequence_hz: 50
+  tension_v: '["1x230", "3x400"]'
+  intensite_nominale_a: '[1.7, 1.0]'
+  puissance_p2_kw: 0.37
+  cos_phi: 0.7
+  rendement_pompe_pct: 48.0
+  rendement_pompe_moteur_pct: 40.0
+  materiaux: AISI 304
+  classe_protection: IP68
+  classe_isolation: F
+  temp_max_liquide_c: 40.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 37.0
+  capex_estime_fcfa: 24270.409
+  opex_par_kwh_eur: 0.375
+  opex_par_kwh_fcfa: 245.983875
+  puissance_absorbe_kw: 0.9249999999999999
+  opex_estime_fcfa_kwh: 91.01074999999999
+- designation: SP 1A-11
+  marque: Grundfos
+  nom_produit: SP 1A-11
+  type_moteur: MS 402
+  poids_net_kg: 15.0
+  debit_exploitation_m3h_min: 0.3
+  debit_exploitation_m3h_max: 1.5
+  debit_exploitation_m3s_min: 8.333333333333333e-05
+  debit_exploitation_m3s_max: 0.0004166666666666667
+  diametre_moteur: 4"
+  hmt_min_m: 12.0
+  hmt_max_m: 75.0
+  frequence_hz: 50
+  tension_v: '["1x230", "3x400"]'
+  intensite_nominale_a: '[2.5, 1.4]'
+  puissance_p2_kw: 0.55
+  cos_phi: 0.7
+  rendement_pompe_pct: 50.0
+  rendement_pompe_moteur_pct: 42.0
+  materiaux: AISI 304
+  classe_protection: IP68
+  classe_isolation: F
+  temp_max_liquide_c: 40.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 55.0
+  capex_estime_fcfa: 36077.635
+  opex_par_kwh_eur: 0.357
+  opex_par_kwh_fcfa: 234.176649
+  puissance_absorbe_kw: 1.3095238095238098
+  opex_estime_fcfa_kwh: 128.84404761904764
+- designation: SP 1A-16
+  marque: Grundfos
+  nom_produit: SP 1A-16
+  type_moteur: MS 402
+  poids_net_kg: 17.0
+  debit_exploitation_m3h_min: 0.3
+  debit_exploitation_m3h_max: 1.5
+  debit_exploitation_m3s_min: 8.333333333333333e-05
+  debit_exploitation_m3s_max: 0.0004166666666666667
+  diametre_moteur: 4"
+  hmt_min_m: 18.0
+  hmt_max_m: 110.0
+  frequence_hz: 50
+  tension_v: '["1x230", "3x400"]'
+  intensite_nominale_a: '[3.4, 2.0]'
+  puissance_p2_kw: 0.75
+  cos_phi: 0.7
+  rendement_pompe_pct: 52.0
+  rendement_pompe_moteur_pct: 44.0
+  materiaux: AISI 304
+  classe_protection: IP68
+  classe_isolation: F
+  temp_max_liquide_c: 40.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 75.0
+  capex_estime_fcfa: 49196.775
+  opex_par_kwh_eur: 0.341
+  opex_par_kwh_fcfa: 223.681337
+  puissance_absorbe_kw: 1.7045454545454546
+  opex_estime_fcfa_kwh: 167.71022727272728
+- designation: SP 1A-21
+  marque: Grundfos
+  nom_produit: SP 1A-21
+  type_moteur: MS 402
+  poids_net_kg: 20.0
+  debit_exploitation_m3h_min: 0.3
+  debit_exploitation_m3h_max: 1.5
+  debit_exploitation_m3s_min: 8.333333333333333e-05
+  debit_exploitation_m3s_max: 0.0004166666666666667
+  diametre_moteur: 4"
+  hmt_min_m: 23.0
+  hmt_max_m: 145.0
+  frequence_hz: 50
+  tension_v: '["1x230", "3x400"]'
+  intensite_nominale_a: '[5.0, 2.9]'
+  puissance_p2_kw: 1.1
+  cos_phi: 0.71
+  rendement_pompe_pct: 54.0
+  rendement_pompe_moteur_pct: 46.0
+  materiaux: AISI 304
+  classe_protection: IP68
+  classe_isolation: F
+  temp_max_liquide_c: 40.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 110.0
+  capex_estime_fcfa: 72155.27
+  opex_par_kwh_eur: 0.326
+  opex_par_kwh_fcfa: 213.841982
+  puissance_absorbe_kw: 2.391304347826087
+  opex_estime_fcfa_kwh: 235.2804347826087
+- designation: SP 2A-8
+  marque: Grundfos
+  nom_produit: SP 2A-8
+  type_moteur: MS 402
+  poids_net_kg: 13.0
+  debit_exploitation_m3h_min: 0.4
+  debit_exploitation_m3h_max: 2.0
+  debit_exploitation_m3s_min: 0.00011111111111111112
+  debit_exploitation_m3s_max: 0.0005555555555555556
+  diametre_moteur: 4"
+  hmt_min_m: 12.0
+  hmt_max_m: 55.0
+  frequence_hz: 50
+  tension_v: '["1x230", "3x400"]'
+  intensite_nominale_a: '[1.7, 1.0]'
+  puissance_p2_kw: 0.37
+  cos_phi: 0.7
+  rendement_pompe_pct: 48.0
+  rendement_pompe_moteur_pct: 38.0
+  materiaux: AISI 304
+  classe_protection: IP68
+  classe_isolation: F
+  temp_max_liquide_c: 40.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 37.0
+  capex_estime_fcfa: 24270.409
+  opex_par_kwh_eur: 0.395
+  opex_par_kwh_fcfa: 259.103015
+  puissance_absorbe_kw: 0.9736842105263158
+  opex_estime_fcfa_kwh: 95.80078947368422
+- designation: SP 2A-12
+  marque: Grundfos
+  nom_produit: SP 2A-12
+  type_moteur: MS 402
+  poids_net_kg: 15.0
+  debit_exploitation_m3h_min: 0.5
+  debit_exploitation_m3h_max: 2.5
+  debit_exploitation_m3s_min: 0.0001388888888888889
+  debit_exploitation_m3s_max: 0.0006944444444444445
+  diametre_moteur: 4"
+  hmt_min_m: 18.0
+  hmt_max_m: 80.0
+  frequence_hz: 50
+  tension_v: '["1x230", "3x400"]'
+  intensite_nominale_a: '[2.5, 1.4]'
+  puissance_p2_kw: 0.55
+  cos_phi: 0.7
+  rendement_pompe_pct: 50.0
+  rendement_pompe_moteur_pct: 40.0
+  materiaux: AISI 304
+  classe_protection: IP68
+  classe_isolation: F
+  temp_max_liquide_c: 40.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 55.0
+  capex_estime_fcfa: 36077.635
+  opex_par_kwh_eur: 0.375
+  opex_par_kwh_fcfa: 245.983875
+  puissance_absorbe_kw: 1.375
+  opex_estime_fcfa_kwh: 135.28625
+- designation: SP 2A-18
+  marque: Grundfos
+  nom_produit: SP 2A-18
+  type_moteur: MS 402
+  poids_net_kg: 18.0
+  debit_exploitation_m3h_min: 0.5
+  debit_exploitation_m3h_max: 2.5
+  debit_exploitation_m3s_min: 0.0001388888888888889
+  debit_exploitation_m3s_max: 0.0006944444444444445
+  diametre_moteur: 4"
+  hmt_min_m: 25.0
+  hmt_max_m: 125.0
+  frequence_hz: 50
+  tension_v: '["1x230", "3x400"]'
+  intensite_nominale_a: '[3.4, 2.0]'
+  puissance_p2_kw: 0.75
+  cos_phi: 0.7
+  rendement_pompe_pct: 52.0
+  rendement_pompe_moteur_pct: 42.0
+  materiaux: AISI 304
+  classe_protection: IP68
+  classe_isolation: F
+  temp_max_liquide_c: 40.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 75.0
+  capex_estime_fcfa: 49196.775
+  opex_par_kwh_eur: 0.357
+  opex_par_kwh_fcfa: 234.176649
+  puissance_absorbe_kw: 1.7857142857142858
+  opex_estime_fcfa_kwh: 175.69642857142858
+- designation: SP 2A-25
+  marque: Grundfos
+  nom_produit: SP 2A-25
+  type_moteur: MS 402
+  poids_net_kg: 21.0
+  debit_exploitation_m3h_min: 0.5
+  debit_exploitation_m3h_max: 2.5
+  debit_exploitation_m3s_min: 0.0001388888888888889
+  debit_exploitation_m3s_max: 0.0006944444444444445
+  diametre_moteur: 4"
+  hmt_min_m: 35.0
+  hmt_max_m: 175.0
+  frequence_hz: 50
+  tension_v: '["1x230", "3x400"]'
+  intensite_nominale_a: '[5.0, 2.9]'
+  puissance_p2_kw: 1.1
+  cos_phi: 0.71
+  rendement_pompe_pct: 54.0
+  rendement_pompe_moteur_pct: 44.0
+  materiaux: AISI 304
+  classe_protection: IP68
+  classe_isolation: F
+  temp_max_liquide_c: 40.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 110.0
+  capex_estime_fcfa: 72155.27
+  opex_par_kwh_eur: 0.341
+  opex_par_kwh_fcfa: 223.681337
+  puissance_absorbe_kw: 2.5
+  opex_estime_fcfa_kwh: 245.975
+- designation: SP 2A-33
+  marque: Grundfos
+  nom_produit: SP 2A-33
+  type_moteur: MS 4000
+  poids_net_kg: 25.0
+  debit_exploitation_m3h_min: 0.5
+  debit_exploitation_m3h_max: 2.5
+  debit_exploitation_m3s_min: 0.0001388888888888889
+  debit_exploitation_m3s_max: 0.0006944444444444445
+  diametre_moteur: 6"
+  hmt_min_m: 45.0
+  hmt_max_m: 230.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[2.7]'
+  puissance_p2_kw: 1.5
+  cos_phi: 0.71
+  rendement_pompe_pct: 56.0
+  rendement_pompe_moteur_pct: 46.0
+  materiaux: AISI 304
+  classe_protection: IP68
+  classe_isolation: F
+  temp_max_liquide_c: 40.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 150.0
+  capex_estime_fcfa: 98393.55
+  opex_par_kwh_eur: 0.326
+  opex_par_kwh_fcfa: 213.841982
+  puissance_absorbe_kw: 3.260869565217391
+  opex_estime_fcfa_kwh: 320.8369565217391
+- designation: SP 3A-8
+  marque: Grundfos
+  nom_produit: SP 3A-8
+  type_moteur: MS 402
+  poids_net_kg: 14.0
+  debit_exploitation_m3h_min: 0.6
+  debit_exploitation_m3h_max: 3.5
+  debit_exploitation_m3s_min: 0.00016666666666666666
+  debit_exploitation_m3s_max: 0.0009722222222222222
+  diametre_moteur: 4"
+  hmt_min_m: 12.0
+  hmt_max_m: 55.0
+  frequence_hz: 50
+  tension_v: '["1x230", "3x400"]'
+  intensite_nominale_a: '[2.5, 1.4]'
+  puissance_p2_kw: 0.55
+  cos_phi: 0.7
+  rendement_pompe_pct: 56.0
+  rendement_pompe_moteur_pct: 43.0
+  materiaux: AISI 304
+  classe_protection: IP68
+  classe_isolation: F
+  temp_max_liquide_c: 40.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 55.0
+  capex_estime_fcfa: 36077.635
+  opex_par_kwh_eur: 0.349
+  opex_par_kwh_fcfa: 228.928993
+  puissance_absorbe_kw: 1.2790697674418605
+  opex_estime_fcfa_kwh: 125.84767441860465
+- designation: SP 3A-15
+  marque: Grundfos
+  nom_produit: SP 3A-15
+  type_moteur: MS 402
+  poids_net_kg: 17.0
+  debit_exploitation_m3h_min: 0.8
+  debit_exploitation_m3h_max: 4.0
+  debit_exploitation_m3s_min: 0.00022222222222222223
+  debit_exploitation_m3s_max: 0.0011111111111111111
+  diametre_moteur: 4"
+  hmt_min_m: 20.0
+  hmt_max_m: 105.0
+  frequence_hz: 50
+  tension_v: '["1x230", "3x400"]'
+  intensite_nominale_a: '[3.4, 2.0]'
+  puissance_p2_kw: 0.75
+  cos_phi: 0.7
+  rendement_pompe_pct: 58.0
+  rendement_pompe_moteur_pct: 45.0
+  materiaux: AISI 304
+  classe_protection: IP68
+  classe_isolation: F
+  temp_max_liquide_c: 40.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 75.0
+  capex_estime_fcfa: 49196.775
+  opex_par_kwh_eur: 0.333
+  opex_par_kwh_fcfa: 218.433681
+  puissance_absorbe_kw: 1.6666666666666665
+  opex_estime_fcfa_kwh: 163.98333333333332
+- designation: SP 3A-20
+  marque: Grundfos
+  nom_produit: SP 3A-20
+  type_moteur: MS 402
+  poids_net_kg: 19.0
+  debit_exploitation_m3h_min: 0.8
+  debit_exploitation_m3h_max: 4.0
+  debit_exploitation_m3s_min: 0.00022222222222222223
+  debit_exploitation_m3s_max: 0.0011111111111111111
+  diametre_moteur: 4"
+  hmt_min_m: 28.0
+  hmt_max_m: 140.0
+  frequence_hz: 50
+  tension_v: '["1x230", "3x400"]'
+  intensite_nominale_a: '[5.0, 2.9]'
+  puissance_p2_kw: 1.1
+  cos_phi: 0.71
+  rendement_pompe_pct: 60.0
+  rendement_pompe_moteur_pct: 47.0
+  materiaux: AISI 304
+  classe_protection: IP68
+  classe_isolation: F
+  temp_max_liquide_c: 40.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 110.0
+  capex_estime_fcfa: 72155.27
+  opex_par_kwh_eur: 0.319
+  opex_par_kwh_fcfa: 209.250283
+  puissance_absorbe_kw: 2.340425531914894
+  opex_estime_fcfa_kwh: 230.27446808510643
+- designation: SP 3A-28
+  marque: Grundfos
+  nom_produit: SP 3A-28
+  type_moteur: MS 4000
+  poids_net_kg: 23.0
+  debit_exploitation_m3h_min: 0.8
+  debit_exploitation_m3h_max: 4.0
+  debit_exploitation_m3s_min: 0.00022222222222222223
+  debit_exploitation_m3s_max: 0.0011111111111111111
+  diametre_moteur: 4"
+  hmt_min_m: 38.0
+  hmt_max_m: 195.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[2.7]'
+  puissance_p2_kw: 1.5
+  cos_phi: 0.71
+  rendement_pompe_pct: 62.0
+  rendement_pompe_moteur_pct: 49.0
+  materiaux: AISI 304
+  classe_protection: IP68
+  classe_isolation: F
+  temp_max_liquide_c: 40.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 150.0
+  capex_estime_fcfa: 98393.55
+  opex_par_kwh_eur: 0.306
+  opex_par_kwh_fcfa: 200.72284199999999
+  puissance_absorbe_kw: 3.061224489795918
+  opex_estime_fcfa_kwh: 301.1938775510204
+- designation: SP 3A-35
+  marque: Grundfos
+  nom_produit: SP 3A-35
+  type_moteur: MS 4000
+  poids_net_kg: 27.0
+  debit_exploitation_m3h_min: 0.8
+  debit_exploitation_m3h_max: 4.0
+  debit_exploitation_m3s_min: 0.00022222222222222223
+  debit_exploitation_m3s_max: 0.0011111111111111111
+  diametre_moteur: 4"
+  hmt_min_m: 48.0
+  hmt_max_m: 245.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[4.0]'
+  puissance_p2_kw: 2.2
+  cos_phi: 0.71
+  rendement_pompe_pct: 64.0
+  rendement_pompe_moteur_pct: 51.0
+  materiaux: AISI 304
+  classe_protection: IP68
+  classe_isolation: F
+  temp_max_liquide_c: 40.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 220.0
+  capex_estime_fcfa: 144310.54
+  opex_par_kwh_eur: 0.294
+  opex_par_kwh_fcfa: 192.85135799999998
+  puissance_absorbe_kw: 4.313725490196079
+  opex_estime_fcfa_kwh: 424.4274509803922
+- designation: SP 5A-12
+  marque: Grundfos
+  nom_produit: SP 5A-12
+  type_moteur: MS 402
+  poids_net_kg: 16.0
+  debit_exploitation_m3h_min: 1.2
+  debit_exploitation_m3h_max: 5.5
+  debit_exploitation_m3s_min: 0.0003333333333333333
+  debit_exploitation_m3s_max: 0.0015277777777777779
+  diametre_moteur: 4"
+  hmt_min_m: 18.0
+  hmt_max_m: 84.0
+  frequence_hz: 50
+  tension_v: '["1x230", "3x400"]'
+  intensite_nominale_a: '[3.4, 2.0]'
+  puissance_p2_kw: 0.75
+  cos_phi: 0.7
+  rendement_pompe_pct: 58.0
+  rendement_pompe_moteur_pct: 43.0
+  materiaux: AISI 304
+  classe_protection: IP68
+  classe_isolation: F
+  temp_max_liquide_c: 40.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 75.0
+  capex_estime_fcfa: 49196.775
+  opex_par_kwh_eur: 0.349
+  opex_par_kwh_fcfa: 228.928993
+  puissance_absorbe_kw: 1.744186046511628
+  opex_estime_fcfa_kwh: 171.61046511627907
+- designation: SP 5A-25
+  marque: Grundfos
+  nom_produit: SP 5A-25
+  type_moteur: MS 4000
+  poids_net_kg: 22.0
+  debit_exploitation_m3h_min: 1.5
+  debit_exploitation_m3h_max: 6.0
+  debit_exploitation_m3s_min: 0.0004166666666666667
+  debit_exploitation_m3s_max: 0.0016666666666666668
+  diametre_moteur: 4"
+  hmt_min_m: 35.0
+  hmt_max_m: 175.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[2.7]'
+  puissance_p2_kw: 1.5
+  cos_phi: 0.71
+  rendement_pompe_pct: 60.0
+  rendement_pompe_moteur_pct: 45.0
+  materiaux: AISI 304
+  classe_protection: IP68
+  classe_isolation: F
+  temp_max_liquide_c: 40.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 150.0
+  capex_estime_fcfa: 98393.55
+  opex_par_kwh_eur: 0.333
+  opex_par_kwh_fcfa: 218.433681
+  puissance_absorbe_kw: 3.333333333333333
+  opex_estime_fcfa_kwh: 327.96666666666664
+- designation: SP 5A-40
+  marque: Grundfos
+  nom_produit: SP 5A-40
+  type_moteur: MS 4000
+  poids_net_kg: 29.0
+  debit_exploitation_m3h_min: 1.5
+  debit_exploitation_m3h_max: 6.0
+  debit_exploitation_m3s_min: 0.0004166666666666667
+  debit_exploitation_m3s_max: 0.0016666666666666668
+  diametre_moteur: 4"
+  hmt_min_m: 55.0
+  hmt_max_m: 280.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[4.0]'
+  puissance_p2_kw: 2.2
+  cos_phi: 0.71
+  rendement_pompe_pct: 62.0
+  rendement_pompe_moteur_pct: 47.0
+  materiaux: AISI 304
+  classe_protection: IP68
+  classe_isolation: F
+  temp_max_liquide_c: 40.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 220.0
+  capex_estime_fcfa: 144310.54
+  opex_par_kwh_eur: 0.319
+  opex_par_kwh_fcfa: 209.250283
+  puissance_absorbe_kw: 4.680851063829788
+  opex_estime_fcfa_kwh: 460.54893617021287
+- designation: SP 5A-50
+  marque: Grundfos
+  nom_produit: SP 5A-50
+  type_moteur: MS 4000
+  poids_net_kg: 35.0
+  debit_exploitation_m3h_min: 1.5
+  debit_exploitation_m3h_max: 6.0
+  debit_exploitation_m3s_min: 0.0004166666666666667
+  debit_exploitation_m3s_max: 0.0016666666666666668
+  diametre_moteur: 4"
+  hmt_min_m: 70.0
+  hmt_max_m: 350.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[5.4]'
+  puissance_p2_kw: 3.0
+  cos_phi: 0.71
+  rendement_pompe_pct: 64.0
+  rendement_pompe_moteur_pct: 49.0
+  materiaux: AISI 304
+  classe_protection: IP68
+  classe_isolation: F
+  temp_max_liquide_c: 40.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 300.0
+  capex_estime_fcfa: 196787.1
+  opex_par_kwh_eur: 0.306
+  opex_par_kwh_fcfa: 200.72284199999999
+  puissance_absorbe_kw: 6.122448979591836
+  opex_estime_fcfa_kwh: 602.3877551020408
+- designation: SP 5A-60
+  marque: Grundfos
+  nom_produit: SP 5A-60
+  type_moteur: MS 4000
+  poids_net_kg: 41.0
+  debit_exploitation_m3h_min: 1.5
+  debit_exploitation_m3h_max: 6.0
+  debit_exploitation_m3s_min: 0.0004166666666666667
+  debit_exploitation_m3s_max: 0.0016666666666666668
+  diametre_moteur: 4"
+  hmt_min_m: 84.0
+  hmt_max_m: 420.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[7.2]'
+  puissance_p2_kw: 4.0
+  cos_phi: 0.72
+  rendement_pompe_pct: 66.0
+  rendement_pompe_moteur_pct: 51.0
+  materiaux: AISI 304
+  classe_protection: IP68
+  classe_isolation: F
+  temp_max_liquide_c: 40.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 400.0
+  capex_estime_fcfa: 262382.8
+  opex_par_kwh_eur: 0.294
+  opex_par_kwh_fcfa: 192.85135799999998
+  puissance_absorbe_kw: 7.8431372549019605
+  opex_estime_fcfa_kwh: 771.6862745098039
+- designation: SP 8A-8
+  marque: Grundfos
+  nom_produit: SP 8A-8
+  type_moteur: MS 402
+  poids_net_kg: 15.0
+  debit_exploitation_m3h_min: 2.0
+  debit_exploitation_m3h_max: 8.0
+  debit_exploitation_m3s_min: 0.0005555555555555556
+  debit_exploitation_m3s_max: 0.0022222222222222222
+  diametre_moteur: 4"
+  hmt_min_m: 15.0
+  hmt_max_m: 64.0
+  frequence_hz: 50
+  tension_v: '["1x230", "3x400"]'
+  intensite_nominale_a: '[5.0, 2.9]'
+  puissance_p2_kw: 1.1
+  cos_phi: 0.71
+  rendement_pompe_pct: 62.0
+  rendement_pompe_moteur_pct: 48.0
+  materiaux: AISI 304
+  classe_protection: IP68
+  classe_isolation: F
+  temp_max_liquide_c: 40.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 110.0
+  capex_estime_fcfa: 72155.27
+  opex_par_kwh_eur: 0.312
+  opex_par_kwh_fcfa: 204.658584
+  puissance_absorbe_kw: 2.291666666666667
+  opex_estime_fcfa_kwh: 225.47708333333335
+- designation: SP 8A-12
+  marque: Grundfos
+  nom_produit: SP 8A-12
+  type_moteur: MS 4000
+  poids_net_kg: 18.0
+  debit_exploitation_m3h_min: 2.5
+  debit_exploitation_m3h_max: 8.5
+  debit_exploitation_m3s_min: 0.0006944444444444445
+  debit_exploitation_m3s_max: 0.002361111111111111
+  diametre_moteur: 6"
+  hmt_min_m: 22.0
+  hmt_max_m: 96.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[2.7]'
+  puissance_p2_kw: 1.5
+  cos_phi: 0.71
+  rendement_pompe_pct: 64.0
+  rendement_pompe_moteur_pct: 50.0
+  materiaux: AISI 304
+  classe_protection: IP68
+  classe_isolation: F
+  temp_max_liquide_c: 40.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 150.0
+  capex_estime_fcfa: 98393.55
+  opex_par_kwh_eur: 0.3
+  opex_par_kwh_fcfa: 196.78709999999998
+  puissance_absorbe_kw: 3.0
+  opex_estime_fcfa_kwh: 295.17
+- designation: SP 8A-18
+  marque: Grundfos
+  nom_produit: SP 8A-18
+  type_moteur: MS 4000
+  poids_net_kg: 22.0
+  debit_exploitation_m3h_min: 2.5
+  debit_exploitation_m3h_max: 8.5
+  debit_exploitation_m3s_min: 0.0006944444444444445
+  debit_exploitation_m3s_max: 0.002361111111111111
+  diametre_moteur: 6"
+  hmt_min_m: 33.0
+  hmt_max_m: 144.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[4.0]'
+  puissance_p2_kw: 2.2
+  cos_phi: 0.71
+  rendement_pompe_pct: 66.0
+  rendement_pompe_moteur_pct: 52.0
+  materiaux: AISI 304
+  classe_protection: IP68
+  classe_isolation: F
+  temp_max_liquide_c: 40.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 220.0
+  capex_estime_fcfa: 144310.54
+  opex_par_kwh_eur: 0.288
+  opex_par_kwh_fcfa: 188.91561599999997
+  puissance_absorbe_kw: 4.230769230769231
+  opex_estime_fcfa_kwh: 416.2653846153846
+- designation: SP 8A-25
+  marque: Grundfos
+  nom_produit: SP 8A-25
+  type_moteur: MS 4000
+  poids_net_kg: 27.0
+  debit_exploitation_m3h_min: 2.5
+  debit_exploitation_m3h_max: 8.5
+  debit_exploitation_m3s_min: 0.0006944444444444445
+  debit_exploitation_m3s_max: 0.002361111111111111
+  diametre_moteur: 6"
+  hmt_min_m: 46.0
+  hmt_max_m: 200.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[5.4]'
+  puissance_p2_kw: 3.0
+  cos_phi: 0.71
+  rendement_pompe_pct: 68.0
+  rendement_pompe_moteur_pct: 54.0
+  materiaux: AISI 304
+  classe_protection: IP68
+  classe_isolation: F
+  temp_max_liquide_c: 40.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 300.0
+  capex_estime_fcfa: 196787.1
+  opex_par_kwh_eur: 0.278
+  opex_par_kwh_fcfa: 182.35604600000002
+  puissance_absorbe_kw: 5.555555555555555
+  opex_estime_fcfa_kwh: 546.6111111111111
+- designation: SP 8A-35
+  marque: Grundfos
+  nom_produit: SP 8A-35
+  type_moteur: MS 4000
+  poids_net_kg: 34.0
+  debit_exploitation_m3h_min: 2.5
+  debit_exploitation_m3h_max: 8.5
+  debit_exploitation_m3s_min: 0.0006944444444444445
+  debit_exploitation_m3s_max: 0.002361111111111111
+  diametre_moteur: 6"
+  hmt_min_m: 64.0
+  hmt_max_m: 280.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[7.2]'
+  puissance_p2_kw: 4.0
+  cos_phi: 0.72
+  rendement_pompe_pct: 70.0
+  rendement_pompe_moteur_pct: 56.0
+  materiaux: AISI 304
+  classe_protection: IP68
+  classe_isolation: F
+  temp_max_liquide_c: 40.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 400.0
+  capex_estime_fcfa: 262382.8
+  opex_par_kwh_eur: 0.268
+  opex_par_kwh_fcfa: 175.796476
+  puissance_absorbe_kw: 7.142857142857142
+  opex_estime_fcfa_kwh: 702.7857142857142
+- designation: SP 14-5
+  marque: Grundfos
+  nom_produit: SP 14-5
+  type_moteur: MS 4000
+  poids_net_kg: 15.0
+  debit_exploitation_m3h_min: 2.5
+  debit_exploitation_m3h_max: 12.0
+  debit_exploitation_m3s_min: 0.0006944444444444445
+  debit_exploitation_m3s_max: 0.0033333333333333335
+  diametre_moteur: 6"
+  hmt_min_m: 18.0
+  hmt_max_m: 40.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[2.7]'
+  puissance_p2_kw: 1.5
+  cos_phi: 0.71
+  rendement_pompe_pct: 68.0
+  rendement_pompe_moteur_pct: 53.0
+  materiaux: AISI 304
+  classe_protection: IP68
+  classe_isolation: F
+  temp_max_liquide_c: 40.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 150.0
+  capex_estime_fcfa: 98393.55
+  opex_par_kwh_eur: 0.283
+  opex_par_kwh_fcfa: 185.63583099999997
+  puissance_absorbe_kw: 2.830188679245283
+  opex_estime_fcfa_kwh: 278.4622641509434
+- designation: SP 14-12
+  marque: Grundfos
+  nom_produit: SP 14-12
+  type_moteur: MS 4000
+  poids_net_kg: 20.0
+  debit_exploitation_m3h_min: 3.0
+  debit_exploitation_m3h_max: 15.0
+  debit_exploitation_m3s_min: 0.0008333333333333334
+  debit_exploitation_m3s_max: 0.004166666666666667
+  diametre_moteur: 6"
+  hmt_min_m: 42.0
+  hmt_max_m: 96.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[4.0]'
+  puissance_p2_kw: 2.2
+  cos_phi: 0.71
+  rendement_pompe_pct: 70.0
+  rendement_pompe_moteur_pct: 55.0
+  materiaux: AISI 304
+  classe_protection: IP68
+  classe_isolation: F
+  temp_max_liquide_c: 40.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 220.0
+  capex_estime_fcfa: 144310.54
+  opex_par_kwh_eur: 0.273
+  opex_par_kwh_fcfa: 179.07626100000002
+  puissance_absorbe_kw: 4.0
+  opex_estime_fcfa_kwh: 393.56
+- designation: SP 14-20
+  marque: Grundfos
+  nom_produit: SP 14-20
+  type_moteur: MS 4000
+  poids_net_kg: 28.0
+  debit_exploitation_m3h_min: 3.0
+  debit_exploitation_m3h_max: 15.0
+  debit_exploitation_m3s_min: 0.0008333333333333334
+  debit_exploitation_m3s_max: 0.004166666666666667
+  diametre_moteur: 6"
+  hmt_min_m: 70.0
+  hmt_max_m: 160.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[7.2]'
+  puissance_p2_kw: 4.0
+  cos_phi: 0.72
+  rendement_pompe_pct: 72.0
+  rendement_pompe_moteur_pct: 58.0
+  materiaux: AISI 304
+  classe_protection: IP68
+  classe_isolation: F
+  temp_max_liquide_c: 40.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 400.0
+  capex_estime_fcfa: 262382.8
+  opex_par_kwh_eur: 0.259
+  opex_par_kwh_fcfa: 169.892863
+  puissance_absorbe_kw: 6.8965517241379315
+  opex_estime_fcfa_kwh: 678.551724137931
+- designation: SP 14-25
+  marque: Grundfos
+  nom_produit: SP 14-25
+  type_moteur: MS 4000
+  poids_net_kg: 33.0
+  debit_exploitation_m3h_min: 3.0
+  debit_exploitation_m3h_max: 15.0
+  debit_exploitation_m3s_min: 0.0008333333333333334
+  debit_exploitation_m3s_max: 0.004166666666666667
+  diametre_moteur: 6"
+  hmt_min_m: 88.0
+  hmt_max_m: 200.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[9.9]'
+  puissance_p2_kw: 5.5
+  cos_phi: 0.73
+  rendement_pompe_pct: 74.0
+  rendement_pompe_moteur_pct: 60.0
+  materiaux: AISI 304
+  classe_protection: IP68
+  classe_isolation: F
+  temp_max_liquide_c: 40.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 550.0
+  capex_estime_fcfa: 360776.35
+  opex_par_kwh_eur: 0.25
+  opex_par_kwh_fcfa: 163.98925
+  puissance_absorbe_kw: 9.166666666666668
+  opex_estime_fcfa_kwh: 901.9083333333334
+- designation: SP 14-30
+  marque: Grundfos
+  nom_produit: SP 14-30
+  type_moteur: MS 4000
+  poids_net_kg: 40.0
+  debit_exploitation_m3h_min: 3.0
+  debit_exploitation_m3h_max: 15.0
+  debit_exploitation_m3s_min: 0.0008333333333333334
+  debit_exploitation_m3s_max: 0.004166666666666667
+  diametre_moteur: 6"
+  hmt_min_m: 105.0
+  hmt_max_m: 240.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[13.5]'
+  puissance_p2_kw: 7.5
+  cos_phi: 0.74
+  rendement_pompe_pct: 76.0
+  rendement_pompe_moteur_pct: 62.0
+  materiaux: AISI 304
+  classe_protection: IP68
+  classe_isolation: F
+  temp_max_liquide_c: 40.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 750.0
+  capex_estime_fcfa: 491967.75
+  opex_par_kwh_eur: 0.242
+  opex_par_kwh_fcfa: 158.741594
+  puissance_absorbe_kw: 12.096774193548388
+  opex_estime_fcfa_kwh: 1190.2016129032259
+- designation: SP 17-8
+  marque: Grundfos
+  nom_produit: SP 17-8
+  type_moteur: MS 4000
+  poids_net_kg: 20.0
+  debit_exploitation_m3h_min: 4.0
+  debit_exploitation_m3h_max: 22.0
+  debit_exploitation_m3s_min: 0.0011111111111111111
+  debit_exploitation_m3s_max: 0.006111111111111111
+  diametre_moteur: 6"
+  hmt_min_m: 28.0
+  hmt_max_m: 64.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[5.4]'
+  puissance_p2_kw: 3.0
+  cos_phi: 0.71
+  rendement_pompe_pct: 70.0
+  rendement_pompe_moteur_pct: 58.0
+  materiaux: AISI 304
+  classe_protection: IP68
+  classe_isolation: F
+  temp_max_liquide_c: 40.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 300.0
+  capex_estime_fcfa: 196787.1
+  opex_par_kwh_eur: 0.259
+  opex_par_kwh_fcfa: 169.892863
+  puissance_absorbe_kw: 5.172413793103448
+  opex_estime_fcfa_kwh: 508.9137931034483
+- designation: SP 17-12
+  marque: Grundfos
+  nom_produit: SP 17-12
+  type_moteur: MS 4000
+  poids_net_kg: 24.0
+  debit_exploitation_m3h_min: 5.0
+  debit_exploitation_m3h_max: 25.0
+  debit_exploitation_m3s_min: 0.001388888888888889
+  debit_exploitation_m3s_max: 0.006944444444444444
+  diametre_moteur: 6"
+  hmt_min_m: 42.0
+  hmt_max_m: 96.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[7.2]'
+  puissance_p2_kw: 4.0
+  cos_phi: 0.72
+  rendement_pompe_pct: 72.0
+  rendement_pompe_moteur_pct: 60.0
+  materiaux: AISI 304
+  classe_protection: IP68
+  classe_isolation: F
+  temp_max_liquide_c: 40.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 400.0
+  capex_estime_fcfa: 262382.8
+  opex_par_kwh_eur: 0.25
+  opex_par_kwh_fcfa: 163.98925
+  puissance_absorbe_kw: 6.666666666666667
+  opex_estime_fcfa_kwh: 655.9333333333334
+- designation: SP 17-20
+  marque: Grundfos
+  nom_produit: SP 17-20
+  type_moteur: MS 4000
+  poids_net_kg: 36.0
+  debit_exploitation_m3h_min: 5.0
+  debit_exploitation_m3h_max: 25.0
+  debit_exploitation_m3s_min: 0.001388888888888889
+  debit_exploitation_m3s_max: 0.006944444444444444
+  diametre_moteur: 6"
+  hmt_min_m: 70.0
+  hmt_max_m: 160.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[13.5]'
+  puissance_p2_kw: 7.5
+  cos_phi: 0.74
+  rendement_pompe_pct: 74.0
+  rendement_pompe_moteur_pct: 62.0
+  materiaux: AISI 304
+  classe_protection: IP68
+  classe_isolation: F
+  temp_max_liquide_c: 40.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 750.0
+  capex_estime_fcfa: 491967.75
+  opex_par_kwh_eur: 0.242
+  opex_par_kwh_fcfa: 158.741594
+  puissance_absorbe_kw: 12.096774193548388
+  opex_estime_fcfa_kwh: 1190.2016129032259
+- designation: SP 17-25
+  marque: Grundfos
+  nom_produit: SP 17-25
+  type_moteur: MS 6000
+  poids_net_kg: 47.0
+  debit_exploitation_m3h_min: 5.0
+  debit_exploitation_m3h_max: 25.0
+  debit_exploitation_m3s_min: 0.001388888888888889
+  debit_exploitation_m3s_max: 0.006944444444444444
+  diametre_moteur: 6"
+  hmt_min_m: 88.0
+  hmt_max_m: 200.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[17.6]'
+  puissance_p2_kw: 11.0
+  cos_phi: 0.76
+  rendement_pompe_pct: 76.0
+  rendement_pompe_moteur_pct: 64.0
+  materiaux: AISI 304
+  classe_protection: IP68
+  classe_isolation: F
+  temp_max_liquide_c: 40.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 1100.0
+  capex_estime_fcfa: 721552.7
+  opex_par_kwh_eur: 0.234
+  opex_par_kwh_fcfa: 153.493938
+  puissance_absorbe_kw: 17.1875
+  opex_estime_fcfa_kwh: 1691.078125
+- designation: SP 17-30
+  marque: Grundfos
+  nom_produit: SP 17-30
+  type_moteur: MS 6000
+  poids_net_kg: 59.0
+  debit_exploitation_m3h_min: 5.0
+  debit_exploitation_m3h_max: 25.0
+  debit_exploitation_m3s_min: 0.001388888888888889
+  debit_exploitation_m3s_max: 0.006944444444444444
+  diametre_moteur: 6"
+  hmt_min_m: 105.0
+  hmt_max_m: 240.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[24.0]'
+  puissance_p2_kw: 15.0
+  cos_phi: 0.77
+  rendement_pompe_pct: 78.0
+  rendement_pompe_moteur_pct: 66.0
+  materiaux: AISI 304
+  classe_protection: IP68
+  classe_isolation: F
+  temp_max_liquide_c: 40.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 1500.0
+  capex_estime_fcfa: 983935.5
+  opex_par_kwh_eur: 0.227
+  opex_par_kwh_fcfa: 148.902239
+  puissance_absorbe_kw: 22.727272727272727
+  opex_estime_fcfa_kwh: 2236.1363636363635
+- designation: SP 30-5
+  marque: Grundfos
+  nom_produit: SP 30-5
+  type_moteur: MS 4000
+  poids_net_kg: 19.0
+  debit_exploitation_m3h_min: 8.0
+  debit_exploitation_m3h_max: 35.0
+  debit_exploitation_m3s_min: 0.0022222222222222222
+  debit_exploitation_m3s_max: 0.009722222222222222
+  diametre_moteur: 6"
+  hmt_min_m: 18.0
+  hmt_max_m: 40.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[5.4]'
+  puissance_p2_kw: 3.0
+  cos_phi: 0.71
+  rendement_pompe_pct: 72.0
+  rendement_pompe_moteur_pct: 62.0
+  materiaux: AISI 304
+  classe_protection: IP68
+  classe_isolation: F
+  temp_max_liquide_c: 40.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 300.0
+  capex_estime_fcfa: 196787.1
+  opex_par_kwh_eur: 0.242
+  opex_par_kwh_fcfa: 158.741594
+  puissance_absorbe_kw: 4.838709677419355
+  opex_estime_fcfa_kwh: 476.08064516129036
+- designation: SP 30-10
+  marque: Grundfos
+  nom_produit: SP 30-10
+  type_moteur: MS 4000
+  poids_net_kg: 27.0
+  debit_exploitation_m3h_min: 10.0
+  debit_exploitation_m3h_max: 40.0
+  debit_exploitation_m3s_min: 0.002777777777777778
+  debit_exploitation_m3s_max: 0.011111111111111112
+  diametre_moteur: 6"
+  hmt_min_m: 35.0
+  hmt_max_m: 80.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[9.9]'
+  puissance_p2_kw: 5.5
+  cos_phi: 0.73
+  rendement_pompe_pct: 74.0
+  rendement_pompe_moteur_pct: 64.0
+  materiaux: AISI 304
+  classe_protection: IP68
+  classe_isolation: F
+  temp_max_liquide_c: 40.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 550.0
+  capex_estime_fcfa: 360776.35
+  opex_par_kwh_eur: 0.234
+  opex_par_kwh_fcfa: 153.493938
+  puissance_absorbe_kw: 8.59375
+  opex_estime_fcfa_kwh: 845.5390625
+- designation: SP 30-15
+  marque: Grundfos
+  nom_produit: SP 30-15
+  type_moteur: MS 4000
+  poids_net_kg: 34.0
+  debit_exploitation_m3h_min: 10.0
+  debit_exploitation_m3h_max: 40.0
+  debit_exploitation_m3s_min: 0.002777777777777778
+  debit_exploitation_m3s_max: 0.011111111111111112
+  diametre_moteur: 6"
+  hmt_min_m: 53.0
+  hmt_max_m: 120.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[13.5]'
+  puissance_p2_kw: 7.5
+  cos_phi: 0.74
+  rendement_pompe_pct: 75.0
+  rendement_pompe_moteur_pct: 65.0
+  materiaux: AISI 304
+  classe_protection: IP68
+  classe_isolation: F
+  temp_max_liquide_c: 40.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 750.0
+  capex_estime_fcfa: 491967.75
+  opex_par_kwh_eur: 0.231
+  opex_par_kwh_fcfa: 151.526067
+  puissance_absorbe_kw: 11.538461538461538
+  opex_estime_fcfa_kwh: 1135.2692307692307
+- designation: SP 30-22
+  marque: Grundfos
+  nom_produit: SP 30-22
+  type_moteur: MS 6000
+  poids_net_kg: 46.0
+  debit_exploitation_m3h_min: 10.0
+  debit_exploitation_m3h_max: 40.0
+  debit_exploitation_m3s_min: 0.002777777777777778
+  debit_exploitation_m3s_max: 0.011111111111111112
+  diametre_moteur: 6"
+  hmt_min_m: 77.0
+  hmt_max_m: 176.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[17.6]'
+  puissance_p2_kw: 11.0
+  cos_phi: 0.76
+  rendement_pompe_pct: 76.0
+  rendement_pompe_moteur_pct: 66.0
+  materiaux: AISI 304
+  classe_protection: IP68
+  classe_isolation: F
+  temp_max_liquide_c: 40.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 1100.0
+  capex_estime_fcfa: 721552.7
+  opex_par_kwh_eur: 0.227
+  opex_par_kwh_fcfa: 148.902239
+  puissance_absorbe_kw: 16.666666666666664
+  opex_estime_fcfa_kwh: 1639.833333333333
+- designation: SP 30-35
+  marque: Grundfos
+  nom_produit: SP 30-35
+  type_moteur: MS 6000
+  poids_net_kg: 70.0
+  debit_exploitation_m3h_min: 10.0
+  debit_exploitation_m3h_max: 40.0
+  debit_exploitation_m3s_min: 0.002777777777777778
+  debit_exploitation_m3s_max: 0.011111111111111112
+  diametre_moteur: 6"
+  hmt_min_m: 123.0
+  hmt_max_m: 280.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[29.6]'
+  puissance_p2_kw: 18.5
+  cos_phi: 0.79
+  rendement_pompe_pct: 77.0
+  rendement_pompe_moteur_pct: 67.0
+  materiaux: AISI 304
+  classe_protection: IP68
+  classe_isolation: F
+  temp_max_liquide_c: 40.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 1850.0
+  capex_estime_fcfa: 1213520.45
+  opex_par_kwh_eur: 0.224
+  opex_par_kwh_fcfa: 146.934368
+  puissance_absorbe_kw: 27.61194029850746
+  opex_estime_fcfa_kwh: 2716.738805970149
+- designation: SP 46-6
+  marque: Grundfos
+  nom_produit: SP 46-6
+  type_moteur: MS 4000
+  poids_net_kg: 26.0
+  debit_exploitation_m3h_min: 12.0
+  debit_exploitation_m3h_max: 55.0
+  debit_exploitation_m3s_min: 0.0033333333333333335
+  debit_exploitation_m3s_max: 0.015277777777777777
+  diametre_moteur: 6"
+  hmt_min_m: 21.0
+  hmt_max_m: 48.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[9.9]'
+  puissance_p2_kw: 5.5
+  cos_phi: 0.73
+  rendement_pompe_pct: 74.0
+  rendement_pompe_moteur_pct: 68.0
+  materiaux: AISI 304
+  classe_protection: IP68
+  classe_isolation: F
+  temp_max_liquide_c: 40.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 550.0
+  capex_estime_fcfa: 360776.35
+  opex_par_kwh_eur: 0.221
+  opex_par_kwh_fcfa: 144.966497
+  puissance_absorbe_kw: 8.088235294117647
+  opex_estime_fcfa_kwh: 795.8014705882352
+- designation: SP 46-10
+  marque: Grundfos
+  nom_produit: SP 46-10
+  type_moteur: MS 4000
+  poids_net_kg: 32.0
+  debit_exploitation_m3h_min: 15.0
+  debit_exploitation_m3h_max: 60.0
+  debit_exploitation_m3s_min: 0.004166666666666667
+  debit_exploitation_m3s_max: 0.016666666666666666
+  diametre_moteur: 6"
+  hmt_min_m: 35.0
+  hmt_max_m: 80.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[13.5]'
+  puissance_p2_kw: 7.5
+  cos_phi: 0.74
+  rendement_pompe_pct: 75.0
+  rendement_pompe_moteur_pct: 69.0
+  materiaux: AISI 304
+  classe_protection: IP68
+  classe_isolation: F
+  temp_max_liquide_c: 40.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 750.0
+  capex_estime_fcfa: 491967.75
+  opex_par_kwh_eur: 0.217
+  opex_par_kwh_fcfa: 142.342669
+  puissance_absorbe_kw: 10.869565217391305
+  opex_estime_fcfa_kwh: 1069.4565217391305
+- designation: SP 46-15
+  marque: Grundfos
+  nom_produit: SP 46-15
+  type_moteur: MS 6000
+  poids_net_kg: 43.0
+  debit_exploitation_m3h_min: 15.0
+  debit_exploitation_m3h_max: 60.0
+  debit_exploitation_m3s_min: 0.004166666666666667
+  debit_exploitation_m3s_max: 0.016666666666666666
+  diametre_moteur: 6"
+  hmt_min_m: 53.0
+  hmt_max_m: 120.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[17.6]'
+  puissance_p2_kw: 11.0
+  cos_phi: 0.76
+  rendement_pompe_pct: 76.0
+  rendement_pompe_moteur_pct: 70.0
+  materiaux: AISI 304
+  classe_protection: IP68
+  classe_isolation: F
+  temp_max_liquide_c: 40.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 1100.0
+  capex_estime_fcfa: 721552.7
+  opex_par_kwh_eur: 0.214
+  opex_par_kwh_fcfa: 140.374798
+  puissance_absorbe_kw: 15.714285714285715
+  opex_estime_fcfa_kwh: 1546.1285714285716
+- designation: SP 46-20
+  marque: Grundfos
+  nom_produit: SP 46-20
+  type_moteur: MS 6000
+  poids_net_kg: 55.0
+  debit_exploitation_m3h_min: 15.0
+  debit_exploitation_m3h_max: 60.0
+  debit_exploitation_m3s_min: 0.004166666666666667
+  debit_exploitation_m3s_max: 0.016666666666666666
+  diametre_moteur: 6"
+  hmt_min_m: 70.0
+  hmt_max_m: 160.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[24.0]'
+  puissance_p2_kw: 15.0
+  cos_phi: 0.77
+  rendement_pompe_pct: 77.0
+  rendement_pompe_moteur_pct: 71.0
+  materiaux: AISI 304
+  classe_protection: IP68
+  classe_isolation: F
+  temp_max_liquide_c: 40.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 1500.0
+  capex_estime_fcfa: 983935.5
+  opex_par_kwh_eur: 0.211
+  opex_par_kwh_fcfa: 138.406927
+  puissance_absorbe_kw: 21.126760563380284
+  opex_estime_fcfa_kwh: 2078.661971830986
+- designation: SP 46-25
+  marque: Grundfos
+  nom_produit: SP 46-25
+  type_moteur: MS 6000
+  poids_net_kg: 75.0
+  debit_exploitation_m3h_min: 15.0
+  debit_exploitation_m3h_max: 60.0
+  debit_exploitation_m3s_min: 0.004166666666666667
+  debit_exploitation_m3s_max: 0.016666666666666666
+  diametre_moteur: 6"
+  hmt_min_m: 88.0
+  hmt_max_m: 200.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[35.2]'
+  puissance_p2_kw: 22.0
+  cos_phi: 0.81
+  rendement_pompe_pct: 78.0
+  rendement_pompe_moteur_pct: 72.0
+  materiaux: AISI 304
+  classe_protection: IP68
+  classe_isolation: F
+  temp_max_liquide_c: 40.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 2200.0
+  capex_estime_fcfa: 1443105.4
+  opex_par_kwh_eur: 0.208
+  opex_par_kwh_fcfa: 136.439056
+  puissance_absorbe_kw: 30.555555555555557
+  opex_estime_fcfa_kwh: 3006.3611111111113
+- designation: SP 60-5
+  marque: Grundfos
+  nom_produit: SP 60-5
+  type_moteur: MS 4000
+  poids_net_kg: 30.0
+  debit_exploitation_m3h_min: 18.0
+  debit_exploitation_m3h_max: 75.0
+  debit_exploitation_m3s_min: 0.005
+  debit_exploitation_m3s_max: 0.020833333333333332
+  diametre_moteur: 6"
+  hmt_min_m: 18.0
+  hmt_max_m: 40.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[13.5]'
+  puissance_p2_kw: 7.5
+  cos_phi: 0.74
+  rendement_pompe_pct: 75.0
+  rendement_pompe_moteur_pct: 70.0
+  materiaux: AISI 304
+  classe_protection: IP68
+  classe_isolation: F
+  temp_max_liquide_c: 40.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 750.0
+  capex_estime_fcfa: 491967.75
+  opex_par_kwh_eur: 0.214
+  opex_par_kwh_fcfa: 140.374798
+  puissance_absorbe_kw: 10.714285714285715
+  opex_estime_fcfa_kwh: 1054.1785714285716
+- designation: SP 60-10
+  marque: Grundfos
+  nom_produit: SP 60-10
+  type_moteur: MS 6000
+  poids_net_kg: 41.0
+  debit_exploitation_m3h_min: 20.0
+  debit_exploitation_m3h_max: 80.0
+  debit_exploitation_m3s_min: 0.005555555555555556
+  debit_exploitation_m3s_max: 0.022222222222222223
+  diametre_moteur: 6"
+  hmt_min_m: 35.0
+  hmt_max_m: 80.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[17.6]'
+  puissance_p2_kw: 11.0
+  cos_phi: 0.76
+  rendement_pompe_pct: 76.0
+  rendement_pompe_moteur_pct: 71.0
+  materiaux: AISI 304
+  classe_protection: IP68
+  classe_isolation: F
+  temp_max_liquide_c: 40.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 1100.0
+  capex_estime_fcfa: 721552.7
+  opex_par_kwh_eur: 0.211
+  opex_par_kwh_fcfa: 138.406927
+  puissance_absorbe_kw: 15.492957746478874
+  opex_estime_fcfa_kwh: 1524.3521126760563
+- designation: SP 60-15
+  marque: Grundfos
+  nom_produit: SP 60-15
+  type_moteur: MS 6000
+  poids_net_kg: 53.0
+  debit_exploitation_m3h_min: 20.0
+  debit_exploitation_m3h_max: 80.0
+  debit_exploitation_m3s_min: 0.005555555555555556
+  debit_exploitation_m3s_max: 0.022222222222222223
+  diametre_moteur: 6"
+  hmt_min_m: 53.0
+  hmt_max_m: 120.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[24.0]'
+  puissance_p2_kw: 15.0
+  cos_phi: 0.77
+  rendement_pompe_pct: 77.0
+  rendement_pompe_moteur_pct: 72.0
+  materiaux: AISI 304
+  classe_protection: IP68
+  classe_isolation: F
+  temp_max_liquide_c: 40.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 1500.0
+  capex_estime_fcfa: 983935.5
+  opex_par_kwh_eur: 0.208
+  opex_par_kwh_fcfa: 136.439056
+  puissance_absorbe_kw: 20.833333333333336
+  opex_estime_fcfa_kwh: 2049.791666666667
+- designation: SP 60-20
+  marque: Grundfos
+  nom_produit: SP 60-20
+  type_moteur: MS 6000
+  poids_net_kg: 73.0
+  debit_exploitation_m3h_min: 20.0
+  debit_exploitation_m3h_max: 80.0
+  debit_exploitation_m3s_min: 0.005555555555555556
+  debit_exploitation_m3s_max: 0.022222222222222223
+  diametre_moteur: 6"
+  hmt_min_m: 70.0
+  hmt_max_m: 160.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[35.2]'
+  puissance_p2_kw: 22.0
+  cos_phi: 0.81
+  rendement_pompe_pct: 78.0
+  rendement_pompe_moteur_pct: 73.0
+  materiaux: AISI 304
+  classe_protection: IP68
+  classe_isolation: F
+  temp_max_liquide_c: 40.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 2200.0
+  capex_estime_fcfa: 1443105.4
+  opex_par_kwh_eur: 0.205
+  opex_par_kwh_fcfa: 134.471185
+  puissance_absorbe_kw: 30.136986301369863
+  opex_estime_fcfa_kwh: 2965.178082191781
+- designation: SP 60-25
+  marque: Grundfos
+  nom_produit: SP 60-25
+  type_moteur: MS 6000
+  poids_net_kg: 95.0
+  debit_exploitation_m3h_min: 20.0
+  debit_exploitation_m3h_max: 80.0
+  debit_exploitation_m3s_min: 0.005555555555555556
+  debit_exploitation_m3s_max: 0.022222222222222223
+  diametre_moteur: 6"
+  hmt_min_m: 88.0
+  hmt_max_m: 200.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[48.0]'
+  puissance_p2_kw: 30.0
+  cos_phi: 0.85
+  rendement_pompe_pct: 79.0
+  rendement_pompe_moteur_pct: 74.0
+  materiaux: AISI 304
+  classe_protection: IP68
+  classe_isolation: F
+  temp_max_liquide_c: 40.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 3000.0
+  capex_estime_fcfa: 1967871.0
+  opex_par_kwh_eur: 0.203
+  opex_par_kwh_fcfa: 133.15927100000002
+  puissance_absorbe_kw: 40.54054054054054
+  opex_estime_fcfa_kwh: 3988.7837837837837
+- designation: SP 77-6
+  marque: Grundfos
+  nom_produit: SP 77-6
+  type_moteur: MS 6000
+  poids_net_kg: 50.0
+  debit_exploitation_m3h_min: 25.0
+  debit_exploitation_m3h_max: 110.0
+  debit_exploitation_m3s_min: 0.006944444444444444
+  debit_exploitation_m3s_max: 0.030555555555555555
+  diametre_moteur: 6"
+  hmt_min_m: 21.0
+  hmt_max_m: 54.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[24.0]'
+  puissance_p2_kw: 15.0
+  cos_phi: 0.77
+  rendement_pompe_pct: 76.0
+  rendement_pompe_moteur_pct: 73.0
+  materiaux: AISI 304
+  classe_protection: IP68
+  classe_isolation: F
+  temp_max_liquide_c: 40.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 1500.0
+  capex_estime_fcfa: 983935.5
+  opex_par_kwh_eur: 0.205
+  opex_par_kwh_fcfa: 134.471185
+  puissance_absorbe_kw: 20.547945205479454
+  opex_estime_fcfa_kwh: 2021.7123287671236
+- designation: SP 77-8
+  marque: Grundfos
+  nom_produit: SP 77-8
+  type_moteur: MS 6000
+  poids_net_kg: 59.0
+  debit_exploitation_m3h_min: 30.0
+  debit_exploitation_m3h_max: 120.0
+  debit_exploitation_m3s_min: 0.008333333333333333
+  debit_exploitation_m3s_max: 0.03333333333333333
+  diametre_moteur: 6"
+  hmt_min_m: 28.0
+  hmt_max_m: 72.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[29.6]'
+  puissance_p2_kw: 18.5
+  cos_phi: 0.79
+  rendement_pompe_pct: 77.0
+  rendement_pompe_moteur_pct: 74.0
+  materiaux: AISI 304
+  classe_protection: IP68
+  classe_isolation: F
+  temp_max_liquide_c: 40.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 1850.0
+  capex_estime_fcfa: 1213520.45
+  opex_par_kwh_eur: 0.203
+  opex_par_kwh_fcfa: 133.15927100000002
+  puissance_absorbe_kw: 25.0
+  opex_estime_fcfa_kwh: 2459.75
+- designation: SP 77-12
+  marque: Grundfos
+  nom_produit: SP 77-12
+  type_moteur: MS 6000
+  poids_net_kg: 90.0
+  debit_exploitation_m3h_min: 30.0
+  debit_exploitation_m3h_max: 120.0
+  debit_exploitation_m3s_min: 0.008333333333333333
+  debit_exploitation_m3s_max: 0.03333333333333333
+  diametre_moteur: 6"
+  hmt_min_m: 42.0
+  hmt_max_m: 108.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[48.0]'
+  puissance_p2_kw: 30.0
+  cos_phi: 0.85
+  rendement_pompe_pct: 78.0
+  rendement_pompe_moteur_pct: 75.0
+  materiaux: AISI 304
+  classe_protection: IP68
+  classe_isolation: F
+  temp_max_liquide_c: 40.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 3000.0
+  capex_estime_fcfa: 1967871.0
+  opex_par_kwh_eur: 0.2
+  opex_par_kwh_fcfa: 131.19140000000002
+  puissance_absorbe_kw: 40.0
+  opex_estime_fcfa_kwh: 3935.6
+- designation: SP 77-18
+  marque: Grundfos
+  nom_produit: SP 77-18
+  type_moteur: MMS 8000
+  poids_net_kg: 130.0
+  debit_exploitation_m3h_min: 30.0
+  debit_exploitation_m3h_max: 120.0
+  debit_exploitation_m3s_min: 0.008333333333333333
+  debit_exploitation_m3s_max: 0.03333333333333333
+  diametre_moteur: 8"
+  hmt_min_m: 63.0
+  hmt_max_m: 162.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[63.0]'
+  puissance_p2_kw: 45.0
+  cos_phi: 0.92
+  rendement_pompe_pct: 79.0
+  rendement_pompe_moteur_pct: 76.0
+  materiaux: AISI 304
+  classe_protection: IP68
+  classe_isolation: F
+  temp_max_liquide_c: 60.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 4500.0
+  capex_estime_fcfa: 2951806.5
+  opex_par_kwh_eur: 0.197
+  opex_par_kwh_fcfa: 129.223529
+  puissance_absorbe_kw: 59.21052631578947
+  opex_estime_fcfa_kwh: 5825.723684210526
+- designation: SP 77-25
+  marque: Grundfos
+  nom_produit: SP 77-25
+  type_moteur: MMS 8000
+  poids_net_kg: 158.0
+  debit_exploitation_m3h_min: 30.0
+  debit_exploitation_m3h_max: 120.0
+  debit_exploitation_m3s_min: 0.008333333333333333
+  debit_exploitation_m3s_max: 0.03333333333333333
+  diametre_moteur: 8"
+  hmt_min_m: 88.0
+  hmt_max_m: 225.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[77.0]'
+  puissance_p2_kw: 55.0
+  cos_phi: 0.97
+  rendement_pompe_pct: 80.0
+  rendement_pompe_moteur_pct: 77.0
+  materiaux: AISI 304
+  classe_protection: IP68
+  classe_isolation: F
+  temp_max_liquide_c: 60.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 6600.0
+  capex_estime_fcfa: 4329316.2
+  opex_par_kwh_eur: 0.195
+  opex_par_kwh_fcfa: 127.911615
+  puissance_absorbe_kw: 71.42857142857143
+  opex_estime_fcfa_kwh: 7027.857142857143
+- designation: SP 95-4
+  marque: Grundfos
+  nom_produit: SP 95-4
+  type_moteur: MS 6000
+  poids_net_kg: 66.0
+  debit_exploitation_m3h_min: 35.0
+  debit_exploitation_m3h_max: 140.0
+  debit_exploitation_m3s_min: 0.009722222222222222
+  debit_exploitation_m3s_max: 0.03888888888888889
+  diametre_moteur: 6"
+  hmt_min_m: 14.0
+  hmt_max_m: 38.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[35.2]'
+  puissance_p2_kw: 22.0
+  cos_phi: 0.81
+  rendement_pompe_pct: 77.0
+  rendement_pompe_moteur_pct: 74.0
+  materiaux: AISI 304
+  classe_protection: IP68
+  classe_isolation: F
+  temp_max_liquide_c: 40.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 2200.0
+  capex_estime_fcfa: 1443105.4
+  opex_par_kwh_eur: 0.203
+  opex_par_kwh_fcfa: 133.15927100000002
+  puissance_absorbe_kw: 29.72972972972973
+  opex_estime_fcfa_kwh: 2925.1081081081084
+- designation: SP 95-6
+  marque: Grundfos
+  nom_produit: SP 95-6
+  type_moteur: MS 6000
+  poids_net_kg: 87.0
+  debit_exploitation_m3h_min: 40.0
+  debit_exploitation_m3h_max: 160.0
+  debit_exploitation_m3s_min: 0.011111111111111112
+  debit_exploitation_m3s_max: 0.044444444444444446
+  diametre_moteur: 6"
+  hmt_min_m: 21.0
+  hmt_max_m: 57.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[48.0]'
+  puissance_p2_kw: 30.0
+  cos_phi: 0.85
+  rendement_pompe_pct: 78.0
+  rendement_pompe_moteur_pct: 75.0
+  materiaux: AISI 304
+  classe_protection: IP68
+  classe_isolation: F
+  temp_max_liquide_c: 40.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 3000.0
+  capex_estime_fcfa: 1967871.0
+  opex_par_kwh_eur: 0.2
+  opex_par_kwh_fcfa: 131.19140000000002
+  puissance_absorbe_kw: 40.0
+  opex_estime_fcfa_kwh: 3935.6
+- designation: SP 95-8
+  marque: Grundfos
+  nom_produit: SP 95-8
+  type_moteur: MMS 8000
+  poids_net_kg: 106.0
+  debit_exploitation_m3h_min: 40.0
+  debit_exploitation_m3h_max: 160.0
+  debit_exploitation_m3s_min: 0.011111111111111112
+  debit_exploitation_m3s_max: 0.044444444444444446
+  diametre_moteur: 8"
+  hmt_min_m: 28.0
+  hmt_max_m: 76.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[51.8]'
+  puissance_p2_kw: 37.0
+  cos_phi: 0.89
+  rendement_pompe_pct: 79.0
+  rendement_pompe_moteur_pct: 76.0
+  materiaux: AISI 304
+  classe_protection: IP68
+  classe_isolation: F
+  temp_max_liquide_c: 60.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 3700.0
+  capex_estime_fcfa: 2427040.9
+  opex_par_kwh_eur: 0.197
+  opex_par_kwh_fcfa: 129.223529
+  puissance_absorbe_kw: 48.68421052631579
+  opex_estime_fcfa_kwh: 4790.03947368421
+- designation: SP 95-12
+  marque: Grundfos
+  nom_produit: SP 95-12
+  type_moteur: MMS 8000
+  poids_net_kg: 153.0
+  debit_exploitation_m3h_min: 40.0
+  debit_exploitation_m3h_max: 160.0
+  debit_exploitation_m3s_min: 0.011111111111111112
+  debit_exploitation_m3s_max: 0.044444444444444446
+  diametre_moteur: 8"
+  hmt_min_m: 42.0
+  hmt_max_m: 114.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[77.0]'
+  puissance_p2_kw: 55.0
+  cos_phi: 0.97
+  rendement_pompe_pct: 80.0
+  rendement_pompe_moteur_pct: 77.0
+  materiaux: AISI 304
+  classe_protection: IP68
+  classe_isolation: F
+  temp_max_liquide_c: 60.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 6600.0
+  capex_estime_fcfa: 4329316.2
+  opex_par_kwh_eur: 0.195
+  opex_par_kwh_fcfa: 127.911615
+  puissance_absorbe_kw: 71.42857142857143
+  opex_estime_fcfa_kwh: 7027.857142857143
+- designation: SP 95-16
+  marque: Grundfos
+  nom_produit: SP 95-16
+  type_moteur: MMS 8000
+  poids_net_kg: 205.0
+  debit_exploitation_m3h_min: 40.0
+  debit_exploitation_m3h_max: 160.0
+  debit_exploitation_m3s_min: 0.011111111111111112
+  debit_exploitation_m3s_max: 0.044444444444444446
+  diametre_moteur: 8"
+  hmt_min_m: 56.0
+  hmt_max_m: 152.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[105.0]'
+  puissance_p2_kw: 75.0
+  cos_phi: 1.07
+  rendement_pompe_pct: 81.0
+  rendement_pompe_moteur_pct: 78.0
+  materiaux: AISI 304
+  classe_protection: IP68
+  classe_isolation: F
+  temp_max_liquide_c: 60.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 9000.0
+  capex_estime_fcfa: 5903613.0
+  opex_par_kwh_eur: 0.192
+  opex_par_kwh_fcfa: 125.943744
+  puissance_absorbe_kw: 96.15384615384615
+  opex_estime_fcfa_kwh: 9460.576923076922
+- designation: SP 125-1-A
+  marque: Grundfos
+  nom_produit: SP 125-1-A
+  type_moteur: MS 4000
+  poids_net_kg: 29.0
+  debit_exploitation_m3h_min: 50.0
+  debit_exploitation_m3h_max: 190.0
+  debit_exploitation_m3s_min: 0.013888888888888888
+  debit_exploitation_m3s_max: 0.05277777777777778
+  diametre_moteur: 6"
+  hmt_min_m: 4.0
+  hmt_max_m: 9.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[13.5]'
+  puissance_p2_kw: 7.5
+  cos_phi: 0.74
+  rendement_pompe_pct: 77.0
+  rendement_pompe_moteur_pct: 75.0
+  materiaux: AISI 304
+  classe_protection: IP68
+  classe_isolation: F
+  temp_max_liquide_c: 40.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 750.0
+  capex_estime_fcfa: 491967.75
+  opex_par_kwh_eur: 0.2
+  opex_par_kwh_fcfa: 131.19140000000002
+  puissance_absorbe_kw: 10.0
+  opex_estime_fcfa_kwh: 983.9
+- designation: SP 125-3-A
+  marque: Grundfos
+  nom_produit: SP 125-3-A
+  type_moteur: MS 6000
+  poids_net_kg: 76.0
+  debit_exploitation_m3h_min: 60.0
+  debit_exploitation_m3h_max: 200.0
+  debit_exploitation_m3s_min: 0.016666666666666666
+  debit_exploitation_m3s_max: 0.05555555555555555
+  diametre_moteur: 6"
+  hmt_min_m: 11.0
+  hmt_max_m: 27.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[41.6]'
+  puissance_p2_kw: 26.0
+  cos_phi: 0.83
+  rendement_pompe_pct: 78.0
+  rendement_pompe_moteur_pct: 76.0
+  materiaux: AISI 304
+  classe_protection: IP68
+  classe_isolation: F
+  temp_max_liquide_c: 40.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 2600.0
+  capex_estime_fcfa: 1705488.2
+  opex_par_kwh_eur: 0.197
+  opex_par_kwh_fcfa: 129.223529
+  puissance_absorbe_kw: 34.21052631578947
+  opex_estime_fcfa_kwh: 3365.9736842105262
+- designation: SP 125-4-A
+  marque: Grundfos
+  nom_produit: SP 125-4-A
+  type_moteur: MMS 8000
+  poids_net_kg: 104.0
+  debit_exploitation_m3h_min: 60.0
+  debit_exploitation_m3h_max: 200.0
+  debit_exploitation_m3s_min: 0.016666666666666666
+  debit_exploitation_m3s_max: 0.05555555555555555
+  diametre_moteur: 8"
+  hmt_min_m: 14.0
+  hmt_max_m: 36.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[51.8]'
+  puissance_p2_kw: 37.0
+  cos_phi: 0.89
+  rendement_pompe_pct: 79.0
+  rendement_pompe_moteur_pct: 77.0
+  materiaux: AISI 304
+  classe_protection: IP68
+  classe_isolation: F
+  temp_max_liquide_c: 60.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 3700.0
+  capex_estime_fcfa: 2427040.9
+  opex_par_kwh_eur: 0.195
+  opex_par_kwh_fcfa: 127.911615
+  puissance_absorbe_kw: 48.05194805194805
+  opex_estime_fcfa_kwh: 4727.831168831169
+- designation: SP 125-6-A
+  marque: Grundfos
+  nom_produit: SP 125-6-A
+  type_moteur: MMS 8000
+  poids_net_kg: 150.0
+  debit_exploitation_m3h_min: 60.0
+  debit_exploitation_m3h_max: 200.0
+  debit_exploitation_m3s_min: 0.016666666666666666
+  debit_exploitation_m3s_max: 0.05555555555555555
+  diametre_moteur: 8"
+  hmt_min_m: 21.0
+  hmt_max_m: 54.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[77.0]'
+  puissance_p2_kw: 55.0
+  cos_phi: 0.97
+  rendement_pompe_pct: 80.0
+  rendement_pompe_moteur_pct: 78.0
+  materiaux: AISI 304
+  classe_protection: IP68
+  classe_isolation: F
+  temp_max_liquide_c: 60.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 6600.0
+  capex_estime_fcfa: 4329316.2
+  opex_par_kwh_eur: 0.192
+  opex_par_kwh_fcfa: 125.943744
+  puissance_absorbe_kw: 70.51282051282051
+  opex_estime_fcfa_kwh: 6937.75641025641
+- designation: SP 125-8-A
+  marque: Grundfos
+  nom_produit: SP 125-8-A
+  type_moteur: MMS 8000
+  poids_net_kg: 201.0
+  debit_exploitation_m3h_min: 60.0
+  debit_exploitation_m3h_max: 200.0
+  debit_exploitation_m3s_min: 0.016666666666666666
+  debit_exploitation_m3s_max: 0.05555555555555555
+  diametre_moteur: 8"
+  hmt_min_m: 28.0
+  hmt_max_m: 72.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[105.0]'
+  puissance_p2_kw: 75.0
+  cos_phi: 1.07
+  rendement_pompe_pct: 81.0
+  rendement_pompe_moteur_pct: 79.0
+  materiaux: AISI 304
+  classe_protection: IP68
+  classe_isolation: F
+  temp_max_liquide_c: 60.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 9000.0
+  capex_estime_fcfa: 5903613.0
+  opex_par_kwh_eur: 0.19
+  opex_par_kwh_fcfa: 124.63183
+  puissance_absorbe_kw: 94.9367088607595
+  opex_estime_fcfa_kwh: 9340.822784810127
+- designation: SP 160-2
+  marque: Grundfos
+  nom_produit: SP 160-2
+  type_moteur: MS 6000
+  poids_net_kg: 65.0
+  debit_exploitation_m3h_min: 70.0
+  debit_exploitation_m3h_max: 250.0
+  debit_exploitation_m3s_min: 0.019444444444444445
+  debit_exploitation_m3s_max: 0.06944444444444445
+  diametre_moteur: 6"
+  hmt_min_m: 6.0
+  hmt_max_m: 18.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[35.2]'
+  puissance_p2_kw: 22.0
+  cos_phi: 0.81
+  rendement_pompe_pct: 78.0
+  rendement_pompe_moteur_pct: 76.0
+  materiaux: AISI 304
+  classe_protection: IP68
+  classe_isolation: F
+  temp_max_liquide_c: 40.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 2200.0
+  capex_estime_fcfa: 1443105.4
+  opex_par_kwh_eur: 0.197
+  opex_par_kwh_fcfa: 129.223529
+  puissance_absorbe_kw: 28.94736842105263
+  opex_estime_fcfa_kwh: 2848.1315789473683
+- designation: SP 160-3
+  marque: Grundfos
+  nom_produit: SP 160-3
+  type_moteur: MMS 8000
+  poids_net_kg: 103.0
+  debit_exploitation_m3h_min: 80.0
+  debit_exploitation_m3h_max: 280.0
+  debit_exploitation_m3s_min: 0.022222222222222223
+  debit_exploitation_m3s_max: 0.07777777777777778
+  diametre_moteur: 8"
+  hmt_min_m: 9.0
+  hmt_max_m: 27.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[51.8]'
+  puissance_p2_kw: 37.0
+  cos_phi: 0.89
+  rendement_pompe_pct: 79.0
+  rendement_pompe_moteur_pct: 77.0
+  materiaux: AISI 304
+  classe_protection: IP68
+  classe_isolation: F
+  temp_max_liquide_c: 60.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 3700.0
+  capex_estime_fcfa: 2427040.9
+  opex_par_kwh_eur: 0.195
+  opex_par_kwh_fcfa: 127.911615
+  puissance_absorbe_kw: 48.05194805194805
+  opex_estime_fcfa_kwh: 4727.831168831169
+- designation: SP 160-4
+  marque: Grundfos
+  nom_produit: SP 160-4
+  type_moteur: MMS 8000
+  poids_net_kg: 124.0
+  debit_exploitation_m3h_min: 80.0
+  debit_exploitation_m3h_max: 280.0
+  debit_exploitation_m3s_min: 0.022222222222222223
+  debit_exploitation_m3s_max: 0.07777777777777778
+  diametre_moteur: 8"
+  hmt_min_m: 12.0
+  hmt_max_m: 36.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[63.0]'
+  puissance_p2_kw: 45.0
+  cos_phi: 0.92
+  rendement_pompe_pct: 80.0
+  rendement_pompe_moteur_pct: 78.0
+  materiaux: AISI 304
+  classe_protection: IP68
+  classe_isolation: F
+  temp_max_liquide_c: 60.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 4500.0
+  capex_estime_fcfa: 2951806.5
+  opex_par_kwh_eur: 0.192
+  opex_par_kwh_fcfa: 125.943744
+  puissance_absorbe_kw: 57.69230769230769
+  opex_estime_fcfa_kwh: 5676.346153846154
+- designation: SP 160-6
+  marque: Grundfos
+  nom_produit: SP 160-6
+  type_moteur: MMS 8000
+  poids_net_kg: 200.0
+  debit_exploitation_m3h_min: 80.0
+  debit_exploitation_m3h_max: 280.0
+  debit_exploitation_m3s_min: 0.022222222222222223
+  debit_exploitation_m3s_max: 0.07777777777777778
+  diametre_moteur: 8"
+  hmt_min_m: 18.0
+  hmt_max_m: 54.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[105.0]'
+  puissance_p2_kw: 75.0
+  cos_phi: 1.07
+  rendement_pompe_pct: 81.0
+  rendement_pompe_moteur_pct: 79.0
+  materiaux: AISI 304
+  classe_protection: IP68
+  classe_isolation: F
+  temp_max_liquide_c: 60.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 9000.0
+  capex_estime_fcfa: 5903613.0
+  opex_par_kwh_eur: 0.19
+  opex_par_kwh_fcfa: 124.63183
+  puissance_absorbe_kw: 94.9367088607595
+  opex_estime_fcfa_kwh: 9340.822784810127
+- designation: SP 160-8
+  marque: Grundfos
+  nom_produit: SP 160-8
+  type_moteur: MMS 10000
+  poids_net_kg: 238.0
+  debit_exploitation_m3h_min: 80.0
+  debit_exploitation_m3h_max: 280.0
+  debit_exploitation_m3s_min: 0.022222222222222223
+  debit_exploitation_m3s_max: 0.07777777777777778
+  diametre_moteur: 10"
+  hmt_min_m: 24.0
+  hmt_max_m: 72.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[126.0]'
+  puissance_p2_kw: 90.0
+  cos_phi: 1.15
+  rendement_pompe_pct: 82.0
+  rendement_pompe_moteur_pct: 80.0
+  materiaux: AISI 304
+  classe_protection: IP68
+  classe_isolation: F
+  temp_max_liquide_c: 60.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 10800.0
+  capex_estime_fcfa: 7084335.6
+  opex_par_kwh_eur: 0.188
+  opex_par_kwh_fcfa: 123.31991599999999
+  puissance_absorbe_kw: 112.5
+  opex_estime_fcfa_kwh: 11068.875
+- designation: SP 215-2
+  marque: Grundfos
+  nom_produit: SP 215-2
+  type_moteur: MMS 8000
+  poids_net_kg: 123.0
+  debit_exploitation_m3h_min: 90.0
+  debit_exploitation_m3h_max: 350.0
+  debit_exploitation_m3s_min: 0.025
+  debit_exploitation_m3s_max: 0.09722222222222222
+  diametre_moteur: 8"
+  hmt_min_m: 6.0
+  hmt_max_m: 18.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[63.0]'
+  puissance_p2_kw: 45.0
+  cos_phi: 0.92
+  rendement_pompe_pct: 81.0
+  rendement_pompe_moteur_pct: 79.0
+  materiaux: AISI 304
+  classe_protection: IP68
+  classe_isolation: F
+  temp_max_liquide_c: 60.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 4500.0
+  capex_estime_fcfa: 2951806.5
+  opex_par_kwh_eur: 0.19
+  opex_par_kwh_fcfa: 124.63183
+  puissance_absorbe_kw: 56.962025316455694
+  opex_estime_fcfa_kwh: 5604.493670886076
+- designation: SP 215-3
+  marque: Grundfos
+  nom_produit: SP 215-3
+  type_moteur: MMS 8000
+  poids_net_kg: 198.0
+  debit_exploitation_m3h_min: 100.0
+  debit_exploitation_m3h_max: 400.0
+  debit_exploitation_m3s_min: 0.027777777777777776
+  debit_exploitation_m3s_max: 0.1111111111111111
+  diametre_moteur: 8"
+  hmt_min_m: 9.0
+  hmt_max_m: 27.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[105.0]'
+  puissance_p2_kw: 75.0
+  cos_phi: 1.07
+  rendement_pompe_pct: 82.0
+  rendement_pompe_moteur_pct: 80.0
+  materiaux: AISI 304
+  classe_protection: IP68
+  classe_isolation: F
+  temp_max_liquide_c: 60.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 9000.0
+  capex_estime_fcfa: 5903613.0
+  opex_par_kwh_eur: 0.188
+  opex_par_kwh_fcfa: 123.31991599999999
+  puissance_absorbe_kw: 93.75
+  opex_estime_fcfa_kwh: 9224.0625
+- designation: SP 215-4
+  marque: Grundfos
+  nom_produit: SP 215-4
+  type_moteur: MMS 10000
+  poids_net_kg: 236.0
+  debit_exploitation_m3h_min: 100.0
+  debit_exploitation_m3h_max: 400.0
+  debit_exploitation_m3s_min: 0.027777777777777776
+  debit_exploitation_m3s_max: 0.1111111111111111
+  diametre_moteur: 10"
+  hmt_min_m: 12.0
+  hmt_max_m: 36.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[126.0]'
+  puissance_p2_kw: 90.0
+  cos_phi: 1.15
+  rendement_pompe_pct: 83.0
+  rendement_pompe_moteur_pct: 81.0
+  materiaux: AISI 304
+  classe_protection: IP68
+  classe_isolation: F
+  temp_max_liquide_c: 60.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 10800.0
+  capex_estime_fcfa: 7084335.6
+  opex_par_kwh_eur: 0.185
+  opex_par_kwh_fcfa: 121.352045
+  puissance_absorbe_kw: 111.1111111111111
+  opex_estime_fcfa_kwh: 10932.22222222222
+- designation: SP 215-6
+  marque: Grundfos
+  nom_produit: SP 215-6
+  type_moteur: MMS 10000
+  poids_net_kg: 342.0
+  debit_exploitation_m3h_min: 100.0
+  debit_exploitation_m3h_max: 400.0
+  debit_exploitation_m3s_min: 0.027777777777777776
+  debit_exploitation_m3s_max: 0.1111111111111111
+  diametre_moteur: 10"
+  hmt_min_m: 18.0
+  hmt_max_m: 54.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[184.8]'
+  puissance_p2_kw: 132.0
+  cos_phi: 1.36
+  rendement_pompe_pct: 84.0
+  rendement_pompe_moteur_pct: 82.0
+  materiaux: AISI 304
+  classe_protection: IP68
+  classe_isolation: F
+  temp_max_liquide_c: 60.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 15840.0
+  capex_estime_fcfa: 10390358.88
+  opex_par_kwh_eur: 0.183
+  opex_par_kwh_fcfa: 120.040131
+  puissance_absorbe_kw: 160.97560975609758
+  opex_estime_fcfa_kwh: 15838.39024390244
+- designation: SP 215-8
+  marque: Grundfos
+  nom_produit: SP 215-8
+  type_moteur: MMS 10000
+  poids_net_kg: 413.0
+  debit_exploitation_m3h_min: 100.0
+  debit_exploitation_m3h_max: 400.0
+  debit_exploitation_m3s_min: 0.027777777777777776
+  debit_exploitation_m3s_max: 0.1111111111111111
+  diametre_moteur: 10"
+  hmt_min_m: 24.0
+  hmt_max_m: 72.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[224.0]'
+  puissance_p2_kw: 160.0
+  cos_phi: 1.5
+  rendement_pompe_pct: 85.0
+  rendement_pompe_moteur_pct: 83.0
+  materiaux: AISI 304
+  classe_protection: IP68
+  classe_isolation: F
+  temp_max_liquide_c: 60.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 19200.0
+  capex_estime_fcfa: 12594374.4
+  opex_par_kwh_eur: 0.181
+  opex_par_kwh_fcfa: 118.728217
+  puissance_absorbe_kw: 192.7710843373494
+  opex_estime_fcfa_kwh: 18966.746987951807
+- designation: SP 10A-15
+  marque: Grundfos
+  nom_produit: SP 10A-15
+  type_moteur: MS 4000
+  poids_net_kg: 20.0
+  debit_exploitation_m3h_min: 1.8
+  debit_exploitation_m3h_max: 7.5
+  debit_exploitation_m3s_min: 0.0005
+  debit_exploitation_m3s_max: 0.0020833333333333333
+  diametre_moteur: 6"
+  hmt_min_m: 28.0
+  hmt_max_m: 105.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[4.0]'
+  puissance_p2_kw: 2.2
+  cos_phi: 0.71
+  rendement_pompe_pct: 65.0
+  rendement_pompe_moteur_pct: 52.0
+  materiaux: AISI 304
+  classe_protection: IP68
+  classe_isolation: F
+  temp_max_liquide_c: 40.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 220.0
+  capex_estime_fcfa: 144310.54
+  opex_par_kwh_eur: 0.288
+  opex_par_kwh_fcfa: 188.91561599999997
+  puissance_absorbe_kw: 4.230769230769231
+  opex_estime_fcfa_kwh: 416.2653846153846
+- designation: SP 10A-22
+  marque: Grundfos
+  nom_produit: SP 10A-22
+  type_moteur: MS 4000
+  poids_net_kg: 25.0
+  debit_exploitation_m3h_min: 1.8
+  debit_exploitation_m3h_max: 7.5
+  debit_exploitation_m3s_min: 0.0005
+  debit_exploitation_m3s_max: 0.0020833333333333333
+  diametre_moteur: 6"
+  hmt_min_m: 41.0
+  hmt_max_m: 154.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[5.4]'
+  puissance_p2_kw: 3.0
+  cos_phi: 0.71
+  rendement_pompe_pct: 67.0
+  rendement_pompe_moteur_pct: 54.0
+  materiaux: AISI 304
+  classe_protection: IP68
+  classe_isolation: F
+  temp_max_liquide_c: 40.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 300.0
+  capex_estime_fcfa: 196787.1
+  opex_par_kwh_eur: 0.278
+  opex_par_kwh_fcfa: 182.35604600000002
+  puissance_absorbe_kw: 5.555555555555555
+  opex_estime_fcfa_kwh: 546.6111111111111
+- designation: SP 12A-18
+  marque: Grundfos
+  nom_produit: SP 12A-18
+  type_moteur: MS 4000
+  poids_net_kg: 23.0
+  debit_exploitation_m3h_min: 2.2
+  debit_exploitation_m3h_max: 9.0
+  debit_exploitation_m3s_min: 0.0006111111111111112
+  debit_exploitation_m3s_max: 0.0025
+  diametre_moteur: 6"
+  hmt_min_m: 33.0
+  hmt_max_m: 126.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[5.4]'
+  puissance_p2_kw: 3.0
+  cos_phi: 0.71
+  rendement_pompe_pct: 67.0
+  rendement_pompe_moteur_pct: 54.0
+  materiaux: AISI 304
+  classe_protection: IP68
+  classe_isolation: F
+  temp_max_liquide_c: 40.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 300.0
+  capex_estime_fcfa: 196787.1
+  opex_par_kwh_eur: 0.278
+  opex_par_kwh_fcfa: 182.35604600000002
+  puissance_absorbe_kw: 5.555555555555555
+  opex_estime_fcfa_kwh: 546.6111111111111
+- designation: SP 12A-25
+  marque: Grundfos
+  nom_produit: SP 12A-25
+  type_moteur: MS 4000
+  poids_net_kg: 28.0
+  debit_exploitation_m3h_min: 2.2
+  debit_exploitation_m3h_max: 9.0
+  debit_exploitation_m3s_min: 0.0006111111111111112
+  debit_exploitation_m3s_max: 0.0025
+  diametre_moteur: 6"
+  hmt_min_m: 46.0
+  hmt_max_m: 175.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[7.2]'
+  puissance_p2_kw: 4.0
+  cos_phi: 0.72
+  rendement_pompe_pct: 69.0
+  rendement_pompe_moteur_pct: 56.0
+  materiaux: AISI 304
+  classe_protection: IP68
+  classe_isolation: F
+  temp_max_liquide_c: 40.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 400.0
+  capex_estime_fcfa: 262382.8
+  opex_par_kwh_eur: 0.268
+  opex_par_kwh_fcfa: 175.796476
+  puissance_absorbe_kw: 7.142857142857142
+  opex_estime_fcfa_kwh: 702.7857142857142
+- designation: SP 20-12
+  marque: Grundfos
+  nom_produit: SP 20-12
+  type_moteur: MS 4000
+  poids_net_kg: 27.0
+  debit_exploitation_m3h_min: 4.0
+  debit_exploitation_m3h_max: 18.0
+  debit_exploitation_m3s_min: 0.0011111111111111111
+  debit_exploitation_m3s_max: 0.005
+  diametre_moteur: 6"
+  hmt_min_m: 42.0
+  hmt_max_m: 84.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[9.9]'
+  puissance_p2_kw: 5.5
+  cos_phi: 0.73
+  rendement_pompe_pct: 71.0
+  rendement_pompe_moteur_pct: 59.0
+  materiaux: AISI 304
+  classe_protection: IP68
+  classe_isolation: F
+  temp_max_liquide_c: 40.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 550.0
+  capex_estime_fcfa: 360776.35
+  opex_par_kwh_eur: 0.254
+  opex_par_kwh_fcfa: 166.613078
+  puissance_absorbe_kw: 9.322033898305085
+  opex_estime_fcfa_kwh: 917.1949152542373
+- designation: SP 20-18
+  marque: Grundfos
+  nom_produit: SP 20-18
+  type_moteur: MS 4000
+  poids_net_kg: 35.0
+  debit_exploitation_m3h_min: 4.0
+  debit_exploitation_m3h_max: 18.0
+  debit_exploitation_m3s_min: 0.0011111111111111111
+  debit_exploitation_m3s_max: 0.005
+  diametre_moteur: 6"
+  hmt_min_m: 63.0
+  hmt_max_m: 126.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[13.5]'
+  puissance_p2_kw: 7.5
+  cos_phi: 0.74
+  rendement_pompe_pct: 73.0
+  rendement_pompe_moteur_pct: 61.0
+  materiaux: AISI 304
+  classe_protection: IP68
+  classe_isolation: F
+  temp_max_liquide_c: 40.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 750.0
+  capex_estime_fcfa: 491967.75
+  opex_par_kwh_eur: 0.246
+  opex_par_kwh_fcfa: 161.365422
+  puissance_absorbe_kw: 12.295081967213115
+  opex_estime_fcfa_kwh: 1209.7131147540983
+- designation: SP 25-10
+  marque: Grundfos
+  nom_produit: SP 25-10
+  type_moteur: MS 4000
+  poids_net_kg: 32.0
+  debit_exploitation_m3h_min: 6.0
+  debit_exploitation_m3h_max: 22.0
+  debit_exploitation_m3s_min: 0.0016666666666666668
+  debit_exploitation_m3s_max: 0.006111111111111111
+  diametre_moteur: 6"
+  hmt_min_m: 35.0
+  hmt_max_m: 70.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[13.5]'
+  puissance_p2_kw: 7.5
+  cos_phi: 0.74
+  rendement_pompe_pct: 72.0
+  rendement_pompe_moteur_pct: 60.0
+  materiaux: AISI 304
+  classe_protection: IP68
+  classe_isolation: F
+  temp_max_liquide_c: 40.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 750.0
+  capex_estime_fcfa: 491967.75
+  opex_par_kwh_eur: 0.25
+  opex_par_kwh_fcfa: 163.98925
+  puissance_absorbe_kw: 12.5
+  opex_estime_fcfa_kwh: 1229.875
+- designation: SP 25-15
+  marque: Grundfos
+  nom_produit: SP 25-15
+  type_moteur: MS 6000
+  poids_net_kg: 42.0
+  debit_exploitation_m3h_min: 6.0
+  debit_exploitation_m3h_max: 22.0
+  debit_exploitation_m3s_min: 0.0016666666666666668
+  debit_exploitation_m3s_max: 0.006111111111111111
+  diametre_moteur: 6"
+  hmt_min_m: 53.0
+  hmt_max_m: 105.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[17.6]'
+  puissance_p2_kw: 11.0
+  cos_phi: 0.76
+  rendement_pompe_pct: 74.0
+  rendement_pompe_moteur_pct: 62.0
+  materiaux: AISI 304
+  classe_protection: IP68
+  classe_isolation: F
+  temp_max_liquide_c: 40.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 1100.0
+  capex_estime_fcfa: 721552.7
+  opex_par_kwh_eur: 0.242
+  opex_par_kwh_fcfa: 158.741594
+  puissance_absorbe_kw: 17.741935483870968
+  opex_estime_fcfa_kwh: 1745.6290322580646
+- designation: SP 35-8
+  marque: Grundfos
+  nom_produit: SP 35-8
+  type_moteur: MS 6000
+  poids_net_kg: 40.0
+  debit_exploitation_m3h_min: 8.0
+  debit_exploitation_m3h_max: 32.0
+  debit_exploitation_m3s_min: 0.0022222222222222222
+  debit_exploitation_m3s_max: 0.008888888888888889
+  diametre_moteur: 6"
+  hmt_min_m: 28.0
+  hmt_max_m: 56.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[17.6]'
+  puissance_p2_kw: 11.0
+  cos_phi: 0.76
+  rendement_pompe_pct: 73.0
+  rendement_pompe_moteur_pct: 61.0
+  materiaux: AISI 304
+  classe_protection: IP68
+  classe_isolation: F
+  temp_max_liquide_c: 40.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 1100.0
+  capex_estime_fcfa: 721552.7
+  opex_par_kwh_eur: 0.246
+  opex_par_kwh_fcfa: 161.365422
+  puissance_absorbe_kw: 18.0327868852459
+  opex_estime_fcfa_kwh: 1774.2459016393443
+- designation: SP 35-12
+  marque: Grundfos
+  nom_produit: SP 35-12
+  type_moteur: MS 6000
+  poids_net_kg: 51.0
+  debit_exploitation_m3h_min: 8.0
+  debit_exploitation_m3h_max: 32.0
+  debit_exploitation_m3s_min: 0.0022222222222222222
+  debit_exploitation_m3s_max: 0.008888888888888889
+  diametre_moteur: 6"
+  hmt_min_m: 42.0
+  hmt_max_m: 84.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[24.0]'
+  puissance_p2_kw: 15.0
+  cos_phi: 0.77
+  rendement_pompe_pct: 75.0
+  rendement_pompe_moteur_pct: 63.0
+  materiaux: AISI 304
+  classe_protection: IP68
+  classe_isolation: F
+  temp_max_liquide_c: 40.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 1500.0
+  capex_estime_fcfa: 983935.5
+  opex_par_kwh_eur: 0.238
+  opex_par_kwh_fcfa: 156.117766
+  puissance_absorbe_kw: 23.80952380952381
+  opex_estime_fcfa_kwh: 2342.6190476190477
+- designation: SP 40-6
+  marque: Grundfos
+  nom_produit: SP 40-6
+  type_moteur: MS 6000
+  poids_net_kg: 39.0
+  debit_exploitation_m3h_min: 10.0
+  debit_exploitation_m3h_max: 38.0
+  debit_exploitation_m3s_min: 0.002777777777777778
+  debit_exploitation_m3s_max: 0.010555555555555556
+  diametre_moteur: 6"
+  hmt_min_m: 21.0
+  hmt_max_m: 42.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[17.6]'
+  puissance_p2_kw: 11.0
+  cos_phi: 0.76
+  rendement_pompe_pct: 74.0
+  rendement_pompe_moteur_pct: 62.0
+  materiaux: AISI 304
+  classe_protection: IP68
+  classe_isolation: F
+  temp_max_liquide_c: 40.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 1100.0
+  capex_estime_fcfa: 721552.7
+  opex_par_kwh_eur: 0.242
+  opex_par_kwh_fcfa: 158.741594
+  puissance_absorbe_kw: 17.741935483870968
+  opex_estime_fcfa_kwh: 1745.6290322580646
+- designation: SP 40-10
+  marque: Grundfos
+  nom_produit: SP 40-10
+  type_moteur: MS 6000
+  poids_net_kg: 59.0
+  debit_exploitation_m3h_min: 10.0
+  debit_exploitation_m3h_max: 38.0
+  debit_exploitation_m3s_min: 0.002777777777777778
+  debit_exploitation_m3s_max: 0.010555555555555556
+  diametre_moteur: 6"
+  hmt_min_m: 35.0
+  hmt_max_m: 70.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[29.6]'
+  puissance_p2_kw: 18.5
+  cos_phi: 0.79
+  rendement_pompe_pct: 76.0
+  rendement_pompe_moteur_pct: 64.0
+  materiaux: AISI 304
+  classe_protection: IP68
+  classe_isolation: F
+  temp_max_liquide_c: 40.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 1850.0
+  capex_estime_fcfa: 1213520.45
+  opex_par_kwh_eur: 0.234
+  opex_par_kwh_fcfa: 153.493938
+  puissance_absorbe_kw: 28.90625
+  opex_estime_fcfa_kwh: 2844.0859375
+- designation: SP 50-5
+  marque: Grundfos
+  nom_produit: SP 50-5
+  type_moteur: MS 6000
+  poids_net_kg: 49.0
+  debit_exploitation_m3h_min: 12.0
+  debit_exploitation_m3h_max: 45.0
+  debit_exploitation_m3s_min: 0.0033333333333333335
+  debit_exploitation_m3s_max: 0.0125
+  diametre_moteur: 6"
+  hmt_min_m: 18.0
+  hmt_max_m: 35.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[24.0]'
+  puissance_p2_kw: 15.0
+  cos_phi: 0.77
+  rendement_pompe_pct: 75.0
+  rendement_pompe_moteur_pct: 63.0
+  materiaux: AISI 304
+  classe_protection: IP68
+  classe_isolation: F
+  temp_max_liquide_c: 40.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 1500.0
+  capex_estime_fcfa: 983935.5
+  opex_par_kwh_eur: 0.238
+  opex_par_kwh_fcfa: 156.117766
+  puissance_absorbe_kw: 23.80952380952381
+  opex_estime_fcfa_kwh: 2342.6190476190477
+- designation: SP 50-8
+  marque: Grundfos
+  nom_produit: SP 50-8
+  type_moteur: MS 6000
+  poids_net_kg: 67.0
+  debit_exploitation_m3h_min: 12.0
+  debit_exploitation_m3h_max: 45.0
+  debit_exploitation_m3s_min: 0.0033333333333333335
+  debit_exploitation_m3s_max: 0.0125
+  diametre_moteur: 6"
+  hmt_min_m: 28.0
+  hmt_max_m: 56.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[35.2]'
+  puissance_p2_kw: 22.0
+  cos_phi: 0.81
+  rendement_pompe_pct: 77.0
+  rendement_pompe_moteur_pct: 65.0
+  materiaux: AISI 304
+  classe_protection: IP68
+  classe_isolation: F
+  temp_max_liquide_c: 40.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 2200.0
+  capex_estime_fcfa: 1443105.4
+  opex_par_kwh_eur: 0.231
+  opex_par_kwh_fcfa: 151.526067
+  puissance_absorbe_kw: 33.84615384615385
+  opex_estime_fcfa_kwh: 3330.123076923077
+- designation: SP 65-4
+  marque: Grundfos
+  nom_produit: SP 65-4
+  type_moteur: MS 6000
+  poids_net_kg: 57.0
+  debit_exploitation_m3h_min: 15.0
+  debit_exploitation_m3h_max: 60.0
+  debit_exploitation_m3s_min: 0.004166666666666667
+  debit_exploitation_m3s_max: 0.016666666666666666
+  diametre_moteur: 6"
+  hmt_min_m: 14.0
+  hmt_max_m: 28.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[29.6]'
+  puissance_p2_kw: 18.5
+  cos_phi: 0.79
+  rendement_pompe_pct: 76.0
+  rendement_pompe_moteur_pct: 64.0
+  materiaux: AISI 304
+  classe_protection: IP68
+  classe_isolation: F
+  temp_max_liquide_c: 40.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 1850.0
+  capex_estime_fcfa: 1213520.45
+  opex_par_kwh_eur: 0.234
+  opex_par_kwh_fcfa: 153.493938
+  puissance_absorbe_kw: 28.90625
+  opex_estime_fcfa_kwh: 2844.0859375
+- designation: SP 65-6
+  marque: Grundfos
+  nom_produit: SP 65-6
+  type_moteur: MS 6000
+  poids_net_kg: 87.0
+  debit_exploitation_m3h_min: 15.0
+  debit_exploitation_m3h_max: 60.0
+  debit_exploitation_m3s_min: 0.004166666666666667
+  debit_exploitation_m3s_max: 0.016666666666666666
+  diametre_moteur: 6"
+  hmt_min_m: 21.0
+  hmt_max_m: 42.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[48.0]'
+  puissance_p2_kw: 30.0
+  cos_phi: 0.85
+  rendement_pompe_pct: 78.0
+  rendement_pompe_moteur_pct: 66.0
+  materiaux: AISI 304
+  classe_protection: IP68
+  classe_isolation: F
+  temp_max_liquide_c: 40.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 3000.0
+  capex_estime_fcfa: 1967871.0
+  opex_par_kwh_eur: 0.227
+  opex_par_kwh_fcfa: 148.902239
+  puissance_absorbe_kw: 45.45454545454545
+  opex_estime_fcfa_kwh: 4472.272727272727
+- designation: SP 85-3
+  marque: Grundfos
+  nom_produit: SP 85-3
+  type_moteur: MS 6000
+  poids_net_kg: 66.0
+  debit_exploitation_m3h_min: 20.0
+  debit_exploitation_m3h_max: 75.0
+  debit_exploitation_m3s_min: 0.005555555555555556
+  debit_exploitation_m3s_max: 0.020833333333333332
+  diametre_moteur: 6"
+  hmt_min_m: 11.0
+  hmt_max_m: 21.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[35.2]'
+  puissance_p2_kw: 22.0
+  cos_phi: 0.81
+  rendement_pompe_pct: 77.0
+  rendement_pompe_moteur_pct: 65.0
+  materiaux: AISI 304
+  classe_protection: IP68
+  classe_isolation: F
+  temp_max_liquide_c: 40.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 2200.0
+  capex_estime_fcfa: 1443105.4
+  opex_par_kwh_eur: 0.231
+  opex_par_kwh_fcfa: 151.526067
+  puissance_absorbe_kw: 33.84615384615385
+  opex_estime_fcfa_kwh: 3330.123076923077
+- designation: SP 85-5
+  marque: Grundfos
+  nom_produit: SP 85-5
+  type_moteur: MMS 8000
+  poids_net_kg: 104.0
+  debit_exploitation_m3h_min: 20.0
+  debit_exploitation_m3h_max: 75.0
+  debit_exploitation_m3s_min: 0.005555555555555556
+  debit_exploitation_m3s_max: 0.020833333333333332
+  diametre_moteur: 8"
+  hmt_min_m: 18.0
+  hmt_max_m: 35.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[51.8]'
+  puissance_p2_kw: 37.0
+  cos_phi: 0.89
+  rendement_pompe_pct: 79.0
+  rendement_pompe_moteur_pct: 67.0
+  materiaux: AISI 304
+  classe_protection: IP68
+  classe_isolation: F
+  temp_max_liquide_c: 60.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 3700.0
+  capex_estime_fcfa: 2427040.9
+  opex_par_kwh_eur: 0.224
+  opex_par_kwh_fcfa: 146.934368
+  puissance_absorbe_kw: 55.22388059701492
+  opex_estime_fcfa_kwh: 5433.477611940298
+- designation: SP 100-2
+  marque: Grundfos
+  nom_produit: SP 100-2
+  type_moteur: MS 6000
+  poids_net_kg: 85.0
+  debit_exploitation_m3h_min: 25.0
+  debit_exploitation_m3h_max: 95.0
+  debit_exploitation_m3s_min: 0.006944444444444444
+  debit_exploitation_m3s_max: 0.02638888888888889
+  diametre_moteur: 6"
+  hmt_min_m: 7.0
+  hmt_max_m: 14.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[48.0]'
+  puissance_p2_kw: 30.0
+  cos_phi: 0.85
+  rendement_pompe_pct: 78.0
+  rendement_pompe_moteur_pct: 66.0
+  materiaux: AISI 304
+  classe_protection: IP68
+  classe_isolation: F
+  temp_max_liquide_c: 40.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 3000.0
+  capex_estime_fcfa: 1967871.0
+  opex_par_kwh_eur: 0.227
+  opex_par_kwh_fcfa: 148.902239
+  puissance_absorbe_kw: 45.45454545454545
+  opex_estime_fcfa_kwh: 4472.272727272727
+- designation: SP 100-4
+  marque: Grundfos
+  nom_produit: SP 100-4
+  type_moteur: MMS 8000
+  poids_net_kg: 148.0
+  debit_exploitation_m3h_min: 25.0
+  debit_exploitation_m3h_max: 95.0
+  debit_exploitation_m3s_min: 0.006944444444444444
+  debit_exploitation_m3s_max: 0.02638888888888889
+  diametre_moteur: 8"
+  hmt_min_m: 14.0
+  hmt_max_m: 28.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[77.0]'
+  puissance_p2_kw: 55.0
+  cos_phi: 0.97
+  rendement_pompe_pct: 80.0
+  rendement_pompe_moteur_pct: 68.0
+  materiaux: AISI 304
+  classe_protection: IP68
+  classe_isolation: F
+  temp_max_liquide_c: 60.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 6600.0
+  capex_estime_fcfa: 4329316.2
+  opex_par_kwh_eur: 0.221
+  opex_par_kwh_fcfa: 144.966497
+  puissance_absorbe_kw: 80.88235294117646
+  opex_estime_fcfa_kwh: 7958.014705882352
+- designation: SP 110-2
+  marque: Grundfos
+  nom_produit: SP 110-2
+  type_moteur: MMS 8000
+  poids_net_kg: 103.0
+  debit_exploitation_m3h_min: 30.0
+  debit_exploitation_m3h_max: 105.0
+  debit_exploitation_m3s_min: 0.008333333333333333
+  debit_exploitation_m3s_max: 0.029166666666666667
+  diametre_moteur: 8"
+  hmt_min_m: 7.0
+  hmt_max_m: 14.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[51.8]'
+  puissance_p2_kw: 37.0
+  cos_phi: 0.89
+  rendement_pompe_pct: 79.0
+  rendement_pompe_moteur_pct: 67.0
+  materiaux: AISI 304
+  classe_protection: IP68
+  classe_isolation: F
+  temp_max_liquide_c: 60.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 3700.0
+  capex_estime_fcfa: 2427040.9
+  opex_par_kwh_eur: 0.224
+  opex_par_kwh_fcfa: 146.934368
+  puissance_absorbe_kw: 55.22388059701492
+  opex_estime_fcfa_kwh: 5433.477611940298
+- designation: SP 110-3
+  marque: Grundfos
+  nom_produit: SP 110-3
+  type_moteur: MMS 8000
+  poids_net_kg: 148.0
+  debit_exploitation_m3h_min: 30.0
+  debit_exploitation_m3h_max: 105.0
+  debit_exploitation_m3s_min: 0.008333333333333333
+  debit_exploitation_m3s_max: 0.029166666666666667
+  diametre_moteur: 8"
+  hmt_min_m: 11.0
+  hmt_max_m: 21.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[77.0]'
+  puissance_p2_kw: 55.0
+  cos_phi: 0.97
+  rendement_pompe_pct: 81.0
+  rendement_pompe_moteur_pct: 69.0
+  materiaux: AISI 304
+  classe_protection: IP68
+  classe_isolation: F
+  temp_max_liquide_c: 60.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 6600.0
+  capex_estime_fcfa: 4329316.2
+  opex_par_kwh_eur: 0.217
+  opex_par_kwh_fcfa: 142.342669
+  puissance_absorbe_kw: 79.71014492753623
+  opex_estime_fcfa_kwh: 7842.68115942029
+- designation: SP 140-2
+  marque: Grundfos
+  nom_produit: SP 140-2
+  type_moteur: MMS 8000
+  poids_net_kg: 148.0
+  debit_exploitation_m3h_min: 40.0
+  debit_exploitation_m3h_max: 130.0
+  debit_exploitation_m3s_min: 0.011111111111111112
+  debit_exploitation_m3s_max: 0.03611111111111111
+  diametre_moteur: 8"
+  hmt_min_m: 7.0
+  hmt_max_m: 14.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[77.0]'
+  puissance_p2_kw: 55.0
+  cos_phi: 0.97
+  rendement_pompe_pct: 80.0
+  rendement_pompe_moteur_pct: 68.0
+  materiaux: AISI 304
+  classe_protection: IP68
+  classe_isolation: F
+  temp_max_liquide_c: 60.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 6600.0
+  capex_estime_fcfa: 4329316.2
+  opex_par_kwh_eur: 0.221
+  opex_par_kwh_fcfa: 144.966497
+  puissance_absorbe_kw: 80.88235294117646
+  opex_estime_fcfa_kwh: 7958.014705882352
+- designation: SP 175-1
+  marque: Grundfos
+  nom_produit: SP 175-1
+  type_moteur: MMS 8000
+  poids_net_kg: 147.0
+  debit_exploitation_m3h_min: 50.0
+  debit_exploitation_m3h_max: 165.0
+  debit_exploitation_m3s_min: 0.013888888888888888
+  debit_exploitation_m3s_max: 0.04583333333333333
+  diametre_moteur: 8"
+  hmt_min_m: 4.0
+  hmt_max_m: 7.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[77.0]'
+  puissance_p2_kw: 55.0
+  cos_phi: 0.97
+  rendement_pompe_pct: 81.0
+  rendement_pompe_moteur_pct: 69.0
+  materiaux: AISI 304
+  classe_protection: IP68
+  classe_isolation: F
+  temp_max_liquide_c: 60.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 6600.0
+  capex_estime_fcfa: 4329316.2
+  opex_par_kwh_eur: 0.217
+  opex_par_kwh_fcfa: 142.342669
+  puissance_absorbe_kw: 79.71014492753623
+  opex_estime_fcfa_kwh: 7842.68115942029
+- designation: SP 200-1
+  marque: Grundfos
+  nom_produit: SP 200-1
+  type_moteur: MMS 8000
+  poids_net_kg: 197.0
+  debit_exploitation_m3h_min: 60.0
+  debit_exploitation_m3h_max: 185.0
+  debit_exploitation_m3s_min: 0.016666666666666666
+  debit_exploitation_m3s_max: 0.05138888888888889
+  diametre_moteur: 8"
+  hmt_min_m: 4.0
+  hmt_max_m: 7.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[105.0]'
+  puissance_p2_kw: 75.0
+  cos_phi: 1.07
+  rendement_pompe_pct: 82.0
+  rendement_pompe_moteur_pct: 70.0
+  materiaux: AISI 304
+  classe_protection: IP68
+  classe_isolation: F
+  temp_max_liquide_c: 60.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 9000.0
+  capex_estime_fcfa: 5903613.0
+  opex_par_kwh_eur: 0.214
+  opex_par_kwh_fcfa: 140.374798
+  puissance_absorbe_kw: 107.14285714285715
+  opex_estime_fcfa_kwh: 10541.785714285716
+- designation: CR 1s-5
+  marque: Grundfos
+  nom_produit: CR 1s-5
+  type_moteur: IEC 80
+  poids_net_kg: 29.0
+  debit_exploitation_m3h_min: 0.2
+  debit_exploitation_m3h_max: 0.8
+  debit_exploitation_m3s_min: 5.555555555555556e-05
+  debit_exploitation_m3s_max: 0.00022222222222222223
+  diametre_moteur: Surface
+  hmt_min_m: 15.0
+  hmt_max_m: 45.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[0.6]'
+  puissance_p2_kw: 0.37
+  cos_phi: 0.78
+  rendement_pompe_pct: 30.0
+  rendement_pompe_moteur_pct: 25.0
+  materiaux: Fonte/AISI 304
+  classe_protection: IP55
+  classe_isolation: F
+  temp_max_liquide_c: 120.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 29.0
+  capex_estime_fcfa: 19022.753
+  opex_par_kwh_eur: 0.6
+  opex_par_kwh_fcfa: 393.57419999999996
+  puissance_absorbe_kw: 1.48
+  opex_estime_fcfa_kwh: 145.6172
+- designation: CR 1s-6
+  marque: Grundfos
+  nom_produit: CR 1s-6
+  type_moteur: IEC 80
+  poids_net_kg: 30.0
+  debit_exploitation_m3h_min: 0.3
+  debit_exploitation_m3h_max: 1.1
+  debit_exploitation_m3s_min: 8.333333333333333e-05
+  debit_exploitation_m3s_max: 0.0003055555555555556
+  diametre_moteur: Surface
+  hmt_min_m: 18.0
+  hmt_max_m: 54.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[0.9]'
+  puissance_p2_kw: 0.55
+  cos_phi: 0.78
+  rendement_pompe_pct: 32.0
+  rendement_pompe_moteur_pct: 27.0
+  materiaux: Fonte/AISI 304
+  classe_protection: IP55
+  classe_isolation: F
+  temp_max_liquide_c: 120.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 44.0
+  capex_estime_fcfa: 28862.108
+  opex_par_kwh_eur: 0.556
+  opex_par_kwh_fcfa: 364.71209200000004
+  puissance_absorbe_kw: 2.037037037037037
+  opex_estime_fcfa_kwh: 200.4240740740741
+- designation: CR 1s-7
+  marque: Grundfos
+  nom_produit: CR 1s-7
+  type_moteur: IEC 80
+  poids_net_kg: 30.0
+  debit_exploitation_m3h_min: 0.3
+  debit_exploitation_m3h_max: 1.1
+  debit_exploitation_m3s_min: 8.333333333333333e-05
+  debit_exploitation_m3s_max: 0.0003055555555555556
+  diametre_moteur: Surface
+  hmt_min_m: 21.0
+  hmt_max_m: 63.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[0.9]'
+  puissance_p2_kw: 0.55
+  cos_phi: 0.78
+  rendement_pompe_pct: 33.0
+  rendement_pompe_moteur_pct: 28.0
+  materiaux: Fonte/AISI 304
+  classe_protection: IP55
+  classe_isolation: F
+  temp_max_liquide_c: 120.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 44.0
+  capex_estime_fcfa: 28862.108
+  opex_par_kwh_eur: 0.536
+  opex_par_kwh_fcfa: 351.592952
+  puissance_absorbe_kw: 1.9642857142857142
+  opex_estime_fcfa_kwh: 193.26607142857142
+- designation: CR 1s-9
+  marque: Grundfos
+  nom_produit: CR 1s-9
+  type_moteur: IEC 80
+  poids_net_kg: 32.0
+  debit_exploitation_m3h_min: 0.3
+  debit_exploitation_m3h_max: 1.1
+  debit_exploitation_m3s_min: 8.333333333333333e-05
+  debit_exploitation_m3s_max: 0.0003055555555555556
+  diametre_moteur: Surface
+  hmt_min_m: 27.0
+  hmt_max_m: 81.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[1.2]'
+  puissance_p2_kw: 0.75
+  cos_phi: 0.78
+  rendement_pompe_pct: 35.0
+  rendement_pompe_moteur_pct: 30.0
+  materiaux: Fonte/AISI 304
+  classe_protection: IP55
+  classe_isolation: F
+  temp_max_liquide_c: 120.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 60.0
+  capex_estime_fcfa: 39357.42
+  opex_par_kwh_eur: 0.5
+  opex_par_kwh_fcfa: 327.9785
+  puissance_absorbe_kw: 2.5
+  opex_estime_fcfa_kwh: 245.975
+- designation: CR 1s-10
+  marque: Grundfos
+  nom_produit: CR 1s-10
+  type_moteur: IEC 80
+  poids_net_kg: 33.0
+  debit_exploitation_m3h_min: 0.3
+  debit_exploitation_m3h_max: 1.1
+  debit_exploitation_m3s_min: 8.333333333333333e-05
+  debit_exploitation_m3s_max: 0.0003055555555555556
+  diametre_moteur: Surface
+  hmt_min_m: 30.0
+  hmt_max_m: 90.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[1.2]'
+  puissance_p2_kw: 0.75
+  cos_phi: 0.78
+  rendement_pompe_pct: 36.0
+  rendement_pompe_moteur_pct: 31.0
+  materiaux: Fonte/AISI 304
+  classe_protection: IP55
+  classe_isolation: F
+  temp_max_liquide_c: 120.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 60.0
+  capex_estime_fcfa: 39357.42
+  opex_par_kwh_eur: 0.484
+  opex_par_kwh_fcfa: 317.483188
+  puissance_absorbe_kw: 2.4193548387096775
+  opex_estime_fcfa_kwh: 238.04032258064518
+- designation: CR 1-8
+  marque: Grundfos
+  nom_produit: CR 1-8
+  type_moteur: IEC 80
+  poids_net_kg: 32.0
+  debit_exploitation_m3h_min: 0.5
+  debit_exploitation_m3h_max: 1.8
+  debit_exploitation_m3s_min: 0.0001388888888888889
+  debit_exploitation_m3s_max: 0.0005
+  diametre_moteur: Surface
+  hmt_min_m: 24.0
+  hmt_max_m: 72.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[1.2]'
+  puissance_p2_kw: 0.75
+  cos_phi: 0.78
+  rendement_pompe_pct: 42.0
+  rendement_pompe_moteur_pct: 35.0
+  materiaux: Fonte/AISI 304
+  classe_protection: IP55
+  classe_isolation: F
+  temp_max_liquide_c: 120.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 60.0
+  capex_estime_fcfa: 39357.42
+  opex_par_kwh_eur: 0.429
+  opex_par_kwh_fcfa: 281.405553
+  puissance_absorbe_kw: 2.142857142857143
+  opex_estime_fcfa_kwh: 210.8357142857143
+- designation: CR 1-10
+  marque: Grundfos
+  nom_produit: CR 1-10
+  type_moteur: IEC 80
+  poids_net_kg: 34.0
+  debit_exploitation_m3h_min: 0.7
+  debit_exploitation_m3h_max: 2.4
+  debit_exploitation_m3s_min: 0.00019444444444444443
+  debit_exploitation_m3s_max: 0.0006666666666666666
+  diametre_moteur: Surface
+  hmt_min_m: 30.0
+  hmt_max_m: 90.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[1.8]'
+  puissance_p2_kw: 1.1
+  cos_phi: 0.78
+  rendement_pompe_pct: 45.0
+  rendement_pompe_moteur_pct: 38.0
+  materiaux: Fonte/AISI 304
+  classe_protection: IP55
+  classe_isolation: F
+  temp_max_liquide_c: 120.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 88.0
+  capex_estime_fcfa: 57724.216
+  opex_par_kwh_eur: 0.395
+  opex_par_kwh_fcfa: 259.103015
+  puissance_absorbe_kw: 2.8947368421052633
+  opex_estime_fcfa_kwh: 284.81315789473683
+- designation: CR 1-12
+  marque: Grundfos
+  nom_produit: CR 1-12
+  type_moteur: IEC 80
+  poids_net_kg: 35.0
+  debit_exploitation_m3h_min: 0.7
+  debit_exploitation_m3h_max: 2.4
+  debit_exploitation_m3s_min: 0.00019444444444444443
+  debit_exploitation_m3s_max: 0.0006666666666666666
+  diametre_moteur: Surface
+  hmt_min_m: 36.0
+  hmt_max_m: 108.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[1.8]'
+  puissance_p2_kw: 1.1
+  cos_phi: 0.78
+  rendement_pompe_pct: 47.0
+  rendement_pompe_moteur_pct: 40.0
+  materiaux: Fonte/AISI 304
+  classe_protection: IP55
+  classe_isolation: F
+  temp_max_liquide_c: 120.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 88.0
+  capex_estime_fcfa: 57724.216
+  opex_par_kwh_eur: 0.375
+  opex_par_kwh_fcfa: 245.983875
+  puissance_absorbe_kw: 2.75
+  opex_estime_fcfa_kwh: 270.5725
+- designation: CR 1-18
+  marque: Grundfos
+  nom_produit: CR 1-18
+  type_moteur: IEC 80
+  poids_net_kg: 40.0
+  debit_exploitation_m3h_min: 0.7
+  debit_exploitation_m3h_max: 2.4
+  debit_exploitation_m3s_min: 0.00019444444444444443
+  debit_exploitation_m3s_max: 0.0006666666666666666
+  diametre_moteur: Surface
+  hmt_min_m: 54.0
+  hmt_max_m: 162.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[2.4]'
+  puissance_p2_kw: 1.5
+  cos_phi: 0.79
+  rendement_pompe_pct: 48.0
+  rendement_pompe_moteur_pct: 40.0
+  materiaux: Fonte/AISI 304
+  classe_protection: IP55
+  classe_isolation: F
+  temp_max_liquide_c: 120.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 120.0
+  capex_estime_fcfa: 78714.84
+  opex_par_kwh_eur: 0.375
+  opex_par_kwh_fcfa: 245.983875
+  puissance_absorbe_kw: 3.75
+  opex_estime_fcfa_kwh: 368.9625
+- designation: CR 1-22
+  marque: Grundfos
+  nom_produit: CR 1-22
+  type_moteur: IEC 80
+  poids_net_kg: 44.0
+  debit_exploitation_m3h_min: 0.7
+  debit_exploitation_m3h_max: 2.4
+  debit_exploitation_m3s_min: 0.00019444444444444443
+  debit_exploitation_m3s_max: 0.0006666666666666666
+  diametre_moteur: Surface
+  hmt_min_m: 66.0
+  hmt_max_m: 198.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[3.5]'
+  puissance_p2_kw: 2.2
+  cos_phi: 0.79
+  rendement_pompe_pct: 49.0
+  rendement_pompe_moteur_pct: 41.0
+  materiaux: Fonte/AISI 304
+  classe_protection: IP55
+  classe_isolation: F
+  temp_max_liquide_c: 120.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 176.0
+  capex_estime_fcfa: 115448.432
+  opex_par_kwh_eur: 0.366
+  opex_par_kwh_fcfa: 240.080262
+  puissance_absorbe_kw: 5.365853658536586
+  opex_estime_fcfa_kwh: 527.9463414634147
+- designation: CR 3-8
+  marque: Grundfos
+  nom_produit: CR 3-8
+  type_moteur: IEC 80
+  poids_net_kg: 33.0
+  debit_exploitation_m3h_min: 1.0
+  debit_exploitation_m3h_max: 3.5
+  debit_exploitation_m3s_min: 0.0002777777777777778
+  debit_exploitation_m3s_max: 0.0009722222222222222
+  diametre_moteur: Surface
+  hmt_min_m: 24.0
+  hmt_max_m: 72.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[1.8]'
+  puissance_p2_kw: 1.1
+  cos_phi: 0.78
+  rendement_pompe_pct: 52.0
+  rendement_pompe_moteur_pct: 44.0
+  materiaux: Fonte/AISI 304
+  classe_protection: IP55
+  classe_isolation: F
+  temp_max_liquide_c: 120.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 88.0
+  capex_estime_fcfa: 57724.216
+  opex_par_kwh_eur: 0.341
+  opex_par_kwh_fcfa: 223.681337
+  puissance_absorbe_kw: 2.5
+  opex_estime_fcfa_kwh: 245.975
+- designation: CR 3-12
+  marque: Grundfos
+  nom_produit: CR 3-12
+  type_moteur: IEC 80
+  poids_net_kg: 36.0
+  debit_exploitation_m3h_min: 1.2
+  debit_exploitation_m3h_max: 4.5
+  debit_exploitation_m3s_min: 0.0003333333333333333
+  debit_exploitation_m3s_max: 0.00125
+  diametre_moteur: Surface
+  hmt_min_m: 36.0
+  hmt_max_m: 108.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[2.4]'
+  puissance_p2_kw: 1.5
+  cos_phi: 0.79
+  rendement_pompe_pct: 55.0
+  rendement_pompe_moteur_pct: 47.0
+  materiaux: Fonte/AISI 304
+  classe_protection: IP55
+  classe_isolation: F
+  temp_max_liquide_c: 120.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 120.0
+  capex_estime_fcfa: 78714.84
+  opex_par_kwh_eur: 0.319
+  opex_par_kwh_fcfa: 209.250283
+  puissance_absorbe_kw: 3.191489361702128
+  opex_estime_fcfa_kwh: 314.0106382978724
+- designation: CR 3-15
+  marque: Grundfos
+  nom_produit: CR 3-15
+  type_moteur: IEC 80
+  poids_net_kg: 40.0
+  debit_exploitation_m3h_min: 1.2
+  debit_exploitation_m3h_max: 4.5
+  debit_exploitation_m3s_min: 0.0003333333333333333
+  debit_exploitation_m3s_max: 0.00125
+  diametre_moteur: Surface
+  hmt_min_m: 45.0
+  hmt_max_m: 135.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[3.5]'
+  puissance_p2_kw: 2.2
+  cos_phi: 0.79
+  rendement_pompe_pct: 57.0
+  rendement_pompe_moteur_pct: 49.0
+  materiaux: Fonte/AISI 304
+  classe_protection: IP55
+  classe_isolation: F
+  temp_max_liquide_c: 120.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 176.0
+  capex_estime_fcfa: 115448.432
+  opex_par_kwh_eur: 0.306
+  opex_par_kwh_fcfa: 200.72284199999999
+  puissance_absorbe_kw: 4.4897959183673475
+  opex_estime_fcfa_kwh: 441.7510204081633
+- designation: CR 3-20
+  marque: Grundfos
+  nom_produit: CR 3-20
+  type_moteur: IEC 90
+  poids_net_kg: 46.0
+  debit_exploitation_m3h_min: 1.2
+  debit_exploitation_m3h_max: 4.5
+  debit_exploitation_m3s_min: 0.0003333333333333333
+  debit_exploitation_m3s_max: 0.00125
+  diametre_moteur: Surface
+  hmt_min_m: 60.0
+  hmt_max_m: 180.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[4.8]'
+  puissance_p2_kw: 3.0
+  cos_phi: 0.79
+  rendement_pompe_pct: 58.0
+  rendement_pompe_moteur_pct: 50.0
+  materiaux: Fonte/AISI 304
+  classe_protection: IP55
+  classe_isolation: F
+  temp_max_liquide_c: 120.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 240.0
+  capex_estime_fcfa: 157429.68
+  opex_par_kwh_eur: 0.3
+  opex_par_kwh_fcfa: 196.78709999999998
+  puissance_absorbe_kw: 6.0
+  opex_estime_fcfa_kwh: 590.34
+- designation: CR 3-25
+  marque: Grundfos
+  nom_produit: CR 3-25
+  type_moteur: IEC 90
+  poids_net_kg: 52.0
+  debit_exploitation_m3h_min: 1.2
+  debit_exploitation_m3h_max: 4.5
+  debit_exploitation_m3s_min: 0.0003333333333333333
+  debit_exploitation_m3s_max: 0.00125
+  diametre_moteur: Surface
+  hmt_min_m: 75.0
+  hmt_max_m: 225.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[6.4]'
+  puissance_p2_kw: 4.0
+  cos_phi: 0.79
+  rendement_pompe_pct: 59.0
+  rendement_pompe_moteur_pct: 51.0
+  materiaux: Fonte/AISI 304
+  classe_protection: IP55
+  classe_isolation: F
+  temp_max_liquide_c: 120.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 320.0
+  capex_estime_fcfa: 209906.24
+  opex_par_kwh_eur: 0.294
+  opex_par_kwh_fcfa: 192.85135799999998
+  puissance_absorbe_kw: 7.8431372549019605
+  opex_estime_fcfa_kwh: 771.6862745098039
+- designation: CR 5-8
+  marque: Grundfos
+  nom_produit: CR 5-8
+  type_moteur: IEC 80
+  poids_net_kg: 36.0
+  debit_exploitation_m3h_min: 2.0
+  debit_exploitation_m3h_max: 7.0
+  debit_exploitation_m3s_min: 0.0005555555555555556
+  debit_exploitation_m3s_max: 0.0019444444444444444
+  diametre_moteur: Surface
+  hmt_min_m: 24.0
+  hmt_max_m: 72.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[3.5]'
+  puissance_p2_kw: 2.2
+  cos_phi: 0.79
+  rendement_pompe_pct: 60.0
+  rendement_pompe_moteur_pct: 52.0
+  materiaux: Fonte/AISI 304
+  classe_protection: IP55
+  classe_isolation: F
+  temp_max_liquide_c: 120.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 176.0
+  capex_estime_fcfa: 115448.432
+  opex_par_kwh_eur: 0.288
+  opex_par_kwh_fcfa: 188.91561599999997
+  puissance_absorbe_kw: 4.230769230769231
+  opex_estime_fcfa_kwh: 416.2653846153846
+- designation: CR 5-10
+  marque: Grundfos
+  nom_produit: CR 5-10
+  type_moteur: IEC 90
+  poids_net_kg: 40.0
+  debit_exploitation_m3h_min: 2.5
+  debit_exploitation_m3h_max: 8.5
+  debit_exploitation_m3s_min: 0.0006944444444444445
+  debit_exploitation_m3s_max: 0.002361111111111111
+  diametre_moteur: Surface
+  hmt_min_m: 30.0
+  hmt_max_m: 90.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[4.8]'
+  puissance_p2_kw: 3.0
+  cos_phi: 0.79
+  rendement_pompe_pct: 63.0
+  rendement_pompe_moteur_pct: 55.0
+  materiaux: Fonte/AISI 304
+  classe_protection: IP55
+  classe_isolation: F
+  temp_max_liquide_c: 120.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 240.0
+  capex_estime_fcfa: 157429.68
+  opex_par_kwh_eur: 0.273
+  opex_par_kwh_fcfa: 179.07626100000002
+  puissance_absorbe_kw: 5.454545454545454
+  opex_estime_fcfa_kwh: 536.6727272727272
+- designation: CR 5-12
+  marque: Grundfos
+  nom_produit: CR 5-12
+  type_moteur: IEC 90
+  poids_net_kg: 41.0
+  debit_exploitation_m3h_min: 2.5
+  debit_exploitation_m3h_max: 8.5
+  debit_exploitation_m3s_min: 0.0006944444444444445
+  debit_exploitation_m3s_max: 0.002361111111111111
+  diametre_moteur: Surface
+  hmt_min_m: 36.0
+  hmt_max_m: 108.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[4.8]'
+  puissance_p2_kw: 3.0
+  cos_phi: 0.79
+  rendement_pompe_pct: 65.0
+  rendement_pompe_moteur_pct: 57.0
+  materiaux: Fonte/AISI 304
+  classe_protection: IP55
+  classe_isolation: F
+  temp_max_liquide_c: 120.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 240.0
+  capex_estime_fcfa: 157429.68
+  opex_par_kwh_eur: 0.263
+  opex_par_kwh_fcfa: 172.516691
+  puissance_absorbe_kw: 5.2631578947368425
+  opex_estime_fcfa_kwh: 517.8421052631579
+- designation: CR 5-16
+  marque: Grundfos
+  nom_produit: CR 5-16
+  type_moteur: IEC 90
+  poids_net_kg: 46.0
+  debit_exploitation_m3h_min: 2.5
+  debit_exploitation_m3h_max: 8.5
+  debit_exploitation_m3s_min: 0.0006944444444444445
+  debit_exploitation_m3s_max: 0.002361111111111111
+  diametre_moteur: Surface
+  hmt_min_m: 48.0
+  hmt_max_m: 144.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[6.4]'
+  puissance_p2_kw: 4.0
+  cos_phi: 0.79
+  rendement_pompe_pct: 66.0
+  rendement_pompe_moteur_pct: 58.0
+  materiaux: Fonte/AISI 304
+  classe_protection: IP55
+  classe_isolation: F
+  temp_max_liquide_c: 120.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 320.0
+  capex_estime_fcfa: 209906.24
+  opex_par_kwh_eur: 0.259
+  opex_par_kwh_fcfa: 169.892863
+  puissance_absorbe_kw: 6.8965517241379315
+  opex_estime_fcfa_kwh: 678.551724137931
+- designation: CR 5-20
+  marque: Grundfos
+  nom_produit: CR 5-20
+  type_moteur: IEC 90
+  poids_net_kg: 53.0
+  debit_exploitation_m3h_min: 2.5
+  debit_exploitation_m3h_max: 8.5
+  debit_exploitation_m3s_min: 0.0006944444444444445
+  debit_exploitation_m3s_max: 0.002361111111111111
+  diametre_moteur: Surface
+  hmt_min_m: 60.0
+  hmt_max_m: 180.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[8.8]'
+  puissance_p2_kw: 5.5
+  cos_phi: 0.8
+  rendement_pompe_pct: 67.0
+  rendement_pompe_moteur_pct: 59.0
+  materiaux: Fonte/AISI 304
+  classe_protection: IP55
+  classe_isolation: F
+  temp_max_liquide_c: 120.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 440.0
+  capex_estime_fcfa: 288621.08
+  opex_par_kwh_eur: 0.254
+  opex_par_kwh_fcfa: 166.613078
+  puissance_absorbe_kw: 9.322033898305085
+  opex_estime_fcfa_kwh: 917.1949152542373
+- designation: CR 10-5
+  marque: Grundfos
+  nom_produit: CR 10-5
+  type_moteur: IEC 90
+  poids_net_kg: 37.0
+  debit_exploitation_m3h_min: 4.0
+  debit_exploitation_m3h_max: 11.0
+  debit_exploitation_m3s_min: 0.0011111111111111111
+  debit_exploitation_m3s_max: 0.0030555555555555557
+  diametre_moteur: Surface
+  hmt_min_m: 15.0
+  hmt_max_m: 45.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[4.8]'
+  puissance_p2_kw: 3.0
+  cos_phi: 0.79
+  rendement_pompe_pct: 65.0
+  rendement_pompe_moteur_pct: 60.0
+  materiaux: Fonte/AISI 304
+  classe_protection: IP55
+  classe_isolation: F
+  temp_max_liquide_c: 120.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 240.0
+  capex_estime_fcfa: 157429.68
+  opex_par_kwh_eur: 0.25
+  opex_par_kwh_fcfa: 163.98925
+  puissance_absorbe_kw: 5.0
+  opex_estime_fcfa_kwh: 491.95
+- designation: CR 10-7
+  marque: Grundfos
+  nom_produit: CR 10-7
+  type_moteur: IEC 90
+  poids_net_kg: 41.0
+  debit_exploitation_m3h_min: 5.0
+  debit_exploitation_m3h_max: 13.0
+  debit_exploitation_m3s_min: 0.001388888888888889
+  debit_exploitation_m3s_max: 0.003611111111111111
+  diametre_moteur: Surface
+  hmt_min_m: 21.0
+  hmt_max_m: 63.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[6.4]'
+  puissance_p2_kw: 4.0
+  cos_phi: 0.79
+  rendement_pompe_pct: 68.0
+  rendement_pompe_moteur_pct: 63.0
+  materiaux: Fonte/AISI 304
+  classe_protection: IP55
+  classe_isolation: F
+  temp_max_liquide_c: 120.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 320.0
+  capex_estime_fcfa: 209906.24
+  opex_par_kwh_eur: 0.238
+  opex_par_kwh_fcfa: 156.117766
+  puissance_absorbe_kw: 6.349206349206349
+  opex_estime_fcfa_kwh: 624.6984126984127
+- designation: CR 10-12
+  marque: Grundfos
+  nom_produit: CR 10-12
+  type_moteur: IEC 90
+  poids_net_kg: 48.0
+  debit_exploitation_m3h_min: 5.0
+  debit_exploitation_m3h_max: 13.0
+  debit_exploitation_m3s_min: 0.001388888888888889
+  debit_exploitation_m3s_max: 0.003611111111111111
+  diametre_moteur: Surface
+  hmt_min_m: 36.0
+  hmt_max_m: 108.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[8.8]'
+  puissance_p2_kw: 5.5
+  cos_phi: 0.8
+  rendement_pompe_pct: 70.0
+  rendement_pompe_moteur_pct: 65.0
+  materiaux: Fonte/AISI 304
+  classe_protection: IP55
+  classe_isolation: F
+  temp_max_liquide_c: 120.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 440.0
+  capex_estime_fcfa: 288621.08
+  opex_par_kwh_eur: 0.231
+  opex_par_kwh_fcfa: 151.526067
+  puissance_absorbe_kw: 8.461538461538462
+  opex_estime_fcfa_kwh: 832.5307692307692
+- designation: CR 10-15
+  marque: Grundfos
+  nom_produit: CR 10-15
+  type_moteur: IEC 112
+  poids_net_kg: 56.0
+  debit_exploitation_m3h_min: 5.0
+  debit_exploitation_m3h_max: 13.0
+  debit_exploitation_m3s_min: 0.001388888888888889
+  debit_exploitation_m3s_max: 0.003611111111111111
+  diametre_moteur: Surface
+  hmt_min_m: 45.0
+  hmt_max_m: 135.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[12.0]'
+  puissance_p2_kw: 7.5
+  cos_phi: 0.81
+  rendement_pompe_pct: 71.0
+  rendement_pompe_moteur_pct: 66.0
+  materiaux: Fonte/AISI 304
+  classe_protection: IP55
+  classe_isolation: F
+  temp_max_liquide_c: 120.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 600.0
+  capex_estime_fcfa: 393574.2
+  opex_par_kwh_eur: 0.227
+  opex_par_kwh_fcfa: 148.902239
+  puissance_absorbe_kw: 11.363636363636363
+  opex_estime_fcfa_kwh: 1118.0681818181818
+- designation: CR 10-18
+  marque: Grundfos
+  nom_produit: CR 10-18
+  type_moteur: IEC 112
+  poids_net_kg: 68.0
+  debit_exploitation_m3h_min: 5.0
+  debit_exploitation_m3h_max: 13.0
+  debit_exploitation_m3s_min: 0.001388888888888889
+  debit_exploitation_m3s_max: 0.003611111111111111
+  diametre_moteur: Surface
+  hmt_min_m: 54.0
+  hmt_max_m: 162.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[17.6]'
+  puissance_p2_kw: 11.0
+  cos_phi: 0.82
+  rendement_pompe_pct: 72.0
+  rendement_pompe_moteur_pct: 67.0
+  materiaux: Fonte/AISI 304
+  classe_protection: IP55
+  classe_isolation: F
+  temp_max_liquide_c: 120.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 880.0
+  capex_estime_fcfa: 577242.16
+  opex_par_kwh_eur: 0.224
+  opex_par_kwh_fcfa: 146.934368
+  puissance_absorbe_kw: 16.417910447761194
+  opex_estime_fcfa_kwh: 1615.358208955224
+- designation: CR 15-3
+  marque: Grundfos
+  nom_produit: CR 15-3
+  type_moteur: IEC 90
+  poids_net_kg: 38.0
+  debit_exploitation_m3h_min: 8.0
+  debit_exploitation_m3h_max: 20.0
+  debit_exploitation_m3s_min: 0.0022222222222222222
+  debit_exploitation_m3s_max: 0.005555555555555556
+  diametre_moteur: Surface
+  hmt_min_m: 9.0
+  hmt_max_m: 27.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[6.4]'
+  puissance_p2_kw: 4.0
+  cos_phi: 0.79
+  rendement_pompe_pct: 66.0
+  rendement_pompe_moteur_pct: 62.0
+  materiaux: Fonte/AISI 304
+  classe_protection: IP55
+  classe_isolation: F
+  temp_max_liquide_c: 120.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 320.0
+  capex_estime_fcfa: 209906.24
+  opex_par_kwh_eur: 0.242
+  opex_par_kwh_fcfa: 158.741594
+  puissance_absorbe_kw: 6.451612903225807
+  opex_estime_fcfa_kwh: 634.7741935483872
+- designation: CR 15-4
+  marque: Grundfos
+  nom_produit: CR 15-4
+  type_moteur: IEC 90
+  poids_net_kg: 43.0
+  debit_exploitation_m3h_min: 9.0
+  debit_exploitation_m3h_max: 24.0
+  debit_exploitation_m3s_min: 0.0025
+  debit_exploitation_m3s_max: 0.006666666666666667
+  diametre_moteur: Surface
+  hmt_min_m: 12.0
+  hmt_max_m: 36.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[8.8]'
+  puissance_p2_kw: 5.5
+  cos_phi: 0.8
+  rendement_pompe_pct: 69.0
+  rendement_pompe_moteur_pct: 65.0
+  materiaux: Fonte/AISI 304
+  classe_protection: IP55
+  classe_isolation: F
+  temp_max_liquide_c: 120.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 440.0
+  capex_estime_fcfa: 288621.08
+  opex_par_kwh_eur: 0.231
+  opex_par_kwh_fcfa: 151.526067
+  puissance_absorbe_kw: 8.461538461538462
+  opex_estime_fcfa_kwh: 832.5307692307692
+- designation: CR 15-8
+  marque: Grundfos
+  nom_produit: CR 15-8
+  type_moteur: IEC 112
+  poids_net_kg: 52.0
+  debit_exploitation_m3h_min: 9.0
+  debit_exploitation_m3h_max: 24.0
+  debit_exploitation_m3s_min: 0.0025
+  debit_exploitation_m3s_max: 0.006666666666666667
+  diametre_moteur: Surface
+  hmt_min_m: 24.0
+  hmt_max_m: 72.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[12.0]'
+  puissance_p2_kw: 7.5
+  cos_phi: 0.81
+  rendement_pompe_pct: 71.0
+  rendement_pompe_moteur_pct: 67.0
+  materiaux: Fonte/AISI 304
+  classe_protection: IP55
+  classe_isolation: F
+  temp_max_liquide_c: 120.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 600.0
+  capex_estime_fcfa: 393574.2
+  opex_par_kwh_eur: 0.224
+  opex_par_kwh_fcfa: 146.934368
+  puissance_absorbe_kw: 11.194029850746269
+  opex_estime_fcfa_kwh: 1101.3805970149253
+- designation: CR 15-10
+  marque: Grundfos
+  nom_produit: CR 15-10
+  type_moteur: IEC 112
+  poids_net_kg: 64.0
+  debit_exploitation_m3h_min: 9.0
+  debit_exploitation_m3h_max: 24.0
+  debit_exploitation_m3s_min: 0.0025
+  debit_exploitation_m3s_max: 0.006666666666666667
+  diametre_moteur: Surface
+  hmt_min_m: 30.0
+  hmt_max_m: 90.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[17.6]'
+  puissance_p2_kw: 11.0
+  cos_phi: 0.82
+  rendement_pompe_pct: 72.0
+  rendement_pompe_moteur_pct: 68.0
+  materiaux: Fonte/AISI 304
+  classe_protection: IP55
+  classe_isolation: F
+  temp_max_liquide_c: 120.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 880.0
+  capex_estime_fcfa: 577242.16
+  opex_par_kwh_eur: 0.221
+  opex_par_kwh_fcfa: 144.966497
+  puissance_absorbe_kw: 16.176470588235293
+  opex_estime_fcfa_kwh: 1591.6029411764705
+- designation: CR 15-12
+  marque: Grundfos
+  nom_produit: CR 15-12
+  type_moteur: IEC 132
+  poids_net_kg: 77.0
+  debit_exploitation_m3h_min: 9.0
+  debit_exploitation_m3h_max: 24.0
+  debit_exploitation_m3s_min: 0.0025
+  debit_exploitation_m3s_max: 0.006666666666666667
+  diametre_moteur: Surface
+  hmt_min_m: 36.0
+  hmt_max_m: 108.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[24.0]'
+  puissance_p2_kw: 15.0
+  cos_phi: 0.83
+  rendement_pompe_pct: 73.0
+  rendement_pompe_moteur_pct: 69.0
+  materiaux: Fonte/AISI 304
+  classe_protection: IP55
+  classe_isolation: F
+  temp_max_liquide_c: 120.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 1200.0
+  capex_estime_fcfa: 787148.4
+  opex_par_kwh_eur: 0.217
+  opex_par_kwh_fcfa: 142.342669
+  puissance_absorbe_kw: 21.73913043478261
+  opex_estime_fcfa_kwh: 2138.913043478261
+- designation: CR 20-2
+  marque: Grundfos
+  nom_produit: CR 20-2
+  type_moteur: IEC 90
+  poids_net_kg: 35.0
+  debit_exploitation_m3h_min: 10.0
+  debit_exploitation_m3h_max: 25.0
+  debit_exploitation_m3s_min: 0.002777777777777778
+  debit_exploitation_m3s_max: 0.006944444444444444
+  diametre_moteur: Surface
+  hmt_min_m: 6.0
+  hmt_max_m: 18.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[4.8]'
+  puissance_p2_kw: 3.0
+  cos_phi: 0.79
+  rendement_pompe_pct: 68.0
+  rendement_pompe_moteur_pct: 64.0
+  materiaux: Fonte/AISI 304
+  classe_protection: IP55
+  classe_isolation: F
+  temp_max_liquide_c: 120.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 240.0
+  capex_estime_fcfa: 157429.68
+  opex_par_kwh_eur: 0.234
+  opex_par_kwh_fcfa: 153.493938
+  puissance_absorbe_kw: 4.6875
+  opex_estime_fcfa_kwh: 461.203125
+- designation: CR 20-4
+  marque: Grundfos
+  nom_produit: CR 20-4
+  type_moteur: IEC 90
+  poids_net_kg: 43.0
+  debit_exploitation_m3h_min: 11.0
+  debit_exploitation_m3h_max: 29.0
+  debit_exploitation_m3s_min: 0.0030555555555555557
+  debit_exploitation_m3s_max: 0.008055555555555555
+  diametre_moteur: Surface
+  hmt_min_m: 12.0
+  hmt_max_m: 36.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[8.8]'
+  puissance_p2_kw: 5.5
+  cos_phi: 0.8
+  rendement_pompe_pct: 71.0
+  rendement_pompe_moteur_pct: 67.0
+  materiaux: Fonte/AISI 304
+  classe_protection: IP55
+  classe_isolation: F
+  temp_max_liquide_c: 120.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 440.0
+  capex_estime_fcfa: 288621.08
+  opex_par_kwh_eur: 0.224
+  opex_par_kwh_fcfa: 146.934368
+  puissance_absorbe_kw: 8.208955223880597
+  opex_estime_fcfa_kwh: 807.679104477612
+- designation: CR 20-6
+  marque: Grundfos
+  nom_produit: CR 20-6
+  type_moteur: IEC 112
+  poids_net_kg: 51.0
+  debit_exploitation_m3h_min: 11.0
+  debit_exploitation_m3h_max: 29.0
+  debit_exploitation_m3s_min: 0.0030555555555555557
+  debit_exploitation_m3s_max: 0.008055555555555555
+  diametre_moteur: Surface
+  hmt_min_m: 18.0
+  hmt_max_m: 54.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[12.0]'
+  puissance_p2_kw: 7.5
+  cos_phi: 0.81
+  rendement_pompe_pct: 72.0
+  rendement_pompe_moteur_pct: 68.0
+  materiaux: Fonte/AISI 304
+  classe_protection: IP55
+  classe_isolation: F
+  temp_max_liquide_c: 120.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 600.0
+  capex_estime_fcfa: 393574.2
+  opex_par_kwh_eur: 0.221
+  opex_par_kwh_fcfa: 144.966497
+  puissance_absorbe_kw: 11.029411764705882
+  opex_estime_fcfa_kwh: 1085.1838235294117
+- designation: CR 20-8
+  marque: Grundfos
+  nom_produit: CR 20-8
+  type_moteur: IEC 112
+  poids_net_kg: 62.0
+  debit_exploitation_m3h_min: 11.0
+  debit_exploitation_m3h_max: 29.0
+  debit_exploitation_m3s_min: 0.0030555555555555557
+  debit_exploitation_m3s_max: 0.008055555555555555
+  diametre_moteur: Surface
+  hmt_min_m: 24.0
+  hmt_max_m: 72.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[17.6]'
+  puissance_p2_kw: 11.0
+  cos_phi: 0.82
+  rendement_pompe_pct: 73.0
+  rendement_pompe_moteur_pct: 69.0
+  materiaux: Fonte/AISI 304
+  classe_protection: IP55
+  classe_isolation: F
+  temp_max_liquide_c: 120.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 880.0
+  capex_estime_fcfa: 577242.16
+  opex_par_kwh_eur: 0.217
+  opex_par_kwh_fcfa: 142.342669
+  puissance_absorbe_kw: 15.942028985507248
+  opex_estime_fcfa_kwh: 1568.5362318840582
+- designation: CR 20-10
+  marque: Grundfos
+  nom_produit: CR 20-10
+  type_moteur: IEC 132
+  poids_net_kg: 76.0
+  debit_exploitation_m3h_min: 11.0
+  debit_exploitation_m3h_max: 29.0
+  debit_exploitation_m3s_min: 0.0030555555555555557
+  debit_exploitation_m3s_max: 0.008055555555555555
+  diametre_moteur: Surface
+  hmt_min_m: 30.0
+  hmt_max_m: 90.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[24.0]'
+  puissance_p2_kw: 15.0
+  cos_phi: 0.83
+  rendement_pompe_pct: 74.0
+  rendement_pompe_moteur_pct: 70.0
+  materiaux: Fonte/AISI 304
+  classe_protection: IP55
+  classe_isolation: F
+  temp_max_liquide_c: 120.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 1200.0
+  capex_estime_fcfa: 787148.4
+  opex_par_kwh_eur: 0.214
+  opex_par_kwh_fcfa: 140.374798
+  puissance_absorbe_kw: 21.42857142857143
+  opex_estime_fcfa_kwh: 2108.357142857143
+- designation: CR 32-2
+  marque: Grundfos
+  nom_produit: CR 32-2
+  type_moteur: IEC 112
+  poids_net_kg: 48.0
+  debit_exploitation_m3h_min: 12.0
+  debit_exploitation_m3h_max: 35.0
+  debit_exploitation_m3s_min: 0.0033333333333333335
+  debit_exploitation_m3s_max: 0.009722222222222222
+  diametre_moteur: Surface
+  hmt_min_m: 6.0
+  hmt_max_m: 18.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[12.0]'
+  puissance_p2_kw: 7.5
+  cos_phi: 0.81
+  rendement_pompe_pct: 72.0
+  rendement_pompe_moteur_pct: 68.0
+  materiaux: Fonte/AISI 304
+  classe_protection: IP55
+  classe_isolation: F
+  temp_max_liquide_c: 120.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 600.0
+  capex_estime_fcfa: 393574.2
+  opex_par_kwh_eur: 0.221
+  opex_par_kwh_fcfa: 144.966497
+  puissance_absorbe_kw: 11.029411764705882
+  opex_estime_fcfa_kwh: 1085.1838235294117
+- designation: CR 32-3
+  marque: Grundfos
+  nom_produit: CR 32-3
+  type_moteur: IEC 112
+  poids_net_kg: 59.0
+  debit_exploitation_m3h_min: 15.0
+  debit_exploitation_m3h_max: 40.0
+  debit_exploitation_m3s_min: 0.004166666666666667
+  debit_exploitation_m3s_max: 0.011111111111111112
+  diametre_moteur: Surface
+  hmt_min_m: 9.0
+  hmt_max_m: 27.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[17.6]'
+  puissance_p2_kw: 11.0
+  cos_phi: 0.82
+  rendement_pompe_pct: 75.0
+  rendement_pompe_moteur_pct: 71.0
+  materiaux: Fonte/AISI 304
+  classe_protection: IP55
+  classe_isolation: F
+  temp_max_liquide_c: 120.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 880.0
+  capex_estime_fcfa: 577242.16
+  opex_par_kwh_eur: 0.211
+  opex_par_kwh_fcfa: 138.406927
+  puissance_absorbe_kw: 15.492957746478874
+  opex_estime_fcfa_kwh: 1524.3521126760563
+- designation: CR 32-6
+  marque: Grundfos
+  nom_produit: CR 32-6
+  type_moteur: IEC 132
+  poids_net_kg: 73.0
+  debit_exploitation_m3h_min: 15.0
+  debit_exploitation_m3h_max: 40.0
+  debit_exploitation_m3s_min: 0.004166666666666667
+  debit_exploitation_m3s_max: 0.011111111111111112
+  diametre_moteur: Surface
+  hmt_min_m: 18.0
+  hmt_max_m: 54.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[24.0]'
+  puissance_p2_kw: 15.0
+  cos_phi: 0.83
+  rendement_pompe_pct: 77.0
+  rendement_pompe_moteur_pct: 73.0
+  materiaux: Fonte/AISI 304
+  classe_protection: IP55
+  classe_isolation: F
+  temp_max_liquide_c: 120.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 1200.0
+  capex_estime_fcfa: 787148.4
+  opex_par_kwh_eur: 0.205
+  opex_par_kwh_fcfa: 134.471185
+  puissance_absorbe_kw: 20.547945205479454
+  opex_estime_fcfa_kwh: 2021.7123287671236
+- designation: CR 32-8
+  marque: Grundfos
+  nom_produit: CR 32-8
+  type_moteur: IEC 132
+  poids_net_kg: 95.0
+  debit_exploitation_m3h_min: 15.0
+  debit_exploitation_m3h_max: 40.0
+  debit_exploitation_m3s_min: 0.004166666666666667
+  debit_exploitation_m3s_max: 0.011111111111111112
+  diametre_moteur: Surface
+  hmt_min_m: 24.0
+  hmt_max_m: 72.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[35.2]'
+  puissance_p2_kw: 22.0
+  cos_phi: 0.85
+  rendement_pompe_pct: 78.0
+  rendement_pompe_moteur_pct: 75.0
+  materiaux: Fonte/AISI 304
+  classe_protection: IP55
+  classe_isolation: F
+  temp_max_liquide_c: 120.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 1760.0
+  capex_estime_fcfa: 1154484.32
+  opex_par_kwh_eur: 0.2
+  opex_par_kwh_fcfa: 131.19140000000002
+  puissance_absorbe_kw: 29.333333333333332
+  opex_estime_fcfa_kwh: 2886.1066666666666
+- designation: CR 32-10
+  marque: Grundfos
+  nom_produit: CR 32-10
+  type_moteur: IEC 160
+  poids_net_kg: 121.0
+  debit_exploitation_m3h_min: 15.0
+  debit_exploitation_m3h_max: 40.0
+  debit_exploitation_m3s_min: 0.004166666666666667
+  debit_exploitation_m3s_max: 0.011111111111111112
+  diametre_moteur: Surface
+  hmt_min_m: 30.0
+  hmt_max_m: 90.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[48.0]'
+  puissance_p2_kw: 30.0
+  cos_phi: 0.88
+  rendement_pompe_pct: 79.0
+  rendement_pompe_moteur_pct: 76.0
+  materiaux: Fonte/AISI 304
+  classe_protection: IP55
+  classe_isolation: F
+  temp_max_liquide_c: 120.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 2400.0
+  capex_estime_fcfa: 1574296.8
+  opex_par_kwh_eur: 0.197
+  opex_par_kwh_fcfa: 129.223529
+  puissance_absorbe_kw: 39.473684210526315
+  opex_estime_fcfa_kwh: 3883.815789473684
+- designation: CR 45-1-1
+  marque: Grundfos
+  nom_produit: CR 45-1-1
+  type_moteur: IEC 112
+  poids_net_kg: 58.0
+  debit_exploitation_m3h_min: 20.0
+  debit_exploitation_m3h_max: 50.0
+  debit_exploitation_m3s_min: 0.005555555555555556
+  debit_exploitation_m3s_max: 0.013888888888888888
+  diametre_moteur: Surface
+  hmt_min_m: 3.0
+  hmt_max_m: 9.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[17.6]'
+  puissance_p2_kw: 11.0
+  cos_phi: 0.82
+  rendement_pompe_pct: 74.0
+  rendement_pompe_moteur_pct: 70.0
+  materiaux: Fonte/AISI 304
+  classe_protection: IP55
+  classe_isolation: F
+  temp_max_liquide_c: 120.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 880.0
+  capex_estime_fcfa: 577242.16
+  opex_par_kwh_eur: 0.214
+  opex_par_kwh_fcfa: 140.374798
+  puissance_absorbe_kw: 15.714285714285715
+  opex_estime_fcfa_kwh: 1546.1285714285716
+- designation: CR 45-3-2
+  marque: Grundfos
+  nom_produit: CR 45-3-2
+  type_moteur: IEC 132
+  poids_net_kg: 82.0
+  debit_exploitation_m3h_min: 22.0
+  debit_exploitation_m3h_max: 58.0
+  debit_exploitation_m3s_min: 0.006111111111111111
+  debit_exploitation_m3s_max: 0.01611111111111111
+  diametre_moteur: Surface
+  hmt_min_m: 9.0
+  hmt_max_m: 27.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[29.6]'
+  puissance_p2_kw: 18.5
+  cos_phi: 0.84
+  rendement_pompe_pct: 77.0
+  rendement_pompe_moteur_pct: 73.0
+  materiaux: Fonte/AISI 304
+  classe_protection: IP55
+  classe_isolation: F
+  temp_max_liquide_c: 120.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 1480.0
+  capex_estime_fcfa: 970816.36
+  opex_par_kwh_eur: 0.205
+  opex_par_kwh_fcfa: 134.471185
+  puissance_absorbe_kw: 25.34246575342466
+  opex_estime_fcfa_kwh: 2493.445205479452
+- designation: CR 45-4-2
+  marque: Grundfos
+  nom_produit: CR 45-4-2
+  type_moteur: IEC 132
+  poids_net_kg: 93.0
+  debit_exploitation_m3h_min: 22.0
+  debit_exploitation_m3h_max: 58.0
+  debit_exploitation_m3s_min: 0.006111111111111111
+  debit_exploitation_m3s_max: 0.01611111111111111
+  diametre_moteur: Surface
+  hmt_min_m: 12.0
+  hmt_max_m: 36.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[35.2]'
+  puissance_p2_kw: 22.0
+  cos_phi: 0.85
+  rendement_pompe_pct: 78.0
+  rendement_pompe_moteur_pct: 74.0
+  materiaux: Fonte/AISI 304
+  classe_protection: IP55
+  classe_isolation: F
+  temp_max_liquide_c: 120.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 1760.0
+  capex_estime_fcfa: 1154484.32
+  opex_par_kwh_eur: 0.203
+  opex_par_kwh_fcfa: 133.15927100000002
+  puissance_absorbe_kw: 29.72972972972973
+  opex_estime_fcfa_kwh: 2925.1081081081084
+- designation: CR 45-6-2
+  marque: Grundfos
+  nom_produit: CR 45-6-2
+  type_moteur: IEC 160
+  poids_net_kg: 118.0
+  debit_exploitation_m3h_min: 22.0
+  debit_exploitation_m3h_max: 58.0
+  debit_exploitation_m3s_min: 0.006111111111111111
+  debit_exploitation_m3s_max: 0.01611111111111111
+  diametre_moteur: Surface
+  hmt_min_m: 18.0
+  hmt_max_m: 54.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[48.0]'
+  puissance_p2_kw: 30.0
+  cos_phi: 0.88
+  rendement_pompe_pct: 79.0
+  rendement_pompe_moteur_pct: 75.0
+  materiaux: Fonte/AISI 304
+  classe_protection: IP55
+  classe_isolation: F
+  temp_max_liquide_c: 120.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 2400.0
+  capex_estime_fcfa: 1574296.8
+  opex_par_kwh_eur: 0.2
+  opex_par_kwh_fcfa: 131.19140000000002
+  puissance_absorbe_kw: 40.0
+  opex_estime_fcfa_kwh: 3935.6
+- designation: CR 45-8-2
+  marque: Grundfos
+  nom_produit: CR 45-8-2
+  type_moteur: IEC 160
+  poids_net_kg: 140.0
+  debit_exploitation_m3h_min: 22.0
+  debit_exploitation_m3h_max: 58.0
+  debit_exploitation_m3s_min: 0.006111111111111111
+  debit_exploitation_m3s_max: 0.01611111111111111
+  diametre_moteur: Surface
+  hmt_min_m: 24.0
+  hmt_max_m: 72.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[59.2]'
+  puissance_p2_kw: 37.0
+  cos_phi: 0.9
+  rendement_pompe_pct: 80.0
+  rendement_pompe_moteur_pct: 76.0
+  materiaux: Fonte/AISI 304
+  classe_protection: IP55
+  classe_isolation: F
+  temp_max_liquide_c: 120.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 3256.0
+  capex_estime_fcfa: 2135795.992
+  opex_par_kwh_eur: 0.197
+  opex_par_kwh_fcfa: 129.223529
+  puissance_absorbe_kw: 48.68421052631579
+  opex_estime_fcfa_kwh: 4790.03947368421
+- designation: CR 64-2-1
+  marque: Grundfos
+  nom_produit: CR 64-2-1
+  type_moteur: IEC 132
+  poids_net_kg: 81.0
+  debit_exploitation_m3h_min: 25.0
+  debit_exploitation_m3h_max: 70.0
+  debit_exploitation_m3s_min: 0.006944444444444444
+  debit_exploitation_m3s_max: 0.019444444444444445
+  diametre_moteur: Surface
+  hmt_min_m: 6.0
+  hmt_max_m: 18.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[29.6]'
+  puissance_p2_kw: 18.5
+  cos_phi: 0.84
+  rendement_pompe_pct: 76.0
+  rendement_pompe_moteur_pct: 72.0
+  materiaux: Fonte/AISI 304
+  classe_protection: IP55
+  classe_isolation: F
+  temp_max_liquide_c: 120.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 1480.0
+  capex_estime_fcfa: 970816.36
+  opex_par_kwh_eur: 0.208
+  opex_par_kwh_fcfa: 136.439056
+  puissance_absorbe_kw: 25.694444444444446
+  opex_estime_fcfa_kwh: 2528.076388888889
+- designation: CR 64-3-1
+  marque: Grundfos
+  nom_produit: CR 64-3-1
+  type_moteur: IEC 132
+  poids_net_kg: 92.0
+  debit_exploitation_m3h_min: 30.0
+  debit_exploitation_m3h_max: 85.0
+  debit_exploitation_m3s_min: 0.008333333333333333
+  debit_exploitation_m3s_max: 0.02361111111111111
+  diametre_moteur: Surface
+  hmt_min_m: 9.0
+  hmt_max_m: 27.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[35.2]'
+  puissance_p2_kw: 22.0
+  cos_phi: 0.85
+  rendement_pompe_pct: 78.0
+  rendement_pompe_moteur_pct: 74.0
+  materiaux: Fonte/AISI 304
+  classe_protection: IP55
+  classe_isolation: F
+  temp_max_liquide_c: 120.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 1760.0
+  capex_estime_fcfa: 1154484.32
+  opex_par_kwh_eur: 0.203
+  opex_par_kwh_fcfa: 133.15927100000002
+  puissance_absorbe_kw: 29.72972972972973
+  opex_estime_fcfa_kwh: 2925.1081081081084
+- designation: CR 64-4-1
+  marque: Grundfos
+  nom_produit: CR 64-4-1
+  type_moteur: IEC 160
+  poids_net_kg: 117.0
+  debit_exploitation_m3h_min: 30.0
+  debit_exploitation_m3h_max: 85.0
+  debit_exploitation_m3s_min: 0.008333333333333333
+  debit_exploitation_m3s_max: 0.02361111111111111
+  diametre_moteur: Surface
+  hmt_min_m: 12.0
+  hmt_max_m: 36.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[48.0]'
+  puissance_p2_kw: 30.0
+  cos_phi: 0.88
+  rendement_pompe_pct: 79.0
+  rendement_pompe_moteur_pct: 75.0
+  materiaux: Fonte/AISI 304
+  classe_protection: IP55
+  classe_isolation: F
+  temp_max_liquide_c: 120.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 2400.0
+  capex_estime_fcfa: 1574296.8
+  opex_par_kwh_eur: 0.2
+  opex_par_kwh_fcfa: 131.19140000000002
+  puissance_absorbe_kw: 40.0
+  opex_estime_fcfa_kwh: 3935.6
+- designation: CR 64-6-1
+  marque: Grundfos
+  nom_produit: CR 64-6-1
+  type_moteur: IEC 160
+  poids_net_kg: 139.0
+  debit_exploitation_m3h_min: 30.0
+  debit_exploitation_m3h_max: 85.0
+  debit_exploitation_m3s_min: 0.008333333333333333
+  debit_exploitation_m3s_max: 0.02361111111111111
+  diametre_moteur: Surface
+  hmt_min_m: 18.0
+  hmt_max_m: 54.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[59.2]'
+  puissance_p2_kw: 37.0
+  cos_phi: 0.9
+  rendement_pompe_pct: 80.0
+  rendement_pompe_moteur_pct: 76.0
+  materiaux: Fonte/AISI 304
+  classe_protection: IP55
+  classe_isolation: F
+  temp_max_liquide_c: 120.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 3256.0
+  capex_estime_fcfa: 2135795.992
+  opex_par_kwh_eur: 0.197
+  opex_par_kwh_fcfa: 129.223529
+  puissance_absorbe_kw: 48.68421052631579
+  opex_estime_fcfa_kwh: 4790.03947368421
+- designation: CR 64-8-1
+  marque: Grundfos
+  nom_produit: CR 64-8-1
+  type_moteur: IEC 160
+  poids_net_kg: 164.0
+  debit_exploitation_m3h_min: 30.0
+  debit_exploitation_m3h_max: 85.0
+  debit_exploitation_m3s_min: 0.008333333333333333
+  debit_exploitation_m3s_max: 0.02361111111111111
+  diametre_moteur: Surface
+  hmt_min_m: 24.0
+  hmt_max_m: 72.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[72.0]'
+  puissance_p2_kw: 45.0
+  cos_phi: 0.93
+  rendement_pompe_pct: 81.0
+  rendement_pompe_moteur_pct: 77.0
+  materiaux: Fonte/AISI 304
+  classe_protection: IP55
+  classe_isolation: F
+  temp_max_liquide_c: 120.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 3960.0
+  capex_estime_fcfa: 2597589.72
+  opex_par_kwh_eur: 0.195
+  opex_par_kwh_fcfa: 127.911615
+  puissance_absorbe_kw: 58.44155844155844
+  opex_estime_fcfa_kwh: 5750.0649350649355
+- designation: CR 90-2-1
+  marque: Grundfos
+  nom_produit: CR 90-2-1
+  type_moteur: IEC 132
+  poids_net_kg: 92.0
+  debit_exploitation_m3h_min: 35.0
+  debit_exploitation_m3h_max: 100.0
+  debit_exploitation_m3s_min: 0.009722222222222222
+  debit_exploitation_m3s_max: 0.027777777777777776
+  diametre_moteur: Surface
+  hmt_min_m: 6.0
+  hmt_max_m: 18.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[35.2]'
+  puissance_p2_kw: 22.0
+  cos_phi: 0.85
+  rendement_pompe_pct: 77.0
+  rendement_pompe_moteur_pct: 73.0
+  materiaux: Fonte/AISI 304
+  classe_protection: IP55
+  classe_isolation: F
+  temp_max_liquide_c: 120.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 1760.0
+  capex_estime_fcfa: 1154484.32
+  opex_par_kwh_eur: 0.205
+  opex_par_kwh_fcfa: 134.471185
+  puissance_absorbe_kw: 30.136986301369863
+  opex_estime_fcfa_kwh: 2965.178082191781
+- designation: CR 90-3-1
+  marque: Grundfos
+  nom_produit: CR 90-3-1
+  type_moteur: IEC 160
+  poids_net_kg: 116.0
+  debit_exploitation_m3h_min: 45.0
+  debit_exploitation_m3h_max: 120.0
+  debit_exploitation_m3s_min: 0.0125
+  debit_exploitation_m3s_max: 0.03333333333333333
+  diametre_moteur: Surface
+  hmt_min_m: 9.0
+  hmt_max_m: 27.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[48.0]'
+  puissance_p2_kw: 30.0
+  cos_phi: 0.88
+  rendement_pompe_pct: 79.0
+  rendement_pompe_moteur_pct: 75.0
+  materiaux: Fonte/AISI 304
+  classe_protection: IP55
+  classe_isolation: F
+  temp_max_liquide_c: 120.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 2400.0
+  capex_estime_fcfa: 1574296.8
+  opex_par_kwh_eur: 0.2
+  opex_par_kwh_fcfa: 131.19140000000002
+  puissance_absorbe_kw: 40.0
+  opex_estime_fcfa_kwh: 3935.6
+- designation: CR 90-4-1
+  marque: Grundfos
+  nom_produit: CR 90-4-1
+  type_moteur: IEC 160
+  poids_net_kg: 138.0
+  debit_exploitation_m3h_min: 45.0
+  debit_exploitation_m3h_max: 120.0
+  debit_exploitation_m3s_min: 0.0125
+  debit_exploitation_m3s_max: 0.03333333333333333
+  diametre_moteur: Surface
+  hmt_min_m: 12.0
+  hmt_max_m: 36.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[59.2]'
+  puissance_p2_kw: 37.0
+  cos_phi: 0.9
+  rendement_pompe_pct: 80.0
+  rendement_pompe_moteur_pct: 76.0
+  materiaux: Fonte/AISI 304
+  classe_protection: IP55
+  classe_isolation: F
+  temp_max_liquide_c: 120.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 3256.0
+  capex_estime_fcfa: 2135795.992
+  opex_par_kwh_eur: 0.197
+  opex_par_kwh_fcfa: 129.223529
+  puissance_absorbe_kw: 48.68421052631579
+  opex_estime_fcfa_kwh: 4790.03947368421
+- designation: CR 90-6-1
+  marque: Grundfos
+  nom_produit: CR 90-6-1
+  type_moteur: IEC 160
+  poids_net_kg: 163.0
+  debit_exploitation_m3h_min: 45.0
+  debit_exploitation_m3h_max: 120.0
+  debit_exploitation_m3s_min: 0.0125
+  debit_exploitation_m3s_max: 0.03333333333333333
+  diametre_moteur: Surface
+  hmt_min_m: 18.0
+  hmt_max_m: 54.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[72.0]'
+  puissance_p2_kw: 45.0
+  cos_phi: 0.93
+  rendement_pompe_pct: 81.0
+  rendement_pompe_moteur_pct: 77.0
+  materiaux: Fonte/AISI 304
+  classe_protection: IP55
+  classe_isolation: F
+  temp_max_liquide_c: 120.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 3960.0
+  capex_estime_fcfa: 2597589.72
+  opex_par_kwh_eur: 0.195
+  opex_par_kwh_fcfa: 127.911615
+  puissance_absorbe_kw: 58.44155844155844
+  opex_estime_fcfa_kwh: 5750.0649350649355
+- designation: CR 90-8-1
+  marque: Grundfos
+  nom_produit: CR 90-8-1
+  type_moteur: IEC 180
+  poids_net_kg: 194.0
+  debit_exploitation_m3h_min: 45.0
+  debit_exploitation_m3h_max: 120.0
+  debit_exploitation_m3s_min: 0.0125
+  debit_exploitation_m3s_max: 0.03333333333333333
+  diametre_moteur: Surface
+  hmt_min_m: 24.0
+  hmt_max_m: 72.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[88.0]'
+  puissance_p2_kw: 55.0
+  cos_phi: 0.96
+  rendement_pompe_pct: 82.0
+  rendement_pompe_moteur_pct: 78.0
+  materiaux: Fonte/AISI 304
+  classe_protection: IP55
+  classe_isolation: F
+  temp_max_liquide_c: 120.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 4840.0
+  capex_estime_fcfa: 3174831.88
+  opex_par_kwh_eur: 0.192
+  opex_par_kwh_fcfa: 125.943744
+  puissance_absorbe_kw: 70.51282051282051
+  opex_estime_fcfa_kwh: 6937.75641025641
+- designation: CR 120-2-1
+  marque: Grundfos
+  nom_produit: CR 120-2-1
+  type_moteur: IEC 160
+  poids_net_kg: 116.0
+  debit_exploitation_m3h_min: 50.0
+  debit_exploitation_m3h_max: 140.0
+  debit_exploitation_m3s_min: 0.013888888888888888
+  debit_exploitation_m3s_max: 0.03888888888888889
+  diametre_moteur: Surface
+  hmt_min_m: 6.0
+  hmt_max_m: 18.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[48.0]'
+  puissance_p2_kw: 30.0
+  cos_phi: 0.88
+  rendement_pompe_pct: 78.0
+  rendement_pompe_moteur_pct: 74.0
+  materiaux: Fonte/AISI 304
+  classe_protection: IP55
+  classe_isolation: F
+  temp_max_liquide_c: 120.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 2400.0
+  capex_estime_fcfa: 1574296.8
+  opex_par_kwh_eur: 0.203
+  opex_par_kwh_fcfa: 133.15927100000002
+  puissance_absorbe_kw: 40.54054054054054
+  opex_estime_fcfa_kwh: 3988.7837837837837
+- designation: CR 120-3-1
+  marque: Grundfos
+  nom_produit: CR 120-3-1
+  type_moteur: IEC 160
+  poids_net_kg: 137.0
+  debit_exploitation_m3h_min: 60.0
+  debit_exploitation_m3h_max: 160.0
+  debit_exploitation_m3s_min: 0.016666666666666666
+  debit_exploitation_m3s_max: 0.044444444444444446
+  diametre_moteur: Surface
+  hmt_min_m: 9.0
+  hmt_max_m: 27.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[59.2]'
+  puissance_p2_kw: 37.0
+  cos_phi: 0.9
+  rendement_pompe_pct: 80.0
+  rendement_pompe_moteur_pct: 76.0
+  materiaux: Fonte/AISI 304
+  classe_protection: IP55
+  classe_isolation: F
+  temp_max_liquide_c: 120.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 3256.0
+  capex_estime_fcfa: 2135795.992
+  opex_par_kwh_eur: 0.197
+  opex_par_kwh_fcfa: 129.223529
+  puissance_absorbe_kw: 48.68421052631579
+  opex_estime_fcfa_kwh: 4790.03947368421
+- designation: CR 120-4-1
+  marque: Grundfos
+  nom_produit: CR 120-4-1
+  type_moteur: IEC 160
+  poids_net_kg: 162.0
+  debit_exploitation_m3h_min: 60.0
+  debit_exploitation_m3h_max: 160.0
+  debit_exploitation_m3s_min: 0.016666666666666666
+  debit_exploitation_m3s_max: 0.044444444444444446
+  diametre_moteur: Surface
+  hmt_min_m: 12.0
+  hmt_max_m: 36.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[72.0]'
+  puissance_p2_kw: 45.0
+  cos_phi: 0.93
+  rendement_pompe_pct: 81.0
+  rendement_pompe_moteur_pct: 77.0
+  materiaux: Fonte/AISI 304
+  classe_protection: IP55
+  classe_isolation: F
+  temp_max_liquide_c: 120.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 3960.0
+  capex_estime_fcfa: 2597589.72
+  opex_par_kwh_eur: 0.195
+  opex_par_kwh_fcfa: 127.911615
+  puissance_absorbe_kw: 58.44155844155844
+  opex_estime_fcfa_kwh: 5750.0649350649355
+- designation: CR 120-6-1
+  marque: Grundfos
+  nom_produit: CR 120-6-1
+  type_moteur: IEC 180
+  poids_net_kg: 193.0
+  debit_exploitation_m3h_min: 60.0
+  debit_exploitation_m3h_max: 160.0
+  debit_exploitation_m3s_min: 0.016666666666666666
+  debit_exploitation_m3s_max: 0.044444444444444446
+  diametre_moteur: Surface
+  hmt_min_m: 18.0
+  hmt_max_m: 54.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[88.0]'
+  puissance_p2_kw: 55.0
+  cos_phi: 0.96
+  rendement_pompe_pct: 82.0
+  rendement_pompe_moteur_pct: 78.0
+  materiaux: Fonte/AISI 304
+  classe_protection: IP55
+  classe_isolation: F
+  temp_max_liquide_c: 120.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 4840.0
+  capex_estime_fcfa: 3174831.88
+  opex_par_kwh_eur: 0.192
+  opex_par_kwh_fcfa: 125.943744
+  puissance_absorbe_kw: 70.51282051282051
+  opex_estime_fcfa_kwh: 6937.75641025641
+- designation: CR 120-8-1
+  marque: Grundfos
+  nom_produit: CR 120-8-1
+  type_moteur: IEC 180
+  poids_net_kg: 254.0
+  debit_exploitation_m3h_min: 60.0
+  debit_exploitation_m3h_max: 160.0
+  debit_exploitation_m3s_min: 0.016666666666666666
+  debit_exploitation_m3s_max: 0.044444444444444446
+  diametre_moteur: Surface
+  hmt_min_m: 24.0
+  hmt_max_m: 72.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[120.0]'
+  puissance_p2_kw: 75.0
+  cos_phi: 1.03
+  rendement_pompe_pct: 83.0
+  rendement_pompe_moteur_pct: 79.0
+  materiaux: Fonte/AISI 304
+  classe_protection: IP55
+  classe_isolation: F
+  temp_max_liquide_c: 120.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 6600.0
+  capex_estime_fcfa: 4329316.2
+  opex_par_kwh_eur: 0.19
+  opex_par_kwh_fcfa: 124.63183
+  puissance_absorbe_kw: 94.9367088607595
+  opex_estime_fcfa_kwh: 9340.822784810127
+- designation: CR 150-2-1
+  marque: Grundfos
+  nom_produit: CR 150-2-1
+  type_moteur: IEC 160
+  poids_net_kg: 137.0
+  debit_exploitation_m3h_min: 65.0
+  debit_exploitation_m3h_max: 170.0
+  debit_exploitation_m3s_min: 0.018055555555555554
+  debit_exploitation_m3s_max: 0.04722222222222222
+  diametre_moteur: Surface
+  hmt_min_m: 6.0
+  hmt_max_m: 18.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[59.2]'
+  puissance_p2_kw: 37.0
+  cos_phi: 0.9
+  rendement_pompe_pct: 79.0
+  rendement_pompe_moteur_pct: 75.0
+  materiaux: Fonte/AISI 304
+  classe_protection: IP55
+  classe_isolation: F
+  temp_max_liquide_c: 120.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 3256.0
+  capex_estime_fcfa: 2135795.992
+  opex_par_kwh_eur: 0.2
+  opex_par_kwh_fcfa: 131.19140000000002
+  puissance_absorbe_kw: 49.333333333333336
+  opex_estime_fcfa_kwh: 4853.906666666667
+- designation: CR 150-3-1
+  marque: Grundfos
+  nom_produit: CR 150-3-1
+  type_moteur: IEC 160
+  poids_net_kg: 161.0
+  debit_exploitation_m3h_min: 75.0
+  debit_exploitation_m3h_max: 180.0
+  debit_exploitation_m3s_min: 0.020833333333333332
+  debit_exploitation_m3s_max: 0.05
+  diametre_moteur: Surface
+  hmt_min_m: 9.0
+  hmt_max_m: 27.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[72.0]'
+  puissance_p2_kw: 45.0
+  cos_phi: 0.93
+  rendement_pompe_pct: 80.0
+  rendement_pompe_moteur_pct: 76.0
+  materiaux: Fonte/AISI 304
+  classe_protection: IP55
+  classe_isolation: F
+  temp_max_liquide_c: 120.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 3960.0
+  capex_estime_fcfa: 2597589.72
+  opex_par_kwh_eur: 0.197
+  opex_par_kwh_fcfa: 129.223529
+  puissance_absorbe_kw: 59.21052631578947
+  opex_estime_fcfa_kwh: 5825.723684210526
+- designation: CR 150-4-1
+  marque: Grundfos
+  nom_produit: CR 150-4-1
+  type_moteur: IEC 180
+  poids_net_kg: 192.0
+  debit_exploitation_m3h_min: 75.0
+  debit_exploitation_m3h_max: 180.0
+  debit_exploitation_m3s_min: 0.020833333333333332
+  debit_exploitation_m3s_max: 0.05
+  diametre_moteur: Surface
+  hmt_min_m: 12.0
+  hmt_max_m: 36.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[88.0]'
+  puissance_p2_kw: 55.0
+  cos_phi: 0.96
+  rendement_pompe_pct: 81.0
+  rendement_pompe_moteur_pct: 77.0
+  materiaux: Fonte/AISI 304
+  classe_protection: IP55
+  classe_isolation: F
+  temp_max_liquide_c: 120.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 4840.0
+  capex_estime_fcfa: 3174831.88
+  opex_par_kwh_eur: 0.195
+  opex_par_kwh_fcfa: 127.911615
+  puissance_absorbe_kw: 71.42857142857143
+  opex_estime_fcfa_kwh: 7027.857142857143
+- designation: CR 150-6-1
+  marque: Grundfos
+  nom_produit: CR 150-6-1
+  type_moteur: IEC 180
+  poids_net_kg: 253.0
+  debit_exploitation_m3h_min: 75.0
+  debit_exploitation_m3h_max: 180.0
+  debit_exploitation_m3s_min: 0.020833333333333332
+  debit_exploitation_m3s_max: 0.05
+  diametre_moteur: Surface
+  hmt_min_m: 18.0
+  hmt_max_m: 54.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[120.0]'
+  puissance_p2_kw: 75.0
+  cos_phi: 1.03
+  rendement_pompe_pct: 82.0
+  rendement_pompe_moteur_pct: 78.0
+  materiaux: Fonte/AISI 304
+  classe_protection: IP55
+  classe_isolation: F
+  temp_max_liquide_c: 120.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 6600.0
+  capex_estime_fcfa: 4329316.2
+  opex_par_kwh_eur: 0.192
+  opex_par_kwh_fcfa: 125.943744
+  puissance_absorbe_kw: 96.15384615384615
+  opex_estime_fcfa_kwh: 9460.576923076922
+- designation: CR 150-8-1
+  marque: Grundfos
+  nom_produit: CR 150-8-1
+  type_moteur: IEC 225
+  poids_net_kg: 299.0
+  debit_exploitation_m3h_min: 75.0
+  debit_exploitation_m3h_max: 180.0
+  debit_exploitation_m3s_min: 0.020833333333333332
+  debit_exploitation_m3s_max: 0.05
+  diametre_moteur: Surface
+  hmt_min_m: 24.0
+  hmt_max_m: 72.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[144.0]'
+  puissance_p2_kw: 90.0
+  cos_phi: 1.08
+  rendement_pompe_pct: 83.0
+  rendement_pompe_moteur_pct: 79.0
+  materiaux: Fonte/AISI 304
+  classe_protection: IP55
+  classe_isolation: F
+  temp_max_liquide_c: 120.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 7920.0
+  capex_estime_fcfa: 5195179.44
+  opex_par_kwh_eur: 0.19
+  opex_par_kwh_fcfa: 124.63183
+  puissance_absorbe_kw: 113.92405063291139
+  opex_estime_fcfa_kwh: 11208.987341772152
+- designation: CR 2-10
+  marque: Grundfos
+  nom_produit: CR 2-10
+  type_moteur: IEC 80
+  poids_net_kg: 34.0
+  debit_exploitation_m3h_min: 0.8
+  debit_exploitation_m3h_max: 2.8
+  debit_exploitation_m3s_min: 0.00022222222222222223
+  debit_exploitation_m3s_max: 0.0007777777777777777
+  diametre_moteur: Surface
+  hmt_min_m: 30.0
+  hmt_max_m: 90.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[1.8]'
+  puissance_p2_kw: 1.1
+  cos_phi: 0.78
+  rendement_pompe_pct: 50.0
+  rendement_pompe_moteur_pct: 42.0
+  materiaux: Fonte/AISI 304
+  classe_protection: IP55
+  classe_isolation: F
+  temp_max_liquide_c: 120.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 88.0
+  capex_estime_fcfa: 57724.216
+  opex_par_kwh_eur: 0.357
+  opex_par_kwh_fcfa: 234.176649
+  puissance_absorbe_kw: 2.6190476190476195
+  opex_estime_fcfa_kwh: 257.6880952380953
+- designation: CR 2-15
+  marque: Grundfos
+  nom_produit: CR 2-15
+  type_moteur: IEC 80
+  poids_net_kg: 38.0
+  debit_exploitation_m3h_min: 0.8
+  debit_exploitation_m3h_max: 2.8
+  debit_exploitation_m3s_min: 0.00022222222222222223
+  debit_exploitation_m3s_max: 0.0007777777777777777
+  diametre_moteur: Surface
+  hmt_min_m: 45.0
+  hmt_max_m: 135.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[2.4]'
+  puissance_p2_kw: 1.5
+  cos_phi: 0.79
+  rendement_pompe_pct: 52.0
+  rendement_pompe_moteur_pct: 44.0
+  materiaux: Fonte/AISI 304
+  classe_protection: IP55
+  classe_isolation: F
+  temp_max_liquide_c: 120.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 120.0
+  capex_estime_fcfa: 78714.84
+  opex_par_kwh_eur: 0.341
+  opex_par_kwh_fcfa: 223.681337
+  puissance_absorbe_kw: 3.409090909090909
+  opex_estime_fcfa_kwh: 335.42045454545456
+- designation: CR 4-8
+  marque: Grundfos
+  nom_produit: CR 4-8
+  type_moteur: IEC 80
+  poids_net_kg: 34.0
+  debit_exploitation_m3h_min: 1.5
+  debit_exploitation_m3h_max: 5.5
+  debit_exploitation_m3s_min: 0.0004166666666666667
+  debit_exploitation_m3s_max: 0.0015277777777777779
+  diametre_moteur: Surface
+  hmt_min_m: 24.0
+  hmt_max_m: 72.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[2.4]'
+  puissance_p2_kw: 1.5
+  cos_phi: 0.79
+  rendement_pompe_pct: 56.0
+  rendement_pompe_moteur_pct: 48.0
+  materiaux: Fonte/AISI 304
+  classe_protection: IP55
+  classe_isolation: F
+  temp_max_liquide_c: 120.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 120.0
+  capex_estime_fcfa: 78714.84
+  opex_par_kwh_eur: 0.312
+  opex_par_kwh_fcfa: 204.658584
+  puissance_absorbe_kw: 3.125
+  opex_estime_fcfa_kwh: 307.46875
+- designation: CR 4-12
+  marque: Grundfos
+  nom_produit: CR 4-12
+  type_moteur: IEC 80
+  poids_net_kg: 38.0
+  debit_exploitation_m3h_min: 1.5
+  debit_exploitation_m3h_max: 5.5
+  debit_exploitation_m3s_min: 0.0004166666666666667
+  debit_exploitation_m3s_max: 0.0015277777777777779
+  diametre_moteur: Surface
+  hmt_min_m: 36.0
+  hmt_max_m: 108.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[3.5]'
+  puissance_p2_kw: 2.2
+  cos_phi: 0.79
+  rendement_pompe_pct: 58.0
+  rendement_pompe_moteur_pct: 50.0
+  materiaux: Fonte/AISI 304
+  classe_protection: IP55
+  classe_isolation: F
+  temp_max_liquide_c: 120.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 176.0
+  capex_estime_fcfa: 115448.432
+  opex_par_kwh_eur: 0.3
+  opex_par_kwh_fcfa: 196.78709999999998
+  puissance_absorbe_kw: 4.4
+  opex_estime_fcfa_kwh: 432.91600000000005
+- designation: CR 6-6
+  marque: Grundfos
+  nom_produit: CR 6-6
+  type_moteur: IEC 80
+  poids_net_kg: 35.0
+  debit_exploitation_m3h_min: 2.0
+  debit_exploitation_m3h_max: 7.5
+  debit_exploitation_m3s_min: 0.0005555555555555556
+  debit_exploitation_m3s_max: 0.0020833333333333333
+  diametre_moteur: Surface
+  hmt_min_m: 18.0
+  hmt_max_m: 54.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[3.5]'
+  puissance_p2_kw: 2.2
+  cos_phi: 0.79
+  rendement_pompe_pct: 58.0
+  rendement_pompe_moteur_pct: 50.0
+  materiaux: Fonte/AISI 304
+  classe_protection: IP55
+  classe_isolation: F
+  temp_max_liquide_c: 120.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 176.0
+  capex_estime_fcfa: 115448.432
+  opex_par_kwh_eur: 0.3
+  opex_par_kwh_fcfa: 196.78709999999998
+  puissance_absorbe_kw: 4.4
+  opex_estime_fcfa_kwh: 432.91600000000005
+- designation: CR 6-10
+  marque: Grundfos
+  nom_produit: CR 6-10
+  type_moteur: IEC 90
+  poids_net_kg: 40.0
+  debit_exploitation_m3h_min: 2.0
+  debit_exploitation_m3h_max: 7.5
+  debit_exploitation_m3s_min: 0.0005555555555555556
+  debit_exploitation_m3s_max: 0.0020833333333333333
+  diametre_moteur: Surface
+  hmt_min_m: 30.0
+  hmt_max_m: 90.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[4.8]'
+  puissance_p2_kw: 3.0
+  cos_phi: 0.79
+  rendement_pompe_pct: 60.0
+  rendement_pompe_moteur_pct: 52.0
+  materiaux: Fonte/AISI 304
+  classe_protection: IP55
+  classe_isolation: F
+  temp_max_liquide_c: 120.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 240.0
+  capex_estime_fcfa: 157429.68
+  opex_par_kwh_eur: 0.288
+  opex_par_kwh_fcfa: 188.91561599999997
+  puissance_absorbe_kw: 5.769230769230769
+  opex_estime_fcfa_kwh: 567.6346153846154
+- designation: CR 8-5
+  marque: Grundfos
+  nom_produit: CR 8-5
+  type_moteur: IEC 90
+  poids_net_kg: 37.0
+  debit_exploitation_m3h_min: 3.0
+  debit_exploitation_m3h_max: 10.0
+  debit_exploitation_m3s_min: 0.0008333333333333334
+  debit_exploitation_m3s_max: 0.002777777777777778
+  diametre_moteur: Surface
+  hmt_min_m: 15.0
+  hmt_max_m: 45.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[4.8]'
+  puissance_p2_kw: 3.0
+  cos_phi: 0.79
+  rendement_pompe_pct: 62.0
+  rendement_pompe_moteur_pct: 54.0
+  materiaux: Fonte/AISI 304
+  classe_protection: IP55
+  classe_isolation: F
+  temp_max_liquide_c: 120.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 240.0
+  capex_estime_fcfa: 157429.68
+  opex_par_kwh_eur: 0.278
+  opex_par_kwh_fcfa: 182.35604600000002
+  puissance_absorbe_kw: 5.555555555555555
+  opex_estime_fcfa_kwh: 546.6111111111111
+- designation: CR 8-8
+  marque: Grundfos
+  nom_produit: CR 8-8
+  type_moteur: IEC 90
+  poids_net_kg: 41.0
+  debit_exploitation_m3h_min: 3.0
+  debit_exploitation_m3h_max: 10.0
+  debit_exploitation_m3s_min: 0.0008333333333333334
+  debit_exploitation_m3s_max: 0.002777777777777778
+  diametre_moteur: Surface
+  hmt_min_m: 24.0
+  hmt_max_m: 72.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[6.4]'
+  puissance_p2_kw: 4.0
+  cos_phi: 0.79
+  rendement_pompe_pct: 64.0
+  rendement_pompe_moteur_pct: 56.0
+  materiaux: Fonte/AISI 304
+  classe_protection: IP55
+  classe_isolation: F
+  temp_max_liquide_c: 120.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 320.0
+  capex_estime_fcfa: 209906.24
+  opex_par_kwh_eur: 0.268
+  opex_par_kwh_fcfa: 175.796476
+  puissance_absorbe_kw: 7.142857142857142
+  opex_estime_fcfa_kwh: 702.7857142857142
+- designation: CR 12-4
+  marque: Grundfos
+  nom_produit: CR 12-4
+  type_moteur: IEC 90
+  poids_net_kg: 39.0
+  debit_exploitation_m3h_min: 4.5
+  debit_exploitation_m3h_max: 15.0
+  debit_exploitation_m3s_min: 0.00125
+  debit_exploitation_m3s_max: 0.004166666666666667
+  diametre_moteur: Surface
+  hmt_min_m: 12.0
+  hmt_max_m: 36.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[6.4]'
+  puissance_p2_kw: 4.0
+  cos_phi: 0.79
+  rendement_pompe_pct: 64.0
+  rendement_pompe_moteur_pct: 56.0
+  materiaux: Fonte/AISI 304
+  classe_protection: IP55
+  classe_isolation: F
+  temp_max_liquide_c: 120.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 320.0
+  capex_estime_fcfa: 209906.24
+  opex_par_kwh_eur: 0.268
+  opex_par_kwh_fcfa: 175.796476
+  puissance_absorbe_kw: 7.142857142857142
+  opex_estime_fcfa_kwh: 702.7857142857142
+- designation: CR 12-6
+  marque: Grundfos
+  nom_produit: CR 12-6
+  type_moteur: IEC 90
+  poids_net_kg: 45.0
+  debit_exploitation_m3h_min: 4.5
+  debit_exploitation_m3h_max: 15.0
+  debit_exploitation_m3s_min: 0.00125
+  debit_exploitation_m3s_max: 0.004166666666666667
+  diametre_moteur: Surface
+  hmt_min_m: 18.0
+  hmt_max_m: 54.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[8.8]'
+  puissance_p2_kw: 5.5
+  cos_phi: 0.8
+  rendement_pompe_pct: 66.0
+  rendement_pompe_moteur_pct: 58.0
+  materiaux: Fonte/AISI 304
+  classe_protection: IP55
+  classe_isolation: F
+  temp_max_liquide_c: 120.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 440.0
+  capex_estime_fcfa: 288621.08
+  opex_par_kwh_eur: 0.259
+  opex_par_kwh_fcfa: 169.892863
+  puissance_absorbe_kw: 9.482758620689657
+  opex_estime_fcfa_kwh: 933.0086206896553
+- designation: CR 18-3
+  marque: Grundfos
+  nom_produit: CR 18-3
+  type_moteur: IEC 90
+  poids_net_kg: 43.0
+  debit_exploitation_m3h_min: 7.0
+  debit_exploitation_m3h_max: 22.0
+  debit_exploitation_m3s_min: 0.0019444444444444444
+  debit_exploitation_m3s_max: 0.006111111111111111
+  diametre_moteur: Surface
+  hmt_min_m: 9.0
+  hmt_max_m: 27.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[8.8]'
+  puissance_p2_kw: 5.5
+  cos_phi: 0.8
+  rendement_pompe_pct: 67.0
+  rendement_pompe_moteur_pct: 59.0
+  materiaux: Fonte/AISI 304
+  classe_protection: IP55
+  classe_isolation: F
+  temp_max_liquide_c: 120.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 440.0
+  capex_estime_fcfa: 288621.08
+  opex_par_kwh_eur: 0.254
+  opex_par_kwh_fcfa: 166.613078
+  puissance_absorbe_kw: 9.322033898305085
+  opex_estime_fcfa_kwh: 917.1949152542373
+- designation: CR 18-5
+  marque: Grundfos
+  nom_produit: CR 18-5
+  type_moteur: IEC 112
+  poids_net_kg: 50.0
+  debit_exploitation_m3h_min: 7.0
+  debit_exploitation_m3h_max: 22.0
+  debit_exploitation_m3s_min: 0.0019444444444444444
+  debit_exploitation_m3s_max: 0.006111111111111111
+  diametre_moteur: Surface
+  hmt_min_m: 15.0
+  hmt_max_m: 45.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[12.0]'
+  puissance_p2_kw: 7.5
+  cos_phi: 0.81
+  rendement_pompe_pct: 69.0
+  rendement_pompe_moteur_pct: 61.0
+  materiaux: Fonte/AISI 304
+  classe_protection: IP55
+  classe_isolation: F
+  temp_max_liquide_c: 120.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 600.0
+  capex_estime_fcfa: 393574.2
+  opex_par_kwh_eur: 0.246
+  opex_par_kwh_fcfa: 161.365422
+  puissance_absorbe_kw: 12.295081967213115
+  opex_estime_fcfa_kwh: 1209.7131147540983
+- designation: CR 25-2
+  marque: Grundfos
+  nom_produit: CR 25-2
+  type_moteur: IEC 112
+  poids_net_kg: 48.0
+  debit_exploitation_m3h_min: 10.0
+  debit_exploitation_m3h_max: 30.0
+  debit_exploitation_m3s_min: 0.002777777777777778
+  debit_exploitation_m3s_max: 0.008333333333333333
+  diametre_moteur: Surface
+  hmt_min_m: 6.0
+  hmt_max_m: 18.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[12.0]'
+  puissance_p2_kw: 7.5
+  cos_phi: 0.81
+  rendement_pompe_pct: 70.0
+  rendement_pompe_moteur_pct: 62.0
+  materiaux: Fonte/AISI 304
+  classe_protection: IP55
+  classe_isolation: F
+  temp_max_liquide_c: 120.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 600.0
+  capex_estime_fcfa: 393574.2
+  opex_par_kwh_eur: 0.242
+  opex_par_kwh_fcfa: 158.741594
+  puissance_absorbe_kw: 12.096774193548388
+  opex_estime_fcfa_kwh: 1190.2016129032259
+- designation: CR 25-4
+  marque: Grundfos
+  nom_produit: CR 25-4
+  type_moteur: IEC 112
+  poids_net_kg: 60.0
+  debit_exploitation_m3h_min: 10.0
+  debit_exploitation_m3h_max: 30.0
+  debit_exploitation_m3s_min: 0.002777777777777778
+  debit_exploitation_m3s_max: 0.008333333333333333
+  diametre_moteur: Surface
+  hmt_min_m: 12.0
+  hmt_max_m: 36.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[17.6]'
+  puissance_p2_kw: 11.0
+  cos_phi: 0.82
+  rendement_pompe_pct: 72.0
+  rendement_pompe_moteur_pct: 64.0
+  materiaux: Fonte/AISI 304
+  classe_protection: IP55
+  classe_isolation: F
+  temp_max_liquide_c: 120.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 880.0
+  capex_estime_fcfa: 577242.16
+  opex_par_kwh_eur: 0.234
+  opex_par_kwh_fcfa: 153.493938
+  puissance_absorbe_kw: 17.1875
+  opex_estime_fcfa_kwh: 1691.078125
+- designation: CR 35-2
+  marque: Grundfos
+  nom_produit: CR 35-2
+  type_moteur: IEC 112
+  poids_net_kg: 59.0
+  debit_exploitation_m3h_min: 14.0
+  debit_exploitation_m3h_max: 40.0
+  debit_exploitation_m3s_min: 0.0038888888888888888
+  debit_exploitation_m3s_max: 0.011111111111111112
+  diametre_moteur: Surface
+  hmt_min_m: 6.0
+  hmt_max_m: 18.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[17.6]'
+  puissance_p2_kw: 11.0
+  cos_phi: 0.82
+  rendement_pompe_pct: 73.0
+  rendement_pompe_moteur_pct: 65.0
+  materiaux: Fonte/AISI 304
+  classe_protection: IP55
+  classe_isolation: F
+  temp_max_liquide_c: 120.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 880.0
+  capex_estime_fcfa: 577242.16
+  opex_par_kwh_eur: 0.231
+  opex_par_kwh_fcfa: 151.526067
+  puissance_absorbe_kw: 16.923076923076923
+  opex_estime_fcfa_kwh: 1665.0615384615385
+- designation: CR 35-3
+  marque: Grundfos
+  nom_produit: CR 35-3
+  type_moteur: IEC 132
+  poids_net_kg: 71.0
+  debit_exploitation_m3h_min: 14.0
+  debit_exploitation_m3h_max: 40.0
+  debit_exploitation_m3s_min: 0.0038888888888888888
+  debit_exploitation_m3s_max: 0.011111111111111112
+  diametre_moteur: Surface
+  hmt_min_m: 9.0
+  hmt_max_m: 27.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[24.0]'
+  puissance_p2_kw: 15.0
+  cos_phi: 0.83
+  rendement_pompe_pct: 75.0
+  rendement_pompe_moteur_pct: 67.0
+  materiaux: Fonte/AISI 304
+  classe_protection: IP55
+  classe_isolation: F
+  temp_max_liquide_c: 120.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 1200.0
+  capex_estime_fcfa: 787148.4
+  opex_par_kwh_eur: 0.224
+  opex_par_kwh_fcfa: 146.934368
+  puissance_absorbe_kw: 22.388059701492537
+  opex_estime_fcfa_kwh: 2202.7611940298507
+- designation: CR 40-2
+  marque: Grundfos
+  nom_produit: CR 40-2
+  type_moteur: IEC 132
+  poids_net_kg: 71.0
+  debit_exploitation_m3h_min: 16.0
+  debit_exploitation_m3h_max: 45.0
+  debit_exploitation_m3s_min: 0.0044444444444444444
+  debit_exploitation_m3s_max: 0.0125
+  diametre_moteur: Surface
+  hmt_min_m: 6.0
+  hmt_max_m: 18.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[24.0]'
+  puissance_p2_kw: 15.0
+  cos_phi: 0.83
+  rendement_pompe_pct: 74.0
+  rendement_pompe_moteur_pct: 66.0
+  materiaux: Fonte/AISI 304
+  classe_protection: IP55
+  classe_isolation: F
+  temp_max_liquide_c: 120.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 1200.0
+  capex_estime_fcfa: 787148.4
+  opex_par_kwh_eur: 0.227
+  opex_par_kwh_fcfa: 148.902239
+  puissance_absorbe_kw: 22.727272727272727
+  opex_estime_fcfa_kwh: 2236.1363636363635
+- designation: CR 40-3
+  marque: Grundfos
+  nom_produit: CR 40-3
+  type_moteur: IEC 132
+  poids_net_kg: 82.0
+  debit_exploitation_m3h_min: 16.0
+  debit_exploitation_m3h_max: 45.0
+  debit_exploitation_m3s_min: 0.0044444444444444444
+  debit_exploitation_m3s_max: 0.0125
+  diametre_moteur: Surface
+  hmt_min_m: 9.0
+  hmt_max_m: 27.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[29.6]'
+  puissance_p2_kw: 18.5
+  cos_phi: 0.84
+  rendement_pompe_pct: 76.0
+  rendement_pompe_moteur_pct: 68.0
+  materiaux: Fonte/AISI 304
+  classe_protection: IP55
+  classe_isolation: F
+  temp_max_liquide_c: 120.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 1480.0
+  capex_estime_fcfa: 970816.36
+  opex_par_kwh_eur: 0.221
+  opex_par_kwh_fcfa: 144.966497
+  puissance_absorbe_kw: 27.205882352941174
+  opex_estime_fcfa_kwh: 2676.786764705882
+- designation: CR 50-2
+  marque: Grundfos
+  nom_produit: CR 50-2
+  type_moteur: IEC 132
+  poids_net_kg: 81.0
+  debit_exploitation_m3h_min: 20.0
+  debit_exploitation_m3h_max: 55.0
+  debit_exploitation_m3s_min: 0.005555555555555556
+  debit_exploitation_m3s_max: 0.015277777777777777
+  diametre_moteur: Surface
+  hmt_min_m: 6.0
+  hmt_max_m: 18.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[29.6]'
+  puissance_p2_kw: 18.5
+  cos_phi: 0.84
+  rendement_pompe_pct: 75.0
+  rendement_pompe_moteur_pct: 67.0
+  materiaux: Fonte/AISI 304
+  classe_protection: IP55
+  classe_isolation: F
+  temp_max_liquide_c: 120.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 1480.0
+  capex_estime_fcfa: 970816.36
+  opex_par_kwh_eur: 0.224
+  opex_par_kwh_fcfa: 146.934368
+  puissance_absorbe_kw: 27.61194029850746
+  opex_estime_fcfa_kwh: 2716.738805970149
+- designation: CR 50-3
+  marque: Grundfos
+  nom_produit: CR 50-3
+  type_moteur: IEC 132
+  poids_net_kg: 92.0
+  debit_exploitation_m3h_min: 20.0
+  debit_exploitation_m3h_max: 55.0
+  debit_exploitation_m3s_min: 0.005555555555555556
+  debit_exploitation_m3s_max: 0.015277777777777777
+  diametre_moteur: Surface
+  hmt_min_m: 9.0
+  hmt_max_m: 27.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[35.2]'
+  puissance_p2_kw: 22.0
+  cos_phi: 0.85
+  rendement_pompe_pct: 77.0
+  rendement_pompe_moteur_pct: 69.0
+  materiaux: Fonte/AISI 304
+  classe_protection: IP55
+  classe_isolation: F
+  temp_max_liquide_c: 120.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 1760.0
+  capex_estime_fcfa: 1154484.32
+  opex_par_kwh_eur: 0.217
+  opex_par_kwh_fcfa: 142.342669
+  puissance_absorbe_kw: 31.884057971014496
+  opex_estime_fcfa_kwh: 3137.0724637681164
+- designation: CR 55-2
+  marque: Grundfos
+  nom_produit: CR 55-2
+  type_moteur: IEC 132
+  poids_net_kg: 92.0
+  debit_exploitation_m3h_min: 22.0
+  debit_exploitation_m3h_max: 60.0
+  debit_exploitation_m3s_min: 0.006111111111111111
+  debit_exploitation_m3s_max: 0.016666666666666666
+  diametre_moteur: Surface
+  hmt_min_m: 6.0
+  hmt_max_m: 18.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[35.2]'
+  puissance_p2_kw: 22.0
+  cos_phi: 0.85
+  rendement_pompe_pct: 76.0
+  rendement_pompe_moteur_pct: 68.0
+  materiaux: Fonte/AISI 304
+  classe_protection: IP55
+  classe_isolation: F
+  temp_max_liquide_c: 120.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 1760.0
+  capex_estime_fcfa: 1154484.32
+  opex_par_kwh_eur: 0.221
+  opex_par_kwh_fcfa: 144.966497
+  puissance_absorbe_kw: 32.35294117647059
+  opex_estime_fcfa_kwh: 3183.205882352941
+- designation: CR 55-3
+  marque: Grundfos
+  nom_produit: CR 55-3
+  type_moteur: IEC 160
+  poids_net_kg: 116.0
+  debit_exploitation_m3h_min: 22.0
+  debit_exploitation_m3h_max: 60.0
+  debit_exploitation_m3s_min: 0.006111111111111111
+  debit_exploitation_m3s_max: 0.016666666666666666
+  diametre_moteur: Surface
+  hmt_min_m: 9.0
+  hmt_max_m: 27.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[48.0]'
+  puissance_p2_kw: 30.0
+  cos_phi: 0.88
+  rendement_pompe_pct: 78.0
+  rendement_pompe_moteur_pct: 70.0
+  materiaux: Fonte/AISI 304
+  classe_protection: IP55
+  classe_isolation: F
+  temp_max_liquide_c: 120.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 2400.0
+  capex_estime_fcfa: 1574296.8
+  opex_par_kwh_eur: 0.214
+  opex_par_kwh_fcfa: 140.374798
+  puissance_absorbe_kw: 42.85714285714286
+  opex_estime_fcfa_kwh: 4216.714285714286
+- designation: CR 70-2
+  marque: Grundfos
+  nom_produit: CR 70-2
+  type_moteur: IEC 160
+  poids_net_kg: 116.0
+  debit_exploitation_m3h_min: 28.0
+  debit_exploitation_m3h_max: 75.0
+  debit_exploitation_m3s_min: 0.0077777777777777776
+  debit_exploitation_m3s_max: 0.020833333333333332
+  diametre_moteur: Surface
+  hmt_min_m: 6.0
+  hmt_max_m: 18.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[48.0]'
+  puissance_p2_kw: 30.0
+  cos_phi: 0.88
+  rendement_pompe_pct: 77.0
+  rendement_pompe_moteur_pct: 69.0
+  materiaux: Fonte/AISI 304
+  classe_protection: IP55
+  classe_isolation: F
+  temp_max_liquide_c: 120.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 2400.0
+  capex_estime_fcfa: 1574296.8
+  opex_par_kwh_eur: 0.217
+  opex_par_kwh_fcfa: 142.342669
+  puissance_absorbe_kw: 43.47826086956522
+  opex_estime_fcfa_kwh: 4277.826086956522
+- designation: CR 70-3
+  marque: Grundfos
+  nom_produit: CR 70-3
+  type_moteur: IEC 160
+  poids_net_kg: 137.0
+  debit_exploitation_m3h_min: 28.0
+  debit_exploitation_m3h_max: 75.0
+  debit_exploitation_m3s_min: 0.0077777777777777776
+  debit_exploitation_m3s_max: 0.020833333333333332
+  diametre_moteur: Surface
+  hmt_min_m: 9.0
+  hmt_max_m: 27.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[59.2]'
+  puissance_p2_kw: 37.0
+  cos_phi: 0.9
+  rendement_pompe_pct: 79.0
+  rendement_pompe_moteur_pct: 71.0
+  materiaux: Fonte/AISI 304
+  classe_protection: IP55
+  classe_isolation: F
+  temp_max_liquide_c: 120.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 3256.0
+  capex_estime_fcfa: 2135795.992
+  opex_par_kwh_eur: 0.211
+  opex_par_kwh_fcfa: 138.406927
+  puissance_absorbe_kw: 52.11267605633803
+  opex_estime_fcfa_kwh: 5127.366197183099
+- designation: CR 80-2
+  marque: Grundfos
+  nom_produit: CR 80-2
+  type_moteur: IEC 160
+  poids_net_kg: 137.0
+  debit_exploitation_m3h_min: 32.0
+  debit_exploitation_m3h_max: 85.0
+  debit_exploitation_m3s_min: 0.008888888888888889
+  debit_exploitation_m3s_max: 0.02361111111111111
+  diametre_moteur: Surface
+  hmt_min_m: 6.0
+  hmt_max_m: 18.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[59.2]'
+  puissance_p2_kw: 37.0
+  cos_phi: 0.9
+  rendement_pompe_pct: 78.0
+  rendement_pompe_moteur_pct: 70.0
+  materiaux: Fonte/AISI 304
+  classe_protection: IP55
+  classe_isolation: F
+  temp_max_liquide_c: 120.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 3256.0
+  capex_estime_fcfa: 2135795.992
+  opex_par_kwh_eur: 0.214
+  opex_par_kwh_fcfa: 140.374798
+  puissance_absorbe_kw: 52.85714285714286
+  opex_estime_fcfa_kwh: 5200.614285714286
+- designation: CR 80-3
+  marque: Grundfos
+  nom_produit: CR 80-3
+  type_moteur: IEC 160
+  poids_net_kg: 161.0
+  debit_exploitation_m3h_min: 32.0
+  debit_exploitation_m3h_max: 85.0
+  debit_exploitation_m3s_min: 0.008888888888888889
+  debit_exploitation_m3s_max: 0.02361111111111111
+  diametre_moteur: Surface
+  hmt_min_m: 9.0
+  hmt_max_m: 27.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[72.0]'
+  puissance_p2_kw: 45.0
+  cos_phi: 0.93
+  rendement_pompe_pct: 80.0
+  rendement_pompe_moteur_pct: 72.0
+  materiaux: Fonte/AISI 304
+  classe_protection: IP55
+  classe_isolation: F
+  temp_max_liquide_c: 120.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 3960.0
+  capex_estime_fcfa: 2597589.72
+  opex_par_kwh_eur: 0.208
+  opex_par_kwh_fcfa: 136.439056
+  puissance_absorbe_kw: 62.5
+  opex_estime_fcfa_kwh: 6149.375
+- designation: CR 100-2
+  marque: Grundfos
+  nom_produit: CR 100-2
+  type_moteur: IEC 160
+  poids_net_kg: 161.0
+  debit_exploitation_m3h_min: 40.0
+  debit_exploitation_m3h_max: 105.0
+  debit_exploitation_m3s_min: 0.011111111111111112
+  debit_exploitation_m3s_max: 0.029166666666666667
+  diametre_moteur: Surface
+  hmt_min_m: 6.0
+  hmt_max_m: 18.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[72.0]'
+  puissance_p2_kw: 45.0
+  cos_phi: 0.93
+  rendement_pompe_pct: 79.0
+  rendement_pompe_moteur_pct: 71.0
+  materiaux: Fonte/AISI 304
+  classe_protection: IP55
+  classe_isolation: F
+  temp_max_liquide_c: 120.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 3960.0
+  capex_estime_fcfa: 2597589.72
+  opex_par_kwh_eur: 0.211
+  opex_par_kwh_fcfa: 138.406927
+  puissance_absorbe_kw: 63.38028169014085
+  opex_estime_fcfa_kwh: 6235.985915492958
+- designation: CR 100-3
+  marque: Grundfos
+  nom_produit: CR 100-3
+  type_moteur: IEC 180
+  poids_net_kg: 191.0
+  debit_exploitation_m3h_min: 40.0
+  debit_exploitation_m3h_max: 105.0
+  debit_exploitation_m3s_min: 0.011111111111111112
+  debit_exploitation_m3s_max: 0.029166666666666667
+  diametre_moteur: Surface
+  hmt_min_m: 9.0
+  hmt_max_m: 27.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[88.0]'
+  puissance_p2_kw: 55.0
+  cos_phi: 0.96
+  rendement_pompe_pct: 81.0
+  rendement_pompe_moteur_pct: 73.0
+  materiaux: Fonte/AISI 304
+  classe_protection: IP55
+  classe_isolation: F
+  temp_max_liquide_c: 120.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 4840.0
+  capex_estime_fcfa: 3174831.88
+  opex_par_kwh_eur: 0.205
+  opex_par_kwh_fcfa: 134.471185
+  puissance_absorbe_kw: 75.34246575342466
+  opex_estime_fcfa_kwh: 7412.945205479453
+- designation: CR 110-2
+  marque: Grundfos
+  nom_produit: CR 110-2
+  type_moteur: IEC 180
+  poids_net_kg: 191.0
+  debit_exploitation_m3h_min: 44.0
+  debit_exploitation_m3h_max: 115.0
+  debit_exploitation_m3s_min: 0.012222222222222223
+  debit_exploitation_m3s_max: 0.03194444444444444
+  diametre_moteur: Surface
+  hmt_min_m: 6.0
+  hmt_max_m: 18.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[88.0]'
+  puissance_p2_kw: 55.0
+  cos_phi: 0.96
+  rendement_pompe_pct: 80.0
+  rendement_pompe_moteur_pct: 72.0
+  materiaux: Fonte/AISI 304
+  classe_protection: IP55
+  classe_isolation: F
+  temp_max_liquide_c: 120.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 4840.0
+  capex_estime_fcfa: 3174831.88
+  opex_par_kwh_eur: 0.208
+  opex_par_kwh_fcfa: 136.439056
+  puissance_absorbe_kw: 76.38888888888889
+  opex_estime_fcfa_kwh: 7515.902777777777
+- designation: CR 110-3
+  marque: Grundfos
+  nom_produit: CR 110-3
+  type_moteur: IEC 180
+  poids_net_kg: 251.0
+  debit_exploitation_m3h_min: 44.0
+  debit_exploitation_m3h_max: 115.0
+  debit_exploitation_m3s_min: 0.012222222222222223
+  debit_exploitation_m3s_max: 0.03194444444444444
+  diametre_moteur: Surface
+  hmt_min_m: 9.0
+  hmt_max_m: 27.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[120.0]'
+  puissance_p2_kw: 75.0
+  cos_phi: 1.03
+  rendement_pompe_pct: 82.0
+  rendement_pompe_moteur_pct: 74.0
+  materiaux: Fonte/AISI 304
+  classe_protection: IP55
+  classe_isolation: F
+  temp_max_liquide_c: 120.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 6600.0
+  capex_estime_fcfa: 4329316.2
+  opex_par_kwh_eur: 0.203
+  opex_par_kwh_fcfa: 133.15927100000002
+  puissance_absorbe_kw: 101.35135135135135
+  opex_estime_fcfa_kwh: 9971.95945945946
+- designation: CR 130-2
+  marque: Grundfos
+  nom_produit: CR 130-2
+  type_moteur: IEC 180
+  poids_net_kg: 251.0
+  debit_exploitation_m3h_min: 52.0
+  debit_exploitation_m3h_max: 135.0
+  debit_exploitation_m3s_min: 0.014444444444444444
+  debit_exploitation_m3s_max: 0.0375
+  diametre_moteur: Surface
+  hmt_min_m: 6.0
+  hmt_max_m: 18.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[120.0]'
+  puissance_p2_kw: 75.0
+  cos_phi: 1.03
+  rendement_pompe_pct: 81.0
+  rendement_pompe_moteur_pct: 73.0
+  materiaux: Fonte/AISI 304
+  classe_protection: IP55
+  classe_isolation: F
+  temp_max_liquide_c: 120.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 6600.0
+  capex_estime_fcfa: 4329316.2
+  opex_par_kwh_eur: 0.205
+  opex_par_kwh_fcfa: 134.471185
+  puissance_absorbe_kw: 102.73972602739727
+  opex_estime_fcfa_kwh: 10108.561643835617
+- designation: CR 130-3
+  marque: Grundfos
+  nom_produit: CR 130-3
+  type_moteur: IEC 225
+  poids_net_kg: 296.0
+  debit_exploitation_m3h_min: 52.0
+  debit_exploitation_m3h_max: 135.0
+  debit_exploitation_m3s_min: 0.014444444444444444
+  debit_exploitation_m3s_max: 0.0375
+  diametre_moteur: Surface
+  hmt_min_m: 9.0
+  hmt_max_m: 27.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[144.0]'
+  puissance_p2_kw: 90.0
+  cos_phi: 1.08
+  rendement_pompe_pct: 83.0
+  rendement_pompe_moteur_pct: 75.0
+  materiaux: Fonte/AISI 304
+  classe_protection: IP55
+  classe_isolation: F
+  temp_max_liquide_c: 120.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 7920.0
+  capex_estime_fcfa: 5195179.44
+  opex_par_kwh_eur: 0.2
+  opex_par_kwh_fcfa: 131.19140000000002
+  puissance_absorbe_kw: 120.0
+  opex_estime_fcfa_kwh: 11806.8
+- designation: CR 140-2
+  marque: Grundfos
+  nom_produit: CR 140-2
+  type_moteur: IEC 225
+  poids_net_kg: 296.0
+  debit_exploitation_m3h_min: 56.0
+  debit_exploitation_m3h_max: 145.0
+  debit_exploitation_m3s_min: 0.015555555555555555
+  debit_exploitation_m3s_max: 0.04027777777777778
+  diametre_moteur: Surface
+  hmt_min_m: 6.0
+  hmt_max_m: 18.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[144.0]'
+  puissance_p2_kw: 90.0
+  cos_phi: 1.08
+  rendement_pompe_pct: 82.0
+  rendement_pompe_moteur_pct: 74.0
+  materiaux: Fonte/AISI 304
+  classe_protection: IP55
+  classe_isolation: F
+  temp_max_liquide_c: 120.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 7920.0
+  capex_estime_fcfa: 5195179.44
+  opex_par_kwh_eur: 0.203
+  opex_par_kwh_fcfa: 133.15927100000002
+  puissance_absorbe_kw: 121.62162162162163
+  opex_estime_fcfa_kwh: 11966.351351351352
+- designation: CR 140-3
+  marque: Grundfos
+  nom_produit: CR 140-3
+  type_moteur: IEC 225
+  poids_net_kg: 356.0
+  debit_exploitation_m3h_min: 56.0
+  debit_exploitation_m3h_max: 145.0
+  debit_exploitation_m3s_min: 0.015555555555555555
+  debit_exploitation_m3s_max: 0.04027777777777778
+  diametre_moteur: Surface
+  hmt_min_m: 9.0
+  hmt_max_m: 27.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[176.0]'
+  puissance_p2_kw: 110.0
+  cos_phi: 1.15
+  rendement_pompe_pct: 84.0
+  rendement_pompe_moteur_pct: 76.0
+  materiaux: Fonte/AISI 304
+  classe_protection: IP55
+  classe_isolation: F
+  temp_max_liquide_c: 120.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 9680.0
+  capex_estime_fcfa: 6349663.76
+  opex_par_kwh_eur: 0.197
+  opex_par_kwh_fcfa: 129.223529
+  puissance_absorbe_kw: 144.73684210526315
+  opex_estime_fcfa_kwh: 14240.657894736842
+- designation: CR 160-2
+  marque: Grundfos
+  nom_produit: CR 160-2
+  type_moteur: IEC 225
+  poids_net_kg: 356.0
+  debit_exploitation_m3h_min: 64.0
+  debit_exploitation_m3h_max: 165.0
+  debit_exploitation_m3s_min: 0.017777777777777778
+  debit_exploitation_m3s_max: 0.04583333333333333
+  diametre_moteur: Surface
+  hmt_min_m: 6.0
+  hmt_max_m: 18.0
+  frequence_hz: 50
+  tension_v: '["3x400"]'
+  intensite_nominale_a: '[176.0]'
+  puissance_p2_kw: 110.0
+  cos_phi: 1.15
+  rendement_pompe_pct: 83.0
+  rendement_pompe_moteur_pct: 75.0
+  materiaux: Fonte/AISI 304
+  classe_protection: IP55
+  classe_isolation: F
+  temp_max_liquide_c: 120.0
+  certification_eau_potable: Oui
+  courbe_hq_points: '[]'
+  capex_estime_eur: 9680.0
+  capex_estime_fcfa: 6349663.76
+  opex_par_kwh_eur: 0.2
+  opex_par_kwh_fcfa: 131.19140000000002
+  puissance_absorbe_kw: 146.66666666666666
+  opex_estime_fcfa_kwh: 14430.533333333333

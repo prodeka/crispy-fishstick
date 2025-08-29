@@ -1,0 +1,30 @@
+===== COMPARISON: EPANET vs LCPI =====
+Price DB (EPANET): C:\PROJET_DIMENTIONEMENT_2\src\lcpi\db\aep_prices.db
+Price DB (LCPI)  : C:\PROJET_DIMENTIONEMENT_2\src\lcpi\db\aep_prices.db
+
+Best cost EPANET : 25,068,888.23 FCFA
+Best cost LCPI   : 5,735,539.80 FCFA
+Delta LCPI-EPANET: -19,333,348.43 FCFA (-77.12%)
+
+Total pipe length: 262.49 m
+Implied unit (EPANET): 95,502.45 FCFA/m
+Implied unit (LCPI)  : 21,850.11 FCFA/m
+
+Pipes (EPANET): 205
+Pipes (LCPI)  : 205
+Feasible (EPANET): True
+Feasible (LCPI)  : False
+
+=== DIAMETER ANALYSIS ===
+EPANET Diameters: 205 pipes
+LCPI Diameters: 205 pipes
+
+=== PRICE ANALYSIS ===
+EPANET Cost per meter: 95,502.45 FCFA/m
+LCPI Cost per meter: 21,850.11 FCFA/m
+Price ratio (LCPI/EPANET): 22.88% if epanet_cost_per_m else "N/A"
+
+=== DIAGNOSTIC NOTES ===
+- If EPANET cost per meter > 100,000 FCFA/m: Check for very large diameters (800-900mm)
+- If LCPI cost per meter < 1,000 FCFA/m: Check if LCPI uses correct price database
+- If price ratio < 10%: LCPI may not be using real network lengths or prices

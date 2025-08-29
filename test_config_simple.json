@@ -1,0 +1,24 @@
+{
+  "output_dir": "test_runs_simple",
+  "cli_script": [
+    "python",
+    "-m",
+    "lcpi.aep.cli"
+  ],
+  "input_network_file": "test_validation/bismark_inp.inp",
+  "max_workers": 1,
+  "param_combinations": [
+    {
+      "generations": 10,
+      "population": 20,
+      "hmax": 100,
+      "run_name": "h100_g10_p20"
+    },
+    {
+      "generations": 10,
+      "population": 20,
+      "hmax": 120,
+      "run_name": "h120_g10_p20"
+    }
+  ]
+}

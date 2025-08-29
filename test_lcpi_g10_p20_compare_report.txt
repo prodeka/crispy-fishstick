@@ -1,0 +1,17 @@
+
+===== COMPARISON: EPANET vs LCPI =====
+Price DB (EPANET): C:\PROJET_DIMENTIONEMENT_2\src\lcpi\db\aep_prices.db
+Price DB (LCPI)  : C:\PROJET_DIMENTIONEMENT_2\src\lcpi\db\aep_prices.db
+
+Best cost EPANET : 17,970,393.429902084 FCFA
+Best cost LCPI   : 5,564.174455677068 FCFA
+Delta LCPI-EPANET: -17,964,829.255446408 FCFA (-99.97%)
+
+Total pipe length: 0.26 m
+Implied unit (EPANET): 68460018.13 FCFA/m
+Implied unit (LCPI)  : 21197.28 FCFA/m
+
+Pipes (EPANET): 205
+Pipes (LCPI)  : 205
+Feasible (EPANET): True
+Feasible (LCPI)  : False
