@@ -7,12 +7,24 @@ parent_dir = os.path.dirname(current_dir)
 if parent_dir not in sys.path:
     sys.path.insert(0, parent_dir)
 
+# Ajouter le répertoire src au path pour permettre l'exécution depuis la racine
+project_root = os.path.dirname(parent_dir)
+src_dir = os.path.join(project_root, "src")
+if src_dir not in sys.path:
+    sys.path.insert(0, src_dir)
+
 try:
     from lcpi.main import app
 except ImportError:
     # Fallback pour l'installation pip
     sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
-    from lcpi.main import app
+    try:
+        from lcpi.main import app
+    except ImportError:
+        # Dernier fallback : essayer d'importer directement depuis le répertoire courant
+        sys.path.insert(0, current_dir)
+        from main import app
+
 import typer
 from typing import Optional, List
 
