@@ -27,6 +27,7 @@ from .models import ConfigurationOptimisation, DiametreCommercial  # type: ignor
 from .constraints import ConstraintManager  # type: ignore
 from .individual import Individu  # type: ignore
 from ..core.epanet_wrapper import EPANETOptimizer  # type: ignore
+from .repairs import soft_repair_solution  # type: ignore
 
 # ---- Helpers -----------------
 def _hash_candidate(diams: List[int], h_tank: Optional[float]) -> str:
@@ -1097,6 +1098,119 @@ class GeneticOptimizerV2:
                 
         self._log_ga(f"AGAMO: Phase {self.current_phase} at generation {generation}")
 
+    def _apply_soft_repair(self, population: List[Individu], candidate_diameters: List[int]):
+        """
+        Applique la réparation douce aux meilleurs individus infaisables de la population.
+        """
+        # Paramètres de la réparation (à rendre configurables)
+        repair_top_k = getattr(self.config.algorithme, "repair_top_k", 3)
+        repair_max_cost_increase_ratio = getattr(self.config.algorithme, "repair_max_cost_increase_ratio", 1.10) # 10% de surcoût max
+
+        # 1. Identifier les candidats à la réparation
+        infeasible_individuals = [ind for ind in population if not getattr(ind, 'is_feasible', True)]
+        if not infeasible_individuals:
+            return # Rien à faire
+
+        # Trier les infaisables par leur score (le moins mauvais d'abord)
+        infeasible_individuals.sort(key=lambda ind: getattr(ind, 'fitness', 0.0), reverse=True)
+        
+        # Ne garder que les K meilleurs
+        candidates_for_repair = infeasible_individuals[:repair_top_k]
+
+        for individual in candidates_for_repair:
+            self._log_ga(f"Tentative de réparation douce sur l'individu avec score={getattr(individual, 'fitness', 0.0):.2f}...")
+            
+            # 2. Tenter la réparation
+            # Convertir les diamètres en dictionnaire pour la fonction de réparation
+            diameters_map = {}
+            if self.pipe_ids and len(self.pipe_ids) == len(individual.diametres):
+                diameters_map = {self.pipe_ids[i]: d for i, d in enumerate(individual.diametres)}
+            else:
+                # Fallback: utiliser des clés numériques
+                diameters_map = {f"pipe_{i}": d for i, d in enumerate(individual.diametres)}
+            
+            repaired_diam_map, changes = soft_repair_solution(
+                diameters_map,
+                getattr(individual, 'sim_result', {}),
+                candidate_diameters
+            )
+
+            if changes["total_changes"] == 0:
+                continue # La réparation n'a rien pu faire
+
+            # 3. Évaluer la solution réparée
+            # Convertir le dictionnaire réparé en liste de diamètres
+            repaired_diameters = []
+            if self.pipe_ids and len(self.pipe_ids) == len(individual.diametres):
+                for pipe_id in self.pipe_ids:
+                    repaired_diameters.append(repaired_diam_map.get(pipe_id, individual.diametres[0]))
+            else:
+                # Fallback: utiliser l'ordre original
+                for i in range(len(individual.diametres)):
+                    pipe_key = f"pipe_{i}"
+                    repaired_diameters.append(repaired_diam_map.get(pipe_key, individual.diametres[i]))
+            
+            # Créer un nouvel individu avec les diamètres réparés
+            repaired_individual = Individu(
+                diametres=repaired_diameters,
+                h_tank_m=getattr(individual, 'h_tank_m', None)
+            )
+            
+            # Calculer le coût de la solution réparée
+            try:
+                from ..optimizer.scoring import CostScorer
+                scorer = CostScorer()
+                repaired_capex = scorer.compute_capex(self.network, repaired_diam_map)
+                current_capex = getattr(individual, 'cout_total', 0.0)
+                
+                # Condition d'acceptation de coût
+                if repaired_capex > current_capex * repair_max_cost_increase_ratio:
+                    self._log_ga(f"Réparation rejetée: le coût a trop augmenté ({current_capex:.0f} -> {repaired_capex:.0f}).")
+                    continue
+            except Exception as e:
+                self._log_ga(f"Impossible de vérifier le coût de réparation: {e}")
+                continue
+                
+            # Resimuler la solution réparée pour voir si elle est meilleure
+            repaired_sim = self._simulate_or_approx(repaired_individual, None)
+            
+            if not repaired_sim.get("success"):
+                self._log_ga("Réparation rejetée: la simulation a échoué.")
+                continue
+            
+            # Normaliser les violations pour comparer
+            try:
+                from ..optimizer.constraints_handler import ConstraintPenaltyCalculator
+                penalty_calculator = ConstraintPenaltyCalculator()
+                
+                constraints = {
+                    "pressure_min_m": getattr(getattr(self.constraint_manager, "contraintes_techniques", {}), "pression_min_mce", self.pressure_default_min),
+                    "velocity_max_m_s": getattr(getattr(self.constraint_manager, "contraintes_techniques", {}), "vitesse_max_m_s", self.velocity_max_default)
+                }
+                
+                original_violations = penalty_calculator.normalize_violations(
+                    getattr(individual, 'sim_result', {}), constraints
+                )
+                repaired_violations = penalty_calculator.normalize_violations(repaired_sim, constraints)
+                
+                # Condition d'acceptation de performance
+                if repaired_violations["total"] < original_violations["total"]:
+                    self._log_ga(
+                        f"Réparation ACCEPTÉE sur individu. Violation réduite: "
+                        f"{original_violations['total']:.4f} -> {repaired_violations['total']:.4f}. "
+                        f"Coût: {repaired_capex:,.0f} FCFA."
+                    )
+                    # Remplacer l'individu original par sa version réparée
+                    individual.diametres = repaired_diameters
+                    individual.sim_result = repaired_sim
+                    individual.cout_total = repaired_capex
+                    # Ré-évaluer complètement l'individu réparé
+                    self._evaluate_individual((0, 0, individual, None, len(population)))
+                else:
+                    self._log_ga("Réparation rejetée: la violation n'a pas diminué.")
+            except Exception as e:
+                self._log_ga(f"Erreur lors de la comparaison des violations: {e}")
+
     def _check_stagnation(self, generation: int) -> bool:
         """Vérifie si l'optimisation stagne et déclenche des actions correctives."""
         if len(self.best_cost_history) < 10:
@@ -1239,6 +1353,10 @@ class GeneticOptimizerV2:
             
             # Tri par fitness
             self.population.sort(key=lambda x: getattr(x, 'fitness', 0.0), reverse=True)
+            
+            # --- HOOK DE RÉPARATION DOUCE ---
+            candidate_diams = [int(d.diametre_mm) for d in self.diam_candidats]
+            self._apply_soft_repair(self.population, candidate_diams)
             
             # Mise à jour de la meilleure solution
             if not self.best_solution or getattr(self.population[0], 'fitness', 0.0) > getattr(self.best_solution, 'fitness', 0.0):

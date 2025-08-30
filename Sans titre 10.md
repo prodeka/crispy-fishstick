@@ -1,190 +1,219 @@
-### **Prompt pour Cursor AI : Implémentation de la Phase 2**
+
+### **Prompt pour Cursor AI : Implémentation de la Phase 3**
 
 "Salut. Je démarre une nouvelle session de travail sur mon projet LCPI.
 
 **Contexte :**
-Nous avons terminé la Phase 1. La classe `PriceDB` est maintenant la source de vérité unique pour les diamètres et les prix, et elle est correctement intégrée dans tout le pipeline d'optimisation (contrôleur, algorithmes, scoring).
+Nous avons terminé la Phase 2 avec succès. L'algorithme génétique utilise maintenant un système de pénalité adaptative et non linéaire pour évaluer les solutions, basé sur une classe `ConstraintPenaltyCalculator`.
 
 **Ta mission :**
-Tu vas maintenant implémenter la **Phase 2 : Pénalité adaptative non linéaire et normalisation des violations**. L'objectif est de remplacer le système de pénalité actuel, probablement trop simple, par un mécanisme plus sophistiqué qui punit les solutions en fonction de la *sévérité* de leurs violations et de l'avancement de l'optimisation.
+Tu vas maintenant implémenter la **Phase 3 : Réparation Douce (Soft Repair)**. L'objectif est d'ajouter un mécanisme qui tente de corriger intelligemment un petit nombre des meilleures solutions infaisables à chaque génération, sans appliquer de changements brutaux.
 
 ---
 
-### **Étape 1 : Créer le Module de Gestion des Contraintes**
+### **Étape 1 : Créer le Module de Réparation**
 
-**Explication :** Nous allons centraliser toute la logique liée aux contraintes dans un nouveau fichier. Cela inclut la normalisation des violations (pour avoir un score de "violation" comparable entre pression et vitesse) et la fonction de pénalité adaptative elle-même.
+**Explication :** Nous allons isoler la logique de réparation dans un nouveau fichier dédié. La fonction principale identifiera les conduites les plus problématiques et n'augmentera leur diamètre que d'un seul cran.
 
-**Action :** Crée un nouveau fichier `src/lcpi/aep/optimization/constraints_handler.py` et insère-y le contenu suivant.
+**Action :** Crée un nouveau fichier `src/lcpi/aep/optimization/repairs.py` et insère-y le contenu suivant.
 
 ```python
-# --- Contenu du nouveau fichier src/lcpi/aep/optimization/constraints_handler.py ---
+# --- Contenu du nouveau fichier src/lcpi/aep/optimization/repairs.py ---
 
-from typing import Dict, Any
+from typing import Dict, List, Tuple, Optional
+import random
+import logging
 
-def normalize_violations(sim_metrics: Dict[str, Any], constraints: Dict[str, Any]) -> Dict[str, float]:
-    """
-    Calcule un score de violation normalisé pour la pression et la vitesse.
-    Un ratio > 0 indique une violation.
-    
-    Retourne un dictionnaire détaillé avec les ratios de violation et un total pondéré.
-    """
-    # Pression
-    pressure_req_m = float(constraints.get("pressure_min_m", 10.0))
-    min_pressure_obs_m = float(sim_metrics.get("min_pressure_m", 0.0) or 0.0)
-    
-    # Ratio = (Requis - Observé) / Requis. Uniquement si violation.
-    pressure_violation_ratio = max(0.0, (pressure_req_m - min_pressure_obs_m) / max(1.0, pressure_req_m))
+logger = logging.getLogger(__name__)
 
-    # Vitesse
-    velocity_max_ms = float(constraints.get("velocity_max_m_s", 2.0))
-    max_velocity_obs_ms = float(sim_metrics.get("max_velocity_m_s", 0.0) or 0.0)
-    
-    # Ratio = (Observé - Max) / Max. Uniquement si violation.
-    velocity_violation_ratio = max(0.0, (max_velocity_obs_ms - velocity_max_ms) / max(1.0, velocity_max_ms))
-    
-    # Score total pondéré (plus de poids sur la pression, qui est souvent plus critique)
-    total_violation = (pressure_violation_ratio * 0.6) + (velocity_violation_ratio * 0.4)
-    
-    return {
-        "pressure_ratio": pressure_violation_ratio,
-        "velocity_ratio": velocity_violation_ratio,
-        "total": total_violation
-    }
+def soft_repair_solution(
+    diameters_map: Dict[str, int],
+    simulation_metrics: Dict,
+    candidate_diameters: List[int],
+    max_changes_fraction: float = 0.10,
+    constraints: Optional[Dict] = None
+) -> Tuple[Dict[str, int], Dict]:
+    """
+    Tente une réparation "douce" d'une solution infaisable.
 
-def adaptive_penalty(
-    violation_total: float,
-    generation: int,
-    total_generations: int,
-    alpha_start: float = 1e5,
-    alpha_max: float = 1e8,
-    beta: float = 1.8
-) -> Dict[str, float]:
+    Identifie les N conduites les plus problématiques (basé sur la perte de charge)
+    et augmente leur diamètre d'un seul cran dans la liste des candidats.
+
+    Retourne le nouveau dictionnaire de diamètres et un dictionnaire de diagnostic.
     """
-    Calcule une pénalité non linéaire et adaptative.
+    changes_made = {"repaired_pipes": [], "total_changes": 0}
     
-    - 'alpha' est le poids de la pénalité, il augmente avec les générations.
-    - 'beta' (>1) est l'exposant non linéaire, qui punit sévèrement les grosses violations.
-    """
-    if violation_total <= 1e-6:  # Tolérance pour les erreurs de virgule flottante
-        return {"penalty": 0.0, "alpha": 0.0, "beta": beta}
+    # On a besoin des pertes de charge par conduite pour une réparation intelligente
+    headlosses = simulation_metrics.get("headlosses_m")
+    if not headlosses or not isinstance(headlosses, dict):
+        logger.debug("Réparation impossible : métriques de perte de charge par conduite non disponibles.")
+        return diameters_map, changes_made
+        
+    # Trier les conduites par perte de charge, de la plus élevée à la plus basse
+    problematic_pipes_sorted = sorted(headlosses.items(), key=lambda item: item[1], reverse=True)
     
-    # Progression de l'optimisation (de 0.0 à 1.0)
-    progress_t = float(generation) / max(1, total_generations - 1)
+    # Calculer le nombre de conduites à modifier (au moins 1)
+    num_pipes_to_change = max(1, int(len(diameters_map) * max_changes_fraction))
     
-    # Alpha augmente de manière linéaire au cours des générations
-    alpha = min(alpha_start * (1 + 9 * progress_t), alpha_max)
+    # Sélectionner les N conduites les plus problématiques
+    pipes_to_repair = [pipe_id for pipe_id, _ in problematic_pipes_sorted[:num_pipes_to_change]]
     
-    penalty = alpha * (violation_total ** beta)
-    
-    return {"value": penalty, "alpha": alpha, "beta": beta}
+    new_diameters_map = dict(diameters_map)
+    sorted_candidates = sorted(candidate_diameters)
+
+    for pipe_id in pipes_to_repair:
+        current_diameter = new_diameters_map.get(pipe_id)
+        if current_diameter is None:
+            continue
+            
+        try:
+            current_index = sorted_candidates.index(current_diameter)
+            # Augmenter d'un seul cran, sans dépasser la fin de la liste
+            new_index = min(current_index + 1, len(sorted_candidates) - 1)
+            
+            new_diameter = sorted_candidates[new_index]
+
+            if new_diameter != current_diameter:
+                new_diameters_map[pipe_id] = new_diameter
+                changes_made["repaired_pipes"].append({
+                    "pipe_id": pipe_id,
+                    "from_dn_mm": current_diameter,
+                    "to_dn_mm": new_diameter
+                })
+        except ValueError:
+            # Le diamètre actuel n'est pas dans la liste des candidats, on ne peut rien faire
+            logger.warning(f"Impossible de réparer la conduite {pipe_id}: son diamètre {current_diameter} n'est pas dans la liste des candidats.")
+            continue
+            
+    changes_made["total_changes"] = len(changes_made["repaired_pipes"])
+    return new_diameters_map, changes_made
 ```
 
 ---
 
-### **Étape 2 : Intégrer la Nouvelle Logique dans l'Algorithme Génétique**
+### **Étape 2 : Intégrer ("Hook") la Logique de Réparation dans l'Algorithme Génétique**
 
-**Explication :** Maintenant, nous allons modifier la classe `GeneticOptimizer` pour qu'elle utilise ces nouvelles fonctions. La méthode qui évalue chaque solution (`evaluer_fitness`) va être mise à jour pour :
-1.  Appeler `normalize_violations`.
-2.  Appeler `adaptive_penalty` avec le score de violation total.
-3.  Calculer le score final en combinant le CAPEX et la pénalité.
-4.  Stocker les informations détaillées sur la violation et la pénalité dans l'objet "individu" pour un meilleur logging et reporting.
+**Explication :** Nous allons maintenant modifier la classe `GeneticOptimizer` pour qu'elle utilise cette nouvelle fonction de réparation. L'idée est, à la fin de chaque génération, de :
+1.  Identifier les quelques meilleures solutions qui sont encore infaisables.
+2.  Tenter de les réparer.
+3.  Simuler à nouveau la solution réparée (c'est un coût supplémentaire, donc il faut le faire avec parcimonie).
+4.  N'accepter la solution réparée que si elle est "meilleure" (moins de violation) et pas "beaucoup plus chère".
 
-**Action :** Ouvre le fichier `src/lcpi/aep/optimization/genetic_algorithm.py` et modifie la méthode d'évaluation (elle peut s'appeler `_evaluate_individual`, `evaluer_fitness` ou similaire).
+**Action :** Ouvre le fichier `src/lcpi/aep/optimization/genetic_algorithm.py` et ajoute une nouvelle méthode privée `_apply_soft_repair` et modifie la boucle principale de l'algorithme.
 
 ```python
 # --- Imports à ajouter en haut de genetic_algorithm.py ---
-from .constraints_handler import normalize_violations, adaptive_penalty
+from .repairs import soft_repair_solution
 
-# --- Logique à intégrer dans la méthode d'évaluation de la classe GeneticOptimizer ---
+# --- Logique à ajouter/modifier dans la classe GeneticOptimizer ---
 
-# Supposons que la méthode ressemble à ceci :
-# def _evaluate_individual(self, individual, generation, total_generations):
+# 1. Ajouter cette nouvelle méthode privée à la classe
+def _apply_soft_repair(self, population: List, candidate_diameters: List[int]):
+    """
+    Applique la réparation douce aux meilleurs individus infaisables de la population.
+    """
+    # Paramètres de la réparation (à rendre configurables)
+    repair_top_k = self.algo_params.get("repair_top_k", 3)
+    repair_max_cost_increase_ratio = self.algo_params.get("repair_max_cost_increase_ratio", 1.10) # 10% de surcoût max
 
-    # ... (le code qui simule le réseau et calcule le CAPEX existe déjà)
-    # simulation_metrics = self.simulator.run(individual.diameters)
-    # capex = self.scorer.compute_capex(individual.diameters)
+    # 1. Identifier les candidats à la réparation
+    infeasible_individuals = [ind for ind in population if not ind.is_feasible]
+    if not infeasible_individuals:
+        return # Rien à faire
 
-    # 1. Normaliser les violations
-    violation_info = normalize_violations(simulation_metrics, self.constraints)
+    # Trier les infaisables par leur score (le moins mauvais d'abord)
+    infeasible_individuals.sort(key=lambda ind: ind.score)
     
-    # 2. Calculer la pénalité adaptative
-    penalty_info = adaptive_penalty(
-        violation_total=violation_info["total"],
-        generation=generation,
-        total_generations=total_generations,
-        # Ces paramètres devraient venir de la configuration de l'AG
-        alpha_start=self.algo_params.get("penalty_alpha_start", 1e5),
-        alpha_max=self.algo_params.get("penalty_alpha_max", 1e8),
-        beta=self.algo_params.get("penalty_beta", 1.8)
-    )
-    
-    # 3. Calculer le score final et la fitness
-    final_score = capex + penalty_info["value"]
-    # La fitness est souvent l'inverse du score pour les problèmes de minimisation
-    fitness = 1.0 / (1.0 + final_score) 
+    # Ne garder que les K meilleurs
+    candidates_for_repair = infeasible_individuals[:repair_top_k]
 
-    # 4. Stocker les métriques détaillées pour l'analyse
-    individual.capex = capex
-    individual.fitness = fitness
-    individual.score = final_score
-    individual.is_feasible = violation_info["total"] <= 1e-6
-    individual.metrics["violations"] = violation_info
-    individual.metrics["penalty"] = penalty_info
+    for individual in candidates_for_repair:
+        self.logger.debug(f"Tentative de réparation douce sur l'individu avec score={individual.score:.2f}...")
+        
+        # 2. Tenter la réparation
+        repaired_diam_map, changes = soft_repair_solution(
+            individual.diameters,
+            individual.metrics,
+            candidate_diameters
+        )
+
+        if changes["total_changes"] == 0:
+            continue # La réparation n'a rien pu faire
+
+        # 3. Évaluer la solution réparée
+        repaired_capex = self.scorer.compute_capex(repaired_diam_map)
+        
+        # Condition d'acceptation de coût
+        if repaired_capex > individual.capex * repair_max_cost_increase_ratio:
+            self.logger.debug(f"Réparation rejetée: le coût a trop augmenté ({individual.capex:.0f} -> {repaired_capex:.0f}).")
+            continue
+            
+        # Resimuler la solution réparée pour voir si elle est meilleure
+        repaired_metrics = self.simulator.run(repaired_diam_map)
+        repaired_violations = normalize_violations(repaired_metrics, self.constraints)
+        
+        # Condition d'acceptation de performance
+        if repaired_violations["total"] < individual.metrics["violations"]["total"]:
+            self.logger.info(
+                f"Réparation ACCEPTÉE sur individu. Violation réduite: "
+                f"{individual.metrics['violations']['total']:.4f} -> {repaired_violations['total']:.4f}. "
+                f"Coût: {repaired_capex:,.0f} FCFA."
+            )
+            # Remplacer l'individu original par sa version réparée
+            individual.diameters = repaired_diam_map
+            # (Optionnel mais recommandé : ré-évaluer complètement l'individu réparé)
+            # self._evaluate_individual(individual, ...)
+        else:
+            self.logger.debug("Réparation rejetée: la violation n'a pas diminué.")
+
+# 2. Modifier la boucle principale de l'AG (dans la méthode run())
+# Après la boucle d'évaluation de la population et avant la sélection/croisement :
+
+    # ... (boucle `for individual in population: self._evaluate_individual(...)`)
     
-    # return individual (ou ce que la méthode est censée retourner)
+    # --- HOOK DE RÉPARATION DOUCE ---
+    self._apply_soft_repair(population, candidate_diameters)
+    
+    # ... (suite de l'algorithme : sélection, croisement, mutation)
 ```
 
 ---
 
-### **Étape 3 : Créer les Tests Unitaires**
+### **Étape 3 : Créer le Test Unitaire**
 
-**Explication :** Nous devons valider que nos nouvelles fonctions se comportent comme attendu.
+**Explication :** Nous devons valider que notre fonction de réparation se comporte comme prévu sur un cas simple.
 
-**Action :** Crée un nouveau fichier de test `tests/optimizer/test_constraints_handler.py`.
+**Action :** Crée un nouveau fichier de test `tests/optimizer/test_repairs.py`.
 
 ```python
-# --- Contenu du nouveau fichier tests/optimizer/test_constraints_handler.py ---
+# --- Contenu du nouveau fichier tests/optimizer/test_repairs.py ---
 import pytest
-from src.lcpi.aep.optimization.constraints_handler import normalize_violations, adaptive_penalty
+from src.lcpi.aep.optimization.repairs import soft_repair_solution
 
-def test_normalize_violations_no_violation():
-    metrics = {"min_pressure_m": 15.0, "max_velocity_m_s": 1.5}
-    constraints = {"pressure_min_m": 10.0, "velocity_max_m_s": 2.0}
-    violations = normalize_violations(metrics, constraints)
-    assert violations["total"] == 0.0
-    assert violations["pressure_ratio"] == 0.0
-    assert violations["velocity_ratio"] == 0.0
-
-def test_normalize_violations_pressure_violation():
-    metrics = {"min_pressure_m": 8.0, "max_velocity_m_s": 1.5}
-    constraints = {"pressure_min_m": 10.0, "velocity_max_m_s": 2.0}
-    violations = normalize_violations(metrics, constraints)
-    # (10 - 8) / 10 = 0.2. Pondéré par 0.6 -> 0.12
-    assert violations["pressure_ratio"] == pytest.approx(0.2)
-    assert violations["velocity_ratio"] == 0.0
-    assert violations["total"] == pytest.approx(0.12)
-
-def test_adaptive_penalty_increases_with_generation():
-    violation = 0.1
-    total_gen = 100
-    penalty_start = adaptive_penalty(violation, 0, total_gen)
-    penalty_mid = adaptive_penalty(violation, 50, total_gen)
-    penalty_end = adaptive_penalty(violation, 99, total_gen)
+def test_soft_repair_increases_most_problematic_pipe():
+    # Arrange
+    diameters_map = {"P1": 110, "P2": 90, "P3": 110}
+    # P2 a la plus grosse perte de charge, P3 la deuxième
+    sim_metrics = {"headlosses_m": {"P1": 5.2, "P2": 15.8, "P3": 10.1}}
+    candidate_diameters = [75, 90, 110, 125, 160]
     
-    assert penalty_start["value"] < penalty_mid["value"] < penalty_end["value"]
-    assert penalty_start["alpha"] < penalty_mid["alpha"]
-
-def test_adaptive_penalty_is_nonlinear():
-    violation_small = 0.1
-    violation_large = 0.2 # 2x plus grande
-    penalty_small = adaptive_penalty(violation_small, 10, 100)
-    penalty_large = adaptive_penalty(violation_large, 10, 100)
+    # Act: réparer 20% des conduites (donc la plus problématique, 1 conduite)
+    repaired_map, changes = soft_repair_solution(
+        diameters_map, sim_metrics, candidate_diameters, max_changes_fraction=0.20
+    )
     
-    # La pénalité doit être plus que 2x plus grande car beta > 1
-    assert penalty_large["value"] > penalty_small["value"] * 2
+    # Assert
+    assert changes["total_changes"] == 1
+    assert changes["repaired_pipes"][0]["pipe_id"] == "P2"
+    assert changes["repaired_pipes"][0]["from_dn_mm"] == 90
+    assert changes["repaired_pipes"][0]["to_dn_mm"] == 110 # 1 cran de plus
+    
+    # Vérifier que les autres conduites n'ont pas changé
+    assert repaired_map["P1"] == 110
+    assert repaired_map["P3"] == 110
 ```
 
 ---
 
 **Instruction Finale :**
-Une fois que tu as créé le nouveau fichier `constraints_handler.py`, modifié `genetic_algorithm.py` et créé le nouveau fichier de test, confirme que tout est en place. Nous lancerons ensuite la suite de tests pour valider cette phase.
+Une fois que tu as créé le nouveau fichier `repairs.py`, modifié `genetic_algorithm.py` et créé le nouveau fichier de test, confirme que tout est en place. Nous lancerons ensuite la suite de tests pour valider cette phase.
