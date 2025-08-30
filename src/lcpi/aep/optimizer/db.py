@@ -9,6 +9,75 @@ import logging
 import yaml
 
 
+# --- Modèle de tarification réaliste (loi de puissance) ---
+
+# Coefficients à stocker dans un fichier de config à terme, mais OK ici pour commencer.
+# Le 'scaling_factor' est à ajuster pour que les prix correspondent à votre monnaie (FCFA).
+PRICE_MODELS = {
+    "PVC": {"scaling_factor": 25, "exponent_b": 1.30},
+    "PEHD": {"scaling_factor": 30, "exponent_b": 1.35},
+    "Fonte": {"scaling_factor": 150, "exponent_b": 1.20}
+}
+
+def _get_realistic_pipe_price(diameter_mm: int, material: str) -> float:
+    """Estime le coût unitaire d'une conduite en utilisant un modèle de loi de puissance."""
+    model = PRICE_MODELS.get(material, PRICE_MODELS["PEHD"]) # Fallback sur PEHD si matériau inconnu
+    
+    # Formule : Coût = a * D^b
+    # On arrondit au 100 FCFA le plus proche pour un résultat plus propre.
+    cost = model["scaling_factor"] * (diameter_mm ** model["exponent_b"])
+    return round(cost / 100) * 100
+
+
+# --- Liste de base des diamètres de fallback ---
+
+# NOUVELLE LISTE DE BASE - Structure harmonisée avec dn_mm
+FALLBACK_DIAMETERS_BASE = [
+    # --- PVC-U Pression (généralement pour les petits à moyens diamètres) ---
+    {"dn_mm": 25, "material": "PVC"},
+    {"dn_mm": 32, "material": "PVC"},
+    {"dn_mm": 40, "material": "PVC"},
+    {"dn_mm": 50, "material": "PVC"},
+    {"dn_mm": 63, "material": "PVC"},
+    {"dn_mm": 75, "material": "PVC"},
+    {"dn_mm": 90, "material": "PVC"},
+    {"dn_mm": 110, "material": "PVC"},
+    {"dn_mm": 125, "material": "PVC"},
+    {"dn_mm": 140, "material": "PVC"},
+    {"dn_mm": 160, "material": "PVC"},
+    {"dn_mm": 200, "material": "PVC"},
+    {"dn_mm": 225, "material": "PVC"},
+    {"dn_mm": 250, "material": "PVC"},
+
+    # --- PEHD (Polyéthylène Haute Densité) - Flexible et très courant ---
+    # Note : les diamètres PEHD sont souvent "externes", mais on les utilise comme nominaux ici
+    {"dn_mm": 63, "material": "PEHD"},
+    {"dn_mm": 75, "material": "PEHD"},
+    {"dn_mm": 90, "material": "PEHD"},
+    {"dn_mm": 110, "material": "PEHD"},
+    {"dn_mm": 125, "material": "PEHD"},
+    {"dn_mm": 160, "material": "PEHD"},
+    {"dn_mm": 180, "material": "PEHD"},
+    {"dn_mm": 200, "material": "PEHD"},
+    {"dn_mm": 225, "material": "PEHD"},
+    {"dn_mm": 250, "material": "PEHD"},
+    {"dn_mm": 315, "material": "PEHD"},
+
+    # --- Fonte Ductile (pour les conduites structurantes et grands diamètres) ---
+    {"dn_mm": 100, "material": "Fonte"},
+    {"dn_mm": 125, "material": "Fonte"},
+    {"dn_mm": 150, "material": "Fonte"},
+    {"dn_mm": 200, "material": "Fonte"},
+    {"dn_mm": 250, "material": "Fonte"},
+    {"dn_mm": 300, "material": "Fonte"},
+    {"dn_mm": 350, "material": "Fonte"},
+    {"dn_mm": 400, "material": "Fonte"},
+    {"dn_mm": 450, "material": "Fonte"},
+    {"dn_mm": 500, "material": "Fonte"},
+    {"dn_mm": 600, "material": "Fonte"},
+]
+
+
 class PriceDB:
     """
     Interface unifiée pour l'accès aux prix des diamètres et accessoires.
@@ -86,8 +155,8 @@ class PriceDB:
                 raise ValueError("Structure YAML invalide")
             
             # Vérifier la structure minimale
-            if not all("d_mm" in item for item in data):
-                raise ValueError("Champ 'd_mm' manquant dans certains éléments")
+            if not all("dn_mm" in item for item in data):
+                raise ValueError("Champ 'dn_mm' manquant dans certains éléments")
             
             self._logger.info(f"Base YAML validée: {len(data)} diamètres disponibles")
             
@@ -150,7 +219,7 @@ class PriceDB:
             material: Matériau spécifique (optionnel)
             
         Returns:
-            Liste des diamètres avec leurs coûts
+            Liste des diamètres avec leurs coûts (structure canonique)
         """
         if not self.db_path.exists():
             return self._get_fallback_diameters(material)
@@ -165,32 +234,35 @@ class PriceDB:
             return self._get_fallback_diameters(material)
     
     def _get_diameters_from_sqlite(self, material: Optional[str] = None) -> List[Dict[str, Any]]:
-        """Récupère les diamètres depuis SQLite."""
+        """Récupère les diamètres depuis SQLite avec structure canonique."""
         with sqlite3.connect(self.db_path) as conn:
             cursor = conn.cursor()
             
             if material:
                 cursor.execute(
-                    "SELECT dn_mm, total_fcfa_per_m, material FROM diameters WHERE material=? ORDER BY dn_mm",
+                    "SELECT dn_mm, supply_fcfa_per_m, pose_fcfa_per_m, total_fcfa_per_m, material, source_method FROM diameters WHERE material=? ORDER BY dn_mm",
                     (material,)
                 )
             else:
                 cursor.execute(
-                    "SELECT dn_mm, total_fcfa_per_m, material FROM diameters ORDER BY dn_mm"
+                    "SELECT dn_mm, supply_fcfa_per_m, pose_fcfa_per_m, total_fcfa_per_m, material, source_method FROM diameters ORDER BY dn_mm"
                 )
             
             results = cursor.fetchall()
             return [
                 {
-                    "d_mm": row[0],
-                    "cost_per_m": row[1],
-                    "material": row[2]
+                    "dn_mm": row[0],
+                    "supply_fcfa_per_m": row[1],
+                    "pose_fcfa_per_m": row[2],
+                    "total_fcfa_per_m": row[3],
+                    "material": row[4],
+                    "source_method": row[5] if len(row) > 5 else "sqlite"
                 }
                 for row in results
             ]
     
     def _get_diameters_from_yaml(self, material: Optional[str] = None) -> List[Dict[str, Any]]:
-        """Récupère les diamètres depuis YAML."""
+        """Récupère les diamètres depuis YAML avec structure canonique."""
         data = yaml.safe_load(self.db_path.read_text(encoding="utf-8"))
         
         if not isinstance(data, list):
@@ -198,38 +270,51 @@ class PriceDB:
         
         diameters = []
         for item in data:
-            if not isinstance(item, dict) or "d_mm" not in item:
+            if not isinstance(item, dict) or "dn_mm" not in item:
                 continue
             
             if material and item.get("material") != material:
                 continue
             
+            # Structure canonique avec valeurs par défaut si manquantes
             diameters.append({
-                "d_mm": item["d_mm"],
-                "cost_per_m": item.get("cost_per_m", 0.0),
-                "material": item.get("material", "Unknown")
+                "dn_mm": item["dn_mm"],
+                "supply_fcfa_per_m": item.get("supply_fcfa_per_m", 0.0),
+                "pose_fcfa_per_m": item.get("pose_fcfa_per_m", 0.0),
+                "total_fcfa_per_m": item.get("total_fcfa_per_m", item.get("cost_per_m", 0.0)),
+                "material": item.get("material", "Unknown"),
+                "source_method": item.get("source_method", "yaml")
             })
         
-        return sorted(diameters, key=lambda x: x["d_mm"])
+        return sorted(diameters, key=lambda x: x["dn_mm"])
     
     def _get_fallback_diameters(self, material: Optional[str] = None) -> List[Dict[str, Any]]:
-        """Retourne les diamètres de fallback par défaut."""
-        fallback_diameters = [
-            {"d_mm": 50, "cost_per_m": 5.0, "material": "PVC"},
-            {"d_mm": 63, "cost_per_m": 7.5, "material": "PVC"},
-            {"d_mm": 75, "cost_per_m": 10.0, "material": "PVC"},
-            {"d_mm": 90, "cost_per_m": 15.0, "material": "PEHD"},
-            {"d_mm": 110, "cost_per_m": 20.0, "material": "PEHD"},
-            {"d_mm": 125, "cost_per_m": 25.0, "material": "PEHD"},
-            {"d_mm": 140, "cost_per_m": 30.0, "material": "Fonte"},
-            {"d_mm": 160, "cost_per_m": 35.0, "material": "Fonte"},
-            {"d_mm": 200, "cost_per_m": 50.0, "material": "Fonte"},
-        ]
+        """Génère la liste de fallback avec des prix calculés de manière réaliste et structure canonique."""
+        self._logger.warning("Utilisation des diamètres de fallback internes avec modèle de tarification réaliste.")
         
-        if material:
-            return [d for d in fallback_diameters if d["material"] == material]
+        fallback_data = []
+        for item in FALLBACK_DIAMETERS_BASE:
+            dn_mm = item["dn_mm"]
+            item_material = item["material"]
+            
+            # Filtrer par matériau si spécifié
+            if material and item_material != material:
+                continue
+            
+            # Calculer le prix dynamiquement avec le modèle réaliste
+            price = _get_realistic_pipe_price(dn_mm, item_material)
+            
+            # Structure canonique complète
+            fallback_data.append({
+                "dn_mm": dn_mm,
+                "supply_fcfa_per_m": price,
+                "pose_fcfa_per_m": 0,  # Coût de pose non inclus dans le modèle de base
+                "total_fcfa_per_m": price,
+                "material": item_material,
+                "source_method": "fallback_realistic_model"
+            })
         
-        return fallback_diameters
+        return sorted(fallback_data, key=lambda x: x["dn_mm"])
     
     def get_diameter_price(self, dn_mm: int, material: Optional[str] = None) -> Optional[float]:
         """
@@ -240,13 +325,13 @@ class PriceDB:
             material: Matériau (optionnel)
             
         Returns:
-            Prix en FCFA/m ou None si non trouvé
+            Prix total en FCFA/m ou None si non trouvé
         """
         diameters = self.get_candidate_diameters(material)
         
         for diameter in diameters:
-            if diameter["d_mm"] == dn_mm:
-                return diameter["cost_per_m"]
+            if diameter["dn_mm"] == dn_mm:
+                return diameter["total_fcfa_per_m"]
         
         return None
     
@@ -259,7 +344,7 @@ class PriceDB:
             material: Matériau (optionnel)
             
         Returns:
-            Diamètre le plus proche ou None
+            Diamètre le plus proche avec structure canonique ou None
         """
         diameters = self.get_candidate_diameters(material)
         
@@ -267,13 +352,13 @@ class PriceDB:
             return None
         
         # Trouver le diamètre le plus proche
-        closest = min(diameters, key=lambda x: abs(x["d_mm"] - target_dn_mm))
+        closest = min(diameters, key=lambda x: abs(x["dn_mm"] - target_dn_mm))
         
         # Log si on utilise un diamètre différent
-        if closest["d_mm"] != target_dn_mm:
+        if closest["dn_mm"] != target_dn_mm:
             self._logger.info(
-                f"Diamètre {target_dn_mm}mm non trouvé, utilisation de {closest['d_mm']}mm "
-                f"(différence: {abs(closest['d_mm'] - target_dn_mm)}mm)"
+                f"Diamètre {target_dn_mm}mm non trouvé, utilisation de {closest['dn_mm']}mm "
+                f"(différence: {abs(closest['dn_mm'] - target_dn_mm)}mm)"
             )
         
         return closest
@@ -289,15 +374,15 @@ class DiameterDAO:
     def get_candidate_diameters(self) -> List[Dict[str, Any]]:
         """
         Récupère les diamètres candidats depuis la source de données (SQLite ou YAML).
-        Retourne une liste de dictionnaires, ex: [{"d_mm": 110, "cost_per_m": 15.5}, ...].
+        Retourne une liste de dictionnaires avec structure canonique.
         """
         if self.db_path and not self._is_yaml:
             # Logique pour lire depuis une base de données SQLite
             try:
                 con = sqlite3.connect(self.db_path)
                 cur = con.cursor()
-                res = cur.execute("SELECT d_mm, cost_per_m, material FROM diameters ORDER BY d_mm ASC")
-                candidates = [{"d_mm": row[0], "cost_per_m": row[1], "material": row[2]} for row in res.fetchall()]
+                res = cur.execute("SELECT dn_mm, total_fcfa_per_m, material FROM diameters ORDER BY dn_mm ASC")
+                candidates = [{"dn_mm": row[0], "total_fcfa_per_m": row[1], "material": row[2]} for row in res.fetchall()]
                 con.close()
                 if candidates:
                     return candidates
@@ -310,24 +395,27 @@ class DiameterDAO:
             try:
                 db = yaml.safe_load(Path(self.db_path).read_text(encoding="utf-8")) or []
                 # Valider la structure minimale
-                if isinstance(db, list) and all("d_mm" in row for row in db):
-                    return sorted(db, key=lambda x: x["d_mm"])
+                if isinstance(db, list) and all("dn_mm" in row for row in db):
+                    return sorted(db, key=lambda x: x["dn_mm"])
             except (IOError, yaml.YAMLError):
                 # Si le YAML échoue, on utilise le fallback
                 pass
         
         # Fallback si aucune source de données n'est fournie ou ne fonctionne
-        return [
-            {"d_mm": 50, "cost_per_m": 5.0, "material": "PVC"},
-            {"d_mm": 63, "cost_per_m": 7.5, "material": "PVC"},
-            {"d_mm": 75, "cost_per_m": 10.0, "material": "PVC"},
-            {"d_mm": 90, "cost_per_m": 15.0, "material": "PEHD"},
-            {"d_mm": 110, "cost_per_m": 20.0, "material": "PEHD"},
-            {"d_mm": 125, "cost_per_m": 25.0, "material": "PEHD"},
-            {"d_mm": 140, "cost_per_m": 30.0, "material": "Fonte"},
-            {"d_mm": 160, "cost_per_m": 35.0, "material": "Fonte"},
-            {"d_mm": 200, "cost_per_m": 50.0, "material": "Fonte"},
-        ]
+        # Utiliser la nouvelle structure harmonisée
+        fallback_data = []
+        for item in FALLBACK_DIAMETERS_BASE:
+            dn_mm = item["dn_mm"]
+            material = item["material"]
+            price = _get_realistic_pipe_price(dn_mm, material)
+            
+            fallback_data.append({
+                "dn_mm": dn_mm,
+                "total_fcfa_per_m": price,
+                "material": material
+            })
+        
+        return sorted(fallback_data, key=lambda x: x["dn_mm"])
 
 def get_candidate_diameters(db_path: Optional[str] = None) -> List[Dict[str, Any]]:
     """Fonction utilitaire pour un accès simple."""

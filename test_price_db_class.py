@@ -69,13 +69,13 @@ def test_candidate_diameters():
         print(f"✅ Diamètres candidats récupérés: {len(diameters)}")
         
         if diameters:
-            print(f"   Premier diamètre: DN {diameters[0]['d_mm']} - {diameters[0]['cost_per_m']} FCFA/m")
-            print(f"   Dernier diamètre: DN {diameters[-1]['d_mm']} - {diameters[-1]['cost_per_m']} FCFA/m")
+            print(f"   Premier diamètre: DN {diameters[0]['dn_mm']} - {diameters[0]['total_fcfa_per_m']} FCFA/m")
+            print(f"   Dernier diamètre: DN {diameters[-1]['dn_mm']} - {diameters[-1]['total_fcfa_per_m']} FCFA/m")
         
-        # Vérifications
+        # Vérifications spécifiques
         assert len(diameters) > 0, "Aucun diamètre récupéré"
-        assert all("d_mm" in d for d in diameters), "Champ 'd_mm' manquant"
-        assert all("cost_per_m" in d for d in diameters), "Champ 'cost_per_m' manquant"
+        assert all("dn_mm" in d for d in diameters), "Champ 'dn_mm' manquant"
+        assert all("total_fcfa_per_m" in d for d in diameters), "Champ 'total_fcfa_per_m' manquant"
         
         return True
         
@@ -97,7 +97,7 @@ def test_material_filtering():
         print(f"✅ Diamètres PVC-U: {len(pvc_diameters)}")
         
         if pvc_diameters:
-            print(f"   Premier PVC-U: DN {pvc_diameters[0]['d_mm']} - {pvc_diameters[0]['material']}")
+            print(f"   Premier PVC-U: DN {pvc_diameters[0]['dn_mm']} - {pvc_diameters[0]['material']}")
         
         # Test avec PEHD
         pehd_diameters = db.get_candidate_diameters("PEHD")
@@ -150,8 +150,8 @@ def test_closest_diameter():
         # Test avec un diamètre proche d'un existant
         closest_115 = db.get_closest_diameter(115)
         if closest_115:
-            print(f"✅ Diamètre le plus proche de 115mm: DN {closest_115['d_mm']}mm")
-            print(f"   Différence: {abs(closest_115['d_mm'] - 115)}mm")
+            print(f"✅ Diamètre le plus proche de 115mm: DN {closest_115['dn_mm']}mm")
+            print(f"   Différence: {abs(closest_115['dn_mm'] - 115)}mm")
         else:
             print(f"⚠️  Aucun diamètre trouvé pour 115mm")
         
@@ -185,16 +185,67 @@ def test_fallback_scenario():
             
             print(f"✅ Fallback fonctionne: {len(diameters)} diamètres de fallback")
             
+            # Vérifier la structure canonique
+            if diameters:
+                first_diameter = diameters[0]
+                required_keys = ["dn_mm", "supply_fcfa_per_m", "pose_fcfa_per_m", "total_fcfa_per_m", "material", "source_method"]
+                missing_keys = [key for key in required_keys if key not in first_diameter]
+                if missing_keys:
+                    print(f"⚠️  Clés manquantes dans la structure canonique: {missing_keys}")
+                else:
+                    print(f"✅ Structure canonique respectée")
+                    print(f"   Exemple: DN {first_diameter['dn_mm']}mm - {first_diameter['total_fcfa_per_m']} FCFA/m ({first_diameter['material']})")
+            
         return True
         
     except Exception as e:
         print(f"❌ Erreur lors du test de fallback: {e}")
         return False
 
+def test_realistic_pricing():
+    """Teste le modèle de tarification réaliste"""
+    try:
+        from lcpi.aep.optimizer.db import PriceDB, _get_realistic_pipe_price
+        
+        print("🔍 Test du modèle de tarification réaliste")
+        
+        # Test de la fonction de calcul
+        test_cases = [
+            (50, "PVC"),
+            (110, "PEHD"),
+            (200, "Fonte"),
+            (315, "PEHD")
+        ]
+        
+        print("💰 Test des calculs de prix:")
+        for dn_mm, material in test_cases:
+            price = _get_realistic_pipe_price(dn_mm, material)
+            print(f"   DN {dn_mm}mm {material}: {price} FCFA/m")
+        
+        # Test avec fallback pour vérifier les prix calculés
+        db = PriceDB("fake_path")  # Force le fallback
+        fallback_diameters = db.get_candidate_diameters()
+        
+        if fallback_diameters:
+            # Vérifier que les prix sont réalistes (pas 0 ou négatifs)
+            realistic_prices = [d for d in fallback_diameters if d['total_fcfa_per_m'] > 0]
+            print(f"✅ {len(realistic_prices)}/{len(fallback_diameters)} diamètres avec prix réalistes")
+            
+            # Afficher quelques exemples
+            examples = fallback_diameters[:3]
+            for example in examples:
+                print(f"   DN {example['dn_mm']}mm {example['material']}: {example['total_fcfa_per_m']} FCFA/m")
+        
+        return True
+        
+    except Exception as e:
+        print(f"❌ Erreur lors du test de tarification réaliste: {e}")
+        return False
+
 def main():
     """Fonction principale de test"""
-    print("🚀 Test de la classe PriceDB")
-    print("=" * 50)
+    print("🚀 Test de la classe PriceDB (Version améliorée)")
+    print("=" * 60)
     
     tests = [
         ("Création de PriceDB", test_price_db_creation),
@@ -204,12 +255,13 @@ def main():
         ("Recherche de prix", test_diameter_price_lookup),
         ("Diamètre le plus proche", test_closest_diameter),
         ("Scénario de fallback", test_fallback_scenario),
+        ("Tarification réaliste", test_realistic_pricing),
     ]
     
     results = []
     for test_name, test_func in tests:
         print(f"\n📋 Test: {test_name}")
-        print("-" * 30)
+        print("-" * 40)
         try:
             result = test_func()
             results.append((test_name, result))
@@ -218,9 +270,9 @@ def main():
             results.append((test_name, False))
     
     # Résumé des résultats
-    print("\n" + "=" * 50)
+    print("\n" + "=" * 60)
     print("📊 RÉSUMÉ DES TESTS")
-    print("=" * 50)
+    print("=" * 60)
     
     passed = sum(1 for _, result in results if result)
     total = len(results)

@@ -42,7 +42,7 @@ def example_basic_usage():
         # Affichage des premiers diamètres
         print("   Premiers diamètres:")
         for i, diameter in enumerate(all_diameters[:5]):
-            print(f"     {i+1}. DN {diameter['d_mm']}mm - {diameter['cost_per_m']} FCFA/m ({diameter['material']})")
+            print(f"     {i+1}. DN {diameter['dn_mm']}mm - {diameter['total_fcfa_per_m']} FCFA/m ({diameter['material']})")
         
         return True
         
@@ -69,17 +69,17 @@ def example_material_filtering():
             
             if diameters:
                 # Afficher la gamme de diamètres
-                min_dn = min(d['d_mm'] for d in diameters)
-                max_dn = max(d['d_mm'] for d in diameters)
-                avg_cost = sum(d['cost_per_m'] for d in diameters) / len(diameters)
+                min_dn = min(d['dn_mm'] for d in diameters)
+                max_dn = max(d['dn_mm'] for d in diameters)
+                avg_cost = sum(d['total_fcfa_per_m'] for d in diameters) / len(diameters)
                 
                 print(f"   Gamme: DN {min_dn}mm - DN {max_dn}mm")
                 print(f"   Prix moyen: {avg_cost:.0f} FCFA/m")
                 
                 # Afficher quelques exemples
-                examples = [d for d in diameters if d['d_mm'] in [50, 110, 200]]
+                examples = [d for d in diameters if d['dn_mm'] in [50, 110, 200]]
                 for example in examples:
-                    print(f"     DN {example['d_mm']}mm: {example['cost_per_m']} FCFA/m")
+                    print(f"     DN {example['dn_mm']}mm: {example['total_fcfa_per_m']} FCFA/m")
         
         return True
         
@@ -115,8 +115,8 @@ def example_price_lookup():
         for test_value in test_values:
             closest = db.get_closest_diameter(test_value)
             if closest:
-                diff = abs(closest['d_mm'] - test_value)
-                print(f"   {test_value}mm → DN {closest['d_mm']}mm (différence: {diff}mm)")
+                diff = abs(closest['dn_mm'] - test_value)
+                print(f"   {test_value}mm → DN {closest['dn_mm']}mm (différence: {diff}mm)")
         
         return True
         
@@ -154,7 +154,7 @@ def example_fallback_scenario():
             # Afficher les diamètres de fallback
             print("   Diamètres disponibles:")
             for diameter in fallback_diameters:
-                print(f"     DN {diameter['d_mm']}mm - {diameter['cost_per_m']} FCFA/m ({diameter['material']})")
+                print(f"     DN {diameter['dn_mm']}mm - {diameter['total_fcfa_per_m']} FCFA/m ({diameter['material']})")
             
             # Test de recherche de prix avec fallback
             test_price = db.get_diameter_price(110)
@@ -164,8 +164,8 @@ def example_fallback_scenario():
             # Test de diamètre le plus proche avec fallback
             closest = db.get_closest_diameter(115)
             if closest:
-                diff = abs(closest['d_mm'] - 115)
-                print(f"   Diamètre le plus proche de 115mm: DN {closest['d_mm']}mm (différence: {diff}mm)")
+                diff = abs(closest['dn_mm'] - 115)
+                print(f"   Diamètre le plus proche de 115mm: DN {closest['dn_mm']}mm (différence: {diff}mm)")
         
         return True
         
