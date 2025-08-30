@@ -112,6 +112,7 @@ class GeneticOptimizerV2:
         self.feasibility_found = False
         self.generations_without_improvement = 0
         self.best_cost_history: List[float] = []
+        self._repair_disabled_next_gen = False  # Pour désactiver la réparation si nécessaire
 
         self.workers = 1  # Forcer séquentiel pour éviter les problèmes de pickle
         self.cache: Dict[str, Dict[str, Any]] = {}  # key -> simulation payload
@@ -1098,7 +1099,7 @@ class GeneticOptimizerV2:
                 
         self._log_ga(f"AGAMO: Phase {self.current_phase} at generation {generation}")
 
-    def _apply_soft_repair(self, population: List[Individu], candidate_diameters: List[int]):
+    def _apply_soft_repair(self, population: List[Individu], candidate_diameters: List[int], generation: int):
         """
         Applique la réparation douce aux meilleurs individus infaisables de la population.
         """
@@ -1118,9 +1119,38 @@ class GeneticOptimizerV2:
         candidates_for_repair = infeasible_individuals[:repair_top_k]
 
         for individual in candidates_for_repair:
-            self._log_ga(f"Tentative de réparation douce sur l'individu avec score={getattr(individual, 'fitness', 0.0):.2f}...")
+            # --- LOGGING AVANT ---
+            log_context = {
+                "gen": generation, 
+                "ind_id": getattr(individual, 'id', id(individual)),
+                "cost_before": getattr(individual, 'cout_total', 0.0), 
+                "violation_before": getattr(individual, 'metrics', {}).get("violations", {}).get("total", -1)
+            }
+            self._log_ga(f"REPAIR_ATTEMPT: gen={generation}, ind_id={log_context['ind_id']}, cost_before={log_context['cost_before']:.0f}, violation_before={log_context['violation_before']:.4f}")
+
+            # --- SAUVEGARDE SNAPSHOT AVANT ---
+            try:
+                snapshot_dir = Path(self._logs_dir) / "repairs" if self._logs_dir else Path.cwd() / "logs" / "repairs"
+                snapshot_dir.mkdir(parents=True, exist_ok=True)
+                snapshot_path_before = snapshot_dir / f"{generation}_{log_context['ind_id']}_before.json"
+                
+                # Créer un snapshot de l'individu avant réparation
+                individual_snapshot = {
+                    "id": log_context['ind_id'],
+                    "diameters": individual.diametres,
+                    "h_tank_m": getattr(individual, 'h_tank_m', None),
+                    "fitness": getattr(individual, 'fitness', 0.0),
+                    "cout_total": log_context['cost_before'],
+                    "metrics": getattr(individual, 'metrics', {}),
+                    "is_feasible": getattr(individual, 'is_feasible', True)
+                }
+                
+                with open(snapshot_path_before, 'w') as f:
+                    json.dump(individual_snapshot, f, indent=2)
+            except Exception as e:
+                self._log_ga(f"Erreur lors de la sauvegarde du snapshot avant: {e}")
             
-            # 2. Tenter la réparation
+            # --- TENTATIVE DE RÉPARATION ---
             # Convertir les diamètres en dictionnaire pour la fonction de réparation
             diameters_map = {}
             if self.pipe_ids and len(self.pipe_ids) == len(individual.diametres):
@@ -1135,10 +1165,16 @@ class GeneticOptimizerV2:
                 candidate_diameters
             )
 
-            if changes["total_changes"] == 0:
-                continue # La réparation n'a rien pu faire
+            if not repaired_diam_map:
+                # --- LOGGING APRÈS (AUCUN CHANGEMENT) ---
+                log_context.update({
+                    "decision": "NO_CHANGES",
+                    "pipes_changed": 0
+                })
+                self._log_ga(f"REPAIR_NO_CHANGES: gen={generation}, ind_id={log_context['ind_id']}")
+                continue
 
-            # 3. Évaluer la solution réparée
+            # --- ÉVALUATION ET ACCEPTATION ---
             # Convertir le dictionnaire réparé en liste de diamètres
             repaired_diameters = []
             if self.pipe_ids and len(self.pipe_ids) == len(individual.diametres):
@@ -1165,7 +1201,13 @@ class GeneticOptimizerV2:
                 
                 # Condition d'acceptation de coût
                 if repaired_capex > current_capex * repair_max_cost_increase_ratio:
-                    self._log_ga(f"Réparation rejetée: le coût a trop augmenté ({current_capex:.0f} -> {repaired_capex:.0f}).")
+                    # --- LOGGING APRÈS (COÛT TROP ÉLEVÉ) ---
+                    log_context.update({
+                        "cost_after": repaired_capex,
+                        "decision": "COST_TOO_HIGH",
+                        "pipes_changed": changes["total_changes"]
+                    })
+                    self._log_ga(f"REPAIR_COST_TOO_HIGH: gen={generation}, ind_id={log_context['ind_id']}, cost_before={current_capex:.0f} -> cost_after={repaired_capex:.0f}")
                     continue
             except Exception as e:
                 self._log_ga(f"Impossible de vérifier le coût de réparation: {e}")
@@ -1175,7 +1217,12 @@ class GeneticOptimizerV2:
             repaired_sim = self._simulate_or_approx(repaired_individual, None)
             
             if not repaired_sim.get("success"):
-                self._log_ga("Réparation rejetée: la simulation a échoué.")
+                # --- LOGGING APRÈS (SIMULATION ÉCHOUÉE) ---
+                log_context.update({
+                    "decision": "SIMULATION_FAILED",
+                    "pipes_changed": changes["total_changes"]
+                })
+                self._log_ga(f"REPAIR_SIMULATION_FAILED: gen={generation}, ind_id={log_context['ind_id']}")
                 continue
             
             # Normaliser les violations pour comparer
@@ -1193,23 +1240,77 @@ class GeneticOptimizerV2:
                 )
                 repaired_violations = penalty_calculator.normalize_violations(repaired_sim, constraints)
                 
-                # Condition d'acceptation de performance
-                if repaired_violations["total"] < original_violations["total"]:
-                    self._log_ga(
-                        f"Réparation ACCEPTÉE sur individu. Violation réduite: "
-                        f"{original_violations['total']:.4f} -> {repaired_violations['total']:.4f}. "
-                        f"Coût: {repaired_capex:,.0f} FCFA."
-                    )
-                    # Remplacer l'individu original par sa version réparée
+                # --- Critère d'acceptation strict ---
+                violation_decrease = original_violations["total"] - repaired_violations["total"]
+                cost_increase_ratio = repaired_capex / current_capex if current_capex > 0 else float('inf')
+
+                if violation_decrease > 1e-4 and cost_increase_ratio <= repair_max_cost_increase_ratio:
+                    # --- LOGGING APRÈS (SUCCÈS) ---
+                    log_context.update({
+                        "cost_after": repaired_capex,
+                        "violation_after": repaired_violations["total"],
+                        "pipes_changed": changes["total_changes"],
+                        "decision": "APPLIED"
+                    })
+                    self._log_ga(f"REPAIR_APPLIED: gen={generation}, ind_id={log_context['ind_id']}, violation_decrease={violation_decrease:.4f}, cost_increase_ratio={cost_increase_ratio:.2f}")
+                    
+                    # --- Mise à jour de l'individu et sauvegarde snapshot APRÈS ---
                     individual.diametres = repaired_diameters
                     individual.sim_result = repaired_sim
                     individual.cout_total = repaired_capex
+                    individual.metrics = getattr(individual, 'metrics', {})
+                    individual.metrics["violations"] = repaired_violations
+                    
+                    # Sauvegarder le snapshot après réparation
+                    try:
+                        snapshot_path_after = snapshot_dir / f"{generation}_{log_context['ind_id']}_after.json"
+                        individual_snapshot_after = {
+                            "id": log_context['ind_id'],
+                            "diameters": individual.diametres,
+                            "h_tank_m": getattr(individual, 'h_tank_m', None),
+                            "fitness": getattr(individual, 'fitness', 0.0),
+                            "cout_total": repaired_capex,
+                            "metrics": individual.metrics,
+                            "is_feasible": getattr(individual, 'is_feasible', True),
+                            "repair_changes": changes
+                        }
+                        
+                        with open(snapshot_path_after, 'w') as f:
+                            json.dump(individual_snapshot_after, f, indent=2)
+                    except Exception as e:
+                        self._log_ga(f"Erreur lors de la sauvegarde du snapshot après: {e}")
+                    
                     # Ré-évaluer complètement l'individu réparé
                     self._evaluate_individual((0, 0, individual, None, len(population)))
                 else:
-                    self._log_ga("Réparation rejetée: la violation n'a pas diminué.")
+                    # --- LOGGING APRÈS (ÉCHEC) ---
+                    log_context.update({
+                        "cost_after": repaired_capex,
+                        "violation_after": repaired_violations["total"],
+                        "decision": "ROLLED_BACK"
+                    })
+                    self._log_ga(f"REPAIR_ROLLED_BACK: gen={generation}, ind_id={log_context['ind_id']}, violation_decrease={violation_decrease:.4f}")
             except Exception as e:
                 self._log_ga(f"Erreur lors de la comparaison des violations: {e}")
+
+        # --- Détection de l'uniformisation des diamètres ---
+        # (Cette logique doit être exécutée après la boucle de réparation, sur l'ensemble de la population)
+        try:
+            all_repaired_diameters = []
+            for ind in population:
+                if hasattr(ind, 'diametres'):
+                    all_repaired_diameters.extend(ind.diametres)
+            
+            if all_repaired_diameters and len(set(all_repaired_diameters)) == 1:
+                self._log_ga(
+                    f"REPAIR_AGGRESSIVE: La réparation a rendu tous les diamètres de la population uniformes "
+                    f"(diamètre unique: {all_repaired_diameters[0]}). "
+                    f"La réparation sera désactivée pour la prochaine génération."
+                )
+                # Marquer pour désactiver la réparation à la prochaine génération
+                self._repair_disabled_next_gen = True
+        except Exception as e:
+            self._log_ga(f"Erreur lors de la détection d'uniformisation: {e}")
 
     def _check_stagnation(self, generation: int) -> bool:
         """Vérifie si l'optimisation stagne et déclenche des actions correctives."""
@@ -1355,8 +1456,12 @@ class GeneticOptimizerV2:
             self.population.sort(key=lambda x: getattr(x, 'fitness', 0.0), reverse=True)
             
             # --- HOOK DE RÉPARATION DOUCE ---
-            candidate_diams = [int(d.diametre_mm) for d in self.diam_candidats]
-            self._apply_soft_repair(self.population, candidate_diams)
+            if not self._repair_disabled_next_gen:
+                candidate_diams = [int(d.diametre_mm) for d in self.diam_candidats]
+                self._apply_soft_repair(self.population, candidate_diams, generation)
+            else:
+                self._log_ga(f"REPAIR_DISABLED: Réparation désactivée pour la génération {generation}")
+                self._repair_disabled_next_gen = False  # Réactiver pour la prochaine génération
             
             # Mise à jour de la meilleure solution
             if not self.best_solution or getattr(self.population[0], 'fitness', 0.0) > getattr(self.best_solution, 'fitness', 0.0):

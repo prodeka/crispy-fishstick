@@ -18,6 +18,8 @@ def test_soft_repair_increases_most_problematic_pipe():
     assert changes["repaired_pipes"][0]["pipe_id"] == "P2"
     assert changes["repaired_pipes"][0]["from_dn_mm"] == 90
     assert changes["repaired_pipes"][0]["to_dn_mm"] == 110 # 1 cran de plus
+    assert "selected_problematic_pipes" in changes
+    assert "P2" in changes["selected_problematic_pipes"]
     
     # Vérifier que les autres conduites n'ont pas changé
     assert repaired_map["P1"] == 110
@@ -37,7 +39,7 @@ def test_soft_repair_no_headlosses_data():
     # Assert: aucune réparation effectuée
     assert changes["total_changes"] == 0
     assert changes["repaired_pipes"] == []
-    assert repaired_map == diameters_map
+    assert repaired_map is None  # Retourne None si aucune réparation
 
 def test_soft_repair_maximum_diameter_reached():
     # Arrange
@@ -52,7 +54,7 @@ def test_soft_repair_maximum_diameter_reached():
     
     # Assert: aucune réparation possible car déjà au maximum
     assert changes["total_changes"] == 0
-    assert repaired_map == diameters_map
+    assert repaired_map is None  # Retourne None si aucune réparation
 
 def test_soft_repair_multiple_pipes():
     # Arrange
@@ -87,4 +89,4 @@ def test_soft_repair_invalid_diameter():
     
     # Assert: P2 ne peut pas être réparé car son diamètre n'est pas dans la liste des candidats
     assert changes["total_changes"] == 0
-    assert repaired_map == diameters_map
+    assert repaired_map is None  # Retourne None si aucune réparation

@@ -10,7 +10,7 @@ def soft_repair_solution(
     candidate_diameters: List[int],
     max_changes_fraction: float = 0.10,
     constraints: Optional[Dict] = None
-) -> Tuple[Dict[str, int], Dict]:
+) -> Tuple[Optional[Dict[str, int]], Dict]:  # Le premier retour peut être None si rien n'est fait
     """
     Tente une réparation "douce" d'une solution infaisable.
 
@@ -19,13 +19,17 @@ def soft_repair_solution(
 
     Retourne le nouveau dictionnaire de diamètres et un dictionnaire de diagnostic.
     """
-    changes_made = {"repaired_pipes": [], "total_changes": 0}
+    changes_made = {
+        "repaired_pipes": [],  # liste des changements détaillés
+        "total_changes": 0,
+        "selected_problematic_pipes": []  # Ajout : les conduites ciblées
+    }
     
     # On a besoin des pertes de charge par conduite pour une réparation intelligente
     headlosses = simulation_metrics.get("headlosses_m")
     if not headlosses or not isinstance(headlosses, dict):
         logger.debug("Réparation impossible : métriques de perte de charge par conduite non disponibles.")
-        return diameters_map, changes_made
+        return None, changes_made
         
     # Trier les conduites par perte de charge, de la plus élevée à la plus basse
     problematic_pipes_sorted = sorted(headlosses.items(), key=lambda item: item[1], reverse=True)
@@ -35,6 +39,7 @@ def soft_repair_solution(
     
     # Sélectionner les N conduites les plus problématiques
     pipes_to_repair = [pipe_id for pipe_id, _ in problematic_pipes_sorted[:num_pipes_to_change]]
+    changes_made["selected_problematic_pipes"] = pipes_to_repair
     
     new_diameters_map = dict(diameters_map)
     sorted_candidates = sorted(candidate_diameters)
@@ -64,4 +69,8 @@ def soft_repair_solution(
             continue
             
     changes_made["total_changes"] = len(changes_made["repaired_pipes"])
+    
+    if changes_made["total_changes"] == 0:
+        return None, changes_made  # Retourne None si aucune réparation n'a été appliquée
+    
     return new_diameters_map, changes_made
