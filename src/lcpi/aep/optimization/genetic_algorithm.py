@@ -821,12 +821,46 @@ class GeneticOptimizerV2:
         # cost
         cost = self._calculate_cost(individu, reseau_data)
         
-        # AGAMO: Pénalités adaptatives
-        penal = self._calculate_adaptive_penalties(individu, sim)
-        
-        # Marquer si faisabilité trouvée
-        if penal == 0.0 and sim.get("success"):
-            self.feasibility_found = True
+        # PHASE 2: Nouvelle logique de pénalités adaptatives non linéaires
+        if sim.get("success"):
+            # Utiliser la classe ConstraintPenaltyCalculator existante
+            from ..optimizer.constraints_handler import ConstraintPenaltyCalculator
+            
+            # Créer une instance du calculateur de pénalités
+            penalty_calculator = ConstraintPenaltyCalculator()
+            
+            # 1. Normaliser les violations
+            constraints = {
+                "pressure_min_m": getattr(getattr(self.constraint_manager, "contraintes_techniques", {}), "pression_min_mce", self.pressure_default_min),
+                "velocity_max_m_s": getattr(getattr(self.constraint_manager, "contraintes_techniques", {}), "vitesse_max_m_s", self.velocity_max_default)
+            }
+            violation_info = penalty_calculator.normalize_violations(sim, constraints)
+            
+            # 2. Calculer la pénalité adaptative
+            penalty_info = penalty_calculator.adaptive_penalty(
+                violation_total=violation_info["total"],
+                generation=generation,
+                total_generations=self.generations,
+                alpha_start=getattr(self.config, "penalty_alpha_start", 1e5),
+                alpha_max=getattr(self.config, "penalty_alpha_max", 1e8),
+                beta=getattr(self.config, "penalty_beta", 1.8)
+            )
+            
+            penal = penalty_info["value"]
+            
+            # 3. Stocker les métriques détaillées pour l'analyse
+            individu.metrics = getattr(individu, "metrics", {})
+            individu.metrics["violations"] = violation_info
+            individu.metrics["penalty"] = penalty_info
+            individu.is_feasible = violation_info["total"] <= 1e-6
+            
+            # Marquer si faisabilité trouvée
+            if penal == 0.0:
+                self.feasibility_found = True
+        else:
+            # Échec de simulation: pénalité forte
+            penal = 1e6
+            individu.is_feasible = False
 
         # energy approx: use sim raw if exists (wrapper may provide energy_W)
         energy = float(sim.get("raw", {}).get("energy_W", 0.0) or 0.0)

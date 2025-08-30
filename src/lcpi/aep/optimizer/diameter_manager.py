@@ -93,9 +93,10 @@ class DiameterManager:
                 return None
             
             # Import dynamique pour éviter les dépendances circulaires
-            from .db_dao import get_candidate_diameters
+            from .db import PriceDB
             
-            db_rows = get_candidate_diameters(material)
+            price_db = PriceDB()
+            db_rows = price_db.get_candidate_diameters(material)
             if not db_rows:
                 logger.debug(f"Aucun diamètre trouvé pour le matériau: {material}")
                 return None

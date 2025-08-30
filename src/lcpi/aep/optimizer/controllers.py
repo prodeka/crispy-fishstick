@@ -966,19 +966,28 @@ class OptimizationController:
 
         # Reconfigurer la base de prix: --price-db ou défaut projet
         try:
-            from .db_dao import set_global_price_db
+            # Utiliser la nouvelle classe PriceDB au lieu de l'ancien système
+            from .db import PriceDB
             db_path_to_use = None
             if price_db:
-                db_path_to_use = Path(price_db)
+                db_path_to_use = str(Path(price_db))
             else:
                 # défaut projet
                 candidate = Path(__file__).resolve().parents[3] / "src" / "lcpi" / "db" / "aep_prices.db"
                 if candidate.exists():
-                    db_path_to_use = candidate
+                    db_path_to_use = str(candidate)
+            
+            # Initialiser PriceDB avec le chemin approprié
             if db_path_to_use:
-                set_global_price_db(db_path_to_use)
-        except Exception:
-            pass
+                price_db_instance = PriceDB(db_path_to_use)
+                # Stocker l'instance pour utilisation ultérieure
+                self._price_db_instance = price_db_instance
+            else:
+                # Utiliser le chemin par défaut
+                self._price_db_instance = PriceDB()
+        except Exception as e:
+            # En cas d'erreur, utiliser le fallback automatique
+            self._price_db_instance = PriceDB()
 
         if progress_callback:
             (progress_cb_adapter or progress_callback)("validation", {"constraints": constraints})
@@ -2036,7 +2045,13 @@ class OptimizationController:
             num_variations = min(5, len(diameter_keys))  # Varier jusqu'à 5 diamètres au lieu de 3
             
             # Diamètres candidats pour les variations (plus de choix)
-            candidate_diameters = [50, 63, 75, 90, 110, 160, 200, 250, 315, 400, 500, 630, 800, 900]
+            # Utiliser PriceDB pour obtenir les diamètres candidats
+            if hasattr(self, '_price_db_instance') and self._price_db_instance:
+                db_candidates = self._price_db_instance.get_candidate_diameters()
+                candidate_diameters = [c['dn_mm'] for c in db_candidates]
+            else:
+                # Fallback si PriceDB n'est pas disponible
+                candidate_diameters = [50, 63, 75, 90, 110, 160, 200, 250, 315, 400, 500, 630, 800, 900]
             
             # Sélectionner aléatoirement les conduites à modifier
             pipes_to_modify = random.sample(diameter_keys, min(num_variations, len(diameter_keys)))

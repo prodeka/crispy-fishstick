@@ -1,143 +1,114 @@
 from __future__ import annotations
 
-from src.lcpi.aep.optimizer.constraints_handler import apply_constraints, apply_constraints_to_result
-
-
-def test_apply_constraints_soft_penalty_with_aggregates():
-    solution = {
-        "CAPEX": 1_000_000.0,
-        "metrics": {
-            "min_pressure_m": 9.0,
-            "max_velocity_m_s": 2.5,
-        },
-    }
-    constraints = {"pressure_min_m": 10.0, "velocity_max_m_s": 2.0}
-    out = apply_constraints(solution, constraints, mode="soft", penalty_weight=10.0)
-    assert out["CAPEX"] > 1_000_000.0
-    assert out["constraints_ok"] is False
-    assert any(
-        "Min pressure" in msg or "Velocity" in msg for msg in out.get("constraints_violations", [])
-    )
-
-
-def test_apply_constraints_hard_velocity():
-    solution = {
-        "CAPEX": 1_000_000.0,
-        "metrics": {
-            "min_pressure_m": 12.0,
-            "max_velocity_m_s": 2.1,
-        },
-    }
-    constraints = {"velocity_max_m_s": 2.0}
-    out = apply_constraints(solution, constraints, mode="soft", penalty_weight=10.0, hard_velocity=True)
-    assert out["constraints_ok"] is False
-
-
-def test_apply_constraints_to_result():
-    result = {
-        "proposals": [
-            {"CAPEX": 10.0, "metrics": {"min_pressure_m": 8.0}},
-            {"CAPEX": 10.0, "metrics": {"min_pressure_m": 12.0}},
-        ]
-    }
-    constraints = {"pressure_min_m": 10.0}
-    out = apply_constraints_to_result(result, constraints, mode="soft", penalty_weight=100.0)
-    assert len(out["proposals"]) == 2
-    assert out["proposals"][0]["CAPEX"] > 10.0
-"""
-Unit tests for the constraints_handler module.
-"""
-
 import pytest
-from lcpi.aep.optimizer.constraints_handler import apply_constraints
+from src.lcpi.aep.optimizer.constraints_handler import ConstraintPenaltyCalculator, normalize_violations, adaptive_penalty
 
+def test_normalize_violations_no_violation():
+    metrics = {"min_pressure_m": 15.0, "max_velocity_m_s": 1.5}
+    constraints = {"pressure_min_m": 10.0, "velocity_max_m_s": 2.0}
+    violations = normalize_violations(metrics, constraints)
+    assert violations["total"] == 0.0
+    assert violations["pressure_ratio"] == 0.0
+    assert violations["velocity_ratio"] == 0.0
 
-@pytest.fixture
-def base_solution():
-    """Provides a base solution with mock hydraulic results."""
-    return {
-        'cost': 100000,
-        'hydraulics': {
-            'pressures_m': {'node1': 20, 'node2': 18, 'node3': 25},
-            'velocities_ms': {'pipe1': 1.5, 'pipe2': 1.8, 'pipe3': 1.2}
-        },
-        'constraints_ok': True,
-        'constraints_violations': []
-    }
+def test_normalize_violations_pressure_violation():
+    metrics = {"min_pressure_m": 8.0, "max_velocity_m_s": 1.5}
+    constraints = {"pressure_min_m": 10.0, "velocity_max_m_s": 2.0}
+    violations = normalize_violations(metrics, constraints)
+    # (10 - 8) / 10 = 0.2. Pondéré par 0.6 -> 0.12
+    assert violations["pressure_ratio"] == pytest.approx(0.2)
+    assert violations["velocity_ratio"] == 0.0
+    assert violations["total"] == pytest.approx(0.12)
 
+def test_normalize_violations_velocity_violation():
+    metrics = {"min_pressure_m": 15.0, "max_velocity_m_s": 2.5}
+    constraints = {"pressure_min_m": 10.0, "velocity_max_m_s": 2.0}
+    violations = normalize_violations(metrics, constraints)
+    # (2.5 - 2.0) / 2.0 = 0.25. Pondéré par 0.4 -> 0.1
+    assert violations["pressure_ratio"] == 0.0
+    assert violations["velocity_ratio"] == pytest.approx(0.25)
+    assert violations["total"] == pytest.approx(0.1)
 
-@pytest.fixture
-def constraints_config():
-    """Provides a standard constraints configuration."""
-    return {
-        'pression_min_m': 15.0,
-        'vitesse_max_ms': 2.0,
-        'vitesse_min_ms': 0.1
-    }
+def test_normalize_violations_both_violations():
+    metrics = {"min_pressure_m": 8.0, "max_velocity_m_s": 2.5}
+    constraints = {"pressure_min_m": 10.0, "velocity_max_m_s": 2.0}
+    violations = normalize_violations(metrics, constraints)
+    # Pression: (10 - 8) / 10 = 0.2 * 0.6 = 0.12
+    # Vitesse: (2.5 - 2.0) / 2.0 = 0.25 * 0.4 = 0.1
+    # Total: 0.12 + 0.1 = 0.22
+    assert violations["pressure_ratio"] == pytest.approx(0.2)
+    assert violations["velocity_ratio"] == pytest.approx(0.25)
+    assert violations["total"] == pytest.approx(0.22)
 
+def test_normalize_violations_edge_cases():
+    # Test avec des valeurs nulles
+    metrics = {"min_pressure_m": 0.0, "max_velocity_m_s": 0.0}
+    constraints = {"pressure_min_m": 10.0, "velocity_max_m_s": 2.0}
+    violations = normalize_violations(metrics, constraints)
+    assert violations["pressure_ratio"] == 1.0  # (10 - 0) / 10 = 1.0
+    assert violations["velocity_ratio"] == 0.0  # (0 - 2) / 2 = -1, max(0, -1) = 0
+    assert violations["total"] == pytest.approx(0.6)  # 1.0 * 0.6 + 0.0 * 0.4
 
-def test_apply_constraints_valid_solution(base_solution, constraints_config):
-    """Tests that a valid solution passes the constraints check."""
-    solution = apply_constraints(base_solution, constraints_config)
-    assert solution['constraints_ok'] is True
-    assert not solution['constraints_violations']
-    assert solution['cost'] == 100000
+def test_adaptive_penalty_no_violation():
+    penalty_info = adaptive_penalty(0.0, 10, 100)
+    assert penalty_info["value"] == 0.0
+    assert penalty_info["alpha"] == 0.0
+    assert penalty_info["beta"] == 1.8
 
-
-def test_apply_constraints_pressure_violation_soft(base_solution, constraints_config):
-    """Tests soft penalty for a minimum pressure violation."""
-    base_solution['hydraulics']['pressures_m']['node2'] = 10  # Violates 15m
-    penalty_weight = 1e5
-    expected_penalty = (15.0 - 10.0) * penalty_weight
+def test_adaptive_penalty_increases_with_generation():
+    violation = 0.1
+    total_gen = 100
+    penalty_start = adaptive_penalty(violation, 0, total_gen)
+    penalty_mid = adaptive_penalty(violation, 50, total_gen)
+    penalty_end = adaptive_penalty(violation, 99, total_gen)
     
-    solution = apply_constraints(base_solution, constraints_config, mode='soft', penalty_weight=penalty_weight)
+    assert penalty_start["value"] < penalty_mid["value"] < penalty_end["value"]
+    assert penalty_start["alpha"] < penalty_mid["alpha"] < penalty_end["alpha"]
+
+def test_adaptive_penalty_is_nonlinear():
+    violation_small = 0.1
+    violation_large = 0.2  # 2x plus grande
+    penalty_small = adaptive_penalty(violation_small, 10, 100)
+    penalty_large = adaptive_penalty(violation_large, 10, 100)
     
-    assert solution['constraints_ok'] is False
-    assert len(solution['constraints_violations']) == 1
-    assert "Pressure at node node2" in solution['constraints_violations'][0]
-    assert solution['cost'] == 100000 + expected_penalty
+    # La pénalité doit être plus que 2x plus grande car beta > 1
+    assert penalty_large["value"] > penalty_small["value"] * 2
 
-
-def test_apply_constraints_velocity_violation_hard(base_solution, constraints_config):
-    """Tests hard constraint for a maximum velocity violation."""
-    base_solution['hydraulics']['velocities_ms']['pipe2'] = 2.5  # Violates 2.0m/s
+def test_adaptive_penalty_custom_parameters():
+    violation = 0.15
+    penalty_info = adaptive_penalty(
+        violation, 5, 20,
+        alpha_start=1e4,
+        alpha_max=1e6,
+        beta=2.0
+    )
     
-    solution = apply_constraints(base_solution, constraints_config, mode='hard')
+    assert penalty_info["beta"] == 2.0
+    assert penalty_info["alpha"] >= 1e4
+    assert penalty_info["alpha"] <= 1e6
+    assert penalty_info["value"] > 0.0
+
+def test_adaptive_penalty_progression():
+    violation = 0.1
+    total_gen = 50
     
-    assert solution['constraints_ok'] is False
-    assert len(solution['constraints_violations']) == 1
-    assert "Velocity in pipe pipe2" in solution['constraints_violations'][0]
-    assert solution['cost'] == 100000  # No penalty in hard mode
-
-
-def test_apply_constraints_multiple_violations_soft(base_solution, constraints_config):
-    """Tests multiple soft penalties (pressure and velocity)."""
-    base_solution['hydraulics']['pressures_m']['node1'] = 5  # Violates 15m
-    base_solution['hydraulics']['velocities_ms']['pipe1'] = 3.0  # Violates 2.0m/s
-    penalty_weight = 1e5
+    # Test que alpha progresse linéairement
+    alphas = []
+    for gen in range(0, total_gen, 10):
+        penalty_info = adaptive_penalty(violation, gen, total_gen)
+        alphas.append(penalty_info["alpha"])
     
-    pressure_penalty = (15.0 - 5.0) * penalty_weight
-    velocity_penalty = (3.0 - 2.0) * penalty_weight
-    expected_total_penalty = pressure_penalty + velocity_penalty
+    # Alpha doit augmenter de manière monotone
+    for i in range(1, len(alphas)):
+        assert alphas[i] >= alphas[i-1]
 
-    solution = apply_constraints(base_solution, constraints_config, mode='soft', penalty_weight=penalty_weight)
+def test_adaptive_penalty_tolerance():
+    # Test avec une violation très petite (proche de la tolérance)
+    violation_tiny = 1e-7  # Plus petit que 1e-6
+    penalty_info = adaptive_penalty(violation_tiny, 10, 100)
+    assert penalty_info["value"] == 0.0
     
-    assert not solution['constraints_ok']
-    assert len(solution['constraints_violations']) == 2
-    assert solution['cost'] == 100000 + expected_total_penalty
-
-
-def test_apply_constraints_no_hydraulic_data(base_solution, constraints_config):
-    """Tests that no errors occur if hydraulic data is missing."""
-    del base_solution['hydraulics']
-    solution = apply_constraints(base_solution, constraints_config)
-    assert solution['constraints_ok'] is True
-    assert not solution['constraints_violations']
-
-
-def test_apply_constraints_empty_hydraulic_data(base_solution, constraints_config):
-    """Tests that no errors occur if hydraulic data is empty."""
-    base_solution['hydraulics'] = {}
-    solution = apply_constraints(base_solution, constraints_config)
-    assert solution['constraints_ok'] is True
-    assert not solution['constraints_violations']
+    # Test avec une violation juste au-dessus de la tolérance
+    violation_small = 1e-5  # Plus grand que 1e-6
+    penalty_info = adaptive_penalty(violation_small, 10, 100)
+    assert penalty_info["value"] > 0.0

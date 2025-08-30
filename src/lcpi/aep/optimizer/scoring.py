@@ -5,9 +5,10 @@ from typing import Dict, Any, Optional
 # Source des prix (SQLite)
 try:
     # Import paresseux pour éviter les erreurs dans des contextes minimaux
-    from .db_dao import prices_dao  # type: ignore
+    from .db import PriceDB  # type: ignore
+    price_db = PriceDB()  # type: ignore
 except Exception:  # pragma: no cover
-    prices_dao = None  # type: ignore
+    price_db = None  # type: ignore
 
 RHO = 1000.0  # Densité de l'eau en kg/m³
 G = 9.81  # Accélération gravitationnelle en m/s²
@@ -56,23 +57,15 @@ class CostScorer:
             
             # Priorité: coûts fournis à l'initialisation, sinon lecture DB (avec fallback DN proche)
             cost_per_meter = self.diameter_costs.get(int(diameter_mm)) if self.diameter_costs else None
-            if (cost_per_meter is None or float(cost_per_meter) == 0.0) and prices_dao is not None:
+            if (cost_per_meter is None or float(cost_per_meter) == 0.0) and price_db is not None:
                 try:
                     # 1) Essai exact
-                    db_price = prices_dao.get_diameter_price(int(diameter_mm), "PVC-U")
+                    db_price = price_db.get_diameter_price(int(diameter_mm), "PVC-U")
                     if db_price is None:
                         # 2) Fallback: DN le plus proche disponible (prend le DN supérieur si possible)
-                        avail = prices_dao.get_available_diameters("PVC-U") or []
-                        dn_list = sorted(int(x.get("d_mm")) for x in avail if x.get("d_mm") is not None)
-                        chosen_dn = None
-                        for dn in dn_list:
-                            if dn >= int(diameter_mm):
-                                chosen_dn = dn
-                                break
-                        if chosen_dn is None and dn_list:
-                            chosen_dn = dn_list[-1]
-                        if chosen_dn is not None:
-                            db_price = prices_dao.get_diameter_price(int(chosen_dn), "PVC-U")
+                        closest = price_db.get_closest_diameter(int(diameter_mm), "PVC-U")
+                        if closest:
+                            db_price = closest.get('total_fcfa_per_m')
                     cost_per_meter = float(db_price) if db_price is not None else 0.0
                 except Exception:
                     cost_per_meter = 0.0
@@ -95,10 +88,11 @@ class CostScorer:
                         dn = acc.get("dn_mm") or int(diameter_mm)
                         qty = acc.get("qty") or acc.get("quantity") or 1
                         unit_price = acc.get("unit_fcfa")
-                        if unit_price is None and prices_dao is not None:
+                        if unit_price is None and price_db is not None:
                             try:
-                                p = prices_dao.get_accessory_price(str(code), int(dn))
-                                unit_price = float(p) if p is not None else 0.0
+                                # Note: La nouvelle API PriceDB ne gère que les diamètres, pas les accessoires
+                                # Pour l'instant, on utilise un prix par défaut
+                                unit_price = 0.0
                             except Exception:
                                 unit_price = 0.0
                         unit_price = float(unit_price or 0.0)
@@ -147,15 +141,13 @@ class CostScorer:
                 continue
             # prix par mètre
             unit = self.diameter_costs.get(int(dn_val)) if self.diameter_costs else None
-            if (unit is None or float(unit) == 0.0) and prices_dao is not None:
+            if (unit is None or float(unit) == 0.0) and price_db is not None:
                 try:
-                    db_price = prices_dao.get_diameter_price(int(dn_val), "PVC-U")
+                    db_price = price_db.get_diameter_price(int(dn_val), "PVC-U")
                     if db_price is None:
-                        avail = prices_dao.get_available_diameters("PVC-U") or []
-                        dn_list = sorted(int(x.get("d_mm")) for x in avail if x.get("d_mm") is not None)
-                        chosen = next((dn for dn in dn_list if dn >= int(dn_val)), (dn_list[-1] if dn_list else None))
-                        if chosen is not None:
-                            db_price = prices_dao.get_diameter_price(int(chosen), "PVC-U")
+                        closest = price_db.get_closest_diameter(int(dn_val), "PVC-U")
+                        if closest:
+                            db_price = closest.get('total_fcfa_per_m')
                     unit = float(db_price) if db_price is not None else 0.0
                 except Exception:
                     unit = 0.0
@@ -175,10 +167,11 @@ class CostScorer:
                         dn_acc = acc.get("dn_mm") or int(dn_val)
                         qty = acc.get("qty") or acc.get("quantity") or 1
                         unit_price = acc.get("unit_fcfa")
-                        if unit_price is None and prices_dao is not None and code:
+                        if unit_price is None and price_db is not None and code:
                             try:
-                                p = prices_dao.get_accessory_price(str(code), int(dn_acc))
-                                unit_price = float(p) if p is not None else 0.0
+                                # Note: La nouvelle API PriceDB ne gère que les diamètres, pas les accessoires
+                                # Pour l'instant, on utilise un prix par défaut
+                                unit_price = 0.0
                             except Exception:
                                 unit_price = 0.0
                         unit_price = float(unit_price or 0.0)

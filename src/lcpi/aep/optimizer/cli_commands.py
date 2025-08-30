@@ -26,7 +26,7 @@ from .algorithms.global_opt import GlobalOptimizer
 from .algorithms.nested import NestedGreedyOptimizer
 from .algorithms.multi_tank import MultiTankOptimizer
 from .algorithms.surrogate import SurrogateOptimizer
-from .db_dao import prices_dao, get_candidate_diameters
+from .db import PriceDB
 from .pareto import compute_pareto, knee_point
 from .io import load_yaml_or_inp
 
@@ -359,7 +359,9 @@ class AEPOptimizationCLI:
     
     def _list_diameters(self) -> None:
         """Liste tous les diamètres disponibles."""
-        diameters = get_candidate_diameters()
+        # Utiliser la nouvelle classe PriceDB
+        price_db = PriceDB()
+        diameters = price_db.get_candidate_diameters()
         
         if not diameters:
             console.print("⚠️  [yellow]Aucun diamètre trouvé dans la base de données[/yellow]")
@@ -372,7 +374,7 @@ class AEPOptimizationCLI:
         table.add_column("Total (FCFA/m)", style="yellow")
         
         for diam in diameters:
-            total = float(diam.get('cost_per_m', 0) or 0)
+            total = float(diam.get('total_fcfa_per_m', 0) or 0)
             supply = diam.get('supply_fcfa_per_m')
             pose = diam.get('pose_fcfa_per_m')
             # Si la DB renvoie seulement un total, estimer une répartition affichage 70/30
@@ -383,7 +385,7 @@ class AEPOptimizationCLI:
             pose = float(pose or 0)
             
             table.add_row(
-                str(diam.get("d_mm", "?")),
+                str(diam.get("dn_mm", "?")),
                 f"{supply:,.0f}",
                 f"{pose:,.0f}",
                 f"{total:,.0f}"
@@ -394,56 +396,60 @@ class AEPOptimizationCLI:
         # Afficher des statistiques
         total_diameters = len(diameters)
         try:
-            min_price = min(float(d.get('cost_per_m', 0) or 0) for d in diameters)
-            max_price = max(float(d.get('cost_per_m', 0) or 0) for d in diameters)
+            min_price = min(float(d.get('total_fcfa_per_m', 0) or 0) for d in diameters)
+            max_price = max(float(d.get('total_fcfa_per_m', 0) or 0) for d in diameters)
             console.print(f"\n📊 [dim]Statistiques: {total_diameters} diamètres, prix de {min_price:,.0f} à {max_price:,.0f} FCFA/m[/dim]")
         except Exception:
             console.print(f"\n📊 [dim]{total_diameters} diamètres listés[/dim]")
     
     def _add_diameter(self, diameter_mm: int, price_fcfa: float) -> None:
         """Ajoute un nouveau diamètre."""
-        # Demander les prix séparés
         console.print(f"➕ [bold green]Ajout du diamètre {diameter_mm}mm[/bold green]")
+        console.print(f"⚠️  [yellow]Note: La nouvelle API PriceDB est en lecture seule[/yellow]")
+        console.print(f"💡 [blue]Pour ajouter des diamètres, modifiez directement la base de données SQLite[/blue]")
         
-        # Pour l'instant, on divise le prix total en fourniture (70%) et pose (30%)
+        # Afficher les informations du diamètre proposé
         supply_price = price_fcfa * 0.7
         pose_price = price_fcfa * 0.3
         
-        success = prices_dao.add_diameter(diameter_mm, "PVC-U", supply_price, pose_price)
-        if success:
-            console.print(f"✅ Diamètre {diameter_mm}mm ajouté avec succès")
-            console.print(f"   - Fourniture: {supply_price:,.0f} FCFA/m")
-            console.print(f"   - Pose: {pose_price:,.0f} FCFA/m")
-            console.print(f"   - Total: {price_fcfa:,.0f} FCFA/m")
-        else:
-            console.print(f"❌ Erreur lors de l'ajout du diamètre {diameter_mm}mm")
+        console.print(f"📋 Diamètre proposé:")
+        console.print(f"   - DN: {diameter_mm}mm")
+        console.print(f"   - Fourniture: {supply_price:,.0f} FCFA/m")
+        console.print(f"   - Pose: {pose_price:,.0f} FCFA/m")
+        console.print(f"   - Total: {price_fcfa:,.0f} FCFA/m")
     
     def _remove_diameter(self, diameter_mm: int) -> None:
         """Supprime un diamètre."""
         console.print(f"➖ [bold red]Suppression du diamètre {diameter_mm}mm[/bold red]")
+        console.print(f"⚠️  [yellow]Note: La nouvelle API PriceDB est en lecture seule[/yellow]")
+        console.print(f"💡 [blue]Pour supprimer des diamètres, modifiez directement la base de données SQLite[/blue]")
         
-        success = prices_dao.remove_diameter(diameter_mm, "PVC-U")
-        if success:
-            console.print(f"✅ Diamètre {diameter_mm}mm supprimé avec succès")
+        # Vérifier si le diamètre existe
+        price_db = PriceDB()
+        existing_price = price_db.get_diameter_price(diameter_mm, "PVC-U")
+        if existing_price:
+            console.print(f"📋 Diamètre existant trouvé:")
+            console.print(f"   - DN: {diameter_mm}mm")
+            console.print(f"   - Prix actuel: {existing_price:,.0f} FCFA/m")
         else:
-            console.print(f"❌ Erreur lors de la suppression du diamètre {diameter_mm}mm")
+            console.print(f"❌ Diamètre {diameter_mm}mm non trouvé dans la base de données")
     
     def _update_diameter(self, diameter_mm: int, price_fcfa: float) -> None:
         """Met à jour le prix d'un diamètre."""
         console.print(f"🔄 [bold blue]Mise à jour du diamètre {diameter_mm}mm[/bold blue]")
+        console.print(f"⚠️  [yellow]Note: La nouvelle API PriceDB est en lecture seule[/yellow]")
+        console.print(f"💡 [blue]Pour modifier des diamètres, modifiez directement la base de données SQLite[/blue]")
         
-        # Pour l'instant, on divise le prix total en fourniture (70%) et pose (30%)
-        supply_price = price_fcfa * 0.7
-        pose_price = price_fcfa * 0.3
-        
-        success = prices_dao.update_diameter(diameter_mm, "PVC-U", supply_price, pose_price)
-        if success:
-            console.print(f"✅ Diamètre {diameter_mm}mm mis à jour avec succès")
-            console.print(f"   - Nouveau prix total: {price_fcfa:,.0f} FCFA/m")
-            console.print(f"   - Fourniture: {supply_price:,.0f} FCFA/m")
-            console.print(f"   - Pose: {pose_price:,.0f} FCFA/m")
+        # Vérifier si le diamètre existe
+        price_db = PriceDB()
+        existing_price = price_db.get_diameter_price(diameter_mm, "PVC-U")
+        if existing_price:
+            console.print(f"📋 Diamètre existant:")
+            console.print(f"   - DN: {diameter_mm}mm")
+            console.print(f"   - Prix actuel: {existing_price:,.0f} FCFA/m")
+            console.print(f"   - Nouveau prix proposé: {price_fcfa:,.0f} FCFA/m")
         else:
-            console.print(f"❌ Erreur lors de la mise à jour du diamètre {diameter_mm}mm")
+            console.print(f"❌ Diamètre {diameter_mm}mm non trouvé dans la base de données")
 
 
 # Instance globale pour utilisation

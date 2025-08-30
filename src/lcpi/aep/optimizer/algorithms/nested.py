@@ -11,7 +11,7 @@ from ..io import NetworkModel, convert_to_solver_network_data
 from ..solvers import EPANETOptimizer
 from ..solvers.lcpi_optimizer import LCPIOptimizer
 from ..scoring import CostScorer
-from ..db_dao import get_candidate_diameters
+from ..db import PriceDB
 from ..models import OptimizationResult, Proposal, TankDecision
 from ...utils.warnings_filter import suppress_warnings_decorator
 

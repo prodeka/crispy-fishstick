@@ -1,13 +1,29 @@
 from __future__ import annotations
 
 import sqlite3
-from pathlib import Path
-from typing import Dict, List, Optional, Tuple, Any
-import hashlib
-import logging
-
 import yaml
+import logging
+import os
+import hashlib
+from typing import List, Dict, Optional, Any
+from pydantic import BaseModel, Field, validator, ValidationError
+from pathlib import Path
+from datetime import datetime, timezone
 
+# --- Classe de validation à ajouter ---
+class PipeData(BaseModel):
+    dn_mm: int = Field(gt=0, description="Diamètre Nominal en mm")
+    material: str = Field(min_length=1, description="Matériau de la conduite")
+    supply_fcfa_per_m: Optional[float] = Field(default=None, ge=0)
+    pose_fcfa_per_m: Optional[float] = Field(default=None, ge=0)
+    total_fcfa_per_m: float = Field(ge=0)
+    source_method: str
+
+    @validator('material')
+    def material_must_not_be_empty(cls, v):
+        if not v or not v.strip():
+            raise ValueError('Le matériau ne peut pas être vide')
+        return v
 
 # --- Modèle de tarification réaliste (loi de puissance) ---
 
@@ -86,7 +102,7 @@ class PriceDB:
     avec des mécanismes de fallback robustes.
     """
     
-    def __init__(self, db_path: Optional[str | Path] = None):
+    def __init__(self, db_path: Optional[str] = None):
         """
         Initialise la base de données des prix.
         
@@ -94,212 +110,91 @@ class PriceDB:
             db_path: Chemin vers la base de données SQLite ou fichier YAML.
                     Si None, utilise le chemin par défaut.
         """
-        if db_path is None:
-            # Chemin par défaut relatif au module
-            db_path = Path(__file__).parent.parent.parent / "db" / "aep_prices.db"
+        self.logger = logging.getLogger(self.__class__.__name__)
+        self.db_path = self._resolve_db_path(db_path)
+        self.db_info = {}
+        self._conn: Optional[sqlite3.Connection] = None
         
-        self.db_path = Path(db_path)
-        self._is_yaml = self.db_path.suffix.lower() in (".yml", ".yaml")
-        self._logger = logging.getLogger(__name__)
-        
-        # Vérifier l'existence et la validité de la base
-        self._validate_database()
-    
-    def _validate_database(self) -> None:
-        """Valide la base de données et configure les fallbacks si nécessaire."""
-        if not self.db_path.exists():
-            self._logger.warning(f"Base de données introuvable: {self.db_path}")
-            self._logger.info("Utilisation des valeurs de fallback par défaut")
-            return
-        
-        try:
-            if self._is_yaml:
-                self._validate_yaml_db()
+        # Le chargement des données se fait UNE SEULE FOIS ici (cache mémoire)
+        self._candidate_diameters: List[PipeData] = self._load_data_with_validation()
+
+    def __del__(self):
+        """Destructeur pour fermer proprement la connexion à la base de données."""
+        if hasattr(self, '_conn') and self._conn:
+            self.logger.info("Fermeture de la connexion à la base de données.")
+            self._conn.close()
+
+    def _resolve_db_path(self, path: Optional[str]) -> Optional[str]:
+        """Résout le chemin de la DB et le valide."""
+        if path:
+            abs_path = os.path.abspath(path)
+            if os.path.exists(abs_path):
+                return abs_path
             else:
-                self._validate_sqlite_db()
-        except Exception as e:
-            self._logger.error(f"Erreur lors de la validation de la base: {e}")
-            self._logger.info("Utilisation des valeurs de fallback par défaut")
-    
-    def _validate_sqlite_db(self) -> None:
-        """Valide une base de données SQLite."""
-        try:
-            with sqlite3.connect(self.db_path) as conn:
-                cursor = conn.cursor()
-                
-                # Vérifier les tables essentielles
-                cursor.execute("SELECT name FROM sqlite_master WHERE type='table'")
-                tables = {row[0] for row in cursor.fetchall()}
-                
-                required_tables = {'diameters', 'accessories'}
-                if not required_tables.issubset(tables):
-                    missing = required_tables - tables
-                    raise ValueError(f"Tables manquantes: {missing}")
-                
-                # Vérifier le contenu minimal
-                cursor.execute("SELECT COUNT(*) FROM diameters")
-                diameter_count = cursor.fetchone()[0]
-                if diameter_count == 0:
-                    raise ValueError("Table diameters vide")
-                
-                self._logger.info(f"Base SQLite validée: {diameter_count} diamètres disponibles")
-                
-        except Exception as e:
-            raise ValueError(f"Base SQLite invalide: {e}")
-    
-    def _validate_yaml_db(self) -> None:
-        """Valide un fichier YAML de base de données."""
-        try:
-            data = yaml.safe_load(self.db_path.read_text(encoding="utf-8"))
-            if not isinstance(data, list) or not data:
-                raise ValueError("Structure YAML invalide")
-            
-            # Vérifier la structure minimale
-            if not all("dn_mm" in item for item in data):
-                raise ValueError("Champ 'dn_mm' manquant dans certains éléments")
-            
-            self._logger.info(f"Base YAML validée: {len(data)} diamètres disponibles")
-            
-        except Exception as e:
-            raise ValueError(f"Base YAML invalide: {e}")
-    
-    def get_database_info(self) -> Dict[str, Any]:
-        """
-        Retourne les informations sur la base de données.
+                self.logger.warning(f"Le chemin personnalisé spécifié n'existe pas : {abs_path}")
+                return None
         
-        Returns:
-            Dictionnaire avec les métadonnées de la base
-        """
-        info = {
-            "path": str(self.db_path),
-            "exists": self.db_path.exists(),
-            "type": "yaml" if self._is_yaml else "sqlite",
-            "fallback_used": not self.db_path.exists()
-        }
-        
-        if self.db_path.exists():
-            try:
-                # Calculer le checksum pour la traçabilité
-                checksum = self._calculate_checksum()
-                info["checksum"] = checksum
-                info["size_bytes"] = self.db_path.stat().st_size
-                
-                # Informations sur le contenu
-                if self._is_yaml:
-                    data = yaml.safe_load(self.db_path.read_text(encoding="utf-8"))
-                    info["diameter_count"] = len(data) if isinstance(data, list) else 0
-                else:
-                    with sqlite3.connect(self.db_path) as conn:
-                        cursor = conn.cursor()
-                        cursor.execute("SELECT COUNT(*) FROM diameters")
-                        info["diameter_count"] = cursor.fetchone()[0]
-                        
-                        cursor.execute("SELECT COUNT(*) FROM accessories")
-                        info["accessory_count"] = cursor.fetchone()[0]
-                        
-            except Exception as e:
-                info["error"] = str(e)
-        
-        return info
-    
-    def _calculate_checksum(self) -> str:
-        """Calcule le checksum SHA-256 de la base de données."""
+        # Logique de recherche du chemin par défaut
         try:
-            with open(self.db_path, 'rb') as f:
-                content = f.read()
-                return hashlib.sha256(content).hexdigest()[:16]
+            # Chemin relatif au fichier db.py
+            default_path = os.path.join(os.path.dirname(__file__), '..', '..', 'db', 'aep_prices.db')
+            abs_path = os.path.abspath(default_path)
+            if os.path.exists(abs_path):
+                return abs_path
         except Exception:
-            return "unknown"
-    
-    def get_candidate_diameters(self, material: Optional[str] = None) -> List[Dict[str, Any]]:
-        """
-        Récupère les diamètres candidats depuis la source de données.
+            pass
         
-        Args:
-            material: Matériau spécifique (optionnel)
-            
-        Returns:
-            Liste des diamètres avec leurs coûts (structure canonique)
-        """
-        if not self.db_path.exists():
-            return self._get_fallback_diameters(material)
+        self.logger.warning("Aucun chemin de base de données valide n'a pu être trouvé.")
+        return None
+
+    def _load_data_with_validation(self) -> List[PipeData]:
+        """Orchestre le chargement et la validation des données."""
+        raw_data = []
+        source_type = "none"
+        if self.db_path and self.db_path.endswith(".db"):
+            try:
+                raw_data = self._load_from_sqlite()
+                source_type = "sqlite"
+            except Exception as e:
+                self.logger.error(f"Échec du chargement depuis SQLite ({self.db_path}): {e}")
         
-        try:
-            if self._is_yaml:
-                return self._get_diameters_from_yaml(material)
-            else:
-                return self._get_diameters_from_sqlite(material)
-        except Exception as e:
-            self._logger.warning(f"Erreur lors de la lecture des diamètres: {e}")
-            return self._get_fallback_diameters(material)
-    
-    def _get_diameters_from_sqlite(self, material: Optional[str] = None) -> List[Dict[str, Any]]:
-        """Récupère les diamètres depuis SQLite avec structure canonique."""
-        with sqlite3.connect(self.db_path) as conn:
-            cursor = conn.cursor()
-            
-            if material:
-                cursor.execute(
-                    "SELECT dn_mm, supply_fcfa_per_m, pose_fcfa_per_m, total_fcfa_per_m, material, source_method FROM diameters WHERE material=? ORDER BY dn_mm",
-                    (material,)
-                )
-            else:
-                cursor.execute(
-                    "SELECT dn_mm, supply_fcfa_per_m, pose_fcfa_per_m, total_fcfa_per_m, material, source_method FROM diameters ORDER BY dn_mm"
-                )
-            
-            results = cursor.fetchall()
-            return [
-                {
-                    "dn_mm": row[0],
-                    "supply_fcfa_per_m": row[1],
-                    "pose_fcfa_per_m": row[2],
-                    "total_fcfa_per_m": row[3],
-                    "material": row[4],
-                    "source_method": row[5] if len(row) > 5 else "sqlite"
-                }
-                for row in results
-            ]
-    
-    def _get_diameters_from_yaml(self, material: Optional[str] = None) -> List[Dict[str, Any]]:
-        """Récupère les diamètres depuis YAML avec structure canonique."""
-        data = yaml.safe_load(self.db_path.read_text(encoding="utf-8"))
-        
-        if not isinstance(data, list):
-            return []
-        
-        diameters = []
-        for item in data:
-            if not isinstance(item, dict) or "dn_mm" not in item:
-                continue
-            
-            if material and item.get("material") != material:
-                continue
-            
-            # Structure canonique avec valeurs par défaut si manquantes
-            diameters.append({
-                "dn_mm": item["dn_mm"],
-                "supply_fcfa_per_m": item.get("supply_fcfa_per_m", 0.0),
-                "pose_fcfa_per_m": item.get("pose_fcfa_per_m", 0.0),
-                "total_fcfa_per_m": item.get("total_fcfa_per_m", item.get("cost_per_m", 0.0)),
-                "material": item.get("material", "Unknown"),
-                "source_method": item.get("source_method", "yaml")
-            })
-        
-        return sorted(diameters, key=lambda x: x["dn_mm"])
-    
-    def _get_fallback_diameters(self, material: Optional[str] = None) -> List[Dict[str, Any]]:
+        if not raw_data:
+            self.logger.warning("Base de données non disponible ou vide. Utilisation du fallback.")
+            raw_data = self._get_fallback_data()
+            source_type = "fallback"
+
+        validated_data = []
+        for i, row in enumerate(raw_data):
+            try:
+                # C'est ici que la validation Pydantic a lieu !
+                validated_data.append(PipeData(**row))
+            except ValidationError as e:
+                self.logger.error(f"Donnée invalide (ligne ~{i+1}) de la source '{source_type}' ignorée. Détails : {e}")
+
+        self._update_db_info(source_type, len(validated_data))
+        return validated_data
+
+    def _update_db_info(self, source_type: str, data_count: int) -> None:
+        """Met à jour les informations de la base de données."""
+        self.db_info.update({
+            "path": self.db_path if source_type != 'fallback' else 'N/A',
+            "type": source_type,
+            "fallback_used": source_type == 'fallback',
+            "diameter_count": data_count,
+            "timestamp_utc": datetime.now(timezone.utc).isoformat()
+        })
+        # La logique de version est déjà gérée ailleurs, on la laisse
+        if 'db_version' not in self.db_info:
+            self.db_info['db_version'] = "1.0.0" # Valeur par défaut si non lue
+
+    def _get_fallback_data(self) -> List[Dict]:
         """Génère la liste de fallback avec des prix calculés de manière réaliste et structure canonique."""
-        self._logger.warning("Utilisation des diamètres de fallback internes avec modèle de tarification réaliste.")
+        self.logger.warning("Utilisation des diamètres de fallback internes avec modèle de tarification réaliste.")
         
         fallback_data = []
         for item in FALLBACK_DIAMETERS_BASE:
             dn_mm = item["dn_mm"]
             item_material = item["material"]
-            
-            # Filtrer par matériau si spécifié
-            if material and item_material != material:
-                continue
             
             # Calculer le prix dynamiquement avec le modèle réaliste
             price = _get_realistic_pipe_price(dn_mm, item_material)
@@ -316,6 +211,40 @@ class PriceDB:
         
         return sorted(fallback_data, key=lambda x: x["dn_mm"])
     
+    def get_database_info(self) -> Dict[str, Any]:
+        """Renvoie les métadonnées sur la source de données actuellement utilisée."""
+        # S'assure que les dernières infos sont à jour
+        self.db_info['diameter_count'] = len(self._candidate_diameters)
+        self.db_info['fallback_used'] = self.db_info.get('type') == 'fallback'
+        return self.db_info
+
+    def get_candidate_diameters(self, material: Optional[str] = None) -> List[Dict]:
+        """Renvoie la liste des diamètres candidats sous forme de dictionnaires."""
+        if material:
+            return [d.model_dump() for d in self._candidate_diameters if d.material.upper() == material.upper()]
+        return [d.model_dump() for d in self._candidate_diameters]
+    
+    def _load_from_sqlite(self) -> List[Dict]:
+        """Charge les données depuis SQLite et vérifie la version."""
+        if not self.db_path: raise FileNotFoundError("Le chemin de la DB est nul.")
+
+        self._conn = sqlite3.connect(f"file:{self.db_path}?mode=ro", uri=True) # Connexion en lecture seule
+        self._conn.row_factory = sqlite3.Row
+        cursor = self._conn.cursor()
+        
+        # Vérification de la version
+        try:
+            cursor.execute("SELECT value FROM metadata WHERE key = 'db_version'")
+            version_row = cursor.fetchone()
+            self.db_info['db_version'] = version_row[0] if version_row else "N/A"
+        except sqlite3.Error:
+            self.logger.warning("Table 'metadata' non trouvée ou invalide. Version inconnue.")
+            self.db_info['db_version'] = "inconnue"
+
+        cursor.execute("SELECT dn_mm, material, supply_fcfa_per_m, pose_fcfa_per_m, total_fcfa_per_m FROM diameters ORDER BY dn_mm ASC")
+        rows = cursor.fetchall()
+        return [{**row, "source_method": "sqlite"} for row in rows]
+    
     def get_diameter_price(self, dn_mm: int, material: Optional[str] = None) -> Optional[float]:
         """
         Obtient le prix d'un diamètre spécifique.
@@ -327,98 +256,135 @@ class PriceDB:
         Returns:
             Prix total en FCFA/m ou None si non trouvé
         """
-        diameters = self.get_candidate_diameters(material)
+        candidates = [d for d in self._candidate_diameters if not material or d.material == material]
         
-        for diameter in diameters:
-            if diameter["dn_mm"] == dn_mm:
-                return diameter["total_fcfa_per_m"]
+        for diameter in candidates:
+            if diameter.dn_mm == dn_mm:
+                return diameter.total_fcfa_per_m
         
         return None
     
-    def get_closest_diameter(self, target_dn_mm: int, material: Optional[str] = None) -> Optional[Dict[str, Any]]:
+    def get_closest_diameter(self, target_d_mm: int, material: Optional[str] = None, prefer_larger: bool = True) -> Optional[Dict]:
         """
-        Trouve le diamètre le plus proche d'une valeur cible.
+        Trouve le diamètre commercial le plus proche d'une valeur cible.
+        En cas d'égalité de distance, préfère le plus grand.
+        """
+        candidates = [d for d in self._candidate_diameters if not material or d.material == material]
+        if not candidates: return None
         
-        Args:
-            target_dn_mm: Diamètre cible en mm
-            material: Matériau (optionnel)
+        # Logique de tri complexe pour gérer les égalités
+        # Trie d'abord par la distance absolue, puis par le diamètre (décroissant si prefer_larger)
+        best_match = min(candidates, key=lambda p: (
+            abs(p.dn_mm - target_d_mm),
+            -p.dn_mm if prefer_larger else p.dn_mm 
+        ))
+        return best_match.model_dump()
+
+    def reload(self) -> None:
+        """
+        Force le rechargement des données depuis la source de données configurée.
+        Invalide le cache mémoire actuel.
+        """
+        self.logger.info(f"Rechargement des données demandé depuis '{self.db_path or 'fallback'}'...")
+        
+        # Ferme l'ancienne connexion si elle existe
+        if self._conn:
+            self._conn.close()
+            self._conn = None
             
-        Returns:
-            Diamètre le plus proche avec structure canonique ou None
+        # Relance le processus de chargement et de validation
+        self._candidate_diameters = self._load_data_with_validation()
+        self.logger.info(f"Rechargement terminé. {self.db_info['diameter_count']} diamètres chargés depuis la source '{self.db_info['type']}'.")
+
+    def get_price_for_length(self, dn_mm: int, length_m: float, material: Optional[str] = None) -> Optional[float]:
         """
-        diameters = self.get_candidate_diameters(material)
-        
-        if not diameters:
-            return None
-        
-        # Trouver le diamètre le plus proche
-        closest = min(diameters, key=lambda x: abs(x["dn_mm"] - target_dn_mm))
-        
-        # Log si on utilise un diamètre différent
-        if closest["dn_mm"] != target_dn_mm:
-            self._logger.info(
-                f"Diamètre {target_dn_mm}mm non trouvé, utilisation de {closest['dn_mm']}mm "
-                f"(différence: {abs(closest['dn_mm'] - target_dn_mm)}mm)"
-            )
-        
-        return closest
-
-
-class DiameterDAO:
-    """Data Access Object pour les diamètres et leurs coûts."""
-
-    def __init__(self, db_path: Optional[str] = None):
-        self.db_path = db_path
-        self._is_yaml = db_path and Path(db_path).suffix.lower() in (".yml", ".yaml")
-
-    def get_candidate_diameters(self) -> List[Dict[str, Any]]:
+        Calcule le coût total pour une conduite d'un diamètre et d'une longueur donnés.
+        Renvoie le coût total, ou None si le diamètre n'est pas trouvé.
         """
-        Récupère les diamètres candidats depuis la source de données (SQLite ou YAML).
-        Retourne une liste de dictionnaires avec structure canonique.
-        """
-        if self.db_path and not self._is_yaml:
-            # Logique pour lire depuis une base de données SQLite
-            try:
-                con = sqlite3.connect(self.db_path)
-                cur = con.cursor()
-                res = cur.execute("SELECT dn_mm, total_fcfa_per_m, material FROM diameters ORDER BY dn_mm ASC")
-                candidates = [{"dn_mm": row[0], "total_fcfa_per_m": row[1], "material": row[2]} for row in res.fetchall()]
-                con.close()
-                if candidates:
-                    return candidates
-            except sqlite3.Error:
-                # Si la DB échoue, on utilise le fallback
-                pass
+        if length_m < 0:
+            return 0.0
 
-        if self.db_path and self._is_yaml:
-            # Logique pour lire depuis un fichier YAML
-            try:
-                db = yaml.safe_load(Path(self.db_path).read_text(encoding="utf-8")) or []
-                # Valider la structure minimale
-                if isinstance(db, list) and all("dn_mm" in row for row in db):
-                    return sorted(db, key=lambda x: x["dn_mm"])
-            except (IOError, yaml.YAMLError):
-                # Si le YAML échoue, on utilise le fallback
-                pass
+        # On utilise le cache interne pour la performance
+        candidates = self._candidate_diameters
         
-        # Fallback si aucune source de données n'est fournie ou ne fonctionne
-        # Utiliser la nouvelle structure harmonisée
-        fallback_data = []
-        for item in FALLBACK_DIAMETERS_BASE:
-            dn_mm = item["dn_mm"]
-            material = item["material"]
-            price = _get_realistic_pipe_price(dn_mm, material)
+        # Filtre par matériau si spécifié
+        if material:
+            candidates = [p for p in candidates if p.material.upper() == material.upper()]
+
+        for pipe in candidates:
+            if pipe.dn_mm == dn_mm:
+                return pipe.total_fcfa_per_m * length_m
+                
+        self.logger.warning(f"Diamètre {dn_mm} (matériau: {material or 'any'}) non trouvé. Impossible de calculer le prix.")
+        return None
+
+    def dump_candidates_to_csv(self, output_path: str) -> None:
+        """
+        Exporte la liste complète des diamètres candidats chargés en mémoire vers un fichier CSV.
+        """
+        import csv
+        
+        if not self._candidate_diameters:
+            self.logger.warning("Aucun diamètre candidat à exporter.")
+            return
+
+        try:
+            # Pydantic .model_dump() nous donne les dictionnaires
+            candidates_dicts = [p.model_dump() for p in self._candidate_diameters]
+            keys = candidates_dicts[0].keys()
             
-            fallback_data.append({
-                "dn_mm": dn_mm,
-                "total_fcfa_per_m": price,
-                "material": material
-            })
-        
-        return sorted(fallback_data, key=lambda x: x["dn_mm"])
+            output_dir = os.path.dirname(output_path)
+            if output_dir:
+                os.makedirs(output_dir, exist_ok=True)
 
-def get_candidate_diameters(db_path: Optional[str] = None) -> List[Dict[str, Any]]:
-    """Fonction utilitaire pour un accès simple."""
-    dao = DiameterDAO(db_path)
-    return dao.get_candidate_diameters()
+            with open(output_path, 'w', newline='', encoding='utf-8') as output_file:
+                dict_writer = csv.DictWriter(output_file, fieldnames=keys)
+                dict_writer.writeheader()
+                dict_writer.writerows(candidates_dicts)
+            self.logger.info(f"Liste des {len(candidates_dicts)} diamètres candidats exportée avec succès vers {output_path}")
+        except Exception as e:
+            self.logger.error(f"Échec de l'exportation CSV vers {output_path}: {e}")
+            raise
+
+    def run_sanity_checks(self, min_expected_price: float = 100.0, max_expected_price: float = 1000000.0) -> bool:
+        """
+        Effectue des vérifications statistiques sur les données chargées pour détecter des anomalies.
+        Renvoie True si tout est OK, False en cas d'alerte.
+        """
+        self.logger.info("Lancement des vérifications de cohérence (sanity checks) sur les données de prix...")
+        is_sane = True
+        if not self._candidate_diameters:
+            self.logger.error("Sanity Check ÉCHOUÉ : Aucune donnée de diamètre n'a été chargée.")
+            return False
+
+        # 1. Vérification de la plage de prix
+        for pipe in self._candidate_diameters:
+            if not (min_expected_price <= pipe.total_fcfa_per_m <= max_expected_price):
+                self.logger.warning(
+                    f"Sanity Check [ALERTE PRIX] : Le prix pour DN {pipe.dn_mm} ({pipe.material}) "
+                    f"est de {pipe.total_fcfa_per_m:,.0f} FCFA/m, ce qui est en dehors de la plage attendue "
+                    f"[{min_expected_price:,.0f}, {max_expected_price:,.0f}]."
+                )
+                is_sane = False
+
+        # 2. Vérification de la monotonicité (le prix doit augmenter avec le diamètre par matériau)
+        materials = sorted({p.material for p in self._candidate_diameters})
+        for material in materials:
+            material_pipes = sorted([p for p in self._candidate_diameters if p.material == material], key=lambda p: p.dn_mm)
+            for i in range(len(material_pipes) - 1):
+                if material_pipes[i].total_fcfa_per_m > material_pipes[i+1].total_fcfa_per_m:
+                    self.logger.warning(
+                        f"Sanity Check [ALERTE MONOTONICITÉ] ({material}) : Le prix du DN {material_pipes[i].dn_mm} "
+                        f"({material_pipes[i].total_fcfa_per_m:,.0f}) est supérieur à celui du DN {material_pipes[i+1].dn_mm} "
+                        f"({material_pipes[i+1].total_fcfa_per_m:,.0f})."
+                    )
+                    is_sane = False
+                    
+        if is_sane:
+            self.logger.info("Sanity checks passés avec succès.")
+        return is_sane
+
+
+# Les classes DiameterDAO et la fonction get_candidate_diameters ne sont plus nécessaires
+# avec le nouveau système centralisé dans la classe PriceDB
 

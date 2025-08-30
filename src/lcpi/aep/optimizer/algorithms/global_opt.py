@@ -56,7 +56,7 @@ except Exception:  # pragma: no cover
 from ..models import OptimizationConfig, OptimizationResult, Proposal, TankDecision
 from ..solvers import EPANETOptimizer
 from ..scoring import CostScorer
-from ..db_dao import get_candidate_diameters
+from ..db import PriceDB
 from ..inp_utils import count_pipes
 
 # Structure pour passer les données à l'évaluation parallèle
@@ -331,7 +331,9 @@ class TankAEPProblem(Problem):
         
         # Bornes des variables
         h_bounds = list(config.h_bounds_m.values())[0]
-        self.num_diams = len(get_candidate_diameters())
+        # Utiliser la nouvelle classe PriceDB
+        price_db = PriceDB()
+        self.num_diams = len(price_db.get_candidate_diameters())
         xl = np.array([h_bounds[0]] + [0] * num_pipes)
         xu = np.array([h_bounds[1]] + [self.num_diams - 1] * num_pipes)
 
